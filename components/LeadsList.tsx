@@ -79,7 +79,7 @@ import {
   Archive,
   TrendingUp as TrendingUpIcon
 } from 'lucide-react';
-import { toast } from "sonner@2.0.3";
+import { toast } from "sonner";
 
 interface LeadsListProps {
   initialFilters?: any;
@@ -533,7 +533,7 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
     notes: '',
     tags: []
   });
-  
+
   const [callForm, setCallForm] = useState({
     type: 'discovery',
     scheduledTime: '',
@@ -541,7 +541,7 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
     agenda: '',
     notes: ''
   });
-  
+
   const [meetingForm, setMeetingForm] = useState({
     type: 'business_meeting',
     title: '',
@@ -552,7 +552,7 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
     agenda: '',
     objectives: ''
   });
-  
+
   const [demoForm, setDemoForm] = useState({
     type: 'product_demo',
     title: '',
@@ -595,7 +595,7 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
         ...prev,
         ...initialFilters
       }));
-      
+
       // Handle new lead data from corporate search
       if (initialFilters.newLead) {
         const newLead = {
@@ -605,7 +605,7 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
           title: initialFilters.newLead.title || 'Decision Maker',
           email: initialFilters.newLead.email,
           phone: initialFilters.newLead.phone,
-          website: initialFilters.newLead.website || `https://www.${initialFilters.newLead.company.toLowerCase().replace(/\s+/g, '')}.com`,
+          website: initialFilters.newLead.website || `https://wwwwww.techcorpsolutions.com${initialFilters.newLead.company.toLowerCase().replace(/\s+/g, '')}.com`,
           industry: initialFilters.newLead.industry,
           employees: initialFilters.newLead.employees,
           revenue: initialFilters.newLead.revenue,
@@ -637,10 +637,10 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
             }
           ]
         };
-        
+
         setLeads(prev => [newLead, ...prev]);
         setSuccessMessage(initialFilters.message || `${initialFilters.newLead.company} has been successfully added as a lead`);
-        
+
         // Clear success message after 5 seconds
         setTimeout(() => setSuccessMessage(''), 5000);
       }
@@ -720,7 +720,7 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
 
   const getNextActionSuggestions = (status: string, lastContact: string) => {
     const daysSinceContact = Math.floor((new Date().getTime() - new Date(lastContact).getTime()) / (1000 * 60 * 60 * 24));
-    
+
     switch (status) {
       case 'contacted':
         if (daysSinceContact >= 3) {
@@ -803,10 +803,10 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
     if (selectedLead) {
       // Remove the lead from the list
       setLeads(prev => prev.filter(lead => lead.id !== selectedLead.id));
-      
+
       // Show toast notification
       toast.success(`You have successfully disqualified ${selectedLead.company}.`);
-      
+
       // Close modal and reset form
       setShowDisqualifyDialog(false);
       setDisqualifyForm({ reason: '' });
@@ -819,10 +819,10 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
     if (selectedLead) {
       // Remove the lead from the list (same as submit)
       setLeads(prev => prev.filter(lead => lead.id !== selectedLead.id));
-      
+
       // Show toast notification
       toast.success(`You have successfully disqualified ${selectedLead.company}.`);
-      
+
       // Close modal and reset form
       setShowDisqualifyDialog(false);
       setDisqualifyForm({ reason: '' });
@@ -879,7 +879,7 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
       expansionPlans: 'Moderate',
       riskLevel: 'Low'
     };
-    
+
     setSelectedLead(corporateData);
     setShowOfferCreation(true);
   };
@@ -1018,7 +1018,7 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
     }
 
     const selectedAgent = salesAgents.find(agent => agent.id === assignForm.agent);
-    
+
     // Handle multiple leads or single lead
     if (selectedLead.isMultiple) {
       // Bulk assignment
@@ -1072,7 +1072,7 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
 
       setSuccessMessage(`${selectedLead.company} has been assigned to ${selectedAgent.name}`);
     }
-    
+
     setTimeout(() => setSuccessMessage(''), 5000);
     setShowAssignDialog(false);
   };
@@ -1160,7 +1160,7 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
   const handleSaveCall = () => {
     console.log('Scheduling call:', { lead: selectedLead, call: callForm });
     setShowCallDialog(false);
-    
+
     // Update lead status and notes
     setLeads(leads.map(lead => 
       lead.id === selectedLead.id 
@@ -1182,7 +1182,7 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
           }
         : lead
     ));
-    
+
     setSuccessMessage(`Call scheduled with ${selectedLead.company} for ${callForm.scheduledTime}`);
     setTimeout(() => setSuccessMessage(''), 5000);
   };
@@ -1190,7 +1190,7 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
   const handleSaveMeeting = () => {
     console.log('Scheduling meeting:', { lead: selectedLead, meeting: meetingForm });
     setShowMeetingDialog(false);
-    
+
     // Update lead status and notes
     setLeads(leads.map(lead => 
       lead.id === selectedLead.id 
@@ -1212,7 +1212,7 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
           }
         : lead
     ));
-    
+
     setSuccessMessage(`Meeting scheduled with ${selectedLead.company} for ${meetingForm.scheduledTime}`);
     setTimeout(() => setSuccessMessage(''), 5000);
   };
@@ -1220,7 +1220,7 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
   const handleSaveDemo = () => {
     console.log('Scheduling demo:', { lead: selectedLead, demo: demoForm });
     setShowDemoDialog(false);
-    
+
     // Update lead status and notes
     setLeads(leads.map(lead => 
       lead.id === selectedLead.id 
@@ -1242,7 +1242,7 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
           }
         : lead
     ));
-    
+
     setSuccessMessage(`Product demo scheduled with ${selectedLead.company} for ${demoForm.scheduledTime}`);
     setTimeout(() => setSuccessMessage(''), 5000);
   };
@@ -1436,7 +1436,7 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
           <span className="text-green-800">{successMessage}</span>
         </div>
       )}
-      
+
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -1750,7 +1750,7 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
           <div className="space-y-4">
             {filteredLeads.map((lead) => {
               const nextActionSuggestion = getNextActionSuggestions(lead.status, lead.lastContact);
-              
+
               return (
                 <Card key={lead.id} className="shadow-sm hover:shadow-md transition-shadow">
                   <CardContent className="p-6">
@@ -2201,7 +2201,7 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
                 selectedLead.history.map((item, index) => {
                   const IconComponent = getHistoryIcon(item.icon);
                   const iconColor = getHistoryIconColor(item.type);
-                  
+
                   return (
                     <div key={item.id} className="flex gap-4 p-4 border rounded-lg hover:bg-gray-50 transition-colors">
                       <div className={`flex items-center justify-center w-10 h-10 rounded-full ${iconColor}`}>
@@ -3042,7 +3042,7 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
               )}
             </DialogDescription>
           </DialogHeader>
-          
+
           <div className="space-y-4 py-4">
             <div className="space-y-2">
               <Label htmlFor="disqualify-reason">Reason for disqualify</Label>
