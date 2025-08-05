@@ -92,9 +92,9 @@ const contracts = [
     comments: [
       { id: 1, author: 'John Smith', date: '2024-06-15', content: 'Performance review completed. Some concerns about response times.' },
       { id: 2, author: 'Sarah Johnson', date: '2024-06-10', content: 'Vendor has provided action plan for improvement.' },
-      { id: 3, author: 'Mike Wilson', date: '2024-06-05', content: 'Escalated SLA compliance issues to management.' }
-    ],
-    documents: [
+      { id: 3, author: 'Mike Wilson', date: '2024-06-05', content: 'Escalated SLA compliance issues to management.' }],
+
+    attachments: [
       { name: 'Master Service Agreement.pdf', size: '2.4 MB', uploadDate: '2024-01-10', type: 'Contract' },
       { name: 'SLA Addendum.pdf', size: '856 KB', uploadDate: '2024-02-15', type: 'Amendment' },
       { name: 'Performance Report Q1.pdf', size: '1.2 MB', uploadDate: '2024-04-15', type: 'Report' },
@@ -151,9 +151,9 @@ const contracts = [
       { name: 'Service Launch', date: '2024-06-15', status: 'upcoming' }
     ],
     comments: [
-      { id: 1, author: 'Jane Doe', date: '2024-05-28', content: 'Contract ready for vendor signature. Awaiting final approval from their legal team.' }
-    ],
-    documents: [
+      { id: 1, author: 'Jane Doe', date: '2024-05-28', content: 'Contract ready for vendor signature. Awaiting final approval from their legal team.' }],
+
+    attachments: [
       { name: 'Service Level Agreement.pdf', size: '1.8 MB', uploadDate: '2024-05-15', type: 'Contract' },
       { name: 'Performance Metrics.pdf', size: '945 KB', uploadDate: '2024-05-20', type: 'Specification' },
       { name: 'Legal Review Notes.pdf', size: '623 KB', uploadDate: '2024-05-25', type: 'Review' }
@@ -195,7 +195,7 @@ const contracts = [
       { name: 'Final Approval', date: '2024-06-25', status: 'upcoming' }
     ],
     comments: [],
-    documents: [
+    attachments: [
       { name: 'NDA Draft v1.pdf', size: '456 KB', uploadDate: '2024-06-01', type: 'Draft' },
       { name: 'Legal Requirements.pdf', size: '289 KB', uploadDate: '2024-06-05', type: 'Requirements' }
     ],
@@ -253,9 +253,9 @@ const contracts = [
       { id: 5, author: 'Tom Brown', date: '2024-05-20', content: 'Vendor action plan submitted but lacks concrete timelines.' },
       { id: 6, author: 'Anna Davis', date: '2024-05-15', content: 'SLA breach #3 for this quarter. Financial penalties applied.' },
       { id: 7, author: 'James Wilson', date: '2024-05-10', content: 'Emergency meeting scheduled with vendor leadership.' },
-      { id: 8, author: 'Rachel Green', date: '2024-05-05', content: 'Performance deterioration continues. Alternative vendors being evaluated.' }
-    ],
-    documents: [
+      { id: 8, author: 'Rachel Green', date: '2024-05-05', content: 'Performance deterioration continues. Alternative vendors being evaluated.' }],
+
+    attachments: [
       { name: 'Partnership Agreement.pdf', size: '3.2 MB', uploadDate: '2022-12-15', type: 'Contract' },
       { name: 'Performance Report Q1.pdf', size: '1.1 MB', uploadDate: '2024-01-20', type: 'Report' },
       { name: 'Breach Notice #1.pdf', size: '234 KB', uploadDate: '2024-01-25', type: 'Notice' },
@@ -701,7 +701,7 @@ export function ContractManagement({ initialFilters }: ContractManagementProps) 
 
     // Convert to JSON string
     const dataStr = JSON.stringify(contractData, null, 2);
-    
+
     // Create and download file
     const dataBlob = new Blob([dataStr], { type: 'application/json' });
     const url = URL.createObjectURL(dataBlob);
@@ -1021,7 +1021,7 @@ export function ContractManagement({ initialFilters }: ContractManagementProps) 
                   const expirationStatus = getExpirationStatus(contract.endDate);
                   const aiRec = aiRecommendations[contract.id];
                   const RecommendationIcon = getRecommendationIcon(aiRec?.recommendation);
-                  
+
                   return (
                     <Card key={contract.id} className="relative">
                       <CardContent className="p-6">
@@ -1029,7 +1029,7 @@ export function ContractManagement({ initialFilters }: ContractManagementProps) 
                         {(expirationStatus.status === 'critical' || expirationStatus.status === 'warning') && (
                           <div className={`absolute top-0 left-0 right-0 h-1 ${expirationStatus.status === 'critical' ? 'bg-red-500' : 'bg-yellow-500'}`} />
                         )}
-                        
+
                         <div className="flex items-start justify-between mb-4">
                           <div className="flex items-center gap-4">
                             <div className="flex items-center justify-center w-12 h-12 bg-muted rounded-lg">
@@ -1167,7 +1167,7 @@ export function ContractManagement({ initialFilters }: ContractManagementProps) 
                         </div>
 
                         <Separator className="my-4" />
-                        
+
                         <div className="flex items-center justify-between">
                           <div className="text-sm text-muted-foreground">
                             Last activity: {contract.lastActivity}
@@ -1222,7 +1222,7 @@ export function ContractManagement({ initialFilters }: ContractManagementProps) 
                   const aiRec = aiRecommendations[contract.id];
                   const RecommendationIcon = getRecommendationIcon(aiRec?.recommendation);
                   const daysLeft = getDaysUntilExpiration(contract.endDate);
-                  
+
                   return (
                     <Card key={contract.id} className={`border-l-4 ${daysLeft <= 30 ? 'border-l-red-500' : daysLeft <= 60 ? 'border-l-yellow-500' : 'border-l-blue-500'}`}>
                       <CardContent className="p-6">
@@ -1336,9 +1336,9 @@ export function ContractManagement({ initialFilters }: ContractManagementProps) 
                 {contracts.map((contract) => {
                   const aiRec = aiRecommendations[contract.id];
                   const RecommendationIcon = getRecommendationIcon(aiRec?.recommendation);
-                  
+
                   if (!aiRec) return null;
-                  
+
                   return (
                     <Card key={contract.id} className={`border-l-4 ${aiRec.recommendation === 'Renew' ? 'border-l-green-500' : aiRec.recommendation === 'Terminate' ? 'border-l-red-500' : 'border-l-yellow-500'}`}>
                       <CardContent className="p-6">
@@ -1605,7 +1605,7 @@ export function ContractManagement({ initialFilters }: ContractManagementProps) 
                   Comments
                 </TabsTrigger>
               </TabsList>
-              
+
               <TabsContent value="summary" className="space-y-4">
                 <div className="grid grid-cols-2 gap-6">
                   <div className="space-y-4">
@@ -1657,9 +1657,9 @@ export function ContractManagement({ initialFilters }: ContractManagementProps) 
                     </div>
                   </div>
                 </div>
-                
+
                 <Separator />
-                
+
                 <div>
                   <Label className="text-sm font-medium text-gray-600">Parties Involved</Label>
                   <div className="mt-1">
@@ -1744,7 +1744,7 @@ export function ContractManagement({ initialFilters }: ContractManagementProps) 
                   </div>
                 )}
               </TabsContent>
-              
+
               <TabsContent value="documents" className="space-y-4">
                 <div className="flex items-center justify-between">
                   <h4 className="font-medium">Contract Documents</h4>
@@ -1753,9 +1753,9 @@ export function ContractManagement({ initialFilters }: ContractManagementProps) 
                     Add Document
                   </Button>
                 </div>
-                {selectedContract.documents && selectedContract.documents.length > 0 ? (
+                {selectedContract.attachments && selectedContract.attachments.length > 0 ? (
                   <div className="space-y-2">
-                    {selectedContract.documents.map((doc, index) => (
+                    {selectedContract.attachments.map((doc, index) => (
                       <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
                         <div className="flex items-center gap-3">
                           <FileText className="h-5 w-5 text-blue-600" />
@@ -1781,7 +1781,7 @@ export function ContractManagement({ initialFilters }: ContractManagementProps) 
                   <p className="text-sm text-muted-foreground">No documents attached to this contract</p>
                 )}
               </TabsContent>
-              
+
               <TabsContent value="timeline" className="space-y-4">
                 <h4 className="font-medium">Contract Milestones</h4>
                 <div className="space-y-4">
@@ -1798,7 +1798,7 @@ export function ContractManagement({ initialFilters }: ContractManagementProps) 
                   ))}
                 </div>
               </TabsContent>
-              
+
               <TabsContent value="comments" className="space-y-4">
                 <div className="flex items-center justify-between">
                   <h4 className="font-medium">Contract Comments</h4>
@@ -1867,7 +1867,7 @@ export function ContractManagement({ initialFilters }: ContractManagementProps) 
               {(() => {
                 const aiRec = aiRecommendations[selectedContract.id];
                 const RecommendationIcon = getRecommendationIcon(aiRec.recommendation);
-                
+
                 return (
                   <>
                     {/* Recommendation Header */}
@@ -2001,7 +2001,7 @@ export function ContractManagement({ initialFilters }: ContractManagementProps) 
                             <p className="mt-1">{selectedContract.relationshipScore}/5</p>
                           </div>
                         </div>
-                        
+
                         {selectedContract.alternativeVendors.length > 0 && (
                           <div className="mt-4">
                             <Label className="text-sm font-medium">Alternative Vendors</Label>
@@ -2046,7 +2046,7 @@ export function ContractManagement({ initialFilters }: ContractManagementProps) 
               Details of the offer attached to contract {selectedContract?.id}
             </DialogDescription>
           </DialogHeader>
-          
+
           {selectedOffer && (
             <div className="space-y-6">
               {/* Header Info */}
@@ -2093,7 +2093,7 @@ export function ContractManagement({ initialFilters }: ContractManagementProps) 
                           </div>
                         </div>
                       )}
-                      
+
                       {selectedOffer.promoCodes?.length > 0 && (
                         <div>
                           <Label className="text-sm font-medium text-gray-600 mb-2 block">Applied Promo Codes</Label>
@@ -2156,7 +2156,7 @@ export function ContractManagement({ initialFilters }: ContractManagementProps) 
               )}
             </div>
           )}
-          
+
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowOfferDetail(false)}>
               Close
@@ -2181,7 +2181,7 @@ export function ContractManagement({ initialFilters }: ContractManagementProps) 
               Select a different offer to attach to contract {selectedContract?.id}
             </DialogDescription>
           </DialogHeader>
-          
+
           <div className="space-y-4">
             <div className="p-4 bg-gray-50 rounded-lg">
               <h4 className="font-medium mb-2">Current Contract</h4>
@@ -2236,7 +2236,7 @@ export function ContractManagement({ initialFilters }: ContractManagementProps) 
               </div>
             </div>
           </div>
-          
+
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowChangeOffer(false)}>
               Cancel
