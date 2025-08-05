@@ -412,7 +412,7 @@ html {
   transition: background-color 0.2s ease-in-out, border-color 0.2s ease-in-out, color 0.2s ease-in-out;
 }
 
-/* Layout fixes for proper alignment */
+/* Layout fixes for proper alignment and z-index management */
 @layer utilities {
   .prevent-overlap {
     position: relative;
@@ -423,26 +423,79 @@ html {
     position: fixed;
     inset: 0;
     z-index: 9998;
+    background-color: rgba(0, 0, 0, 0.5);
   }
 
   .modal-content {
     position: fixed;
     z-index: 9999;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
   }
 
   .sidebar-container {
     position: fixed;
-    z-index: 40;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    z-index: 30;
+    width: var(--sidebar-width, 16rem);
   }
 
   .main-content {
     position: relative;
     z-index: 1;
     min-height: 100vh;
+    margin-left: var(--sidebar-width, 16rem);
+    width: calc(100% - var(--sidebar-width, 16rem));
   }
 
   .dropdown-content {
-    z-index: 9999;
+    z-index: 50;
+  }
+
+  /* Mobile responsive adjustments */
+  @media (max-width: 768px) {
+    .main-content {
+      margin-left: 0;
+      width: 100%;
+    }
+    
+    .sidebar-container {
+      transform: translateX(-100%);
+      transition: transform 0.3s ease-in-out;
+    }
+    
+    .sidebar-container.mobile-open {
+      transform: translateX(0);
+    }
+  }
+
+  /* Ensure proper sidebar positioning */
+  [data-slot="sidebar-container"] {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    bottom: 0 !important;
+    z-index: 30 !important;
+  }
+
+  /* Ensure main content doesn't overlap with sidebar */
+  [data-slot="sidebar-inset"] {
+    margin-left: var(--sidebar-width, 16rem) !important;
+    width: calc(100% - var(--sidebar-width, 16rem)) !important;
+    min-height: 100vh !important;
+    position: relative !important;
+    z-index: 1 !important;
+  }
+
+  /* Mobile adjustments for sidebar inset */
+  @media (max-width: 768px) {
+    [data-slot="sidebar-inset"] {
+      margin-left: 0 !important;
+      width: 100% !important;
+    }
   }
 }
 

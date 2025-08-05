@@ -464,7 +464,7 @@ export default function App() {
   return (
     <TooltipProvider>
       <SidebarProvider>
-        <div className="min-h-screen w-full bg-gradient-to-br from-gray-50 via-white to-gray-50 flex relative">
+        <div className="min-h-screen w-full bg-gradient-to-br from-gray-50 via-white to-gray-50 flex relative overflow-hidden">
           {/* Enhanced Tour Guide Component */}
           <TourGuide
             isOpen={isTourOpen}
@@ -758,7 +758,7 @@ export default function App() {
             </header>
 
             {/* Main Content */}
-            <main className="w-full min-h-0 flex-1" style={{ 
+            <main className="w-full min-h-0 flex-1 overflow-auto" style={{ 
               backgroundColor: '#F7FAFF', /* Light blue background matching theme */
               padding: 'var(--space-3xl)', /* 16px - using theme spacing */
               fontFamily: 'var(--font-family)',
