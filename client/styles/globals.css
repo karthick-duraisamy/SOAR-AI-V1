@@ -57,6 +57,11 @@
 
   /* Custom blue variants based on primary blue #133769 */
   --blue-brand: #133769;
+  
+  /* SOAR AI brand colors - exact match from image */
+  --soar-primary-text: #1e293b;
+  --soar-secondary-text: #64748b;
+  --soar-sidebar-bg: #ffffff;
   --blue-brand-50: #f0f4f8;
   --blue-brand-100: #e1e8f0;
   --blue-brand-200: #c3d1e4;

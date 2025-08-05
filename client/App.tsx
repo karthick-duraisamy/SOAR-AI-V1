@@ -78,7 +78,7 @@ export default function App() {
       setIsTourOpen(true);
       setCurrentTourType('default');
     }, 1000);
-    
+
     return () => clearTimeout(timer);
   }, []); // Remove dependency on localStorage check
 
@@ -86,7 +86,7 @@ export default function App() {
     console.log('navigateToSection called:', { sectionId, filters });
     setActiveSection(sectionId);
     setSectionFilters(filters);
-    
+
     // Build breadcrumb path
     const newPath = buildBreadcrumbPath(sectionId, filters);
     setBreadcrumbPath(newPath);
@@ -94,27 +94,27 @@ export default function App() {
 
   const buildBreadcrumbPath = (sectionId: string, filters: any = {}) => {
     const basePath = [{ id: 'ai-assistant', label: 'AI Assistant', filters: {} }];
-    
+
     // If navigating to AI Assistant, return base path
     if (sectionId === 'ai-assistant') {
       return basePath;
     }
-    
+
     // Build path based on section and context
     const currentPath = [...basePath];
-    
+
     // Add main section
     const mainSection = getSectionInfo(sectionId, filters);
     if (mainSection) {
       currentPath.push(mainSection);
     }
-    
+
     // Add sub-section if applicable
     const subSection = getSubSectionInfo(sectionId, filters);
     if (subSection) {
       currentPath.push(subSection);
     }
-    
+
     return currentPath;
   };
 
@@ -141,7 +141,7 @@ export default function App() {
       'ticket-details': { id: 'ticket-details', label: 'Ticket Details', filters: {} },
       'settings': { id: 'settings', label: 'Settings', filters: {} }
     };
-    
+
     return sectionMap[sectionId] || null;
   };
 
@@ -150,43 +150,43 @@ export default function App() {
     if (filters.companyName) {
       return { id: `${sectionId}-profile`, label: `${filters.companyName} Profile`, filters };
     }
-    
+
     if (filters.leadId) {
       return { id: `${sectionId}-lead`, label: `Lead Details`, filters };
     }
-    
+
     if (filters.ticketId) {
       return { id: `${sectionId}-ticket`, label: `Ticket #${filters.ticketId}`, filters };
     }
-    
+
     if (filters.campaignId) {
       return { id: `${sectionId}-campaign`, label: `Campaign Details`, filters };
     }
-    
+
     if (filters.contractId) {
       return { id: `${sectionId}-contract`, label: `Contract Details`, filters };
     }
-    
+
     if (filters.view === 'profile') {
       return { id: `${sectionId}-profile`, label: 'View Full Profile', filters };
     }
-    
+
     if (filters.view === 'details') {
       return { id: `${sectionId}-details`, label: 'View Details', filters };
     }
-    
+
     if (filters.view === 'edit') {
       return { id: `${sectionId}-edit`, label: 'Edit', filters };
     }
-    
+
     if (filters.status === 'qualified') {
       return { id: `${sectionId}-qualified`, label: 'Qualified View', filters };
     }
-    
+
     if (filters.status === 'unqualified') {
       return { id: `${sectionId}-unqualified`, label: 'Unqualified View', filters };
     }
-    
+
     return null;
   };
 
@@ -382,7 +382,7 @@ export default function App() {
       case 'design-travel-offers':
         return 'Comprehensive offer lifecycle management with analytics and ATPCO integration';
       case 'agent-dashboard':
-        return 'Customer support agent workspace and performance metrics';
+        return 'Agent workspace and performance metrics';
       case 'support-dashboard':
         return 'Customer support agent dashboard and analytics';
       case 'admin-dashboard':
@@ -476,15 +476,15 @@ export default function App() {
 
           {/* Sidebar */}
           <Sidebar className="border-r" data-sidebar>
-            <SidebarHeader className="p-md">
-              <div className="flex items-center">
-                <img 
-                  src={soarLogo} 
-                  alt="SOAR AI - Corporate Intelligence Platform" 
-                  className="h-11 w-auto object-contain pl-2.5 cursor-pointer hover:opacity-80 transition-opacity duration-200"
-                  onClick={() => navigateToSection('ai-assistant')}
-                  title="Return to Home"
-                />
+            {/* Sidebar Header with Logo */}
+            <SidebarHeader className="border-b border-gray-200 p-4">
+              <div className="flex items-center gap-3">
+                <div className="flex-shrink-0">
+                  <div className="flex flex-col">
+                    <h1 className="text-lg font-semibold text-slate-800 tracking-wide">SOAR AI</h1>
+                    <p className="text-xs text-slate-500 font-normal">Corporate Intelligence Platform</p>
+                  </div>
+                </div>
               </div>
             </SidebarHeader>
 
@@ -516,7 +516,7 @@ export default function App() {
                           {group.items.map((item) => {
                             const Icon = item.icon;
                             const isActive = activeSection === item.id;
-                            
+
                             return (
                               <SidebarMenuItem key={item.id} style={{ marginBottom: 'var(--sidebar-item-spacing)' }}>
                                 <SidebarMenuButton
@@ -587,7 +587,7 @@ export default function App() {
                       {group.items.map((item) => {
                         const Icon = item.icon;
                         const isActive = activeSection === item.id;
-                        
+
                         return (
                           <SidebarMenuItem key={item.id} style={{ marginBottom: 'var(--sidebar-item-spacing)' }}>
                             <SidebarMenuButton
@@ -650,7 +650,7 @@ export default function App() {
                 {/* Left Side - Sidebar Trigger and Current Section */}
                 <div className="flex items-center gap-4">
                   <SidebarTrigger className="lg:hidden" />
-                  
+
                   {/* Current Section Indicator */}
                   <div className="flex items-center gap-2">
                     <div>
@@ -673,7 +673,7 @@ export default function App() {
                       <MapPin className="h-4 w-4" />
                       <span className="hidden sm:inline">Tour Guide</span>
                     </Button>
-                    
+
                     {/* Section-specific tour buttons */}
                     {activeSection === 'ai-assistant' && (
                       <Button
@@ -686,7 +686,7 @@ export default function App() {
                         <Play className="h-3 w-3" />
                       </Button>
                     )}
-                    
+
                     {activeSection === 'dashboard' && (
                       <Button
                         variant="ghost"
@@ -711,7 +711,7 @@ export default function App() {
                       <Plus className="h-3 w-3" />
                       <span className="hidden md:inline">Lead</span>
                     </Button>
-                    
+
                     <Button
                       variant="ghost"
                       size="sm"
@@ -721,7 +721,7 @@ export default function App() {
                       <Mail className="h-3 w-3" />
                       <span className="hidden md:inline">Email</span>
                     </Button>
-                    
+
                     <Button
                       variant="ghost"
                       size="sm"
