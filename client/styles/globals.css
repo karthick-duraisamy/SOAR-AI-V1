@@ -53,6 +53,7 @@
   --sidebar-accent-foreground: oklch(0.205 0 0);
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
+  --sidebar-width: 250px;
 
   /* Custom blue variants based on primary blue #133769 */
   --blue-brand: #133769;
@@ -440,15 +441,15 @@ html {
     left: 0;
     bottom: 0;
     z-index: 30;
-    width: var(--sidebar-width, 16rem);
+    width: var(--sidebar-width);
   }
 
   .main-content {
     position: relative;
     z-index: 1;
     min-height: 100vh;
-    margin-left: var(--sidebar-width, 16rem);
-    width: calc(100% - var(--sidebar-width, 16rem));
+    margin-left: var(--sidebar-width);
+    width: calc(100% - var(--sidebar-width));
   }
 
   .dropdown-content {
@@ -461,12 +462,12 @@ html {
       margin-left: 0;
       width: 100%;
     }
-    
+
     .sidebar-container {
       transform: translateX(-100%);
       transition: transform 0.3s ease-in-out;
     }
-    
+
     .sidebar-container.mobile-open {
       transform: translateX(0);
     }
@@ -483,8 +484,8 @@ html {
 
   /* Ensure main content doesn't overlap with sidebar */
   [data-slot="sidebar-inset"] {
-    margin-left: var(--sidebar-width, 16rem) !important;
-    width: calc(100% - var(--sidebar-width, 16rem)) !important;
+    margin-left: var(--sidebar-width) !important;
+    width: calc(100% - var(--sidebar-width)) !important;
     min-height: 100vh !important;
     position: relative !important;
     z-index: 1 !important;

@@ -230,6 +230,7 @@ function Sidebar({
         data-slot="sidebar-container"
         className={cn(
           "fixed inset-y-0 z-30 hidden h-svh w-(--sidebar-width) transition-[left,right,width] duration-200 ease-linear md:flex bg-white border-r border-gray-200",
+          "w-[250px]",
           side === "left"
             ? "left-0 group-data-[collapsible=offcanvas]:left-[calc(var(--sidebar-width)*-1)]"
             : "right-0 group-data-[collapsible=offcanvas]:right-[calc(var(--sidebar-width)*-1)]",
@@ -308,6 +309,7 @@ function SidebarInset({ className, ...props }: React.ComponentProps<"main">) {
   return (
     <main
       data-slot="sidebar-inset"
+      data-sidebar="inset"
       className={cn(
         "bg-background relative flex flex-1 flex-col min-h-screen",
         "ml-[--sidebar-width] w-[calc(100%-var(--sidebar-width))]",
