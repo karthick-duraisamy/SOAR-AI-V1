@@ -1,3 +1,9 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
+
 @custom-variant dark (&:is(.dark *));
 
 :root {
@@ -47,14 +53,14 @@
   --sidebar-accent-foreground: oklch(0.205 0 0);
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
-  
+
   /* Custom blue variants based on primary blue #133769 */
   --blue-brand: #133769;
   --blue-brand-50: #f0f4f8;
   --blue-brand-100: #e1e8f0;
   --blue-brand-200: #c3d1e4;
   --blue-brand-600: #133769;
-  
+
   /* Updated text size variables for new body text hierarchy */
   --text-xs: 0.75rem;      /* 12px - Micro text */
   --text-sm: 0.875rem;     /* 14px - Extra Small body text */
@@ -64,14 +70,14 @@
   --text-2xl: 1.5rem;      /* 24px - H1 headers */
   --text-3xl: 1.875rem;    /* 30px - Large headers */
   --text-4xl: 2.25rem;     /* 36px - Display headers */
-  
+
   /* Modal and popup width variables - increased by 40% total (20% + additional 20%) */
   --modal-width-sm: 36rem;     /* 576px - Small modal (increased from 30rem/480px by 20%) */
   --modal-width-md: 43.2rem;   /* 691px - Medium modal (increased from 36rem/576px by 20%) */
   --modal-width-lg: 46.08rem;  /* 737px - Large modal (increased from 38.4rem/614px by 20%) */
   --modal-width-xl: 57.6rem;   /* 922px - Extra large modal (increased from 48rem/768px by 20%) */
   --modal-width-2xl: 72rem;    /* 1152px - 2XL modal (increased from 60rem/960px by 20%) */
-  
+
   /* Ultra-reduced breathing space variables for maximum compactness */
   --space-xs: 0.0625rem;   /* 1px - ultra reduced from 2px */
   --space-sm: 0.125rem;    /* 2px - ultra reduced from 4px */
@@ -80,7 +86,7 @@
   --space-xl: 0.5rem;      /* 8px - ultra reduced from 12px */
   --space-2xl: 0.75rem;    /* 12px - ultra reduced from 16px */
   --space-3xl: 1rem;       /* 16px - ultra reduced from 20px */
-  
+
   /* Updated sidebar spacing variables for 5px gaps */
   --sidebar-group-spacing: 0.3125rem;   /* 5px between menu groups */
   --sidebar-item-spacing: 0.3125rem;    /* 5px between menu items */
@@ -195,7 +201,7 @@
     font-family: 'Poppins', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     font-size: var(--text-lg); /* Updated to use 18px as regular body text */
     font-weight: var(--font-weight-normal);
-    line-height: 1.4; /* Further reduced from 1.5 for ultra-tight spacing */
+    line-height: 1.4; /* Further reduced from 1.5 */
   }
 
   /* Universal card border styling */
@@ -253,7 +259,7 @@
   }
 
   /* Updated paragraph text with ultra-reduced spacing */
-  
+
   /* Large Body Text - 20px for important descriptions */
   .text-body-large,
   p.large:not([class*="text-"]) {
@@ -423,7 +429,7 @@ html {
   .space-xl { margin: var(--space-xl); }
   .space-2xl { margin: var(--space-2xl); }
   .space-3xl { margin: var(--space-3xl); }
-  
+
   .p-xs { padding: var(--space-xs); }
   .p-sm { padding: var(--space-sm); }
   .p-md { padding: var(--space-md); }
@@ -431,7 +437,7 @@ html {
   .p-xl { padding: var(--space-xl); }
   .p-2xl { padding: var(--space-2xl); }
   .p-3xl { padding: var(--space-3xl); }
-  
+
   .m-xs { margin: var(--space-xs); }
   .m-sm { margin: var(--space-sm); }
   .m-md { margin: var(--space-md); }
@@ -439,63 +445,63 @@ html {
   .m-xl { margin: var(--space-xl); }
   .m-2xl { margin: var(--space-2xl); }
   .m-3xl { margin: var(--space-3xl); }
-  
+
   /* Body text utility classes with ultra-tight line heights */
   .text-body-large {
     font-size: var(--text-xl) !important; /* 20px */
     line-height: 1.4 !important; /* Further reduced from 1.5 */
   }
-  
+
   .text-body-regular {
     font-size: var(--text-lg) !important; /* 18px */
     line-height: 1.4 !important; /* Further reduced from 1.5 */
   }
-  
+
   .text-body-small {
     font-size: var(--text-base) !important; /* 16px */
     line-height: 1.3 !important; /* Further reduced from 1.4 */
   }
-  
+
   .text-body-xs {
     font-size: var(--text-sm) !important; /* 14px */
     line-height: 1.3 !important; /* Further reduced from 1.4 */
   }
-  
+
   /* Modal width utility classes - increased by 40% total (20% + additional 20%) */
   .max-w-modal-sm {
     max-width: var(--modal-width-sm) !important; /* 576px */
   }
-  
+
   .max-w-modal-md {
     max-width: var(--modal-width-md) !important; /* 691px */
   }
-  
+
   .max-w-modal-lg {
     max-width: var(--modal-width-lg) !important; /* 737px */
   }
-  
+
   .max-w-modal-xl {
     max-width: var(--modal-width-xl) !important; /* 922px */
   }
-  
+
   .max-w-modal-2xl {
     max-width: var(--modal-width-2xl) !important; /* 1152px */
   }
-  
+
   /* Enhanced modal-content class with increased width - 20% larger */
   .modal-content {
     width: 95vw !important; /* 95% of viewport width for better responsiveness (increased from 90%) */
     max-width: 90rem !important; /* 1440px maximum width - 20% larger than previous 1200px */
     min-width: var(--modal-width-xl) !important; /* Minimum width now 922px */
   }
-  
+
   /* Alternative modal-content sizes for different use cases - all increased by 20% */
   .modal-content-sm {
     width: 84vw !important; /* Increased from 70vw */
     max-width: var(--modal-width-xl) !important; /* Now 922px (increased from 768px) */
     min-width: var(--modal-width-lg) !important; /* Now 737px (increased from 614px) */
   }
-  
+
   .modal-content-lg {
     width: 98vw !important; /* Increased from 95vw */
     max-width: 105rem !important; /* 1680px - extra large modal content (increased from 1400px) */
@@ -509,12 +515,12 @@ html {
   [data-sidebar] [role="group"]:not(:first-child) {
     margin-top: var(--sidebar-group-spacing) !important; /* 5px between groups */
   }
-  
+
   /* Exact 5px spacing within sidebar menu items */
   [data-sidebar] [role="menuitem"] {
     margin-bottom: var(--sidebar-item-spacing) !important; /* 5px between items */
   }
-  
+
   /* Updated padding and margin for sidebar menu buttons with 5px consistency */
   [data-sidebar] [data-slot="sidebar-menu-button"] {
     padding-top: var(--sidebar-button-padding-y) !important; /* 5px top/bottom padding */
@@ -526,7 +532,7 @@ html {
     line-height: 1.2 !important; /* Tighter line height for compact buttons */
     transition: background-color 0.2s ease-in-out !important; /* Smooth hover transition */
   }
-  
+
   /* Hover state for sidebar menu buttons - consistent 5px inner spacing */
   [data-sidebar] [data-slot="sidebar-menu-button"]:hover {
     background-color: #EBF6FF !important; /* Very light blue hover background */
@@ -535,7 +541,7 @@ html {
     padding-left: var(--sidebar-button-padding-x) !important; /* 10px left/right */
     padding-right: var(--sidebar-button-padding-x) !important;
   }
-  
+
   /* Additional hover coverage for SidebarMenuButton components - consistent 5px inner spacing */
   .sidebar [role="menuitem"] button:hover,
   .sidebar-menu-button:hover,
@@ -549,7 +555,7 @@ html {
     padding-left: var(--sidebar-button-padding-x) !important; /* 10px left/right */
     padding-right: var(--sidebar-button-padding-x) !important;
   }
-  
+
   /* Active state styling for sidebar menu buttons - consistent 5px inner spacing */
   [data-sidebar] [data-slot="sidebar-menu-button"][data-active="true"] {
     background: linear-gradient(360deg, #17376B -17.65%, #2F66C0 155.88%) !important; /* Blue gradient active background */
@@ -560,18 +566,18 @@ html {
     padding-left: var(--sidebar-button-padding-x) !important; /* 10px left/right */
     padding-right: var(--sidebar-button-padding-x) !important;
   }
-  
+
   /* Active state hover styling for sidebar menu buttons */
   [data-sidebar] [data-slot="sidebar-menu-button"][data-active="true"]:hover {
     background: linear-gradient(360deg, #17376B -17.65%, #2F66C0 155.88%) !important; /* Keep blue gradient on hover when active */
     color: white !important;
   }
-  
+
   /* Active state text styling for nested divs in active menu items */
   [data-sidebar] [data-slot="sidebar-menu-button"][data-active="true"] .text-muted-foreground {
     color: rgba(255, 255, 255, 0.8) !important; /* Light white for description text */
   }
-  
+
   /* Updated sidebar group labels with 5px spacing */
   [data-sidebar] [data-slot="sidebar-group-label"] {
     padding-top: var(--sidebar-item-spacing) !important; /* 5px */
@@ -579,33 +585,33 @@ html {
     margin-bottom: var(--sidebar-item-spacing) !important; /* 5px */
     line-height: 1.2 !important; /* Tighter line height */
   }
-  
+
   /* Updated sidebar group content with 5px gaps */
   [data-sidebar] [data-slot="sidebar-group-content"] {
     gap: var(--sidebar-item-spacing) !important; /* 5px gap between items */
   }
-  
+
   /* Updated sidebar menu with 5px spacing */
   [data-sidebar] [data-slot="sidebar-menu"] {
     gap: var(--sidebar-item-spacing) !important; /* 5px gap between menu items */
   }
-  
+
   /* Updated sidebar header with 5px consistency */
   .sidebar-header {
     padding: var(--sidebar-item-spacing) !important; /* 5px */
   }
-  
+
   /* System status with 5px spacing */
   .sidebar [role="complementary"] {
     margin-top: var(--sidebar-item-spacing) !important;
     padding: var(--sidebar-item-spacing) !important;
   }
-  
+
   /* Additional ultra-compact styles for sidebar menu text */
   [data-sidebar] .font-medium {
     line-height: 1.2 !important;
   }
-  
+
   [data-sidebar] .text-xs {
     line-height: 1.1 !important;
   }
