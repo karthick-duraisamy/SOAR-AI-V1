@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Button } from './components/ui/button';
 import { Badge } from './components/ui/badge';
-import soarLogo from 'figma:asset/3e11a8bce6432515be702b74bc9a276af88e332e.png';
+import soarLogo from '/soar-logo.svg';
 import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarProvider, SidebarTrigger, SidebarInset } from './components/ui/sidebar';
 import { TooltipProvider } from './components/ui/tooltip';
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from './components/ui/breadcrumb';

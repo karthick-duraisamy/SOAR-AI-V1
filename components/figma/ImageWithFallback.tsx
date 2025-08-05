@@ -25,3 +25,42 @@ export function ImageWithFallback(props: React.ImgHTMLAttributes<HTMLImageElemen
     <img src={src} alt={alt} className={className} style={style} {...rest} onError={handleError} />
   )
 }
+import React, { useState } from 'react';
+
+interface ImageWithFallbackProps {
+  src: string;
+  alt: string;
+  fallbackSrc?: string;
+  className?: string;
+  [key: string]: any;
+}
+
+export const ImageWithFallback: React.FC<ImageWithFallbackProps> = ({
+  src,
+  alt,
+  fallbackSrc = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjI0IiBoZWlnaHQ9IjI0IiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik0xMiA4VjE2TTE2IDEySDgiIHN0cm9rZT0iIzlDQTNBRiIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiLz4KPC9zdmc+',
+  className,
+  ...props
+}) => {
+  const [imageSrc, setImageSrc] = useState(src);
+  const [hasError, setHasError] = useState(false);
+
+  const handleError = () => {
+    if (!hasError) {
+      setHasError(true);
+      setImageSrc(fallbackSrc);
+    }
+  };
+
+  return (
+    <img
+      src={imageSrc}
+      alt={alt}
+      className={className}
+      onError={handleError}
+      {...props}
+    />
+  );
+};
+
+export default ImageWithFallback;
