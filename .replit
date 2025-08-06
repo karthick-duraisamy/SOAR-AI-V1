@@ -17,6 +17,10 @@ localPort = 5173
 externalPort = 3000
 exposeLocalhost = true
 
+[[ports]]
+localPort = 8000
+externalPort = 8000
+
 [workflows]
 runButton = "Full Stack Development"
 
