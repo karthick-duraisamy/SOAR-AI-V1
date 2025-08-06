@@ -1,4 +1,4 @@
-modules = ["nodejs-20", "web"]
+modules = ["nodejs-20", "python-3.11", "web"]
 run = "npm run dev"
 
 [nix]
@@ -18,12 +18,25 @@ externalPort = 3000
 exposeLocalhost = true
 
 [workflows]
-runButton = "Run"
+runButton = "Full Stack Development"
 
 [[workflows.workflow]]
 name = "Run"
 author = 44435766
 mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "cd client && npm run dev"
+
+[[workflows.workflow]]
+name = "Full Stack Development"
+author = 44435766
+mode = "parallel"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "cd server && python manage.py runserver 0.0.0.0:8000"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
