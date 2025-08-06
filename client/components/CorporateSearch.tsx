@@ -261,6 +261,21 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
   const [showCorporateProfile, setShowCorporateProfile] = useState(false);
   const [showAddCompanyDialog, setShowAddCompanyDialog] = useState(false);
+  
+  // Advanced filter states
+  const [advancedFilters, setAdvancedFilters] = useState({
+    industries: [],
+    maturity: [],
+    employeeRange: [100, 10000],
+    travelFrequency: '',
+    preferredClass: '',
+    annualTravelVolume: [100, 20000],
+    revenueRange: '',
+    creditRating: '',
+    travelBudgetRange: [0.5, 10],
+    techRequirements: [],
+    sustainabilityLevel: ''
+  });
 
   const [selectedCorporate, setSelectedCorporate] = useState(null);
   const [movedAsLeadIds, setMovedAsLeadIds] = useState(new Set());
@@ -299,7 +314,85 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
     setIsSearching(true);
     // Simulate AI processing
     await new Promise(resolve => setTimeout(resolve, 2000));
-    setFilteredCorporates(mockCorporates);
+    
+    // Apply actual filtering logic
+    let filtered = mockCorporates.filter(corporate => {
+      // Industry filter
+      if (searchParams.industry && searchParams.industry !== corporate.marketSegment.toLowerCase()) {
+        return false;
+      }
+      
+      // Location filter
+      if (searchParams.location) {
+        const locationMatch = {
+          'north-america': ['USA', 'United States', 'North America'],
+          'europe': ['Europe', 'UK', 'Germany', 'France'],
+          'asia-pacific': ['Asia', 'Asia-Pacific', 'Japan', 'Singapore'],
+          'global': ['Global'],
+          'emerging': ['Emerging']
+        };
+        
+        const matchingRegions = locationMatch[searchParams.location] || [];
+        const corporateLocation = corporate.location;
+        
+        if (!matchingRegions.some(region => corporateLocation.includes(region))) {
+          return false;
+        }
+      }
+      
+      // Travel Budget filter
+      if (searchParams.travelBudget) {
+        const budget = parseFloat(corporate.travelBudget.replace(/[^\d.]/g, ''));
+        const budgetRanges = {
+          'under-500k': [0, 0.5],
+          '500k-1m': [0.5, 1],
+          '1m-3m': [1, 3],
+          '3m-5m': [3, 5],
+          'above-5m': [5, Infinity]
+        };
+        
+        const [min, max] = budgetRanges[searchParams.travelBudget] || [0, Infinity];
+        if (budget < min || budget > max) {
+          return false;
+        }
+      }
+      
+      // Company Size filter
+      if (searchParams.companySize) {
+        const sizeMapping = {
+          'startup': ['Startup'],
+          'small': ['Small'],
+          'medium': ['Medium', 'Mid-Market'],
+          'large': ['Large', 'Large Enterprise'],
+          'enterprise': ['Enterprise']
+        };
+        
+        const expectedSizes = sizeMapping[searchParams.companySize] || [];
+        if (!expectedSizes.some(size => corporate.companySize.includes(size))) {
+          return false;
+        }
+      }
+      
+      // Travel Frequency filter
+      if (searchParams.travelFrequency) {
+        const frequencyMapping = {
+          'daily': 'Daily',
+          'weekly': 'Weekly',
+          'monthly': 'Monthly',
+          'quarterly': 'Quarterly',
+          'annual': 'Annual'
+        };
+        
+        const expectedFreq = frequencyMapping[searchParams.travelFrequency];
+        if (expectedFreq && corporate.travelFrequency !== expectedFreq) {
+          return false;
+        }
+      }
+      
+      return true;
+    });
+    
+    setFilteredCorporates(filtered);
     setIsSearching(false);
   };
 
@@ -547,13 +640,17 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
                   <SelectValue placeholder="Select industry" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="technology">Technology & Software</SelectItem>
-                  <SelectItem value="financial">Financial Services</SelectItem>
+                  <SelectItem value="technology">Technology</SelectItem>
+                  <SelectItem value="financial services">Financial Services</SelectItem>
                   <SelectItem value="manufacturing">Manufacturing</SelectItem>
-                  <SelectItem value="healthcare">Healthcare & Pharma</SelectItem>
-                  <SelectItem value="energy">Energy & Utilities</SelectItem>
-                  <SelectItem value="consulting">Consulting Services</SelectItem>
-                  <SelectItem value="retail">Retail & Consumer</SelectItem>
+                  <SelectItem value="healthcare">Healthcare</SelectItem>
+                  <SelectItem value="energy">Energy</SelectItem>
+                  <SelectItem value="consulting">Consulting</SelectItem>
+                  <SelectItem value="retail">Retail</SelectItem>
+                  <SelectItem value="telecommunications">Telecommunications</SelectItem>
+                  <SelectItem value="transportation">Transportation</SelectItem>
+                  <SelectItem value="education">Education</SelectItem>
+                  <SelectItem value="government">Government</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -642,6 +739,24 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
               <Filter className="h-4 w-4" />
               Advanced Filters
             </Button>
+            
+            <Button 
+              variant="ghost" 
+              className="flex items-center gap-2"
+              onClick={() => {
+                setSearchParams({
+                  industry: '',
+                  location: '',
+                  travelBudget: '',
+                  companySize: '',
+                  travelFrequency: ''
+                });
+                setFilteredCorporates(mockCorporates);
+              }}
+            >
+              <X className="h-4 w-4" />
+              Clear Filters
+            </Button>
           </div>
         </CardContent>
       </Card>
@@ -652,6 +767,11 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
           <CardTitle>Search Results</CardTitle>
           <CardDescription>
             {filteredCorporates.length} corporate prospects found matching your criteria
+            {Object.values(searchParams).some(value => value) && (
+              <span className="ml-2 text-blue-600">
+                • Filters active: {Object.entries(searchParams).filter(([key, value]) => value).map(([key]) => key.charAt(0).toUpperCase() + key.slice(1)).join(', ')}
+              </span>
+            )}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -832,7 +952,23 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
                     <div className="space-y-3">
                       {["Technology", "Finance", "Manufacturing", "Healthcare", "Energy", "Consulting"].map((industry) => (
                         <div key={industry} className="flex items-center space-x-3">
-                          <Checkbox id={industry.toLowerCase()} />
+                          <Checkbox 
+                            id={industry.toLowerCase()} 
+                            checked={advancedFilters.industries.includes(industry.toLowerCase())}
+                            onCheckedChange={(checked) => {
+                              if (checked) {
+                                setAdvancedFilters(prev => ({
+                                  ...prev,
+                                  industries: [...prev.industries, industry.toLowerCase()]
+                                }));
+                              } else {
+                                setAdvancedFilters(prev => ({
+                                  ...prev,
+                                  industries: prev.industries.filter(i => i !== industry.toLowerCase())
+                                }));
+                              }
+                            }}
+                          />
                           <Label htmlFor={industry.toLowerCase()} className="text-sm cursor-pointer">{industry}</Label>
                         </div>
                       ))}
@@ -854,10 +990,16 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
                 
                 <div className="space-y-2">
                   <Label className="text-sm font-medium">Employee Count Range</Label>
-                  <Slider defaultValue={[100]} max={10000} step={100} className="w-full" />
+                  <Slider 
+                    value={advancedFilters.employeeRange} 
+                    onValueChange={(value) => setAdvancedFilters(prev => ({ ...prev, employeeRange: value }))}
+                    max={10000} 
+                    step={100} 
+                    className="w-full" 
+                  />
                   <div className="flex justify-between text-sm text-gray-500">
-                    <span>100</span>
-                    <span>10,000+</span>
+                    <span>{advancedFilters.employeeRange[0]}</span>
+                    <span>{advancedFilters.employeeRange[1]}+</span>
                   </div>
                 </div>
               </TabsContent>
@@ -866,7 +1008,10 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
                     <Label className="text-sm font-medium">Travel Frequency</Label>
-                    <Select>
+                    <Select 
+                      value={advancedFilters.travelFrequency} 
+                      onValueChange={(value) => setAdvancedFilters(prev => ({ ...prev, travelFrequency: value }))}
+                    >
                       <SelectTrigger>
                         <SelectValue placeholder="Select frequency" />
                       </SelectTrigger>
@@ -881,7 +1026,10 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
                   
                   <div className="space-y-2">
                     <Label className="text-sm font-medium">Preferred Class</Label>
-                    <Select>
+                    <Select 
+                      value={advancedFilters.preferredClass} 
+                      onValueChange={(value) => setAdvancedFilters(prev => ({ ...prev, preferredClass: value }))}
+                    >
                       <SelectTrigger>
                         <SelectValue placeholder="Select class preference" />
                       </SelectTrigger>
@@ -909,7 +1057,10 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
                     <Label className="text-sm font-medium">Annual Revenue Range</Label>
-                    <Select>
+                    <Select 
+                      value={advancedFilters.revenueRange} 
+                      onValueChange={(value) => setAdvancedFilters(prev => ({ ...prev, revenueRange: value }))}
+                    >
                       <SelectTrigger>
                         <SelectValue placeholder="Select revenue range" />
                       </SelectTrigger>
@@ -965,7 +1116,10 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
                   
                   <div className="space-y-2">
                     <Label className="text-sm font-medium">Sustainability Focus</Label>
-                    <Select>
+                    <Select 
+                      value={advancedFilters.sustainabilityLevel} 
+                      onValueChange={(value) => setAdvancedFilters(prev => ({ ...prev, sustainabilityLevel: value }))}
+                    >
                       <SelectTrigger>
                         <SelectValue placeholder="Select sustainability level" />
                       </SelectTrigger>
@@ -983,10 +1137,36 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
           </div>
           
           <DialogFooter className="pt-6 border-t gap-3">
+            <Button 
+              variant="ghost" 
+              onClick={() => {
+                setAdvancedFilters({
+                  industries: [],
+                  maturity: [],
+                  employeeRange: [100, 10000],
+                  travelFrequency: '',
+                  preferredClass: '',
+                  annualTravelVolume: [100, 20000],
+                  revenueRange: '',
+                  creditRating: '',
+                  travelBudgetRange: [0.5, 10],
+                  techRequirements: [],
+                  sustainabilityLevel: ''
+                });
+              }}
+            >
+              Reset All
+            </Button>
             <Button variant="outline" onClick={() => setShowAdvancedFilters(false)}>
               Cancel
             </Button>
-            <Button onClick={() => setShowAdvancedFilters(false)} className="bg-[#FD9646] hover:bg-[#FD9646]/90">
+            <Button 
+              onClick={() => {
+                setShowAdvancedFilters(false);
+                handleSearch();
+              }} 
+              className="bg-[#FD9646] hover:bg-[#FD9646]/90"
+            >
               Apply Filters
             </Button>
           </DialogFooter>
