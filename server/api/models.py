@@ -11,6 +11,10 @@ class Company(models.Model):
         ('medium', 'Medium (51-200)'),
         ('large', 'Large (201-1000)'),
         ('enterprise', 'Enterprise (1000+)'),
+        ('corporation', 'Corporation'),
+        ('llc', 'LLC'),
+        ('partnership', 'Partnership'),
+        ('nonprofit', 'Non-Profit'),
     ]
     
     INDUSTRIES = [

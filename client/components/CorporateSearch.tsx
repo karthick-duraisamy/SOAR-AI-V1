@@ -351,36 +351,65 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
     setSelectedCorporate(null);
   };
 
-  const handleAddCompany = () => {
-    // Generate new company data
-    const companyData = {
-      id: Math.max(...mockCorporates.map(c => c.id)) + 1,
-      name: newCompany.name,
-      type: newCompany.type,
-      industry: newCompany.industry,
-      location: newCompany.location,
-      website: newCompany.website,
-      phone: newCompany.phone,
-      email: newCompany.email,
-      established: parseInt(newCompany.established) || 2024,
-      employees: parseInt(newCompany.employees) || 100,
-      revenue: parseInt(newCompany.revenue) * 1000000 || 1000000,
-      travelBudget: newCompany.travelBudget,
-      annualTravelVolume: newCompany.annualTravelVolume,
-      travelFrequency: newCompany.travelFrequency,
-      preferredClass: newCompany.preferredClass,
-      companySize: newCompany.companySize,
-      creditRating: newCompany.creditRating,
-      paymentTerms: newCompany.paymentTerms,
-      sustainabilityFocus: newCompany.sustainabilityFocus,
-      riskLevel: newCompany.riskLevel,
-      expansionPlans: newCompany.expansionPlans,
-      specialties: newCompany.specialties.split(',').map(s => s.trim()).filter(s => s),
-      technologyIntegration: newCompany.technologyIntegration.split(',').map(s => s.trim()).filter(s => s),
-      currentAirlines: newCompany.currentAirlines.split(',').map(s => s.trim()).filter(s => s),
-      aiScore: Math.floor(Math.random() * 20) + 80, // Random score between 80-100
-      rating: (Math.random() * 1 + 4).toFixed(1), // Random rating between 4.0-5.0
-      contracts: 0,
+  const handleAddCompany = async () => {
+    try {
+      // Prepare data for Django API
+      const apiData = {
+        name: newCompany.name,
+        industry: newCompany.industry,
+        size: newCompany.companySize || 'medium',
+        location: newCompany.location,
+        website: newCompany.website || '',
+        annual_revenue: newCompany.revenue ? parseFloat(newCompany.revenue) * 1000000 : null,
+        employee_count: newCompany.employees ? parseInt(newCompany.employees) : null,
+        travel_budget: newCompany.travelBudget ? parseFloat(newCompany.travelBudget.replace(/[$,]/g, '')) : null,
+        description: newCompany.notes || ''
+      };
+
+      // Make API call to Django backend
+      const response = await fetch('http://0.0.0.0:8000/api/companies/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(apiData)
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const savedCompany = await response.json();
+
+      // Generate display data for the frontend
+      const companyData = {
+        id: savedCompany.id,
+        name: newCompany.name,
+        type: newCompany.type,
+        industry: newCompany.industry,
+        location: newCompany.location,
+        website: newCompany.website,
+        phone: newCompany.phone,
+        email: newCompany.email,
+        established: parseInt(newCompany.established) || 2024,
+        employees: parseInt(newCompany.employees) || 100,
+        revenue: parseInt(newCompany.revenue) * 1000000 || 1000000,
+        travelBudget: newCompany.travelBudget,
+        annualTravelVolume: newCompany.annualTravelVolume,
+        travelFrequency: newCompany.travelFrequency,
+        preferredClass: newCompany.preferredClass,
+        companySize: newCompany.companySize,
+        creditRating: newCompany.creditRating,
+        paymentTerms: newCompany.paymentTerms,
+        sustainabilityFocus: newCompany.sustainabilityFocus,
+        riskLevel: newCompany.riskLevel,
+        expansionPlans: newCompany.expansionPlans,
+        specialties: newCompany.specialties.split(',').map(s => s.trim()).filter(s => s),
+        technologyIntegration: newCompany.technologyIntegration.split(',').map(s => s.trim()).filter(s => s),
+        currentAirlines: newCompany.currentAirlines.split(',').map(s => s.trim()).filter(s => s),
+        aiScore: Math.floor(Math.random() * 20) + 80, // Random score between 80-100
+        rating: (Math.random() * 1 + 4).toFixed(1), // Random rating between 4.0-5.0
+        contracts: 0,
       aiRecommendation: `New corporate client with potential for ${newCompany.travelFrequency.toLowerCase()} travel needs. Consider outreach for partnership opportunities.`,
       compliance: Math.floor(Math.random() * 20) + 80,
       financialStability: Math.floor(Math.random() * 20) + 80,
@@ -395,41 +424,47 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
       meetingTypes: ["Business Meetings"]
     };
 
-    // Add to mock data (in a real app, this would be an API call)
-    mockCorporates.push(companyData);
-    setFilteredCorporates([...mockCorporates]);
+    // Add to mock data for display
+      mockCorporates.push(companyData);
+      setFilteredCorporates([...mockCorporates]);
 
-    // Reset form
-    setNewCompany({
-      name: '',
-      type: '',
-      industry: '',
-      location: '',
-      website: '',
-      phone: '',
-      email: '',
-      established: '',
-      employees: '',
-      revenue: '',
-      travelBudget: '',
-      annualTravelVolume: '',
-      travelFrequency: '',
-      preferredClass: '',
-      companySize: '',
-      creditRating: '',
-      paymentTerms: '',
-      sustainabilityFocus: '',
-      riskLevel: '',
-      expansionPlans: '',
-      specialties: '',
-      technologyIntegration: '',
-      currentAirlines: '',
-      notes: ''
-    });
+      // Reset form
+      setNewCompany({
+        name: '',
+        type: '',
+        industry: '',
+        location: '',
+        website: '',
+        phone: '',
+        email: '',
+        established: '',
+        employees: '',
+        revenue: '',
+        travelBudget: '',
+        annualTravelVolume: '',
+        travelFrequency: '',
+        preferredClass: '',
+        companySize: '',
+        creditRating: '',
+        paymentTerms: '',
+        sustainabilityFocus: '',
+        riskLevel: '',
+        expansionPlans: '',
+        specialties: '',
+        technologyIntegration: '',
+        currentAirlines: '',
+        notes: ''
+      });
 
-    setShowAddCompanyDialog(false);
-    setSuccessMessage(`${companyData.name} has been successfully added to the corporate database.`);
-    setTimeout(() => setSuccessMessage(''), 5000);
+      setShowAddCompanyDialog(false);
+      setSuccessMessage(`${companyData.name} has been successfully added to the corporate database.`);
+      setTimeout(() => setSuccessMessage(''), 5000);
+
+    } catch (error) {
+      console.error('Error saving company:', error);
+      setSuccessMessage('Error: Failed to save company. Please try again.');
+      setTimeout(() => setSuccessMessage(''), 5000);
+    }
   };
 
   const isFormValid = () => {
