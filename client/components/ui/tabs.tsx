@@ -36,43 +36,6 @@ function TabsList({
 
 function TabsTrigger({
   className,
-  ...props
-}: React.ComponentProps<typeof TabsPrimitive.Trigger>) {
-  return (
-    <TabsPrimitive.Trigger
-      data-slot="tabs-trigger"
-      className={cn(
-        "rounded-lg px-6 py-3 font-medium text-gray-600 hover:text-gray-900 transition-all duration-200",
-        "data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:border-b-2 data-[state=active]:border-[#FD9646] data-[state=active]:text-gray-900",
-        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FD9646] focus-visible:ring-offset-2",
-        "disabled:pointer-events-none disabled:opacity-50",
-        className,
-      )}
-      {...props}
-    />
-  );
-}
-
-function TabsContent({
-  className,
-  ...props
-}: React.ComponentProps<typeof TabsPrimitive.Content>) {
-  return (
-    <TabsPrimitive.Content
-      data-slot="tabs-content"
-      className={cn(
-        "mt-2 ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
-        className,
-      )}
-      {...props}
-    />
-  );
-}
-
-export { Tabs, TabsList, TabsTrigger, TabsContent };
-
-function TabsTrigger({
-  className,
   children,
   ...props
 }: React.ComponentProps<typeof TabsPrimitive.Trigger>) {
