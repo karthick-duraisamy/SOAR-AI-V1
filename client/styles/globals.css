@@ -853,10 +853,11 @@ html {
   /* Ensure Select trigger works in modals */
   [data-radix-popper-content-wrapper] [data-slot="select-trigger"],
   [role="dialog"] [data-slot="select-trigger"],
-  [data-state="open"] [data-slot="select-trigger"] {
-    background: white !important;
+  [data-state="open"] [data-slot="select-trigger"],[data-slot="textarea"] {
+    /* background: white !important; */
     border: 1px solid #d1d5db !important;
-    color: #374151 !important;
+    color: #717182 !important;
+     background: #f8f9fa !important;
   }
 
   [data-radix-popper-content-wrapper] [data-slot="select-trigger"]:hover,
@@ -931,6 +932,12 @@ html {
   [data-slot="tooltip-trigger"],
   .cursor-pointer {
     cursor: pointer;
+   
+  }
+  [data-slot="select-trigger"],[data-slot="input"]{
+     background: #f8f9fa !important;
+     border:1px solid #e5e7eb !important;
+    color: #717182 !important;
   }
 
   /* Ensure disabled elements show default cursor */

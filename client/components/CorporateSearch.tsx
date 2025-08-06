@@ -663,7 +663,7 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
         </div>
 
         {/* Bottom Row - 2 columns */}
-        <div className="grid grid-cols-2 gap-6 mb-6">
+        <div className="grid grid-cols-3 gap-6 mb-6">
           <div className="space-y-2">
             <Label className="text-sm font-medium text-gray-900">Company Size</Label>
             <Select value={searchParams.companySize} onValueChange={(value) => setSearchParams({...searchParams, companySize: value})}>
@@ -697,7 +697,7 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
         </div>
 
         {/* Action Buttons */}
-        <div className="flex justify-between items-center">
+        <div className="flex space-x-3 items-center">
           <Button 
             onClick={handleSearch} 
             disabled={isSearching} 
@@ -1082,7 +1082,7 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
             </Tabs>
           </div>
 
-          <DialogFooter className="pt-6 border-t gap-3">
+          <DialogFooter className="pt-6 border-t border-gray-300 gap-3">
             <Button 
               variant="ghost" 
               onClick={() => {
@@ -1127,7 +1127,7 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
               <Plus className="h-6 w-6 text-orange-500" />
               Add New Company
             </DialogTitle>
-            <DialogDescription className="text-base mt-2">
+            <DialogDescription className="text-base mt-2" style={{'color':'#717182'}}>
               Add a new company to the corporate database for potential partnership opportunities
             </DialogDescription>
           </DialogHeader>
@@ -1510,14 +1510,14 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
             </ScrollArea>
           </Tabs>
 
-          <DialogFooter className="pt-6 border-t gap-3">
-            <Button variant="outline" onClick={() => setShowAddCompanyDialog(false)}>
+          <DialogFooter className="pt-6 border-t border-gray-300 gap-3">
+            <Button variant="outline" className="border-gray-300 text-gray-700 hover:bg-gray-50" onClick={() => setShowAddCompanyDialog(false)}>
               Cancel
             </Button>
             <Button 
               onClick={handleAddCompany} 
               disabled={!isFormValid() || isSubmitting}
-              className="bg-orange-500 hover:bg-orange-600"
+              className="bg-orange-500 hover:bg-orange-600 text-white"
             >
               {isSubmitting ? (
                 <>
