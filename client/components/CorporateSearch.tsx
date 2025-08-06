@@ -734,89 +734,95 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
       {/* Results List */}
       <div className="space-y-4">
         {filteredCorporates.map((corporate) => (
-          <Card key={corporate.id} className="bg-white border border-gray-200">
+          <Card key={corporate.id} className="bg-white border border-gray-200 hover:shadow-md transition-shadow">
             <CardContent className="p-6">
               <div className="flex items-start gap-4">
                 {/* Company Icon */}
                 <div className="flex-shrink-0">
-                  <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                    <Building2 className="h-6 w-6 text-blue-600" />
+                  <div className="w-14 h-14 bg-blue-100 rounded-lg flex items-center justify-center">
+                    <Building2 className="h-7 w-7 text-blue-600" />
                   </div>
                 </div>
 
                 {/* Company Info */}
                 <div className="flex-1">
+                  {/* Header Row */}
                   <div className="flex items-start justify-between mb-3">
-                    <div>
-                      <div className="flex items-center gap-2 mb-1">
-                        <h3 className="text-lg font-semibold text-gray-900">{corporate.name}</h3>
-                        <Badge variant="secondary" className="bg-orange-100 text-orange-700 text-xs">
-                          AI Score {corporate.aiScore}
+                    <div className="flex-1">
+                      <div className="flex items-center gap-3 mb-1">
+                        <h3 className="text-xl font-semibold text-gray-900">{corporate.name}</h3>
+                        <Badge className="bg-orange-500 hover:bg-orange-600 text-white text-xs px-2 py-1 rounded-full">
+                          AI Score: {corporate.aiScore}
                         </Badge>
                       </div>
-                      <p className="text-sm text-gray-600 mb-1">{corporate.type} • {corporate.industry}</p>
-                      <div className="flex items-center gap-4 text-sm text-gray-500">
+                      <div className="text-sm text-gray-600 mb-2">
+                        {corporate.type} • {corporate.industry}
+                      </div>
+                      <div className="flex items-center gap-6 text-sm text-gray-500">
                         <span className="flex items-center gap-1">
-                          <MapPin className="h-3 w-3" />
+                          <MapPin className="h-4 w-4" />
                           {corporate.location}
                         </span>
                         <span className="flex items-center gap-1">
-                          <Users className="h-3 w-3" />
+                          <Users className="h-4 w-4" />
                           {corporate.employees.toLocaleString()} employees
                         </span>
                         <span className="flex items-center gap-1">
-                          <Calendar className="h-3 w-3" />
+                          <Calendar className="h-4 w-4" />
                           Est. {corporate.established}
                         </span>
-                        <span className="flex items-center gap-1">
-                          <Globe className="h-3 w-3" />
-                          {corporate.website}
+                        <span className="flex items-center gap-1 text-blue-600">
+                          <Globe className="h-4 w-4" />
+                          www.{corporate.name.toLowerCase().replace(/\s+/g, '')}.com
                         </span>
                       </div>
                     </div>
                     <div className="text-right">
                       <div className="flex items-center gap-1 mb-1">
-                        <Star className="h-4 w-4 text-yellow-500 fill-current" />
-                        <span className="font-medium text-sm">{corporate.rating}</span>
+                        <Star className="h-4 w-4 text-yellow-400 fill-current" />
+                        <span className="font-semibold text-lg">{corporate.rating}</span>
                       </div>
-                      <div className="text-sm text-gray-600">${corporate.travelBudget} budget</div>
+                      <div className="text-sm font-medium text-gray-800">${corporate.travelBudget} budget</div>
                     </div>
                   </div>
 
-                  {/* Company Details */}
-                  <div className="grid grid-cols-2 gap-x-8 gap-y-2 mb-4 text-sm">
+                  {/* Key Metrics Row */}
+                  <div className="grid grid-cols-3 gap-8 mb-4 py-2">
                     <div className="flex items-center gap-2">
                       <DollarSign className="h-4 w-4 text-green-600" />
-                      <span>Revenue: ${(corporate.revenue / 1000000).toFixed(1)}M</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Shield className="h-4 w-4 text-blue-600" />
-                      <span>Credit: {corporate.creditRating}</span>
+                      <span className="text-sm"><span className="font-medium">Revenue:</span> ${(corporate.revenue / 1000000).toFixed(1)}M</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <Plane className="h-4 w-4 text-purple-600" />
-                      <span>Travel: {corporate.annualTravelVolume}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Target className="h-4 w-4 text-orange-600" />
-                      <span>Class: {corporate.preferredClass}</span>
+                      <span className="text-sm"><span className="font-medium">Travel:</span> {corporate.annualTravelVolume}</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <Clock className="h-4 w-4 text-gray-600" />
-                      <span>Frequency: {corporate.travelFrequency}</span>
+                      <span className="text-sm"><span className="font-medium">Frequency:</span> {corporate.travelFrequency}</span>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-8 mb-4 py-2">
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 rounded-full bg-green-500"></div>
+                      <span className="text-sm"><span className="font-medium">Credit:</span> {corporate.creditRating}</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <Activity className="h-4 w-4 text-red-600" />
-                      <span>Risk: {corporate.riskLevel}</span>
+                      <div className="w-3 h-3 rounded-full bg-orange-500"></div>
+                      <span className="text-sm"><span className="font-medium">Class:</span> {corporate.preferredClass}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 rounded-full bg-red-500"></div>
+                      <span className="text-sm"><span className="font-medium">Risk:</span> {corporate.riskLevel}</span>
                     </div>
                   </div>
 
                   {/* Specialties */}
                   <div className="mb-4">
-                    <p className="text-sm font-medium text-gray-700 mb-2">Specialties</p>
+                    <p className="text-sm font-medium text-gray-700 mb-2">Specialties:</p>
                     <div className="flex flex-wrap gap-2">
                       {corporate.specialties.map((specialty, index) => (
-                        <span key={index} className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded">
+                        <span key={index} className="px-3 py-1 bg-gray-100 text-gray-700 text-sm rounded-md border">
                           {specialty}
                         </span>
                       ))}
@@ -824,12 +830,12 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
                   </div>
 
                   {/* AI Recommendation */}
-                  <div className="mb-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
-                    <div className="flex items-start gap-2">
-                      <Brain className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
+                  <div className="mb-4 p-4 bg-purple-50 rounded-lg border border-purple-200">
+                    <div className="flex items-start gap-3">
+                      <Brain className="h-5 w-5 text-purple-600 mt-0.5 flex-shrink-0" />
                       <div>
-                        <p className="text-sm font-medium text-blue-900">AI Partnership Recommendation</p>
-                        <p className="text-sm text-blue-800 mt-1">{corporate.aiRecommendation}</p>
+                        <p className="text-sm font-semibold text-purple-900 mb-1">AI Partnership Recommendation</p>
+                        <p className="text-sm text-purple-800">{corporate.aiRecommendation}</p>
                       </div>
                     </div>
                   </div>
@@ -840,9 +846,9 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
                       variant="outline" 
                       size="sm" 
                       onClick={() => handleViewProfile(corporate)}
-                      className="border-gray-300"
+                      className="border-gray-300 hover:bg-gray-50"
                     >
-                      <Eye className="h-4 w-4 mr-1" />
+                      <Eye className="h-4 w-4 mr-2" />
                       View Full Profile
                     </Button>
 
@@ -851,14 +857,14 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
                       size="sm" 
                       onClick={() => handleMoveAsLead(corporate)}
                       disabled={movedAsLeadIds.has(corporate.id)}
-                      className="border-gray-300"
+                      className="border-gray-300 hover:bg-gray-50"
                     >
-                      <UserPlus className="h-4 w-4 mr-1" />
-                      {movedAsLeadIds.has(corporate.id) ? 'Move as Lead' : 'Move as Lead'}
+                      <UserPlus className="h-4 w-4 mr-2" />
+                      Move as Lead
                     </Button>
 
-                    <Button variant="outline" size="sm" className="border-gray-300">
-                      <Phone className="h-4 w-4 mr-1" />
+                    <Button variant="outline" size="sm" className="border-gray-300 hover:bg-gray-50">
+                      <Phone className="h-4 w-4 mr-2" />
                       Contact
                     </Button>
                   </div>
