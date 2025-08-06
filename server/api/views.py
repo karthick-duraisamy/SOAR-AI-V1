@@ -45,10 +45,6 @@ class CompanyViewSet(viewsets.ModelViewSet):
         
         if size:
             companies = companies.filter(size=size)
-        
-        # Handle company size filtering (use companySize parameter)
-        if company_size:
-            companies = companies.filter(size=company_size)
             
         if location:
             # Handle location filtering with different mapping
