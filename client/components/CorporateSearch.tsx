@@ -261,7 +261,7 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
   const [showCorporateProfile, setShowCorporateProfile] = useState(false);
   const [showAddCompanyDialog, setShowAddCompanyDialog] = useState(false);
-  
+
   // Advanced filter states
   const [advancedFilters, setAdvancedFilters] = useState({
     industries: [],
@@ -281,7 +281,7 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
   const [movedAsLeadIds, setMovedAsLeadIds] = useState(new Set());
   const [successMessage, setSuccessMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
+
   // New company form state
   const [newCompany, setNewCompany] = useState({
     name: '',
@@ -314,14 +314,14 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
     setIsSearching(true);
     // Simulate AI processing
     await new Promise(resolve => setTimeout(resolve, 2000));
-    
+
     // Apply actual filtering logic
     let filtered = mockCorporates.filter(corporate => {
       // Industry filter
       if (searchParams.industry && searchParams.industry !== corporate.marketSegment.toLowerCase()) {
         return false;
       }
-      
+
       // Location filter
       if (searchParams.location) {
         const locationMatch = {
@@ -331,15 +331,15 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
           'global': ['Global'],
           'emerging': ['Emerging']
         };
-        
+
         const matchingRegions = locationMatch[searchParams.location] || [];
         const corporateLocation = corporate.location;
-        
+
         if (!matchingRegions.some(region => corporateLocation.includes(region))) {
           return false;
         }
       }
-      
+
       // Travel Budget filter
       if (searchParams.travelBudget) {
         const budget = parseFloat(corporate.travelBudget.replace(/[^\d.]/g, ''));
@@ -350,13 +350,13 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
           '3m-5m': [3, 5],
           'above-5m': [5, Infinity]
         };
-        
+
         const [min, max] = budgetRanges[searchParams.travelBudget] || [0, Infinity];
         if (budget < min || budget > max) {
           return false;
         }
       }
-      
+
       // Company Size filter
       if (searchParams.companySize) {
         const sizeMapping = {
@@ -366,13 +366,13 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
           'large': ['Large', 'Large Enterprise'],
           'enterprise': ['Enterprise']
         };
-        
+
         const expectedSizes = sizeMapping[searchParams.companySize] || [];
         if (!expectedSizes.some(size => corporate.companySize.includes(size))) {
           return false;
         }
       }
-      
+
       // Travel Frequency filter
       if (searchParams.travelFrequency) {
         const frequencyMapping = {
@@ -382,16 +382,16 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
           'quarterly': 'Quarterly',
           'annual': 'Annual'
         };
-        
+
         const expectedFreq = frequencyMapping[searchParams.travelFrequency];
         if (expectedFreq && corporate.travelFrequency !== expectedFreq) {
           return false;
         }
       }
-      
+
       return true;
     });
-    
+
     setFilteredCorporates(filtered);
     setIsSearching(false);
   };
@@ -447,27 +447,30 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
 
   const handleAddCompany = async () => {
     setIsSubmitting(true);
+    setSuccessMessage('');
+
     try {
-      // Prepare data for Django API
-      const apiData = {
-        name: newCompany.name.trim(),
+      // Map frontend fields to Django model fields
+      const companyData = {
+        name: newCompany.name,
         industry: newCompany.industry,
-        size: newCompany.companySize || 'medium',
-        location: newCompany.location.trim(),
-        website: newCompany.website ? newCompany.website.trim() : '',
-        annual_revenue: newCompany.revenue ? parseFloat(newCompany.revenue) * 1000000 : null,
+        size: newCompany.companySize,
+        location: newCompany.location,
+        website: newCompany.website || '',
+        annual_revenue: newCompany.revenue ? parseFloat(newCompany.revenue) : null,
         employee_count: newCompany.employees ? parseInt(newCompany.employees) : null,
-        travel_budget: newCompany.travelBudget ? parseFloat(newCompany.travelBudget.replace(/[$,MKmk]/g, '')) * (newCompany.travelBudget.includes('M') || newCompany.travelBudget.includes('m') ? 1000000 : newCompany.travelBudget.includes('K') || newCompany.travelBudget.includes('k') ? 1000 : 1) : null,
-        description: newCompany.notes ? newCompany.notes.trim() : ''
+        travel_budget: newCompany.travelBudget ? parseFloat(newCompany.travelBudget) : null,
+        description: newCompany.notes || ''
       };
 
-      // Make API call to Django backend
+      console.log('Sending company data:', companyData);
+
       const response = await fetch('/api/companies/', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(apiData)
+        body: JSON.stringify(companyData)
       });
 
       if (!response.ok) {
@@ -478,7 +481,7 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
       const savedCompany = await response.json();
 
       // Generate display data for the frontend
-      const companyData = {
+      const companyDataForFrontend = {
         id: savedCompany.id,
         name: newCompany.name,
         type: newCompany.type,
@@ -506,22 +509,22 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
         aiScore: Math.floor(Math.random() * 20) + 80, // Random score between 80-100
         rating: (Math.random() * 1 + 4).toFixed(1), // Random rating between 4.0-5.0
         contracts: 0,
-      aiRecommendation: `New corporate client with potential for ${newCompany.travelFrequency.toLowerCase()} travel needs. Consider outreach for partnership opportunities.`,
-      compliance: Math.floor(Math.random() * 20) + 80,
-      financialStability: Math.floor(Math.random() * 20) + 80,
-      destinations: ["North America"], // Default
-      teamSize: Math.floor(parseInt(newCompany.employees) * 0.1) || 10,
-      travelManagers: 1,
-      decisionMakers: 2,
-      contractValue: 0,
-      competitorAirlines: 1,
-      loyaltyPotential: Math.floor(Math.random() * 30) + 70,
-      seasonality: "Year-round",
-      meetingTypes: ["Business Meetings"]
-    };
+        aiRecommendation: `New corporate client with potential for ${newCompany.travelFrequency.toLowerCase()} travel needs. Consider outreach for partnership opportunities.`,
+        compliance: Math.floor(Math.random() * 20) + 80,
+        financialStability: Math.floor(Math.random() * 20) + 80,
+        destinations: ["North America"], // Default
+        teamSize: Math.floor(parseInt(newCompany.employees) * 0.1) || 10,
+        travelManagers: 1,
+        decisionMakers: 2,
+        contractValue: 0,
+        competitorAirlines: 1,
+        loyaltyPotential: Math.floor(Math.random() * 30) + 70,
+        seasonality: "Year-round",
+        meetingTypes: ["Business Meetings"]
+      };
 
-    // Add to mock data for display
-      mockCorporates.push(companyData);
+      // Add to mock data for display
+      mockCorporates.push(companyDataForFrontend);
       setFilteredCorporates([...mockCorporates]);
 
       // Reset form
@@ -553,7 +556,7 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
       });
 
       setShowAddCompanyDialog(false);
-      setSuccessMessage(`${companyData.name} has been successfully added to the corporate database.`);
+      setSuccessMessage(`${companyDataForFrontend.name} has been successfully added to the corporate database.`);
       setTimeout(() => setSuccessMessage(''), 5000);
 
     } catch (error) {
@@ -566,13 +569,10 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
   };
 
   const isFormValid = () => {
-    return newCompany.name && 
-           newCompany.type && 
-           newCompany.industry && 
-           newCompany.location && 
-           newCompany.email &&
-           newCompany.employees &&
-           newCompany.travelBudget;
+    return newCompany.name.trim() !== '' && 
+           newCompany.industry !== '' && 
+           newCompany.companySize !== '' && 
+           newCompany.location.trim() !== '';
   };
 
   const getScoreColor = (score: number) => {
@@ -734,12 +734,12 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
                 </>
               )}
             </Button>
-            
+
             <Button variant="outline" className="flex items-center gap-2" onClick={() => setShowAdvancedFilters(true)}>
               <Filter className="h-4 w-4" />
               Advanced Filters
             </Button>
-            
+
             <Button 
               variant="ghost" 
               className="flex items-center gap-2"
@@ -898,22 +898,21 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
                       <Eye className="h-4 w-4" />
                       View Full Profile
                     </Button>
-                    
+
                     <Button 
                       variant="secondary"
                       size="sm" 
                       onClick={() => handleMoveAsLead(corporate)}
                       disabled={movedAsLeadIds.has(corporate.id)}
                     >
-                      <UserPlus className="h-4 w-4 mr-2" />
                       {movedAsLeadIds.has(corporate.id) ? 'Moved to Leads' : 'Move as Lead'}
                     </Button>
-                    
+
                     <Button variant="outline" size="sm" className="flex items-center gap-2">
                       <Phone className="h-4 w-4" />
                       Contact
                     </Button>
-                    
+
 
                   </div>
                 </CardContent>
@@ -935,7 +934,7 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
               Apply detailed criteria to discover the most relevant corporate travel prospects for your business
             </DialogDescription>
           </DialogHeader>
-          
+
           <div className="space-y-8">
             <Tabs defaultValue="business" className="w-full">
               <TabsList className="grid w-full grid-cols-4 h-12 bg-gray-100 rounded-lg p-1">
@@ -944,7 +943,7 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
                 <TabsTrigger value="financial" className="text-[14px] px-5 py-2 rounded-md data-[state=active]:bg-white data-[state=active]:border-b-2 data-[state=active]:border-[#FD9646]">Financial Profile</TabsTrigger>
                 <TabsTrigger value="technology" className="text-[14px] px-5 py-2 rounded-md data-[state=active]:bg-white data-[state=active]:border-b-2 data-[state=active]:border-[#FD9646]">Technology & Preferences</TabsTrigger>
               </TabsList>
-              
+
               <TabsContent value="business" className="space-y-6 mt-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
@@ -974,7 +973,7 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
                       ))}
                     </div>
                   </div>
-                  
+
                   <div className="space-y-2">
                     <Label className="text-sm font-medium">Company Maturity</Label>
                     <div className="space-y-3">
@@ -987,7 +986,7 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
                     </div>
                   </div>
                 </div>
-                
+
                 <div className="space-y-2">
                   <Label className="text-sm font-medium">Employee Count Range</Label>
                   <Slider 
@@ -1003,7 +1002,7 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
                   </div>
                 </div>
               </TabsContent>
-              
+
               <TabsContent value="travel" className="space-y-6 mt-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
@@ -1023,7 +1022,7 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
                       </SelectContent>
                     </Select>
                   </div>
-                  
+
                   <div className="space-y-2">
                     <Label className="text-sm font-medium">Preferred Class</Label>
                     <Select 
@@ -1042,7 +1041,7 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
                     </Select>
                   </div>
                 </div>
-                
+
                 <div className="space-y-2">
                   <Label className="text-sm font-medium">Annual Travel Volume (Trips)</Label>
                   <Slider defaultValue={[1000]} max={20000} step={100} className="w-full" />
@@ -1052,7 +1051,7 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
                   </div>
                 </div>
               </TabsContent>
-              
+
               <TabsContent value="financial" className="space-y-6 mt-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
@@ -1073,7 +1072,7 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
                       </SelectContent>
                     </Select>
                   </div>
-                  
+
                   <div className="space-y-2">
                     <Label className="text-sm font-medium">Credit Rating</Label>
                     <Select>
@@ -1089,7 +1088,7 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
                     </Select>
                   </div>
                 </div>
-                
+
                 <div className="space-y-2">
                   <Label className="text-sm font-medium">Travel Budget Range (Annual)</Label>
                   <Slider defaultValue={[1]} max={10} step={0.5} className="w-full" />
@@ -1099,7 +1098,7 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
                   </div>
                 </div>
               </TabsContent>
-              
+
               <TabsContent value="technology" className="space-y-6 mt-6">
                 <div className="space-y-4">
                   <div className="space-y-2">
@@ -1113,7 +1112,7 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
                       ))}
                     </div>
                   </div>
-                  
+
                   <div className="space-y-2">
                     <Label className="text-sm font-medium">Sustainability Focus</Label>
                     <Select 
@@ -1135,7 +1134,7 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
               </TabsContent>
             </Tabs>
           </div>
-          
+
           <DialogFooter className="pt-6 border-t gap-3">
             <Button 
               variant="ghost" 
@@ -1185,7 +1184,7 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
               Add a new company to the corporate database for potential partnership opportunities
             </DialogDescription>
           </DialogHeader>
-          
+
           <Tabs defaultValue="basic" className="w-full">
             <TabsList className="grid w-full grid-cols-4 mb-6 bg-gray-50/50 p-1 rounded-xl border border-gray-200/50">
               <TabsTrigger 
@@ -1213,7 +1212,7 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
                 Additional Info
               </TabsTrigger>
             </TabsList>
-            
+
             <ScrollArea className="max-h-[55vh] pr-4">
               <TabsContent value="basic" className="space-y-6 mt-0">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -1227,7 +1226,7 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
                       className="h-10"
                     />
                   </div>
-                  
+
                   <div className="space-y-2">
                     <Label htmlFor="company-type" className="text-sm font-medium">Company Type *</Label>
                     <Select value={newCompany.type} onValueChange={(value) => setNewCompany({...newCompany, type: value})}>
@@ -1243,7 +1242,7 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
                     </Select>
                   </div>
                 </div>
-                
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
                     <Label htmlFor="industry" className="text-sm font-medium">Industry *</Label>
@@ -1267,7 +1266,7 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
                       </SelectContent>
                     </Select>
                   </div>
-                  
+
                   <div className="space-y-2">
                     <Label htmlFor="location" className="text-sm font-medium">Location *</Label>
                     <Input
@@ -1279,7 +1278,7 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
                     />
                   </div>
                 </div>
-                
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
                     <Label htmlFor="email" className="text-sm font-medium">Email *</Label>
@@ -1292,7 +1291,7 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
                       className="h-10"
                     />
                   </div>
-                  
+
                   <div className="space-y-2">
                     <Label htmlFor="phone" className="text-sm font-medium">Phone</Label>
                     <Input
@@ -1316,7 +1315,7 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
                   />
                 </div>
               </TabsContent>
-              
+
               <TabsContent value="business" className="space-y-6 mt-0">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
@@ -1330,7 +1329,7 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
                       className="h-10"
                     />
                   </div>
-                  
+
                   <div className="space-y-2">
                     <Label htmlFor="revenue" className="text-sm font-medium">Annual Revenue (Millions)</Label>
                     <Input
@@ -1343,7 +1342,7 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
                     />
                   </div>
                 </div>
-                
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
                     <Label htmlFor="established" className="text-sm font-medium">Year Established</Label>
@@ -1356,7 +1355,7 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
                       className="h-10"
                     />
                   </div>
-                  
+
                   <div className="space-y-2">
                     <Label htmlFor="company-size" className="text-sm font-medium">Company Size Category</Label>
                     <Select value={newCompany.companySize} onValueChange={(value) => setNewCompany({...newCompany, companySize: value})}>
@@ -1373,7 +1372,7 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
                     </Select>
                   </div>
                 </div>
-                
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
                     <Label htmlFor="credit-rating" className="text-sm font-medium">Credit Rating</Label>
@@ -1390,7 +1389,7 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
                       </SelectContent>
                     </Select>
                   </div>
-                  
+
                   <div className="space-y-2">
                     <Label htmlFor="payment-terms" className="text-sm font-medium">Payment Terms</Label>
                     <Select value={newCompany.paymentTerms} onValueChange={(value) => setNewCompany({...newCompany, paymentTerms: value})}>
@@ -1407,7 +1406,7 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
                   </div>
                 </div>
               </TabsContent>
-              
+
               <TabsContent value="travel" className="space-y-6 mt-0">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
@@ -1420,7 +1419,7 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
                       className="h-10"
                     />
                   </div>
-                  
+
                   <div className="space-y-2">
                     <Label htmlFor="annual-travel-volume" className="text-sm font-medium">Annual Travel Volume</Label>
                     <Input
@@ -1432,7 +1431,7 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
                     />
                   </div>
                 </div>
-                
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
                     <Label htmlFor="travel-frequency" className="text-sm font-medium">Travel Frequency</Label>
@@ -1449,7 +1448,7 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
                       </SelectContent>
                     </Select>
                   </div>
-                  
+
                   <div className="space-y-2">
                     <Label htmlFor="preferred-class" className="text-sm font-medium">Preferred Travel Class</Label>
                     <Select value={newCompany.preferredClass} onValueChange={(value) => setNewCompany({...newCompany, preferredClass: value})}>
@@ -1466,7 +1465,7 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
                     </Select>
                   </div>
                 </div>
-                
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
                     <Label htmlFor="sustainability-focus" className="text-sm font-medium">Sustainability Focus</Label>
@@ -1482,7 +1481,7 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
                       </SelectContent>
                     </Select>
                   </div>
-                  
+
                   <div className="space-y-2">
                     <Label htmlFor="risk-level" className="text-sm font-medium">Risk Level</Label>
                     <Select value={newCompany.riskLevel} onValueChange={(value) => setNewCompany({...newCompany, riskLevel: value})}>
@@ -1498,7 +1497,7 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
                     </Select>
                   </div>
                 </div>
-                
+
                 <div className="space-y-2">
                   <Label htmlFor="current-airlines" className="text-sm font-medium">Current Airlines (comma-separated)</Label>
                   <Input
@@ -1510,7 +1509,7 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
                   />
                 </div>
               </TabsContent>
-              
+
               <TabsContent value="additional" className="space-y-6 mt-0">
                 <div className="space-y-2">
                   <Label htmlFor="expansion-plans" className="text-sm font-medium">Expansion Plans</Label>
@@ -1527,7 +1526,7 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
                     </SelectContent>
                   </Select>
                 </div>
-                
+
                 <div className="space-y-2">
                   <Label htmlFor="specialties" className="text-sm font-medium">Specialties (comma-separated)</Label>
                   <Textarea
@@ -1538,7 +1537,7 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
                     className="min-h-[80px] resize-none"
                   />
                 </div>
-                
+
                 <div className="space-y-2">
                   <Label htmlFor="technology-integration" className="text-sm font-medium">Technology Integration (comma-separated)</Label>
                   <Textarea
@@ -1549,7 +1548,7 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
                     className="min-h-[80px] resize-none"
                   />
                 </div>
-                
+
                 <div className="space-y-2">
                   <Label htmlFor="notes" className="text-sm font-medium">Additional Notes</Label>
                   <Textarea
@@ -1563,7 +1562,7 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
               </TabsContent>
             </ScrollArea>
           </Tabs>
-          
+
           <DialogFooter className="pt-6 border-t gap-3">
             <Button variant="outline" onClick={() => setShowAddCompanyDialog(false)}>
               Cancel
