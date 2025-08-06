@@ -27,6 +27,9 @@ class CompanyViewSet(viewsets.ModelViewSet):
         industry = request.query_params.get('industry', '')
         size = request.query_params.get('size', '')
         location = request.query_params.get('location', '')
+        travel_budget = request.query_params.get('travelBudget', '')
+        travel_frequency = request.query_params.get('travelFrequency', '')
+        company_size = request.query_params.get('companySize', '')
         
         companies = self.queryset.filter(is_active=True)
         
@@ -44,7 +47,52 @@ class CompanyViewSet(viewsets.ModelViewSet):
             companies = companies.filter(size=size)
             
         if location:
-            companies = companies.filter(location__icontains=location)
+            # Handle location filtering with different mapping
+            location_mapping = {
+                'north-america': ['USA', 'United States', 'North America', 'Canada', 'Mexico'],
+                'europe': ['Europe', 'UK', 'Germany', 'France', 'Italy', 'Spain', 'Netherlands'],
+                'asia-pacific': ['Asia', 'Asia-Pacific', 'Japan', 'Singapore', 'Australia', 'China', 'India'],
+                'global': ['Global', 'Worldwide', 'International'],
+                'emerging': ['Brazil', 'India', 'South Africa', 'Eastern Europe']
+            }
+            
+            if location in location_mapping:
+                location_filters = Q()
+                for loc in location_mapping[location]:
+                    location_filters |= Q(location__icontains=loc)
+                companies = companies.filter(location_filters)
+            else:
+                companies = companies.filter(location__icontains=location)
+        
+        # Handle travel budget filtering
+        if travel_budget:
+            budget_ranges = {
+                'under-500k': (0, 500000),
+                '500k-1m': (500000, 1000000),
+                '1m-3m': (1000000, 3000000),
+                '3m-5m': (3000000, 5000000),
+                'above-5m': (5000000, float('inf'))
+            }
+            
+            if travel_budget in budget_ranges:
+                min_budget, max_budget = budget_ranges[travel_budget]
+                if max_budget == float('inf'):
+                    companies = companies.filter(travel_budget__gte=min_budget)
+                else:
+                    companies = companies.filter(travel_budget__gte=min_budget, travel_budget__lt=max_budget)
+        
+        # Handle company size filtering
+        if company_size:
+            size_mapping = {
+                'startup': ['startup'],
+                'small': ['small'],
+                'medium': ['medium'],
+                'large': ['large'],
+                'enterprise': ['enterprise']
+            }
+            
+            if company_size in size_mapping:
+                companies = companies.filter(size__in=size_mapping[company_size])
         
         serializer = self.get_serializer(companies, many=True)
         return Response(serializer.data)

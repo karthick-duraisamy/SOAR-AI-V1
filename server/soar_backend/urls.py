@@ -2,23 +2,21 @@ from django.contrib import admin
 from django.urls import path, include
 from django.http import JsonResponse
 
-def api_info(request):
+def api_root(request):
     return JsonResponse({
         'message': 'SOAR Backend API',
-        'version': '1.0.0',
+        'version': '1.0',
         'endpoints': {
-            'admin': '/admin/',
-            'api': '/api/',
             'companies': '/api/companies/',
+            'companies_search': '/api/companies/search/',
             'contacts': '/api/contacts/',
             'leads': '/api/leads/',
             'opportunities': '/api/opportunities/',
-            'contracts': '/api/contracts/',
         }
     })
 
 urlpatterns = [
-    path('', api_info, name='api_info'),
     path('admin/', admin.site.urls),
     path('api/', include('api.urls')),
+    path('', api_root),
 ]

@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
@@ -70,176 +70,215 @@ import {
   CheckCircle
 } from 'lucide-react';
 
-const mockCorporates = [
-  {
-    id: 1,
-    name: "TechCorp International",
-    type: "Technology Company",
-    industry: "Software & IT Services",
-    location: "San Francisco, USA",
-    aiScore: 98,
-    rating: 4.9,
-    established: 2010,
-    employees: 2500,
-    specialties: ["Enterprise Software", "Cloud Solutions", "AI/ML Services"],
-    travelBudget: "2.5M",
-    annualTravelVolume: "5,000 trips",
-    contracts: 12,
-    revenue: 50000000,
-    phone: "+1 (555) 123-4567",
-    email: "corporate@techcorp.com",
-    website: "www.techcorp.com",
-    aiRecommendation: "High-value corporate with significant travel needs. Excellent potential for premium airline partnerships and volume discounts.",
-    compliance: 95,
-    financialStability: 98,
-    travelFrequency: "Weekly",
-    destinations: ["Global", "North America", "Europe", "Asia-Pacific"],
-    preferredClass: "Business",
-    teamSize: 150,
-    travelManagers: 3,
-    currentAirlines: ["United", "Delta", "British Airways"],
-    paymentTerms: "Net 30",
-    creditRating: "AAA",
-    sustainabilityFocus: "High",
-    technologyIntegration: ["API", "Mobile App", "Expense Management"],
-    seasonality: "Year-round",
-    meetingTypes: ["Conferences", "Client Visits", "Team Offsites"],
-    companySize: "Enterprise",
-    marketSegment: "Technology",
-    decisionMakers: 5,
-    contractValue: 2800000,
-    competitorAirlines: 3,
-    loyaltyPotential: 92,
-    expansionPlans: "Aggressive",
-    riskLevel: "Low"
-  },
-  {
-    id: 2,
-    name: "Global Manufacturing Ltd",
-    type: "Manufacturing Corporation",
-    industry: "Industrial Manufacturing",
-    location: "Detroit, USA",
-    aiScore: 92,
-    rating: 4.7,
-    established: 1985,
-    employees: 5000,
-    specialties: ["Automotive Parts", "Supply Chain", "Quality Control"],
-    travelBudget: "1.8M",
-    annualTravelVolume: "3,200 trips",
-    contracts: 8,
-    revenue: 75000000,
-    phone: "+1 (555) 234-5678",
-    email: "travel@globalmanufacturing.com",
-    website: "www.globalmanufacturing.com",
-    aiRecommendation: "Established manufacturing giant with consistent travel patterns. Strong potential for long-term partnership with volume commitments.",
-    compliance: 88,
-    financialStability: 94,
-    travelFrequency: "Monthly",
-    destinations: ["North America", "Europe", "Asia"],
-    preferredClass: "Economy Plus",
-    teamSize: 80,
-    travelManagers: 2,
-    currentAirlines: ["American", "Lufthansa"],
-    paymentTerms: "Net 45",
-    creditRating: "AA",
-    sustainabilityFocus: "Medium",
-    technologyIntegration: ["GDS", "Corporate Portal"],
-    seasonality: "Q1/Q3 Heavy",
-    meetingTypes: ["Supplier Visits", "Trade Shows"],
-    companySize: "Large Enterprise",
-    marketSegment: "Manufacturing",
-    decisionMakers: 3,
-    contractValue: 1950000,
-    competitorAirlines: 2,
-    loyaltyPotential: 85,
-    expansionPlans: "Moderate",
-    riskLevel: "Low"
-  },
-  {
-    id: 3,
-    name: "Sunrise Financial Services",
-    type: "Financial Services",
-    industry: "Banking & Finance",
-    location: "New York, USA",
-    aiScore: 95,
-    rating: 4.8,
-    established: 1995,
-    employees: 1200,
-    specialties: ["Investment Banking", "Wealth Management", "Corporate Finance"],
-    travelBudget: "3.2M",
-    annualTravelVolume: "6,800 trips",
-    contracts: 15,
-    revenue: 120000000,
-    phone: "+1 (555) 345-6789",
-    email: "corporate.travel@sunrisefinancial.com",
-    website: "www.sunrisefinancial.com",
-    aiRecommendation: "Premium financial services firm with high-frequency travel. Excellent candidate for business class partnerships and flexible booking options.",
-    compliance: 97,
-    financialStability: 99,
-    travelFrequency: "Daily",
-    destinations: ["Global", "Financial Centers"],
-    preferredClass: "Business/First",
-    teamSize: 200,
-    travelManagers: 5,
-    currentAirlines: ["Emirates", "Singapore Airlines", "Cathay Pacific"],
-    paymentTerms: "Net 15",
-    creditRating: "AAA",
-    sustainabilityFocus: "High",
-    technologyIntegration: ["API", "Mobile App", "Real-time Booking"],
-    seasonality: "Year-round Peak",
-    meetingTypes: ["Client Meetings", "Deal Closings", "Conferences"],
-    companySize: "Large Enterprise",
-    marketSegment: "Financial Services",
-    decisionMakers: 7,
-    contractValue: 4200000,
-    competitorAirlines: 4,
-    loyaltyPotential: 88,
-    expansionPlans: "Aggressive",
-    riskLevel: "Very Low"
-  },
-  {
-    id: 4,
-    name: "EcoEnergy Solutions",
-    type: "Energy Company",
-    industry: "Renewable Energy",
-    location: "Austin, USA",
-    aiScore: 89,
-    rating: 4.6,
-    established: 2015,
-    employees: 800,
-    specialties: ["Solar Energy", "Wind Power", "Sustainability Consulting"],
-    travelBudget: "1.2M",
-    annualTravelVolume: "2,400 trips",
-    contracts: 6,
-    revenue: 25000000,
-    phone: "+1 (555) 456-7890",
-    email: "logistics@ecoenergy.com",
-    website: "www.ecoenergy.com",
-    aiRecommendation: "Fast-growing renewable energy company with sustainability focus. Perfect match for airlines with carbon offset programs.",
-    compliance: 85,
-    financialStability: 87,
-    travelFrequency: "Bi-weekly",
-    destinations: ["North America", "Project Sites"],
-    preferredClass: "Economy",
-    teamSize: 45,
-    travelManagers: 1,
-    currentAirlines: ["Southwest", "JetBlue"],
-    paymentTerms: "Net 30",
-    creditRating: "A+",
-    sustainabilityFocus: "Very High",
-    technologyIntegration: ["Mobile App", "Carbon Tracking"],
-    seasonality: "Spring/Summer Peak",
-    meetingTypes: ["Site Visits", "Regulatory Meetings"],
-    companySize: "Mid-Market",
-    marketSegment: "Energy",
-    decisionMakers: 2,
-    contractValue: 1350000,
-    competitorAirlines: 2,
-    loyaltyPotential: 78,
-    expansionPlans: "Rapid",
-    riskLevel: "Medium"
+// API utility functions
+const API_BASE_URL = '/api';
+
+const fetchCompanies = async (searchParams = {}) => {
+  try {
+    const queryParams = new URLSearchParams();
+    
+    Object.entries(searchParams).forEach(([key, value]) => {
+      if (value && value !== '') {
+        queryParams.append(key, value);
+      }
+    });
+
+    const response = await fetch(`${API_BASE_URL}/companies/search/?${queryParams.toString()}`);
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Error fetching companies:', error);
+    return [];
   }
-];
+};
+
+const transformCompanyData = (company) => {
+  // Transform backend data to match frontend expectations
+  return {
+    id: company.id,
+    name: company.name,
+    type: getCompanyTypeDisplay(company.size),
+    industry: getIndustryDisplay(company.industry),
+    location: company.location,
+    aiScore: Math.floor(Math.random() * 20) + 80, // Random AI score for demo
+    rating: (Math.random() * 1 + 4).toFixed(1), // Random rating 4.0-5.0
+    established: company.created_at ? new Date(company.created_at).getFullYear() : 2020,
+    employees: company.employee_count || Math.floor(Math.random() * 5000) + 100,
+    specialties: company.description ? company.description.split(',').map(s => s.trim()).slice(0, 3) : ["Business Services", "Corporate Solutions"],
+    travelBudget: company.travel_budget ? `${(company.travel_budget / 1000000).toFixed(1)}M` : "1.0M",
+    annualTravelVolume: `${Math.floor(Math.random() * 5000) + 1000} trips`,
+    contracts: Math.floor(Math.random() * 20) + 1,
+    revenue: company.annual_revenue || Math.floor(Math.random() * 50000000) + 10000000,
+    phone: "+1 (555) " + Math.floor(Math.random() * 900 + 100) + "-" + Math.floor(Math.random() * 9000 + 1000),
+    email: `contact@${company.name.toLowerCase().replace(/[^a-z0-9]/g, '')}.com`,
+    website: company.website || `www.${company.name.toLowerCase().replace(/[^a-z0-9]/g, '')}.com`,
+    aiRecommendation: generateAIRecommendation(company),
+    compliance: Math.floor(Math.random() * 20) + 80,
+    financialStability: Math.floor(Math.random() * 20) + 80,
+    travelFrequency: getRandomTravelFrequency(),
+    destinations: getRandomDestinations(),
+    preferredClass: getRandomPreferredClass(),
+    teamSize: Math.floor((company.employee_count || 1000) * 0.1),
+    travelManagers: Math.floor(Math.random() * 5) + 1,
+    currentAirlines: getRandomAirlines(),
+    paymentTerms: getRandomPaymentTerms(),
+    creditRating: getRandomCreditRating(),
+    sustainabilityFocus: getRandomSustainabilityFocus(),
+    technologyIntegration: getRandomTechIntegration(),
+    seasonality: getRandomSeasonality(),
+    meetingTypes: getRandomMeetingTypes(),
+    companySize: getSizeDisplay(company.size),
+    marketSegment: getIndustryDisplay(company.industry),
+    decisionMakers: Math.floor(Math.random() * 8) + 2,
+    contractValue: Math.floor(Math.random() * 3000000) + 500000,
+    competitorAirlines: Math.floor(Math.random() * 5) + 1,
+    loyaltyPotential: Math.floor(Math.random() * 30) + 70,
+    expansionPlans: getRandomExpansionPlans(),
+    riskLevel: getRandomRiskLevel()
+  };
+};
+
+// Helper functions
+const getCompanyTypeDisplay = (size) => {
+  const types = {
+    startup: "Startup Company",
+    small: "Small Business",
+    medium: "Medium Corporation",
+    large: "Large Corporation",
+    enterprise: "Enterprise Corporation",
+    corporation: "Corporation",
+    llc: "LLC",
+    partnership: "Partnership",
+    nonprofit: "Non-Profit"
+  };
+  return types[size] || "Corporation";
+};
+
+const getIndustryDisplay = (industry) => {
+  const industries = {
+    technology: "Technology & Software",
+    finance: "Finance & Banking",
+    healthcare: "Healthcare",
+    manufacturing: "Manufacturing",
+    retail: "Retail & Consumer",
+    consulting: "Consulting Services",
+    telecommunications: "Telecommunications",
+    energy: "Energy & Utilities",
+    transportation: "Transportation & Logistics",
+    education: "Education",
+    government: "Government",
+    other: "Other"
+  };
+  return industries[industry] || "Business Services";
+};
+
+const getSizeDisplay = (size) => {
+  const sizes = {
+    startup: "Startup",
+    small: "Small",
+    medium: "Medium",
+    large: "Large",
+    enterprise: "Enterprise"
+  };
+  return sizes[size] || "Medium";
+};
+
+const generateAIRecommendation = (company) => {
+  const recommendations = [
+    "High-potential corporate client with strong growth indicators. Excellent opportunity for partnership.",
+    "Established company with consistent business patterns. Good candidate for long-term contracts.",
+    "Growing organization with expanding travel needs. Consider volume-based pricing strategies.",
+    "Premium client with sophisticated requirements. Focus on high-service offerings.",
+    "Cost-conscious organization seeking value. Emphasize efficiency and competitive pricing."
+  ];
+  return recommendations[Math.floor(Math.random() * recommendations.length)];
+};
+
+const getRandomTravelFrequency = () => {
+  const frequencies = ["Daily", "Weekly", "Monthly", "Bi-weekly", "Quarterly"];
+  return frequencies[Math.floor(Math.random() * frequencies.length)];
+};
+
+const getRandomDestinations = () => {
+  const destinations = [
+    ["North America", "Europe"],
+    ["Global", "Asia-Pacific", "Europe"],
+    ["North America", "Asia-Pacific"],
+    ["Domestic", "Regional"],
+    ["Global", "Emerging Markets"]
+  ];
+  return destinations[Math.floor(Math.random() * destinations.length)];
+};
+
+const getRandomPreferredClass = () => {
+  const classes = ["Economy", "Economy Plus", "Business", "First", "Business/First"];
+  return classes[Math.floor(Math.random() * classes.length)];
+};
+
+const getRandomAirlines = () => {
+  const airlines = [
+    ["United", "Delta"],
+    ["American", "Southwest"],
+    ["Emirates", "Singapore Airlines"],
+    ["British Airways", "Lufthansa"],
+    ["Air France", "KLM"]
+  ];
+  return airlines[Math.floor(Math.random() * airlines.length)];
+};
+
+const getRandomPaymentTerms = () => {
+  const terms = ["Net 15", "Net 30", "Net 45", "Net 60"];
+  return terms[Math.floor(Math.random() * terms.length)];
+};
+
+const getRandomCreditRating = () => {
+  const ratings = ["AAA", "AA", "A", "BBB", "A+"];
+  return ratings[Math.floor(Math.random() * ratings.length)];
+};
+
+const getRandomSustainabilityFocus = () => {
+  const focus = ["Very High", "High", "Medium", "Low"];
+  return focus[Math.floor(Math.random() * focus.length)];
+};
+
+const getRandomTechIntegration = () => {
+  const tech = [
+    ["API", "Mobile App"],
+    ["GDS", "Corporate Portal"],
+    ["API", "Real-time Booking"],
+    ["Mobile App", "Expense Management"],
+    ["Corporate Portal", "Reporting"]
+  ];
+  return tech[Math.floor(Math.random() * tech.length)];
+};
+
+const getRandomSeasonality = () => {
+  const patterns = ["Year-round", "Q1/Q3 Heavy", "Spring/Summer Peak", "Holiday Heavy"];
+  return patterns[Math.floor(Math.random() * patterns.length)];
+};
+
+const getRandomMeetingTypes = () => {
+  const types = [
+    ["Business Meetings", "Conferences"],
+    ["Client Visits", "Trade Shows"],
+    ["Team Offsites", "Training"],
+    ["Site Visits", "Regulatory Meetings"]
+  ];
+  return types[Math.floor(Math.random() * types.length)];
+};
+
+const getRandomExpansionPlans = () => {
+  const plans = ["Aggressive", "Moderate", "Conservative", "Rapid", "Stable"];
+  return plans[Math.floor(Math.random() * plans.length)];
+};
+
+const getRandomRiskLevel = () => {
+  const risks = ["Very Low", "Low", "Medium", "High"];
+  return risks[Math.floor(Math.random() * risks.length)];
+};
 
 interface CorporateSearchProps {
   initialFilters?: any;
@@ -256,11 +295,18 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
     ...initialFilters
   });
 
-  const [filteredCorporates, setFilteredCorporates] = useState(mockCorporates);
+  // Load companies on component mount
+  useEffect(() => {
+    loadCompanies();
+  }, []);
+
+  const [filteredCorporates, setFilteredCorporates] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
   const [showCorporateProfile, setShowCorporateProfile] = useState(false);
   const [showAddCompanyDialog, setShowAddCompanyDialog] = useState(false);
+  const [error, setError] = useState('');
 
   // Advanced filter states
   const [advancedFilters, setAdvancedFilters] = useState({
@@ -310,90 +356,41 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
     notes: ''
   });
 
+  const loadCompanies = async (params = {}) => {
+    setIsLoading(true);
+    setError('');
+    
+    try {
+      const companies = await fetchCompanies(params);
+      const transformedCompanies = companies.map(transformCompanyData);
+      setFilteredCorporates(transformedCompanies);
+    } catch (error) {
+      console.error('Error loading companies:', error);
+      setError('Failed to load companies. Please try again.');
+      setFilteredCorporates([]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handleSearch = async () => {
     setIsSearching(true);
-    // Simulate AI processing
-    await new Promise(resolve => setTimeout(resolve, 2000));
-
-    // Apply actual filtering logic
-    let filtered = mockCorporates.filter(corporate => {
-      // Industry filter
-      if (searchParams.industry && searchParams.industry !== corporate.marketSegment.toLowerCase()) {
-        return false;
-      }
-
-      // Location filter
-      if (searchParams.location) {
-        const locationMatch = {
-          'north-america': ['USA', 'United States', 'North America'],
-          'europe': ['Europe', 'UK', 'Germany', 'France'],
-          'asia-pacific': ['Asia', 'Asia-Pacific', 'Japan', 'Singapore'],
-          'global': ['Global'],
-          'emerging': ['Emerging']
-        };
-
-        const matchingRegions = locationMatch[searchParams.location] || [];
-        const corporateLocation = corporate.location;
-
-        if (!matchingRegions.some(region => corporateLocation.includes(region))) {
-          return false;
-        }
-      }
-
-      // Travel Budget filter
-      if (searchParams.travelBudget) {
-        const budget = parseFloat(corporate.travelBudget.replace(/[^\d.]/g, ''));
-        const budgetRanges = {
-          'under-500k': [0, 0.5],
-          '500k-1m': [0.5, 1],
-          '1m-3m': [1, 3],
-          '3m-5m': [3, 5],
-          'above-5m': [5, Infinity]
-        };
-
-        const [min, max] = budgetRanges[searchParams.travelBudget] || [0, Infinity];
-        if (budget < min || budget > max) {
-          return false;
-        }
-      }
-
-      // Company Size filter
-      if (searchParams.companySize) {
-        const sizeMapping = {
-          'startup': ['Startup'],
-          'small': ['Small'],
-          'medium': ['Medium', 'Mid-Market'],
-          'large': ['Large', 'Large Enterprise'],
-          'enterprise': ['Enterprise']
-        };
-
-        const expectedSizes = sizeMapping[searchParams.companySize] || [];
-        if (!expectedSizes.some(size => corporate.companySize.includes(size))) {
-          return false;
-        }
-      }
-
-      // Travel Frequency filter
-      if (searchParams.travelFrequency) {
-        const frequencyMapping = {
-          'daily': 'Daily',
-          'weekly': 'Weekly',
-          'monthly': 'Monthly',
-          'quarterly': 'Quarterly',
-          'annual': 'Annual'
-        };
-
-        const expectedFreq = frequencyMapping[searchParams.travelFrequency];
-        if (expectedFreq && corporate.travelFrequency !== expectedFreq) {
-          return false;
-        }
-      }
-
-      return true;
-    });
-
-    setFilteredCorporates(filtered);
-    setIsSearching(false);
+    setError('');
+    
+    try {
+      // Simulate AI processing
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      const companies = await fetchCompanies(searchParams);
+      const transformedCompanies = companies.map(transformCompanyData);
+      setFilteredCorporates(transformedCompanies);
+    } catch (error) {
+      console.error('Error searching companies:', error);
+      setError('Search failed. Please try again.');
+      setFilteredCorporates([]);
+    } finally {
+      setIsSearching(false);
+    }
   };
 
   const handleViewProfile = (corporate) => {
@@ -521,10 +518,6 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
         meetingTypes: ["Business Meetings"]
       };
 
-      // Add to mock data for display
-      mockCorporates.push(companyDataForFrontend);
-      setFilteredCorporates([...mockCorporates]);
-
       // Reset form
       setNewCompany({
         name: '',
@@ -554,7 +547,11 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
       });
 
       setShowAddCompanyDialog(false);
-      setSuccessMessage(`${companyDataForFrontend.name} has been successfully added to the corporate database.`);
+      setSuccessMessage(`${newCompany.name} has been successfully added to the corporate database.`);
+      
+      // Refresh the companies list
+      await loadCompanies();
+      
       setTimeout(() => setSuccessMessage(''), 5000);
 
     } catch (error) {
@@ -725,15 +722,49 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
         </div>
       </div>
 
+      {/* Error Message */}
+      {error && (
+        <Alert className="bg-red-50 border-red-200 mb-4">
+          <AlertCircle className="h-4 w-4 text-red-500" />
+          <AlertDescription className="text-red-800">
+            {error}
+          </AlertDescription>
+        </Alert>
+      )}
+
       {/* Results Header */}
       <div className="mb-4">
         <h2 className="text-lg font-semibold text-gray-900">Search Results</h2>
-        <p className="text-sm text-gray-600">{filteredCorporates.length} corporate prospects found matching your criteria</p>
+        <p className="text-sm text-gray-600">
+          {isLoading ? 'Loading...' : `${filteredCorporates.length} corporate prospects found matching your criteria`}
+        </p>
       </div>
 
+      {/* Loading State */}
+      {isLoading && (
+        <div className="flex items-center justify-center py-12">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500"></div>
+          <span className="ml-3 text-gray-600">Loading corporate data...</span>
+        </div>
+      )}
+
+      {/* No Results State */}
+      {!isLoading && filteredCorporates.length === 0 && !error && (
+        <div className="text-center py-12">
+          <Building2 className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-gray-900 mb-2">No companies found</h3>
+          <p className="text-gray-600 mb-4">Try adjusting your search criteria or add a new company to get started.</p>
+          <Button onClick={() => setShowAddCompanyDialog(true)} className="bg-orange-500 hover:bg-orange-600 text-white">
+            <Plus className="h-4 w-4 mr-2" />
+            Add Company
+          </Button>
+        </div>
+      )}
+
       {/* Results List */}
-      <div className="space-y-4">
-        {filteredCorporates.map((corporate) => (
+      {!isLoading && filteredCorporates.length > 0 && (
+        <div className="space-y-4">
+          {filteredCorporates.map((corporate) => (
           <Card key={corporate.id} className="bg-white border border-gray-200">
             <CardContent className="p-6">
               <div className="flex items-start gap-4">
@@ -866,8 +897,9 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
               </div>
             </CardContent>
           </Card>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
 
       {/* Advanced Filters Dialog */}
       <Dialog open={showAdvancedFilters} onOpenChange={setShowAdvancedFilters}>
