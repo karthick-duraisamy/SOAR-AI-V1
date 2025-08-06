@@ -1542,7 +1542,7 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
                   />
                 </div>
               </TabsContent>
-            </Tabs>
+            </ScrollArea>
           </Tabs>
 
           <DialogFooter className="pt-6 border-t border-gray-300 gap-3">
