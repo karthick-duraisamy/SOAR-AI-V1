@@ -444,6 +444,21 @@ html {
     backdrop-filter: blur(2px);
   }
 
+  /* Ensure all modal content has white background */
+  [data-slot="dialog-content"],
+  [data-slot="alert-dialog-content"],
+  [role="dialog"],
+  .modal-content {
+    background-color: white !important;
+  }
+
+  /* Additional specificity for nested modal content */
+  .modal-content > *,
+  [data-slot="dialog-content"] > *,
+  [data-slot="alert-dialog-content"] > * {
+    background-color: inherit;
+  }
+
   .modal-content {
     position: fixed;
     z-index: 9999;
