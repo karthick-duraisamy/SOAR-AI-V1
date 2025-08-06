@@ -575,22 +575,13 @@ export function AdminDashboard({ onNavigate }: AdminDashboardProps) {
 
       <Tabs defaultValue="agents" className="w-full">
         <TabsList className="grid w-full grid-cols-5 mb-6 bg-gray-50/50 p-1 rounded-xl border border-gray-200/50">
-          <TabsTrigger 
-            value="agents"
-            className="rounded-lg px-6 py-3 data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:border-b-2 data-[state=active]:border-[#FD9646] data-[state=active]:border-b-[#FD9646] font-medium text-gray-600 data-[state=active]:text-gray-900 hover:text-gray-900 transition-all duration-200"
-          >
+          <TabsTrigger value="agents">
             Agent Performance
           </TabsTrigger>
-          <TabsTrigger 
-            value="volumes"
-            className="rounded-lg px-6 py-3 data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:border-b-2 data-[state=active]:border-[#FD9646] data-[state=active]:border-b-[#FD9646] font-medium text-gray-600 data-[state=active]:text-gray-900 hover:text-gray-900 transition-all duration-200"
-          >
+          <TabsTrigger value="volumes">
             Volume Analytics
           </TabsTrigger>
-          <TabsTrigger 
-            value="channels"
-            className="rounded-lg px-6 py-3 data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:border-b-2 data-[state=active]:border-[#FD9646] data-[state=active]:border-b-[#FD9646] font-medium text-gray-600 data-[state=active]:text-gray-900 hover:text-gray-900 transition-all duration-200"
-          >
+          <TabsTrigger value="channels">
             Channel Analysis
           </TabsTrigger>
           <TabsTrigger 

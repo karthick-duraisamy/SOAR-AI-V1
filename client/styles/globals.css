@@ -761,7 +761,8 @@ html {
 
   /* Override any conflicting tab styles in specific components */
   .modal-content [data-slot="tabs-list"],
-  .dialog-content [data-slot="tabs-list"] {
+  .dialog-content [data-slot="tabs-list"],
+  [data-state="open"] [data-slot="tabs-list"] {
     background: #f8f9fa !important;
     border: 1px solid #e9ecef !important;
     border-radius: 12px !important;
@@ -769,13 +770,65 @@ html {
   }
 
   .modal-content [data-slot="tabs-trigger"],
-  .dialog-content [data-slot="tabs-trigger"] {
+  .dialog-content [data-slot="tabs-trigger"],
+  [data-state="open"] [data-slot="tabs-trigger"] {
     background: transparent !important;
     border: none !important;
     border-radius: 8px !important;
     padding: 12px 24px !important;
     font-weight: 500 !important;
     color: #6b7280 !important;
+    transition: all 0.2s ease-in-out !important;
+  }
+
+  .modal-content [data-slot="tabs-trigger"]:hover,
+  .dialog-content [data-slot="tabs-trigger"]:hover,
+  [data-state="open"] [data-slot="tabs-trigger"]:hover {
+    color: #374151 !important;
+    background: rgba(255, 255, 255, 0.5) !important;
+  }
+
+  .modal-content [data-slot="tabs-trigger"][data-state="active"],
+  .dialog-content [data-slot="tabs-trigger"][data-state="active"],
+  [data-state="open"] [data-slot="tabs-trigger"][data-state="active"] {
+    background: white !important;
+    color: #111827 !important;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06) !important;
+    border-bottom: 2px solid #FD9646 !important;
+  }
+
+  /* Additional specificity for dialog overlays */
+  [data-radix-popper-content-wrapper] [data-slot="tabs-list"],
+  [role="dialog"] [data-slot="tabs-list"] {
+    background: #f8f9fa !important;
+    border: 1px solid #e9ecef !important;
+    border-radius: 12px !important;
+    padding: 4px !important;
+  }
+
+  [data-radix-popper-content-wrapper] [data-slot="tabs-trigger"],
+  [role="dialog"] [data-slot="tabs-trigger"] {
+    background: transparent !important;
+    border: none !important;
+    border-radius: 8px !important;
+    padding: 12px 24px !important;
+    font-weight: 500 !important;
+    color: #6b7280 !important;
+    transition: all 0.2s ease-in-out !important;
+  }
+
+  [data-radix-popper-content-wrapper] [data-slot="tabs-trigger"]:hover,
+  [role="dialog"] [data-slot="tabs-trigger"]:hover {
+    color: #374151 !important;
+    background: rgba(255, 255, 255, 0.5) !important;
+  }
+
+  [data-radix-popper-content-wrapper] [data-slot="tabs-trigger"][data-state="active"],
+  [role="dialog"] [data-slot="tabs-trigger"][data-state="active"] {
+    background: white !important;
+    color: #111827 !important;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06) !important;
+    border-bottom: 2px solid #FD9646 !important;
   }
 
   .modal-content [data-slot="tabs-trigger"][data-state="active"],
