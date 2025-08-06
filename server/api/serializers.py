@@ -19,6 +19,23 @@ class CompanySerializer(serializers.ModelSerializer):
     
     def get_leads_count(self, obj):
         return obj.lead_set.count()
+    
+    def validate_name(self, value):
+        if not value or not value.strip():
+            raise serializers.ValidationError("Company name is required.")
+        return value.strip()
+    
+    def validate_industry(self, value):
+        valid_industries = [choice[0] for choice in Company.INDUSTRIES]
+        if value not in valid_industries:
+            raise serializers.ValidationError(f"Invalid industry. Must be one of: {valid_industries}")
+        return value
+    
+    def validate_size(self, value):
+        valid_sizes = [choice[0] for choice in Company.COMPANY_SIZES]
+        if value not in valid_sizes:
+            raise serializers.ValidationError(f"Invalid size. Must be one of: {valid_sizes}")
+        return value
 
 class ContactSerializer(serializers.ModelSerializer):
     company_name = serializers.CharField(source='company.name', read_only=True)

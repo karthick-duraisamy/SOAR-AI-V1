@@ -265,6 +265,7 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
   const [selectedCorporate, setSelectedCorporate] = useState(null);
   const [movedAsLeadIds, setMovedAsLeadIds] = useState(new Set());
   const [successMessage, setSuccessMessage] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
   // New company form state
   const [newCompany, setNewCompany] = useState({
@@ -352,22 +353,23 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
   };
 
   const handleAddCompany = async () => {
+    setIsSubmitting(true);
     try {
       // Prepare data for Django API
       const apiData = {
-        name: newCompany.name,
+        name: newCompany.name.trim(),
         industry: newCompany.industry,
         size: newCompany.companySize || 'medium',
-        location: newCompany.location,
-        website: newCompany.website || '',
+        location: newCompany.location.trim(),
+        website: newCompany.website ? newCompany.website.trim() : '',
         annual_revenue: newCompany.revenue ? parseFloat(newCompany.revenue) * 1000000 : null,
         employee_count: newCompany.employees ? parseInt(newCompany.employees) : null,
-        travel_budget: newCompany.travelBudget ? parseFloat(newCompany.travelBudget.replace(/[$,]/g, '')) : null,
-        description: newCompany.notes || ''
+        travel_budget: newCompany.travelBudget ? parseFloat(newCompany.travelBudget.replace(/[$,MKmk]/g, '')) * (newCompany.travelBudget.includes('M') || newCompany.travelBudget.includes('m') ? 1000000 : newCompany.travelBudget.includes('K') || newCompany.travelBudget.includes('k') ? 1000 : 1) : null,
+        description: newCompany.notes ? newCompany.notes.trim() : ''
       };
 
       // Make API call to Django backend
-      const response = await fetch('http://0.0.0.0:8000/api/companies/', {
+      const response = await fetch('/api/companies/', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -376,7 +378,8 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
       });
 
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        const errorData = await response.json();
+        throw new Error(`HTTP error! status: ${response.status} - ${JSON.stringify(errorData)}`);
       }
 
       const savedCompany = await response.json();
@@ -462,8 +465,10 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
 
     } catch (error) {
       console.error('Error saving company:', error);
-      setSuccessMessage('Error: Failed to save company. Please try again.');
+      setSuccessMessage(`Error: Failed to save company. ${error.message}`);
       setTimeout(() => setSuccessMessage(''), 5000);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -1067,12 +1072,18 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
                         <SelectValue placeholder="Select industry" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="technology">Technology & Software</SelectItem>
-                        <SelectItem value="financial">Financial Services</SelectItem>
+                        <SelectItem value="technology">Technology</SelectItem>
+                        <SelectItem value="finance">Finance & Banking</SelectItem>
                         <SelectItem value="manufacturing">Manufacturing</SelectItem>
-                        <SelectItem value="healthcare">Healthcare & Pharma</SelectItem>
+                        <SelectItem value="healthcare">Healthcare</SelectItem>
                         <SelectItem value="energy">Energy & Utilities</SelectItem>
-                        <SelectItem value="consulting">Consulting Services</SelectItem>
+                        <SelectItem value="consulting">Consulting</SelectItem>
+                        <SelectItem value="retail">Retail</SelectItem>
+                        <SelectItem value="telecommunications">Telecommunications</SelectItem>
+                        <SelectItem value="transportation">Transportation</SelectItem>
+                        <SelectItem value="education">Education</SelectItem>
+                        <SelectItem value="government">Government</SelectItem>
+                        <SelectItem value="other">Other</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -1173,11 +1184,11 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
                         <SelectValue placeholder="Select size category" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="Startup">Startup (1-50)</SelectItem>
-                        <SelectItem value="Small">Small (51-200)</SelectItem>
-                        <SelectItem value="Medium">Medium (201-1000)</SelectItem>
-                        <SelectItem value="Large">Large (1001-5000)</SelectItem>
-                        <SelectItem value="Enterprise">Enterprise (5000+)</SelectItem>
+                        <SelectItem value="startup">Startup (1-50)</SelectItem>
+                        <SelectItem value="small">Small (51-200)</SelectItem>
+                        <SelectItem value="medium">Medium (201-1000)</SelectItem>
+                        <SelectItem value="large">Large (1001-5000)</SelectItem>
+                        <SelectItem value="enterprise">Enterprise (5000+)</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -1379,11 +1390,20 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
             </Button>
             <Button 
               onClick={handleAddCompany} 
-              disabled={!isFormValid()}
+              disabled={!isFormValid() || isSubmitting}
               className="bg-[#FD9646] hover:bg-[#FD9646]/90"
             >
-              <Save className="h-4 w-4 mr-2" />
-              Add Company
+              {isSubmitting ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                  Saving...
+                </>
+              ) : (
+                <>
+                  <Save className="h-4 w-4 mr-2" />
+                  Add Company
+                </>
+              )}
             </Button>
           </DialogFooter>
         </DialogContent>

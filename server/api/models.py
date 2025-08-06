@@ -6,11 +6,11 @@ import uuid
 
 class Company(models.Model):
     COMPANY_SIZES = [
-        ('startup', 'Startup (1-10)'),
-        ('small', 'Small (11-50)'),
-        ('medium', 'Medium (51-200)'),
-        ('large', 'Large (201-1000)'),
-        ('enterprise', 'Enterprise (1000+)'),
+        ('startup', 'Startup (1-50)'),
+        ('small', 'Small (51-200)'),
+        ('medium', 'Medium (201-1000)'),
+        ('large', 'Large (1001-5000)'),
+        ('enterprise', 'Enterprise (5000+)'),
         ('corporation', 'Corporation'),
         ('llc', 'LLC'),
         ('partnership', 'Partnership'),
