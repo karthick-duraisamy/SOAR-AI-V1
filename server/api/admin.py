@@ -60,9 +60,6 @@ class AIConversationAdmin(admin.ModelAdmin):
     search_fields = ['query', 'response']
     readonly_fields = ['session_id', 'created_at']
 
-@admin.register(EmailCampaign)
-
-
 @admin.register(SupportTicket)
 class SupportTicketAdmin(admin.ModelAdmin):
     list_display = ['ticket_number', 'subject', 'company', 'priority', 'status', 'created_at']
