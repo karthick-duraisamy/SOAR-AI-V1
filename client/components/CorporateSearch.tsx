@@ -71,23 +71,36 @@ import {
 } from 'lucide-react';
 
 // API utility functions
-const API_BASE_URL = '/api';
+const API_BASE_URL = 'http://localhost:8000/api';
 
 const fetchCompanies = async (searchParams = {}) => {
   try {
     const queryParams = new URLSearchParams();
     
+    // Map frontend filter names to backend expected names
+    const paramMapping = {
+      industry: 'industry',
+      location: 'location', 
+      travelBudget: 'travelBudget',
+      companySize: 'companySize',
+      travelFrequency: 'travelFrequency',
+      q: 'q' // search query
+    };
+    
     Object.entries(searchParams).forEach(([key, value]) => {
       if (value && value !== '') {
-        queryParams.append(key, value);
+        const backendKey = paramMapping[key] || key;
+        queryParams.append(backendKey, value);
       }
     });
 
+    console.log('Fetching companies with params:', queryParams.toString());
     const response = await fetch(`${API_BASE_URL}/companies/search/?${queryParams.toString()}`);
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
     const data = await response.json();
+    console.log('API Response:', data);
     return data;
   } catch (error) {
     console.error('Error fetching companies:', error);
@@ -287,6 +300,7 @@ interface CorporateSearchProps {
 
 export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchProps) {
   const [searchParams, setSearchParams] = useState({
+    q: '', // Add search query
     industry: '',
     location: '',
     travelBudget: '',
@@ -460,7 +474,7 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
 
       console.log('Sending company data:', companyData);
 
-      const response = await fetch('/api/companies/', {
+      const response = await fetch(`${API_BASE_URL}/companies/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -609,6 +623,17 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
 
       {/* Filters Section */}
       <div className="bg-white rounded-lg border border-gray-200 p-6 mb-6">
+        {/* Search Input */}
+        <div className="mb-6">
+          <Label className="text-sm font-medium text-gray-900">Search Companies</Label>
+          <Input
+            placeholder="Search by company name, location, or description..."
+            value={searchParams.q}
+            onChange={(e) => setSearchParams({...searchParams, q: e.target.value})}
+            className="h-10 mt-2"
+          />
+        </div>
+        
         {/* Top Row - 3 columns */}
         <div className="grid grid-cols-3 gap-6 mb-6">
           <div className="space-y-2">
