@@ -192,10 +192,11 @@ class Command(BaseCommand):
         
         contracts = []
         for i, opportunity in enumerate(opportunities[:6]):
+            contract_number = f'CNT-2024-{str(i+1001).zfill(4)}'
             contract_data = {
                 'opportunity': opportunity,
                 'company': opportunity.lead.company,
-                'contract_number': f'CNT-2024-{str(i+1001).zfill(4)}',
+                'contract_number': contract_number,
                 'title': f'Corporate Travel Agreement - {opportunity.lead.company.name}',
                 'contract_type': random.choice(contract_types),
                 'status': random.choice(contract_statuses),
@@ -208,7 +209,10 @@ class Command(BaseCommand):
                 'notice_period_days': random.choice([30, 60, 90]),
                 'risk_score': random.randint(1, 10)
             }
-            contract = Contract.objects.create(**contract_data)
+            contract, created = Contract.objects.get_or_create(
+                contract_number=contract_number,
+                defaults=contract_data
+            )
             contracts.append(contract)
         
         self.stdout.write(f'Created {len(contracts)} contracts')
@@ -279,18 +283,20 @@ class Command(BaseCommand):
         ticket_categories = ['technical', 'billing', 'booking', 'account', 'general', 'complaint']
         
         for i in range(12):
-            SupportTicket.objects.create(
-                company=random.choice(companies),
-                contact=random.choice(contacts),
-                subject=f'Support Request #{i+1}',
-                description=f'Sample support ticket description {i+1}',
-                category=random.choice(ticket_categories),
-                priority=random.choice(ticket_priorities),
-                status=random.choice(ticket_statuses),
-                assigned_to=random.choice(users),
-                resolution_notes='Sample resolution notes' if random.choice([True, False]) else '',
-                satisfaction_rating=random.randint(1, 5) if random.choice([True, False]) else None
-            )
+            subject = f'Support Request #{i+1}'
+            if not SupportTicket.objects.filter(subject=subject).exists():
+                SupportTicket.objects.create(
+                    company=random.choice(companies),
+                    contact=random.choice(contacts),
+                    subject=subject,
+                    description=f'Sample support ticket description {i+1}',
+                    category=random.choice(ticket_categories),
+                    priority=random.choice(ticket_priorities),
+                    status=random.choice(ticket_statuses),
+                    assigned_to=random.choice(users),
+                    resolution_notes='Sample resolution notes' if random.choice([True, False]) else '',
+                    satisfaction_rating=random.randint(1, 5) if random.choice([True, False]) else None
+                )
         
         self.stdout.write('Created 12 support tickets')
         
@@ -302,14 +308,16 @@ class Command(BaseCommand):
             forecasted = Decimal(str(random.randint(500000, 2000000)))
             actual = Decimal(str(random.randint(400000, 1800000))) if random.choice([True, False]) else None
             
-            RevenueForecast.objects.create(
+            RevenueForecast.objects.get_or_create(
                 period_type='monthly',
                 period=month,
-                forecasted_revenue=forecasted,
-                actual_revenue=actual,
-                confidence_level=random.randint(70, 95),
-                factors={'market_conditions': 'stable', 'seasonal_trend': 'normal'},
-                notes=f'Revenue forecast for {month}'
+                defaults={
+                    'forecasted_revenue': forecasted,
+                    'actual_revenue': actual,
+                    'confidence_level': random.randint(70, 95),
+                    'factors': {'market_conditions': 'stable', 'seasonal_trend': 'normal'},
+                    'notes': f'Revenue forecast for {month}'
+                }
             )
         
         self.stdout.write('Created 12 revenue forecasts')
