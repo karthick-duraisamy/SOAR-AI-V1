@@ -611,113 +611,119 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
       </div>
 
       {/* Filters Section */}
-      <Card className="mb-6">
-        <CardContent className="p-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-            <div className="space-y-2">
-              <Label className="text-sm font-medium text-gray-700">Industry Sector</Label>
-              <Select value={searchParams.industry} onValueChange={(value) => setSearchParams({...searchParams, industry: value})}>
-                <SelectTrigger className="h-10">
-                  <SelectValue placeholder="Select industry" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="technology">Technology</SelectItem>
-                  <SelectItem value="financial services">Financial Services</SelectItem>
-                  <SelectItem value="manufacturing">Manufacturing</SelectItem>
-                  <SelectItem value="healthcare">Healthcare</SelectItem>
-                  <SelectItem value="energy">Energy</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label className="text-sm font-medium text-gray-700">Geographic Focus</Label>
-              <Select value={searchParams.location} onValueChange={(value) => setSearchParams({...searchParams, location: value})}>
-                <SelectTrigger className="h-10">
-                  <SelectValue placeholder="Select location" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="north-america">North America</SelectItem>
-                  <SelectItem value="europe">Europe</SelectItem>
-                  <SelectItem value="asia-pacific">Asia Pacific</SelectItem>
-                  <SelectItem value="global">Global Operations</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label className="text-sm font-medium text-gray-700">Annual Travel Budget</Label>
-              <Select value={searchParams.travelBudget} onValueChange={(value) => setSearchParams({...searchParams, travelBudget: value})}>
-                <SelectTrigger className="h-10">
-                  <SelectValue placeholder="Select budget range" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="under-500k">Under $500K</SelectItem>
-                  <SelectItem value="500k-1m">$500K - $1M</SelectItem>
-                  <SelectItem value="1m-3m">$1M - $3M</SelectItem>
-                  <SelectItem value="3m-5m">$3M - $5M</SelectItem>
-                  <SelectItem value="above-5m">Above $5M</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+      <div className="bg-white rounded-lg border border-gray-200 p-6 mb-6">
+        {/* Top Row - 3 columns */}
+        <div className="grid grid-cols-3 gap-6 mb-6">
+          <div className="space-y-2">
+            <Label className="text-sm font-medium text-gray-900">Industry Sector</Label>
+            <Select value={searchParams.industry} onValueChange={(value) => setSearchParams({...searchParams, industry: value})}>
+              <SelectTrigger className="h-10 bg-white border-gray-300 text-gray-500">
+                <SelectValue placeholder="Select industry" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="technology">Technology</SelectItem>
+                <SelectItem value="financial services">Financial Services</SelectItem>
+                <SelectItem value="manufacturing">Manufacturing</SelectItem>
+                <SelectItem value="healthcare">Healthcare</SelectItem>
+                <SelectItem value="energy">Energy</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-            <div className="space-y-2">
-              <Label className="text-sm font-medium text-gray-700">Company Size</Label>
-              <Select value={searchParams.companySize} onValueChange={(value) => setSearchParams({...searchParams, companySize: value})}>
-                <SelectTrigger className="h-10">
-                  <SelectValue placeholder="Select company size" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="startup">Startup (1-50)</SelectItem>
-                  <SelectItem value="small">Small (51-200)</SelectItem>
-                  <SelectItem value="medium">Medium (201-1000)</SelectItem>
-                  <SelectItem value="large">Large (1001-5000)</SelectItem>
-                  <SelectItem value="enterprise">Enterprise (5000+)</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label className="text-sm font-medium text-gray-700">Travel Frequency</Label>
-              <Select value={searchParams.travelFrequency} onValueChange={(value) => setSearchParams({...searchParams, travelFrequency: value})}>
-                <SelectTrigger className="h-10">
-                  <SelectValue placeholder="Select frequency" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="daily">Daily Travel</SelectItem>
-                  <SelectItem value="weekly">Weekly Travel</SelectItem>
-                  <SelectItem value="monthly">Monthly Travel</SelectItem>
-                  <SelectItem value="quarterly">Quarterly Travel</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+          <div className="space-y-2">
+            <Label className="text-sm font-medium text-gray-900">Geographic Focus</Label>
+            <Select value={searchParams.location} onValueChange={(value) => setSearchParams({...searchParams, location: value})}>
+              <SelectTrigger className="h-10 bg-white border-gray-300 text-gray-500">
+                <SelectValue placeholder="Select location" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="north-america">North America</SelectItem>
+                <SelectItem value="europe">Europe</SelectItem>
+                <SelectItem value="asia-pacific">Asia Pacific</SelectItem>
+                <SelectItem value="global">Global Operations</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
-          <div className="flex gap-3">
-            <Button 
-              onClick={handleSearch} 
-              disabled={isSearching} 
-              className="bg-orange-500 hover:bg-orange-600 text-white"
-            >
-              {isSearching ? (
-                <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                  AI Processing...
-                </>
-              ) : (
-                'Search Corporates'
-              )}
-            </Button>
-
-            <Button variant="outline" onClick={() => setShowAdvancedFilters(true)}>
-              <Filter className="h-4 w-4 mr-2" />
-              Advanced Filters
-            </Button>
+          <div className="space-y-2">
+            <Label className="text-sm font-medium text-gray-900">Annual Travel Budget</Label>
+            <Select value={searchParams.travelBudget} onValueChange={(value) => setSearchParams({...searchParams, travelBudget: value})}>
+              <SelectTrigger className="h-10 bg-white border-gray-300 text-gray-500">
+                <SelectValue placeholder="Select budget range" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="under-500k">Under $500K</SelectItem>
+                <SelectItem value="500k-1m">$500K - $1M</SelectItem>
+                <SelectItem value="1m-3m">$1M - $3M</SelectItem>
+                <SelectItem value="3m-5m">$3M - $5M</SelectItem>
+                <SelectItem value="above-5m">Above $5M</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+
+        {/* Bottom Row - 2 columns */}
+        <div className="grid grid-cols-2 gap-6 mb-6">
+          <div className="space-y-2">
+            <Label className="text-sm font-medium text-gray-900">Company Size</Label>
+            <Select value={searchParams.companySize} onValueChange={(value) => setSearchParams({...searchParams, companySize: value})}>
+              <SelectTrigger className="h-10 bg-white border-gray-300 text-gray-500">
+                <SelectValue placeholder="Select company size" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="startup">Startup (1-50)</SelectItem>
+                <SelectItem value="small">Small (51-200)</SelectItem>
+                <SelectItem value="medium">Medium (201-1000)</SelectItem>
+                <SelectItem value="large">Large (1001-5000)</SelectItem>
+                <SelectItem value="enterprise">Enterprise (5000+)</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label className="text-sm font-medium text-gray-900">Travel Frequency</Label>
+            <Select value={searchParams.travelFrequency} onValueChange={(value) => setSearchParams({...searchParams, travelFrequency: value})}>
+              <SelectTrigger className="h-10 bg-white border-gray-300 text-gray-500">
+                <SelectValue placeholder="Select frequency" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="daily">Daily Travel</SelectItem>
+                <SelectItem value="weekly">Weekly Travel</SelectItem>
+                <SelectItem value="monthly">Monthly Travel</SelectItem>
+                <SelectItem value="quarterly">Quarterly Travel</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
+        {/* Action Buttons */}
+        <div className="flex justify-between items-center">
+          <Button 
+            onClick={handleSearch} 
+            disabled={isSearching} 
+            className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-2 rounded-md flex items-center gap-2"
+          >
+            <Search className="h-4 w-4" />
+            {isSearching ? (
+              <>
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                AI Processing...
+              </>
+            ) : (
+              'Search Corporates'
+            )}
+          </Button>
+
+          <Button 
+            variant="outline" 
+            onClick={() => setShowAdvancedFilters(true)}
+            className="border-gray-300 text-gray-700 hover:bg-gray-50 px-4 py-2 rounded-md flex items-center gap-2"
+          >
+            <Filter className="h-4 w-4" />
+            Advanced Filters
+          </Button>
+        </div>
+      </div>
 
       {/* Results Header */}
       <div className="mb-4">
