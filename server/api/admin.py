@@ -1,8 +1,8 @@
 
 from django.contrib import admin
 from .models import (
-    Company, Contact, Lead, Opportunity, Contract, Vendor,
-    MarketingCampaign, SupportTicket, RevenueForecast, ActivityLog
+    Company, Contact, Lead, Opportunity, Contract, ContractBreach,
+    EmailCampaign, TravelOffer, SupportTicket, RevenueForecast, ActivityLog, AIConversation
 )
 
 @admin.register(Company)
@@ -35,17 +35,33 @@ class ContractAdmin(admin.ModelAdmin):
     list_filter = ['status', 'auto_renewal']
     search_fields = ['contract_number', 'title']
 
-@admin.register(Vendor)
-class VendorAdmin(admin.ModelAdmin):
-    list_display = ['name', 'service_type', 'location', 'rating']
-    list_filter = ['service_type', 'certification_level']
-    search_fields = ['name', 'service_type']
+@admin.register(ContractBreach)
+class ContractBreachAdmin(admin.ModelAdmin):
+    list_display = ['contract', 'breach_type', 'severity', 'detected_date', 'is_resolved']
+    list_filter = ['breach_type', 'severity', 'is_resolved']
+    search_fields = ['contract__contract_number', 'description']
 
-@admin.register(MarketingCampaign)
-class MarketingCampaignAdmin(admin.ModelAdmin):
-    list_display = ['name', 'status', 'start_date', 'end_date', 'budget']
-    list_filter = ['status']
-    search_fields = ['name', 'description']
+@admin.register(EmailCampaign)
+class EmailCampaignAdmin(admin.ModelAdmin):
+    list_display = ['name', 'campaign_type', 'status', 'scheduled_date', 'emails_sent']
+    list_filter = ['campaign_type', 'status']
+    search_fields = ['name', 'subject_line']
+
+@admin.register(TravelOffer)
+class TravelOfferAdmin(admin.ModelAdmin):
+    list_display = ['title', 'offer_type', 'status', 'valid_from', 'valid_until', 'discount_percentage']
+    list_filter = ['offer_type', 'status']
+    search_fields = ['title', 'description']
+
+@admin.register(AIConversation)
+class AIConversationAdmin(admin.ModelAdmin):
+    list_display = ['user', 'query', 'created_at']
+    list_filter = ['user', 'created_at']
+    search_fields = ['query', 'response']
+    readonly_fields = ['session_id', 'created_at']
+
+@admin.register(EmailCampaign)
+
 
 @admin.register(SupportTicket)
 class SupportTicketAdmin(admin.ModelAdmin):
