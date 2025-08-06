@@ -56,22 +56,21 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'soar_backend.wsgi.application'
 
-# Database configuration using Replit PostgreSQL
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.getenv('DATABASE_URL', '').split('/')[-1] if os.getenv('DATABASE_URL') else 'soar_db',
-        'USER': os.getenv('DATABASE_URL', '').split('://')[1].split(':')[0] if os.getenv('DATABASE_URL') else 'postgres',
-        'PASSWORD': os.getenv('DATABASE_URL', '').split('://')[1].split(':')[1].split('@')[0] if os.getenv('DATABASE_URL') else '',
-        'HOST': os.getenv('DATABASE_URL', '').split('@')[1].split(':')[0] if os.getenv('DATABASE_URL') else 'localhost',
-        'PORT': os.getenv('DATABASE_URL', '').split(':')[-1].split('/')[0] if os.getenv('DATABASE_URL') else '5432',
-    }
-}
-
-# If DATABASE_URL is available, use it directly
+# Database configuration
 if os.getenv('DATABASE_URL'):
+    # Use PostgreSQL if DATABASE_URL is available (production/Replit database)
     import dj_database_url
-    DATABASES['default'] = dj_database_url.parse(os.getenv('DATABASE_URL'))
+    DATABASES = {
+        'default': dj_database_url.parse(os.getenv('DATABASE_URL'))
+    }
+else:
+    # Use SQLite for development
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
 
 AUTH_PASSWORD_VALIDATORS = [
     {
