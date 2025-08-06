@@ -1217,7 +1217,7 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
             <ScrollArea className="max-h-[55vh] pr-4">
               <TabsContent value="basic" className="space-y-6 mt-0">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-2 p-[0px]">
+                  <div className="space-y-2">
                     <Label htmlFor="company-name" className="text-sm font-medium">Company Name *</Label>
                     <Input
                       id="company-name"
