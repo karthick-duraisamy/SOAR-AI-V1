@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
@@ -73,17 +72,16 @@ import {
 // API utility functions
 const API_BASE_URL = '/api';
 
-const fetchCompanies = async (searchParams = {}) => {
+const fetchCompanies = async (filters = {}) => {
   try {
-    const queryParams = new URLSearchParams();
-    
-    Object.entries(searchParams).forEach(([key, value]) => {
-      if (value && value !== '') {
-        queryParams.append(key, value);
-      }
+    const response = await fetch(`${API_BASE_URL}/companies/search/`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(filters),
     });
 
-    const response = await fetch(`${API_BASE_URL}/companies/search/?${queryParams.toString()}`);
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
@@ -356,12 +354,12 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
     notes: ''
   });
 
-  const loadCompanies = async (params = {}) => {
+  const loadCompanies = async (filters = {}) => {
     setIsLoading(true);
     setError('');
-    
+
     try {
-      const companies = await fetchCompanies(params);
+      const companies = await fetchCompanies(filters);
       const transformedCompanies = companies.map(transformCompanyData);
       setFilteredCorporates(transformedCompanies);
     } catch (error) {
@@ -376,12 +374,18 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
   const handleSearch = async () => {
     setIsSearching(true);
     setError('');
-    
+
     try {
       // Simulate AI processing
       await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      const companies = await fetchCompanies(searchParams);
+
+      // Merge basic search params with advanced filters
+      const mergedFilters = {
+        ...searchParams,
+        ...advancedFilters
+      };
+
+      const companies = await fetchCompanies(mergedFilters);
       const transformedCompanies = companies.map(transformCompanyData);
       setFilteredCorporates(transformedCompanies);
     } catch (error) {
@@ -548,10 +552,10 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
 
       setShowAddCompanyDialog(false);
       setSuccessMessage(`${newCompany.name} has been successfully added to the corporate database.`);
-      
+
       // Refresh the companies list
       await loadCompanies();
-      
+
       setTimeout(() => setSuccessMessage(''), 5000);
 
     } catch (error) {
@@ -884,8 +888,7 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
                       disabled={movedAsLeadIds.has(corporate.id)}
                       className="border-gray-300"
                     >
-                      <UserPlus className="h-4 w-4 mr-1" />
-                      {movedAsLeadIds.has(corporate.id) ? 'Move as Lead' : 'Move as Lead'}
+                      {movedAsLeadIds.has(corporate.id) ? 'Moved as Lead' : 'Move as Lead'}
                     </Button>
 
                     <Button variant="outline" size="sm" className="border-gray-300">
@@ -1539,7 +1542,7 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
                   />
                 </div>
               </TabsContent>
-            </ScrollArea>
+            </Tabs>
           </Tabs>
 
           <DialogFooter className="pt-6 border-t border-gray-300 gap-3">

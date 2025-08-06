@@ -21,15 +21,25 @@ class CompanyViewSet(viewsets.ModelViewSet):
     queryset = Company.objects.all()
     serializer_class = CompanySerializer
 
-    @action(detail=False, methods=['get'])
+    @action(detail=False, methods=['post'])
     def search(self, request):
-        query = request.query_params.get('q', '')
-        industry = request.query_params.get('industry', '')
-        size = request.query_params.get('size', '')
-        location = request.query_params.get('location', '')
-        travel_budget = request.query_params.get('travelBudget', '')
-        travel_frequency = request.query_params.get('travelFrequency', '')
-        company_size = request.query_params.get('companySize', '')
+        # Extract filters from request body
+        filters = request.data
+        query = filters.get('q', '')
+        industry = filters.get('industry', '')
+        size = filters.get('size', '')
+        location = filters.get('location', '')
+        travel_budget = filters.get('travelBudget', '')
+        travel_frequency = filters.get('travelFrequency', '')
+        company_size = filters.get('companySize', '')
+        
+        # Advanced filters support
+        industries = filters.get('industries', [])
+        employee_range = filters.get('employeeRange', [])
+        revenue_range = filters.get('revenueRange', '')
+        credit_rating = filters.get('creditRating', '')
+        sustainability_level = filters.get('sustainabilityLevel', '')
+        preferred_class = filters.get('preferredClass', '')
         
         companies = self.queryset.filter(is_active=True)
         
@@ -93,6 +103,38 @@ class CompanyViewSet(viewsets.ModelViewSet):
             
             if company_size in size_mapping:
                 companies = companies.filter(size__in=size_mapping[company_size])
+        
+        # Handle multiple industries filter (advanced filter)
+        if industries:
+            companies = companies.filter(industry__in=industries)
+        
+        # Handle employee range filter (advanced filter)
+        if employee_range and len(employee_range) == 2:
+            min_employees, max_employees = employee_range
+            companies = companies.filter(
+                employee_count__gte=min_employees,
+                employee_count__lte=max_employees
+            )
+        
+        # Handle revenue range filter (advanced filter)
+        if revenue_range:
+            revenue_ranges = {
+                'under-10m': (0, 10000000),
+                '10m-50m': (10000000, 50000000),
+                '50m-100m': (50000000, 100000000),
+                '100m-500m': (100000000, 500000000),
+                'above-500m': (500000000, float('inf'))
+            }
+            
+            if revenue_range in revenue_ranges:
+                min_revenue, max_revenue = revenue_ranges[revenue_range]
+                if max_revenue == float('inf'):
+                    companies = companies.filter(annual_revenue__gte=min_revenue)
+                else:
+                    companies = companies.filter(
+                        annual_revenue__gte=min_revenue,
+                        annual_revenue__lt=max_revenue
+                    )
         
         serializer = self.get_serializer(companies, many=True)
         return Response(serializer.data)
