@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
@@ -34,7 +35,6 @@ import {
   FileText,
   ArrowRight,
   Eye,
-
   DollarSign,
   Briefcase,
   Target,
@@ -401,8 +401,6 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
     setShowCorporateProfile(true);
   };
 
-
-
   const handleMoveAsLead = (corporate) => {
     // Convert corporate data to lead format
     const leadData = {
@@ -575,19 +573,6 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
            newCompany.location.trim() !== '';
   };
 
-  const getScoreColor = (score: number) => {
-    if (score >= 95) return "text-green-500";
-    if (score >= 90) return "text-blue-600";
-    if (score >= 85) return "text-yellow-600";
-    return "text-gray-600";
-  };
-
-  const getScoreBadge = (score: number) => {
-    if (score >= 95) return "default";
-    if (score >= 90) return "secondary";
-    return "outline";
-  };
-
   // Show specific components based on state
   if (showCorporateProfile && selectedCorporate) {
     return (
@@ -598,13 +583,11 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
     );
   }
 
-
-
   return (
-    <div className="w-full h-full space-y-6 p-3">
+    <div className="w-full h-full bg-gray-50 p-6">
       {/* Success Message */}
       {successMessage && (
-        <Alert className="bg-green-50 border-green-200">
+        <Alert className="bg-green-50 border-green-200 mb-4">
           <CheckCircle className="h-4 w-4 text-green-500" />
           <AlertDescription className="text-green-800">
             {successMessage}
@@ -612,31 +595,29 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
         </Alert>
       )}
 
-      {/* Search Parameters */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle className="flex items-center gap-2">
-                <Search className="h-5 w-5" />
-                Corporate Client Discovery
-              </CardTitle>
-              <CardDescription>
-                AI-powered search to discover and evaluate potential corporate travel partnerships
-              </CardDescription>
-            </div>
-            <Button onClick={() => setShowAddCompanyDialog(true)} variant="secondary">
-              <Plus className="h-4 w-4 mr-2" />
-              Add Company
-            </Button>
+      {/* Header */}
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center gap-3">
+          <Search className="h-6 w-6 text-gray-600" />
+          <div>
+            <h1 className="text-xl font-semibold text-gray-900">Corporate Client Discovery</h1>
+            <p className="text-sm text-gray-600">AI-powered search to discover and evaluate potential corporate travel partnerships</p>
           </div>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            <div className="space-y-1.5">
-              <Label htmlFor="industry">Industry Sector</Label>
+        </div>
+        <Button onClick={() => setShowAddCompanyDialog(true)} className="bg-orange-500 hover:bg-orange-600 text-white">
+          <Plus className="h-4 w-4 mr-2" />
+          Add Company
+        </Button>
+      </div>
+
+      {/* Filters Section */}
+      <Card className="mb-6">
+        <CardContent className="p-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+            <div className="space-y-2">
+              <Label className="text-sm font-medium text-gray-700">Industry Sector</Label>
               <Select value={searchParams.industry} onValueChange={(value) => setSearchParams({...searchParams, industry: value})}>
-                <SelectTrigger>
+                <SelectTrigger className="h-10">
                   <SelectValue placeholder="Select industry" />
                 </SelectTrigger>
                 <SelectContent>
@@ -645,20 +626,14 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
                   <SelectItem value="manufacturing">Manufacturing</SelectItem>
                   <SelectItem value="healthcare">Healthcare</SelectItem>
                   <SelectItem value="energy">Energy</SelectItem>
-                  <SelectItem value="consulting">Consulting</SelectItem>
-                  <SelectItem value="retail">Retail</SelectItem>
-                  <SelectItem value="telecommunications">Telecommunications</SelectItem>
-                  <SelectItem value="transportation">Transportation</SelectItem>
-                  <SelectItem value="education">Education</SelectItem>
-                  <SelectItem value="government">Government</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
-            <div className="space-y-1.5">
-              <Label htmlFor="location">Geographic Focus</Label>
+            <div className="space-y-2">
+              <Label className="text-sm font-medium text-gray-700">Geographic Focus</Label>
               <Select value={searchParams.location} onValueChange={(value) => setSearchParams({...searchParams, location: value})}>
-                <SelectTrigger>
+                <SelectTrigger className="h-10">
                   <SelectValue placeholder="Select location" />
                 </SelectTrigger>
                 <SelectContent>
@@ -666,15 +641,14 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
                   <SelectItem value="europe">Europe</SelectItem>
                   <SelectItem value="asia-pacific">Asia Pacific</SelectItem>
                   <SelectItem value="global">Global Operations</SelectItem>
-                  <SelectItem value="emerging">Emerging Markets</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
-            <div className="space-y-1.5">
-              <Label htmlFor="travelBudget">Annual Travel Budget</Label>
+            <div className="space-y-2">
+              <Label className="text-sm font-medium text-gray-700">Annual Travel Budget</Label>
               <Select value={searchParams.travelBudget} onValueChange={(value) => setSearchParams({...searchParams, travelBudget: value})}>
-                <SelectTrigger>
+                <SelectTrigger className="h-10">
                   <SelectValue placeholder="Select budget range" />
                 </SelectTrigger>
                 <SelectContent>
@@ -686,11 +660,13 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
                 </SelectContent>
               </Select>
             </div>
+          </div>
 
-            <div className="space-y-1.5">
-              <Label htmlFor="companySize">Company Size</Label>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            <div className="space-y-2">
+              <Label className="text-sm font-medium text-gray-700">Company Size</Label>
               <Select value={searchParams.companySize} onValueChange={(value) => setSearchParams({...searchParams, companySize: value})}>
-                <SelectTrigger>
+                <SelectTrigger className="h-10">
                   <SelectValue placeholder="Select company size" />
                 </SelectTrigger>
                 <SelectContent>
@@ -703,10 +679,10 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
               </Select>
             </div>
 
-            <div className="space-y-1.5">
-              <Label htmlFor="travelFrequency">Travel Frequency</Label>
+            <div className="space-y-2">
+              <Label className="text-sm font-medium text-gray-700">Travel Frequency</Label>
               <Select value={searchParams.travelFrequency} onValueChange={(value) => setSearchParams({...searchParams, travelFrequency: value})}>
-                <SelectTrigger>
+                <SelectTrigger className="h-10">
                   <SelectValue placeholder="Select frequency" />
                 </SelectTrigger>
                 <SelectContent>
@@ -714,164 +690,129 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
                   <SelectItem value="weekly">Weekly Travel</SelectItem>
                   <SelectItem value="monthly">Monthly Travel</SelectItem>
                   <SelectItem value="quarterly">Quarterly Travel</SelectItem>
-                  <SelectItem value="annual">Annual Events</SelectItem>
                 </SelectContent>
               </Select>
             </div>
           </div>
 
-          <div className="flex gap-4 mt-6">
-            <Button onClick={handleSearch} disabled={isSearching} className="flex items-center gap-2">
+          <div className="flex gap-3">
+            <Button 
+              onClick={handleSearch} 
+              disabled={isSearching} 
+              className="bg-orange-500 hover:bg-orange-600 text-white"
+            >
               {isSearching ? (
                 <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
                   AI Processing...
                 </>
               ) : (
-                <>
-                  <Search className="h-4 w-4" />
-                  Search Corporates
-                </>
+                'Search Corporates'
               )}
             </Button>
 
-            <Button variant="outline" className="flex items-center gap-2" onClick={() => setShowAdvancedFilters(true)}>
-              <Filter className="h-4 w-4" />
+            <Button variant="outline" onClick={() => setShowAdvancedFilters(true)}>
+              <Filter className="h-4 w-4 mr-2" />
               Advanced Filters
-            </Button>
-
-            <Button 
-              variant="ghost" 
-              className="flex items-center gap-2"
-              onClick={() => {
-                setSearchParams({
-                  industry: '',
-                  location: '',
-                  travelBudget: '',
-                  companySize: '',
-                  travelFrequency: ''
-                });
-                setFilteredCorporates(mockCorporates);
-              }}
-            >
-              <X className="h-4 w-4" />
-              Clear Filters
             </Button>
           </div>
         </CardContent>
       </Card>
 
-      {/* Search Results */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Search Results</CardTitle>
-          <CardDescription>
-            {filteredCorporates.length} corporate prospects found matching your criteria
-            {Object.values(searchParams).some(value => value) && (
-              <span className="ml-2 text-blue-600">
-                • Filters active: {Object.entries(searchParams).filter(([key, value]) => value).map(([key]) => key.charAt(0).toUpperCase() + key.slice(1)).join(', ')}
-              </span>
-            )}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-6">
-            {filteredCorporates.map((corporate) => (
-              <Card key={corporate.id} className="shadow-sm hover:shadow-md transition-shadow" style={{ border: '1px solid #C9C9C9' }}>
-                <CardContent className="p-6">
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="flex items-center gap-4">
-                      <div className="flex items-center justify-center w-16 h-16 bg-blue-100 rounded-lg">
-                        <Building2 className="h-8 w-8 text-blue-600" />
+      {/* Results Header */}
+      <div className="mb-4">
+        <h2 className="text-lg font-semibold text-gray-900">Search Results</h2>
+        <p className="text-sm text-gray-600">{filteredCorporates.length} corporate prospects found matching your criteria</p>
+      </div>
+
+      {/* Results List */}
+      <div className="space-y-4">
+        {filteredCorporates.map((corporate) => (
+          <Card key={corporate.id} className="bg-white border border-gray-200">
+            <CardContent className="p-6">
+              <div className="flex items-start gap-4">
+                {/* Company Icon */}
+                <div className="flex-shrink-0">
+                  <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                    <Building2 className="h-6 w-6 text-blue-600" />
+                  </div>
+                </div>
+
+                {/* Company Info */}
+                <div className="flex-1">
+                  <div className="flex items-start justify-between mb-3">
+                    <div>
+                      <div className="flex items-center gap-2 mb-1">
+                        <h3 className="text-lg font-semibold text-gray-900">{corporate.name}</h3>
+                        <Badge variant="secondary" className="bg-orange-100 text-orange-700 text-xs">
+                          AI Score {corporate.aiScore}
+                        </Badge>
                       </div>
-                      <div>
-                        <div className="flex items-center gap-2 mb-2">
-                          <h3 className="text-lg font-semibold">{corporate.name}</h3>
-                          <Badge variant={getScoreBadge(corporate.aiScore)}>
-                            AI Score: {corporate.aiScore}
-                          </Badge>
-                          {movedAsLeadIds.has(corporate.id) && (
-                            <Badge variant="default" className="bg-green-500">
-                              ✓ Moved to Leads
-                            </Badge>
-                          )}
-                        </div>
-                        <p className="text-gray-600 mb-1 text-sm">{corporate.type} • {corporate.industry}</p>
-                        <div className="flex items-center gap-4 text-sm text-gray-500">
-                          <span className="flex items-center gap-1">
-                            <MapPin className="h-3 w-3" />
-                            {corporate.location}
-                          </span>
-                          <span className="flex items-center gap-1">
-                            <Users className="h-3 w-3" />
-                            {corporate.employees.toLocaleString()} employees
-                          </span>
-                          <span className="flex items-center gap-1">
-                            <Calendar className="h-3 w-3" />
-                            Est. {corporate.established}
-                          </span>
-                          <a
-                            href={`https://${corporate.website}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="flex items-center gap-1 text-blue-600 hover:text-blue-800 transition-colors"
-                          >
-                            <Globe className="h-3 w-3" />
-                            {corporate.website}
-                          </a>
-                        </div>
+                      <p className="text-sm text-gray-600 mb-1">{corporate.type} • {corporate.industry}</p>
+                      <div className="flex items-center gap-4 text-sm text-gray-500">
+                        <span className="flex items-center gap-1">
+                          <MapPin className="h-3 w-3" />
+                          {corporate.location}
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <Users className="h-3 w-3" />
+                          {corporate.employees.toLocaleString()} employees
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <Calendar className="h-3 w-3" />
+                          Est. {corporate.established}
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <Globe className="h-3 w-3" />
+                          {corporate.website}
+                        </span>
                       </div>
                     </div>
                     <div className="text-right">
-                      <div className="flex items-center gap-1 mb-2">
+                      <div className="flex items-center gap-1 mb-1">
                         <Star className="h-4 w-4 text-yellow-500 fill-current" />
-                        <span className="font-medium">{corporate.rating}</span>
+                        <span className="font-medium text-sm">{corporate.rating}</span>
                       </div>
-                      <div className="text-sm text-gray-600">
-                        ${corporate.travelBudget} budget
-                      </div>
+                      <div className="text-sm text-gray-600">${corporate.travelBudget} budget</div>
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-2">
-                        <DollarSign className="h-4 w-4 text-green-500" />
-                        <span className="text-sm">Revenue: ${(corporate.revenue / 1000000).toFixed(1)}M</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Plane className="h-4 w-4 text-blue-600" />
-                        <span className="text-sm">Travel: {corporate.annualTravelVolume}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Clock className="h-4 w-4 text-purple-600" />
-                        <span className="text-sm">Frequency: {corporate.travelFrequency}</span>
-                      </div>
+                  {/* Company Details */}
+                  <div className="grid grid-cols-2 gap-x-8 gap-y-2 mb-4 text-sm">
+                    <div className="flex items-center gap-2">
+                      <DollarSign className="h-4 w-4 text-green-600" />
+                      <span>Revenue: ${(corporate.revenue / 1000000).toFixed(1)}M</span>
                     </div>
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-2">
-                        <Shield className="h-4 w-4 text-green-500" />
-                        <span className="text-sm">Credit: {corporate.creditRating}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Target className="h-4 w-4 text-orange-600" />
-                        <span className="text-sm">Class: {corporate.preferredClass}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Activity className="h-4 w-4 text-red-600" />
-                        <span className="text-sm">Risk: {corporate.riskLevel}</span>
-                      </div>
+                    <div className="flex items-center gap-2">
+                      <Shield className="h-4 w-4 text-blue-600" />
+                      <span>Credit: {corporate.creditRating}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Plane className="h-4 w-4 text-purple-600" />
+                      <span>Travel: {corporate.annualTravelVolume}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Target className="h-4 w-4 text-orange-600" />
+                      <span>Class: {corporate.preferredClass}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Clock className="h-4 w-4 text-gray-600" />
+                      <span>Frequency: {corporate.travelFrequency}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Activity className="h-4 w-4 text-red-600" />
+                      <span>Risk: {corporate.riskLevel}</span>
                     </div>
                   </div>
 
                   {/* Specialties */}
                   <div className="mb-4">
-                    <p className="text-sm font-medium mb-2">Specialties:</p>
+                    <p className="text-sm font-medium text-gray-700 mb-2">Specialties</p>
                     <div className="flex flex-wrap gap-2">
                       {corporate.specialties.map((specialty, index) => (
-                        <Badge key={index} variant="outline" className="text-xs">
+                        <span key={index} className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded">
                           {specialty}
-                        </Badge>
+                        </span>
                       ))}
                     </div>
                   </div>
@@ -879,7 +820,7 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
                   {/* AI Recommendation */}
                   <div className="mb-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
                     <div className="flex items-start gap-2">
-                      <Brain className="h-4 w-4 text-blue-600 mt-0.5" />
+                      <Brain className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
                       <div>
                         <p className="text-sm font-medium text-blue-900">AI Partnership Recommendation</p>
                         <p className="text-sm text-blue-800 mt-1">{corporate.aiRecommendation}</p>
@@ -888,46 +829,46 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
                   </div>
 
                   {/* Action buttons */}
-                  <div className="flex flex-wrap gap-3">
+                  <div className="flex gap-3">
                     <Button 
                       variant="outline" 
                       size="sm" 
                       onClick={() => handleViewProfile(corporate)}
-                      className="flex items-center gap-2"
+                      className="border-gray-300"
                     >
-                      <Eye className="h-4 w-4" />
+                      <Eye className="h-4 w-4 mr-1" />
                       View Full Profile
                     </Button>
 
                     <Button 
-                      variant="secondary"
+                      variant="outline"
                       size="sm" 
                       onClick={() => handleMoveAsLead(corporate)}
                       disabled={movedAsLeadIds.has(corporate.id)}
+                      className="border-gray-300"
                     >
-                      {movedAsLeadIds.has(corporate.id) ? 'Moved to Leads' : 'Move as Lead'}
+                      <UserPlus className="h-4 w-4 mr-1" />
+                      {movedAsLeadIds.has(corporate.id) ? 'Move as Lead' : 'Move as Lead'}
                     </Button>
 
-                    <Button variant="outline" size="sm" className="flex items-center gap-2">
-                      <Phone className="h-4 w-4" />
+                    <Button variant="outline" size="sm" className="border-gray-300">
+                      <Phone className="h-4 w-4 mr-1" />
                       Contact
                     </Button>
-
-
                   </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
 
       {/* Advanced Filters Dialog */}
       <Dialog open={showAdvancedFilters} onOpenChange={setShowAdvancedFilters}>
         <DialogContent className="max-w-[60rem] w-[95vw] max-h-[85vh] overflow-y-auto">
           <DialogHeader className="pb-6">
             <DialogTitle className="flex items-center gap-3 text-xl">
-              <Filter className="h-6 w-6 text-[#FD9646]" />
+              <Filter className="h-6 w-6 text-orange-500" />
               Advanced Search Filters
             </DialogTitle>
             <DialogDescription className="text-base mt-2">
@@ -938,10 +879,10 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
           <div className="space-y-8">
             <Tabs defaultValue="business" className="w-full">
               <TabsList className="grid w-full grid-cols-4 h-12 bg-gray-100 rounded-lg p-1">
-                <TabsTrigger value="business" className="text-[14px] px-5 py-2 rounded-md data-[state=active]:bg-white data-[state=active]:border-b-2 data-[state=active]:border-[#FD9646]">Business Criteria</TabsTrigger>
-                <TabsTrigger value="travel" className="text-[14px] px-5 py-2 rounded-md data-[state=active]:bg-white data-[state=active]:border-b-2 data-[state=active]:border-[#FD9646]">Travel Patterns</TabsTrigger>
-                <TabsTrigger value="financial" className="text-[14px] px-5 py-2 rounded-md data-[state=active]:bg-white data-[state=active]:border-b-2 data-[state=active]:border-[#FD9646]">Financial Profile</TabsTrigger>
-                <TabsTrigger value="technology" className="text-[14px] px-5 py-2 rounded-md data-[state=active]:bg-white data-[state=active]:border-b-2 data-[state=active]:border-[#FD9646]">Technology & Preferences</TabsTrigger>
+                <TabsTrigger value="business" className="text-[14px] px-5 py-2 rounded-md data-[state=active]:bg-white data-[state=active]:border-b-2 data-[state=active]:border-orange-500">Business Criteria</TabsTrigger>
+                <TabsTrigger value="travel" className="text-[14px] px-5 py-2 rounded-md data-[state=active]:bg-white data-[state=active]:border-b-2 data-[state=active]:border-orange-500">Travel Patterns</TabsTrigger>
+                <TabsTrigger value="financial" className="text-[14px] px-5 py-2 rounded-md data-[state=active]:bg-white data-[state=active]:border-b-2 data-[state=active]:border-orange-500">Financial Profile</TabsTrigger>
+                <TabsTrigger value="technology" className="text-[14px] px-5 py-2 rounded-md data-[state=active]:bg-white data-[state=active]:border-b-2 data-[state=active]:border-orange-500">Technology & Preferences</TabsTrigger>
               </TabsList>
 
               <TabsContent value="business" className="space-y-6 mt-6">
@@ -1164,7 +1105,7 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
                 setShowAdvancedFilters(false);
                 handleSearch();
               }} 
-              className="bg-[#FD9646] hover:bg-[#FD9646]/90"
+              className="bg-orange-500 hover:bg-orange-600"
             >
               Apply Filters
             </Button>
@@ -1177,7 +1118,7 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
         <DialogContent className="max-w-[87rem] w-[95vw] max-h-[85vh] overflow-y-auto">
           <DialogHeader className="pb-[24px] pt-[0px] pr-[0px] pl-[0px] m-[0px]">
             <DialogTitle className="flex items-center gap-3 text-xl">
-              <Plus className="h-6 w-6 text-[#FD9646]" />
+              <Plus className="h-6 w-6 text-orange-500" />
               Add New Company
             </DialogTitle>
             <DialogDescription className="text-base mt-2">
@@ -1189,25 +1130,25 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
             <TabsList className="grid w-full grid-cols-4 mb-6 bg-gray-50/50 p-1 rounded-xl border border-gray-200/50">
               <TabsTrigger 
                 value="basic"
-                className="rounded-lg px-5 py-3 data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:border-b-2 data-[state=active]:border-[#FD9646] data-[state=active]:border-b-[#FD9646] font-medium text-gray-600 data-[state=active]:text-gray-900 hover:text-gray-900 transition-all duration-200 text-[14px]"
+                className="rounded-lg px-5 py-3 data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:border-b-2 data-[state=active]:border-orange-500 data-[state=active]:border-b-orange-500 font-medium text-gray-600 data-[state=active]:text-gray-900 hover:text-gray-900 transition-all duration-200 text-[14px]"
               >
                 Basic Info
               </TabsTrigger>
               <TabsTrigger 
                 value="business"
-                className="rounded-lg px-5 py-3 data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:border-b-2 data-[state=active]:border-[#FD9646] data-[state=active]:border-b-[#FD9646] font-medium text-gray-600 data-[state=active]:text-gray-900 hover:text-gray-900 transition-all duration-200 text-[14px]"
+                className="rounded-lg px-5 py-3 data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:border-b-2 data-[state=active]:border-orange-500 data-[state=active]:border-b-orange-500 font-medium text-gray-600 data-[state=active]:text-gray-900 hover:text-gray-900 transition-all duration-200 text-[14px]"
               >
                 Business Details
               </TabsTrigger>
               <TabsTrigger 
                 value="travel"
-                className="rounded-lg px-5 py-3 data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:border-b-2 data-[state=active]:border-[#FD9646] data-[state=active]:border-b-[#FD9646] font-medium text-gray-600 data-[state=active]:text-gray-900 hover:text-gray-900 transition-all duration-200 text-[14px]"
+                className="rounded-lg px-5 py-3 data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:border-b-2 data-[state=active]:border-orange-500 data-[state=active]:border-b-orange-500 font-medium text-gray-600 data-[state=active]:text-gray-900 hover:text-gray-900 transition-all duration-200 text-[14px]"
               >
                 Travel Profile
               </TabsTrigger>
               <TabsTrigger 
                 value="additional"
-                className="rounded-lg px-5 py-3 data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:border-b-2 data-[state=active]:border-[#FD9646] data-[state=active]:border-b-[#FD9646] font-medium text-gray-600 data-[state=active]:text-gray-900 hover:text-gray-900 transition-all duration-200 text-[14px]"
+                className="rounded-lg px-5 py-3 data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:border-b-2 data-[state=active]:border-orange-500 data-[state=active]:border-b-orange-500 font-medium text-gray-600 data-[state=active]:text-gray-900 hover:text-gray-900 transition-all duration-200 text-[14px]"
               >
                 Additional Info
               </TabsTrigger>
@@ -1570,7 +1511,7 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
             <Button 
               onClick={handleAddCompany} 
               disabled={!isFormValid() || isSubmitting}
-              className="bg-[#FD9646] hover:bg-[#FD9646]/90"
+              className="bg-orange-500 hover:bg-orange-600"
             >
               {isSubmitting ? (
                 <>
