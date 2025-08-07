@@ -284,7 +284,7 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
   // Load companies on component mount
   useEffect(() => {
     loadCompanies();
-  }, []);
+  }, [loadCompanies]);
 
   const [filteredCorporates, setFilteredCorporates] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
@@ -357,7 +357,7 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
     } finally {
       setIsLoading(false);
     }
-  }, [companyApi]); // Dependency array includes companyApi
+  }, []); // Remove companyApi dependency to prevent recreation
 
   // Optimize handleSearch to prevent duplicate calls
   const handleSearch = useCallback(async () => {
@@ -376,8 +376,10 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
         ...advancedFilters
       };
 
-      // Only call loadCompanies once with merged filters
-      await loadCompanies(mergedFilters);
+      // Call the API directly instead of through loadCompanies to avoid dependency issues
+      const companies = await companyApi.searchCompanies(mergedFilters);
+      const transformedCompanies = companies.map(transformCompanyData);
+      setFilteredCorporates(transformedCompanies);
     } catch (error) {
       console.error('Error searching companies:', error);
       setError('Search failed. Please try again.');
@@ -385,12 +387,7 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
     } finally {
       setIsSearching(false);
     }
-  }, [isSearching, debouncedSearchParams, advancedFilters, loadCompanies]); // Dependencies for useCallback
-
-  // Effect to trigger search when debouncedSearchParams change
-  useEffect(() => {
-    handleSearch();
-  }, [handleSearch]); // Effect depends on handleSearch
+  }, [isSearching, debouncedSearchParams, advancedFilters]); // Dependencies for useCallback
 
   const handleViewProfile = (corporate) => {
     setSelectedCorporate(corporate);
