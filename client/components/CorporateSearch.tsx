@@ -96,7 +96,6 @@ const [isSearching, setIsSearching] = useState(false);
 // API utility functions
 
 const transformCompanyData = (company) => {
-  setIsSearching(true);
   // Transform backend data to match frontend expectations
   return {
     id: company.id,
