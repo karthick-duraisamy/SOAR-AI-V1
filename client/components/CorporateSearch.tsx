@@ -15,6 +15,7 @@ import { ScrollArea } from './ui/scroll-area';
 import { Textarea } from './ui/textarea';
 import { Alert, AlertDescription } from './ui/alert';
 import { CorporateProfile } from './CorporateProfile';
+import { useCompanyApi } from '../hooks/api/useCompanyApi';
 
 import { 
   Search, 
@@ -70,28 +71,6 @@ import {
 } from 'lucide-react';
 
 // API utility functions
-const API_BASE_URL = '/api';
-
-const fetchCompanies = async (filters = {}) => {
-  try {
-    const response = await fetch(`${API_BASE_URL}/companies/search/`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(filters),
-    });
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-    const data = await response.json();
-    return data;
-  } catch (error) {
-    console.error('Error fetching companies:', error);
-    return [];
-  }
-};
 
 const transformCompanyData = (company) => {
   // Transform backend data to match frontend expectations
@@ -293,6 +272,9 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
     ...initialFilters
   });
 
+  // Initialize company API hook
+  const companyApi = useCompanyApi();
+
   // Load companies on component mount
   useEffect(() => {
     loadCompanies();
@@ -359,7 +341,7 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
     setError('');
 
     try {
-      const companies = await fetchCompanies(filters);
+      const companies = await companyApi.searchCompanies(filters);
       const transformedCompanies = companies.map(transformCompanyData);
       setFilteredCorporates(transformedCompanies);
     } catch (error) {
@@ -463,20 +445,7 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
 
       console.log('Sending company data:', companyData);
 
-      const response = await fetch('/api/companies/', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(companyData)
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(`HTTP error! status: ${response.status} - ${JSON.stringify(errorData)}`);
-      }
-
-      const savedCompany = await response.json();
+      const savedCompany = await companyApi.createCompany(companyData);
 
       // Generate display data for the frontend
       const companyDataForFrontend = {
