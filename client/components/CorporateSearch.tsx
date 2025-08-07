@@ -550,7 +550,7 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
       setSuccessMessage(`${newCompany.name} has been successfully added to the corporate database.`);
 
       // Refresh the companies list
-      await loadCompanies();
+      // await loadCompanies();
 
       setTimeout(() => setSuccessMessage(''), 5000);
 
@@ -601,7 +601,7 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
             <p className="text-sm text-gray-600">AI-powered search to discover and evaluate potential corporate travel partnerships</p>
           </div>
         </div>
-        <Button onClick={() => setShowAddCompanyDialog(true)} className="bg-orange-500 hover:bg-orange-600 text-white">
+        <Button onClick={() => setShowAddCompanyDialog(true)} className="cls-addcomapany">
           <Plus className="h-4 w-4 mr-2" />
           Add Company
         </Button>

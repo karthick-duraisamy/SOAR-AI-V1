@@ -652,7 +652,9 @@ html {
     margin-top: var(--sidebar-button-margin-y) !important; /* 5px top/bottom margin */
     margin-bottom: var(--sidebar-button-margin-y) !important;
     line-height: 1.2 !important; /* Tighter line height for compact buttons */
-    transition: background-color 0.2s ease-in-out !important; /* Smooth hover transition */
+    transition: background-color 0.2s ease-in-out !important; /* 
+    Smooth hover transition */
+    height:39px;
   }
 
   /* Hover state for sidebar menu buttons - consistent 5px inner spacing */
@@ -903,6 +905,10 @@ html {
   }
 .cls-link{
   color: var(--Link);
+}
+.cls-addcomapany{
+  color:#133769 !important;
+  background-color:#eceef2 !important;
 }
 
   /* Cursor pointer for interactive elements */
