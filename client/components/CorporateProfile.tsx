@@ -1,3 +1,4 @@
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
@@ -131,14 +132,14 @@ export function CorporateProfile({ corporateData, onBack }: CorporateProfileProp
       </div>
 
       {/* Detailed Information */}
-      <Tabs defaultValue="company-info" className="w-full">
-        <TabsList className="grid w-full grid-cols-6 bg-gray-100 rounded-lg p-1">
-          <TabsTrigger value="company-info" className="text-[14px] px-4 py-2 rounded-md data-[state=active]:bg-white data-[state=active]:border-b-2 data-[state=active]:border-[#FD9646]">Company Info</TabsTrigger>
-          <TabsTrigger value="travel-profile" className="text-[14px] px-4 py-2 rounded-md data-[state=active]:bg-white data-[state=active]:border-b-2 data-[state=active]:border-[#FD9646]">Travel Profile</TabsTrigger>
-          <TabsTrigger value="financial" className="text-[14px] px-4 py-2 rounded-md data-[state=active]:bg-white data-[state=active]:border-b-2 data-[state=active]:border-[#FD9646]">Financial</TabsTrigger>
-          <TabsTrigger value="contacts" className="text-[14px] px-4 py-2 rounded-md data-[state=active]:bg-white data-[state=active]:border-b-2 data-[state=active]:border-[#FD9646]">Contacts</TabsTrigger>
-          <TabsTrigger value="partnerships" className="text-[14px] px-4 py-2 rounded-md data-[state=active]:bg-white data-[state=active]:border-b-2 data-[state=active]:border-[#FD9646]">Partnerships</TabsTrigger>
-          <TabsTrigger value="insights" className="text-[14px] px-4 py-2 rounded-md data-[state=active]:bg-white data-[state=active]:border-b-2 data-[state=active]:border-[#FD9646]">AI Insights</TabsTrigger>
+      <Tabs defaultValue="travel-profile" className="w-full">
+        <TabsList className="grid w-full grid-cols-6 bg-white rounded-lg p-1 border">
+          <TabsTrigger value="company-info" className="text-sm px-4 py-2 rounded-md data-[state=active]:bg-gray-50 data-[state=active]:text-gray-900">Company Info</TabsTrigger>
+          <TabsTrigger value="travel-profile" className="text-sm px-4 py-2 rounded-md data-[state=active]:bg-gray-50 data-[state=active]:text-gray-900">Travel Profile</TabsTrigger>
+          <TabsTrigger value="financial" className="text-sm px-4 py-2 rounded-md data-[state=active]:bg-gray-50 data-[state=active]:text-gray-900">Financial</TabsTrigger>
+          <TabsTrigger value="contacts" className="text-sm px-4 py-2 rounded-md data-[state=active]:bg-gray-50 data-[state=active]:text-gray-900">Contacts</TabsTrigger>
+          <TabsTrigger value="partnerships" className="text-sm px-4 py-2 rounded-md data-[state=active]:bg-gray-50 data-[state=active]:text-gray-900">Partnerships</TabsTrigger>
+          <TabsTrigger value="insights" className="text-sm px-4 py-2 rounded-md data-[state=active]:bg-gray-50 data-[state=active]:text-gray-900">AI Insights</TabsTrigger>
         </TabsList>
 
         <TabsContent value="company-info" className="space-y-6">
@@ -209,7 +210,7 @@ export function CorporateProfile({ corporateData, onBack }: CorporateProfileProp
         </TabsContent>
 
         <TabsContent value="travel-profile" className="space-y-6">
-          {/* Enhanced Travel Spend & Volume Section */}
+          {/* Travel Spend & Volume Analysis */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <Card className="lg:col-span-2">
               <CardHeader>
@@ -221,24 +222,16 @@ export function CorporateProfile({ corporateData, onBack }: CorporateProfileProp
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="p-4 border rounded-lg bg-gradient-to-r from-green-50 to-emerald-50">
-                    <Label className="text-sm text-muted-foreground">Estimated Annual Travel Spend (Airfare Only)</Label>
-                    <div className="flex items-center mt-2">
-                      <Input 
-                        value={corporateData.annualAirfareSpend || "$2.8M"} 
-                        className="text-xl font-bold border-0 bg-transparent p-0 h-auto"
-                        readOnly
-                      />
-                      <Button variant="ghost" size="sm" className="ml-2">
-                        <Edit className="h-4 w-4" />
-                      </Button>
+                  <div className="p-4 border rounded-lg bg-gradient-to-r from-blue-50 to-cyan-50">
+                    <Label className="text-sm text-gray-600 font-medium">Estimated Annual Travel Spend (Airfare Only)</Label>
+                    <div className="flex items-center justify-between mt-2">
+                      <div className="text-2xl font-bold text-gray-900">$2.8M</div>
+                      <Edit className="h-4 w-4 text-gray-400 cursor-pointer" />
                     </div>
                   </div>
-                  <div className="p-4 border rounded-lg bg-gradient-to-r from-blue-50 to-cyan-50">
-                    <Label className="text-sm text-muted-foreground">Total Travel Budget</Label>
-                    <div className="flex items-center mt-2">
-                      <div className="text-xl font-bold">${corporateData.travelBudget}</div>
-                    </div>
+                  <div className="p-4 border rounded-lg bg-gradient-to-r from-green-50 to-emerald-50">
+                    <Label className="text-sm text-gray-600 font-medium">Total Travel Budget</Label>
+                    <div className="text-2xl font-bold text-gray-900 mt-2">${corporateData.travelBudget}</div>
                   </div>
                 </div>
                 
@@ -247,33 +240,21 @@ export function CorporateProfile({ corporateData, onBack }: CorporateProfileProp
                 <div>
                   <Label className="text-base font-semibold mb-3 block">Average Monthly Passenger Count</Label>
                   <div className="grid grid-cols-2 gap-4">
-                    <div className="p-4 border rounded-lg">
+                    <div className="p-4 border rounded-lg bg-gray-50">
                       <div className="flex items-center justify-between mb-2">
-                        <Label className="text-sm">Domestic Travel</Label>
-                        <Button variant="ghost" size="sm">
-                          <Edit className="h-4 w-4" />
-                        </Button>
+                        <Label className="text-sm font-medium">Domestic Travel</Label>
+                        <Edit className="h-4 w-4 text-gray-400 cursor-pointer" />
                       </div>
-                      <Input 
-                        value={corporateData.monthlyDomesticPassengers || "285"} 
-                        className="text-lg font-semibold"
-                        readOnly
-                      />
-                      <p className="text-xs text-muted-foreground mt-1">passengers per month</p>
+                      <div className="text-2xl font-bold text-gray-900">285</div>
+                      <p className="text-xs text-gray-500 mt-1">passengers per month</p>
                     </div>
-                    <div className="p-4 border rounded-lg">
+                    <div className="p-4 border rounded-lg bg-gray-50">
                       <div className="flex items-center justify-between mb-2">
-                        <Label className="text-sm">International Travel</Label>
-                        <Button variant="ghost" size="sm">
-                          <Edit className="h-4 w-4" />
-                        </Button>
+                        <Label className="text-sm font-medium">International Travel</Label>
+                        <Edit className="h-4 w-4 text-gray-400 cursor-pointer" />
                       </div>
-                      <Input 
-                        value={corporateData.monthlyInternationalPassengers || "142"} 
-                        className="text-lg font-semibold"
-                        readOnly
-                      />
-                      <p className="text-xs text-muted-foreground mt-1">passengers per month</p>
+                      <div className="text-2xl font-bold text-gray-900">142</div>
+                      <p className="text-xs text-gray-500 mt-1">passengers per month</p>
                     </div>
                   </div>
                 </div>
@@ -288,39 +269,33 @@ export function CorporateProfile({ corporateData, onBack }: CorporateProfileProp
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="space-y-3">
+                <div className="space-y-4">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm">Business Meetings</span>
+                    <span className="text-sm font-medium">Business Meetings</span>
                     <div className="flex items-center gap-2">
-                      <Progress value={70} className="w-16" />
-                      <span className="text-sm font-semibold w-8">70%</span>
-                      <Button variant="ghost" size="sm">
-                        <Edit className="h-3 w-3" />
-                      </Button>
+                      <div className="w-4 h-4 bg-[#FD9646] rounded-sm"></div>
+                      <span className="text-sm font-semibold">70%</span>
+                      <Edit className="h-3 w-3 text-gray-400 cursor-pointer" />
                     </div>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm">Training & Development</span>
+                    <span className="text-sm font-medium">Training & Development</span>
                     <div className="flex items-center gap-2">
-                      <Progress value={20} className="w-16" />
-                      <span className="text-sm font-semibold w-8">20%</span>
-                      <Button variant="ghost" size="sm">
-                        <Edit className="h-3 w-3" />
-                      </Button>
+                      <div className="w-4 h-4 bg-[#FD9646] rounded-sm"></div>
+                      <span className="text-sm font-semibold">20%</span>
+                      <Edit className="h-3 w-3 text-gray-400 cursor-pointer" />
                     </div>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm">Events & Conferences</span>
+                    <span className="text-sm font-medium">Events & Conferences</span>
                     <div className="flex items-center gap-2">
-                      <Progress value={10} className="w-16" />
-                      <span className="text-sm font-semibold w-8">10%</span>
-                      <Button variant="ghost" size="sm">
-                        <Edit className="h-3 w-3" />
-                      </Button>
+                      <div className="w-4 h-4 bg-[#FD9646] rounded-sm"></div>
+                      <span className="text-sm font-semibold">10%</span>
+                      <Edit className="h-3 w-3 text-gray-400 cursor-pointer" />
                     </div>
                   </div>
                 </div>
-                <Button variant="outline" size="sm" className="w-full">
+                <Button variant="outline" size="sm" className="w-full mt-4">
                   <Plus className="h-4 w-4 mr-2" />
                   Add Purpose
                 </Button>
@@ -328,7 +303,7 @@ export function CorporateProfile({ corporateData, onBack }: CorporateProfileProp
             </Card>
           </div>
 
-          {/* Travel Routes & Preferences */}
+          {/* Key Travel Routes & Cabin Class Preferences */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <Card>
               <CardHeader>
@@ -339,23 +314,35 @@ export function CorporateProfile({ corporateData, onBack }: CorporateProfileProp
                 <CardDescription>Primary travel corridors and route frequency</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="space-y-3">
-                  {[
-                    { route: "New York ↔ London", frequency: "Weekly", volume: "High" },
-                    { route: "San Francisco ↔ Tokyo", frequency: "Bi-weekly", volume: "Medium" },
-                    { route: "Chicago ↔ Frankfurt", frequency: "Monthly", volume: "Medium" },
-                    { route: "Dallas ↔ Mumbai", frequency: "Monthly", volume: "Low" }
-                  ].map((route, index) => (
-                    <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
-                      <div>
-                        <p className="font-semibold">{route.route}</p>
-                        <p className="text-sm text-muted-foreground">{route.frequency} • {route.volume} Volume</p>
-                      </div>
-                      <Button variant="ghost" size="sm">
-                        <Edit className="h-4 w-4" />
-                      </Button>
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <div>
+                      <p className="font-semibold">New York ↔ London</p>
+                      <p className="text-sm text-gray-500">Bi-weekly • Medium Volume</p>
                     </div>
-                  ))}
+                    <Edit className="h-4 w-4 text-gray-400 cursor-pointer" />
+                  </div>
+                  <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <div>
+                      <p className="font-semibold">San Francisco ↔ Tokyo</p>
+                      <p className="text-sm text-gray-500">Bi-weekly • Medium Volume</p>
+                    </div>
+                    <Edit className="h-4 w-4 text-gray-400 cursor-pointer" />
+                  </div>
+                  <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <div>
+                      <p className="font-semibold">Chicago ↔ Frankfurt</p>
+                      <p className="text-sm text-gray-500">Monthly • Medium Volume</p>
+                    </div>
+                    <Edit className="h-4 w-4 text-gray-400 cursor-pointer" />
+                  </div>
+                  <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <div>
+                      <p className="font-semibold">Dallas ↔ Mumbai</p>
+                      <p className="text-sm text-gray-500">Monthly • Low Volume</p>
+                    </div>
+                    <Edit className="h-4 w-4 text-gray-400 cursor-pointer" />
+                  </div>
                 </div>
                 <Button variant="outline" size="sm" className="w-full">
                   <Plus className="h-4 w-4 mr-2" />
@@ -373,57 +360,49 @@ export function CorporateProfile({ corporateData, onBack }: CorporateProfileProp
                 <CardDescription>Preferred cabin class distribution</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="grid gap-3">
-                  <div className="flex items-center justify-between p-3 border rounded-lg">
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                     <div className="flex items-center gap-3">
                       <div className="w-3 h-3 rounded-full bg-blue-500"></div>
                       <span className="font-medium">Economy Class</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <span className="text-sm font-semibold">65%</span>
-                      <Button variant="ghost" size="sm">
-                        <Edit className="h-4 w-4" />
-                      </Button>
+                      <Edit className="h-4 w-4 text-gray-400 cursor-pointer" />
                     </div>
                   </div>
-                  <div className="flex items-center justify-between p-3 border rounded-lg">
+                  <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                     <div className="flex items-center gap-3">
                       <div className="w-3 h-3 rounded-full bg-purple-500"></div>
                       <span className="font-medium">Business Class</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <span className="text-sm font-semibold">30%</span>
-                      <Button variant="ghost" size="sm">
-                        <Edit className="h-4 w-4" />
-                      </Button>
+                      <Edit className="h-4 w-4 text-gray-400 cursor-pointer" />
                     </div>
                   </div>
-                  <div className="flex items-center justify-between p-3 border rounded-lg">
+                  <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                     <div className="flex items-center gap-3">
                       <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
                       <span className="font-medium">First Class</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <span className="text-sm font-semibold">5%</span>
-                      <Button variant="ghost" size="sm">
-                        <Edit className="h-4 w-4" />
-                      </Button>
+                      <Edit className="h-4 w-4 text-gray-400 cursor-pointer" />
                     </div>
                   </div>
                 </div>
                 <div className="pt-2">
-                  <Label className="text-sm text-muted-foreground">Policy Notes</Label>
-                  <Textarea 
-                    className="mt-1" 
-                    placeholder="C-level executives: Business class for flights &gt; 4 hours..."
-                    rows={2}
-                  />
+                  <Label className="text-sm text-gray-600 font-medium">Policy Notes</Label>
+                  <p className="text-sm text-gray-500 mt-1 p-2 bg-gray-50 rounded">
+                    C-level executives: Business class for flights > 4 hours...
+                  </p>
                 </div>
               </CardContent>
             </Card>
           </div>
 
-          {/* Current Partners & Programs */}
+          {/* Current Travel Partners & Corporate Programs */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <Card>
               <CardHeader>
@@ -434,33 +413,67 @@ export function CorporateProfile({ corporateData, onBack }: CorporateProfileProp
                 <CardDescription>Existing airline partnerships and preferences</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="space-y-3">
-                  {[
-                    { airline: "Delta Air Lines", status: "Primary", contract: "Yes" },
-                    { airline: "United Airlines", status: "Secondary", contract: "Yes" },
-                    { airline: "British Airways", status: "International", contract: "No" },
-                    { airline: "Singapore Airlines", status: "Asia-Pacific", contract: "No" }
-                  ].map((partner, index) => (
-                    <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                          <Plane className="h-4 w-4 text-blue-600" />
-                        </div>
-                        <div>
-                          <p className="font-semibold">{partner.airline}</p>
-                          <p className="text-sm text-muted-foreground">{partner.status}</p>
-                        </div>
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                        <Plane className="h-4 w-4 text-blue-600" />
                       </div>
-                      <div className="flex items-center gap-2">
-                        <Badge variant={partner.contract === "Yes" ? "default" : "outline"}>
-                          {partner.contract === "Yes" ? "Contract" : "No Contract"}
-                        </Badge>
-                        <Button variant="ghost" size="sm">
-                          <Edit className="h-4 w-4" />
-                        </Button>
+                      <div>
+                        <p className="font-semibold">Delta Air Lines</p>
+                        <p className="text-sm text-gray-500">Primary</p>
                       </div>
                     </div>
-                  ))}
+                    <div className="flex items-center gap-2">
+                      <Badge className="bg-[#FD9646] text-white">Contract</Badge>
+                      <Edit className="h-4 w-4 text-gray-400 cursor-pointer" />
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                        <Plane className="h-4 w-4 text-blue-600" />
+                      </div>
+                      <div>
+                        <p className="font-semibold">United Airlines</p>
+                        <p className="text-sm text-gray-500">Secondary</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Badge className="bg-[#FD9646] text-white">Contract</Badge>
+                      <Edit className="h-4 w-4 text-gray-400 cursor-pointer" />
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                        <Plane className="h-4 w-4 text-blue-600" />
+                      </div>
+                      <div>
+                        <p className="font-semibold">British Airways</p>
+                        <p className="text-sm text-gray-500">International</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Badge variant="outline">No Contract</Badge>
+                      <Edit className="h-4 w-4 text-gray-400 cursor-pointer" />
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                        <Plane className="h-4 w-4 text-blue-600" />
+                      </div>
+                      <div>
+                        <p className="font-semibold">Singapore Airlines</p>
+                        <p className="text-sm text-gray-500">Asia-Pacific</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Badge variant="outline">No Contract</Badge>
+                      <Edit className="h-4 w-4 text-gray-400 cursor-pointer" />
+                    </div>
+                  </div>
                 </div>
                 <Button variant="outline" size="sm" className="w-full">
                   <Plus className="h-4 w-4 mr-2" />
@@ -478,26 +491,47 @@ export function CorporateProfile({ corporateData, onBack }: CorporateProfileProp
                 <CardDescription>Existing airline corporate and loyalty programs</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="space-y-3">
-                  {[
-                    { program: "Delta SkyMiles Corporate", level: "Platinum", active: true },
-                    { program: "United MileagePlus Corporate", level: "Gold", active: true },
-                    { program: "American Business Extra", level: "Silver", active: false },
-                    { program: "British Airways On Business", level: "Bronze", active: true }
-                  ].map((program, index) => (
-                    <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
-                      <div>
-                        <p className="font-semibold">{program.program}</p>
-                        <p className="text-sm text-muted-foreground">{program.level} Level</p>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Switch checked={program.active} />
-                        <Button variant="ghost" size="sm">
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                      </div>
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <div>
+                      <p className="font-semibold">Delta SkyMiles Corporate</p>
+                      <p className="text-sm text-gray-500">Platinum Level</p>
                     </div>
-                  ))}
+                    <div className="flex items-center gap-2">
+                      <Switch checked={true} />
+                      <Edit className="h-4 w-4 text-gray-400 cursor-pointer" />
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <div>
+                      <p className="font-semibold">United MileagePlus Corporate</p>
+                      <p className="text-sm text-gray-500">Gold Level</p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Switch checked={true} />
+                      <Edit className="h-4 w-4 text-gray-400 cursor-pointer" />
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <div>
+                      <p className="font-semibold">American Business Extra</p>
+                      <p className="text-sm text-gray-500">Silver Level</p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Switch checked={false} />
+                      <Edit className="h-4 w-4 text-gray-400 cursor-pointer" />
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <div>
+                      <p className="font-semibold">British Airways On Business</p>
+                      <p className="text-sm text-gray-500">Bronze Level</p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Switch checked={true} />
+                      <Edit className="h-4 w-4 text-gray-400 cursor-pointer" />
+                    </div>
+                  </div>
                 </div>
                 <Button variant="outline" size="sm" className="w-full">
                   <Plus className="h-4 w-4 mr-2" />
@@ -524,18 +558,18 @@ export function CorporateProfile({ corporateData, onBack }: CorporateProfileProp
                     <div className="flex items-center gap-4 mt-2">
                       <div className="flex items-center gap-2">
                         <input type="radio" id="policy-yes" name="policy" defaultChecked />
-                        <Label htmlFor="policy-yes">Yes</Label>
+                        <Label htmlFor="policy-yes" className="font-medium">Yes</Label>
                       </div>
                       <div className="flex items-center gap-2">
                         <input type="radio" id="policy-no" name="policy" />
-                        <Label htmlFor="policy-no">No</Label>
+                        <Label htmlFor="policy-no" className="font-medium">No</Label>
                       </div>
                     </div>
                   </div>
                   
-                  <div className="p-4 border-2 border-dashed border-gray-300 rounded-lg text-center">
+                  <div className="p-4 border-2 border-dashed border-gray-200 rounded-lg text-center bg-gray-50">
                     <Upload className="h-8 w-8 text-gray-400 mx-auto mb-2" />
-                    <p className="text-sm text-muted-foreground mb-2">Current policy: "Corporate_Travel_Policy_2024.pdf"</p>
+                    <p className="text-sm text-gray-600 mb-2">Current policy: "Corporate_Travel_Policy_2024.pdf"</p>
                     <div className="flex items-center gap-2 justify-center">
                       <Button variant="outline" size="sm">
                         <Download className="h-4 w-4 mr-2" />
@@ -552,15 +586,19 @@ export function CorporateProfile({ corporateData, onBack }: CorporateProfileProp
                 <div className="space-y-4">
                   <div>
                     <Label className="text-base font-semibold">Policy Compliance Level</Label>
-                    <div className="flex items-center gap-3 mt-2">
-                      <Progress value={corporateData.compliance || 92} className="flex-1" />
-                      <span className="font-semibold">{corporateData.compliance || 92}%</span>
+                    <div className="mt-4">
+                      <div className="w-full bg-gray-200 rounded-full h-3">
+                        <div className="bg-[#FD9646] h-3 rounded-full" style={{ width: '95%' }}></div>
+                      </div>
+                      <div className="text-right mt-1">
+                        <span className="font-bold text-lg">95%</span>
+                      </div>
                     </div>
                   </div>
                   
                   <div>
                     <Label className="text-base font-semibold">Policy Last Updated</Label>
-                    <Input value="March 15, 2024" className="mt-2" readOnly />
+                    <p className="text-sm text-gray-600 mt-1">March 15, 2024</p>
                   </div>
                   
                   <div>
@@ -584,41 +622,41 @@ export function CorporateProfile({ corporateData, onBack }: CorporateProfileProp
               <div>
                 <Label className="text-base font-semibold mb-3 block">Key Policy Highlights</Label>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="p-3 border rounded-lg">
+                  <div className="p-3 bg-gray-50 rounded-lg">
                     <h4 className="font-medium mb-1">Booking Window</h4>
-                    <p className="text-sm text-muted-foreground">14 days advance booking required</p>
+                    <p className="text-sm text-gray-600">14 days advance booking required</p>
                   </div>
-                  <div className="p-3 border rounded-lg">
+                  <div className="p-3 bg-gray-50 rounded-lg">
                     <h4 className="font-medium mb-1">Approval Limit</h4>
-                    <p className="text-sm text-muted-foreground">$1,500 without pre-approval</p>
+                    <p className="text-sm text-gray-600">$1,500 without pre-approval</p>
                   </div>
-                  <div className="p-3 border rounded-lg">
+                  <div className="p-3 bg-gray-50 rounded-lg">
                     <h4 className="font-medium mb-1">Preferred Suppliers</h4>
-                    <p className="text-sm text-muted-foreground">Must use contracted airlines</p>
+                    <p className="text-sm text-gray-600">Must use contracted airlines</p>
                   </div>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          {/* Legacy Travel Patterns Section */}
+          {/* Travel Team Structure */}
           <Card>
             <CardHeader>
               <CardTitle>Travel Team Structure</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="text-center">
-                  <div className="text-3xl font-bold text-blue-600 mb-2">{corporateData.teamSize}</div>
-                  <p className="text-sm text-muted-foreground">Regular Travelers</p>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
+                <div>
+                  <div className="text-4xl font-bold text-blue-600 mb-2">150</div>
+                  <p className="text-sm text-gray-500">Regular Travelers</p>
                 </div>
-                <div className="text-center">
-                  <div className="text-3xl font-bold text-green-600 mb-2">{corporateData.travelManagers}</div>
-                  <p className="text-sm text-muted-foreground">Travel Managers</p>
+                <div>
+                  <div className="text-4xl font-bold text-green-600 mb-2">3</div>
+                  <p className="text-sm text-gray-500">Travel Managers</p>
                 </div>
-                <div className="text-center">
-                  <div className="text-3xl font-bold text-purple-600 mb-2">{corporateData.contracts}</div>
-                  <p className="text-sm text-muted-foreground">Active Contracts</p>
+                <div>
+                  <div className="text-4xl font-bold text-purple-600 mb-2">12</div>
+                  <p className="text-sm text-gray-500">Active Contracts</p>
                 </div>
               </div>
             </CardContent>
