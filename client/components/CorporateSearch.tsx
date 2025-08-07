@@ -601,7 +601,7 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
             <p className="text-sm text-gray-600">AI-powered search to discover and evaluate potential corporate travel partnerships</p>
           </div>
         </div>
-        <Button onClick={() => setShowAddCompanyDialog(true)} className="bg-orange-500 hover:bg-orange-600 text-white">
+        <Button onClick={() => setShowAddCompanyDialog(true)} className="cls-addcompany">
           <Plus className="h-4 w-4 mr-2" />
           Add Company
         </Button>
@@ -781,7 +781,7 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
                     <div>
                       <div className="flex items-center gap-2 mb-1">
                         <h3 className="text-lg font-semibold text-gray-900">{corporate.name}</h3>
-                        <Badge variant="secondary" className="bg-orange-500 hover:bg-orange-600 text-white text-xs">
+                        <Badge variant="secondary" className="bg-orange-100 text-orange-700 text-xs text-white" style={{'background-color': '#fd9646'}}>
                           AI Score {corporate.aiScore}
                         </Badge>
                       </div>
