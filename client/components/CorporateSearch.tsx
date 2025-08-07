@@ -281,11 +281,6 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
   // Initialize company API hook
   const companyApi = useCompanyApi();
 
-  // Load companies on component mount
-  useEffect(() => {
-    loadCompanies();
-  }, [loadCompanies]);
-
   const [filteredCorporates, setFilteredCorporates] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -358,6 +353,11 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
       setIsLoading(false);
     }
   }, []); // Remove companyApi dependency to prevent recreation
+
+  // Load companies on component mount
+  useEffect(() => {
+    loadCompanies();
+  }, []); // Remove loadCompanies dependency to prevent infinite loop
 
   // Optimize handleSearch to prevent duplicate calls
   const handleSearch = useCallback(async () => {
