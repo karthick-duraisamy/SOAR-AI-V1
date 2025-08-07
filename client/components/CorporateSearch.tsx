@@ -882,8 +882,9 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
                       size="sm" 
                       onClick={() => handleMoveAsLead(corporate)}
                       disabled={movedAsLeadIds.has(corporate.id)}
-                      className="border-gray-300"
+                      className="border-gray-300 cls-addcomapany"
                     >
+                      <UserPlus className="h-4 w-4 mr-2" />
                       {movedAsLeadIds.has(corporate.id) ? 'Moved as Lead' : 'Move as Lead'}
                     </Button>
 
@@ -908,7 +909,7 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
               <Filter className="h-6 w-6 text-orange-500" />
               Advanced Search Filters
             </DialogTitle>
-            <DialogDescription className="text-base mt-2">
+            <DialogDescription className="text-base mt-2 cls-gray">
               Apply detailed criteria to discover the most relevant corporate travel prospects for your business
             </DialogDescription>
           </DialogHeader>
@@ -1116,6 +1117,7 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
           <DialogFooter className="pt-6 border-t border-gray-300 gap-3">
             <Button 
               variant="ghost" 
+              className="text-gray-500 hover:text-gray-700 cls-addcomapany"
               onClick={() => {
                 setAdvancedFilters({
                   industries: [],
@@ -1134,7 +1136,7 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
             >
               Reset All
             </Button>
-            <Button variant="outline" onClick={() => setShowAdvancedFilters(false)}>
+            <Button variant="outline" className="cls-cancel text-gray-500 hover:text-gray-700" onClick={() => setShowAdvancedFilters(false)}>
               Cancel
             </Button>
             <Button 
@@ -1142,7 +1144,7 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
                 setShowAdvancedFilters(false);
                 handleSearch();
               }} 
-              className="bg-orange-500 hover:bg-orange-600"
+              className="bg-orange-500 hover:bg-orange-600 text-white"
             >
               Apply Filters
             </Button>

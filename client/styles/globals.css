@@ -7,7 +7,8 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  --font-size: 16px; /* Increased base font size from 14px to 16px */
+  --font-size: 16px;
+  /* Increased base font size from 14px to 16px */
   --font-family: 'Poppins', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   --background: #ffffff;
   --foreground: oklch(0.145 0 0);
@@ -15,8 +16,10 @@
   --card-foreground: oklch(0.145 0 0);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.145 0 0);
-  --primary: #FD9646; /* Changed from #133769 to orange */
-  --primary-foreground: #ffffff; /* Changed to white for better contrast with orange */
+  --primary: #FD9646;
+  /* Changed from #133769 to orange */
+  --primary-foreground: #ffffff;
+  /* Changed to white for better contrast with orange */
   --secondary: oklch(0.95 0.0058 264.53);
   --secondary-foreground: #133769;
   --muted: #ececf0;
@@ -35,7 +38,8 @@
   --tabs-background: #f0f0f0;
   --tabs-active-text: #141414;
   --tabs-inactive-text: #595959;
-  --tabs-active-border: #FD9646; /* Changed to match new primary color */
+  --tabs-active-border: #FD9646;
+  /* Changed to match new primary color */
   --font-weight-medium: 500;
   --font-weight-normal: 400;
   --ring: oklch(0.708 0 0);
@@ -48,9 +52,10 @@
   --sidebar: oklch(0.985 0 0);
   --sidebar-foreground: oklch(0.145 0 0);
   --sidebar-primary: #FD9646;
-  --Link:#155dfc;
+  --Link: #155dfc;
   /* Changed to match new primary color */
-  --sidebar-primary-foreground: #ffffff; /* Changed to white for better contrast */
+  --sidebar-primary-foreground: #ffffff;
+  /* Changed to white for better contrast */
   --sidebar-accent: oklch(0.97 0 0);
   --sidebar-accent-foreground: oklch(0.205 0 0);
   --sidebar-border: oklch(0.922 0 0);
@@ -59,7 +64,7 @@
 
   /* Custom blue variants based on primary blue #133769 */
   --blue-brand: #133769;
-  
+
   /* SOAR AI brand colors - exact match from image */
   --soar-primary-text: #1e293b;
   --soar-secondary-text: #64748b;
@@ -70,37 +75,62 @@
   --blue-brand-600: #133769;
 
   /* Updated text size variables for new body text hierarchy */
-  --text-xs: 0.75rem;      /* 12px - Micro text */
-  --text-sm: 0.875rem;     /* 14px - Extra Small body text */
-  --text-base: 1rem;       /* 16px - Small body text */
-  --text-lg: 1.125rem;     /* 18px - Regular body text */
-  --text-xl: 1.25rem;      /* 20px - Large body text */
-  --text-2xl: 1.5rem;      /* 24px - H1 headers */
-  --text-3xl: 1.875rem;    /* 30px - Large headers */
-  --text-4xl: 2.25rem;     /* 36px - Display headers */
+  --text-xs: 0.75rem;
+  /* 12px - Micro text */
+  --text-sm: 0.875rem;
+  /* 14px - Extra Small body text */
+  --text-base: 1rem;
+  /* 16px - Small body text */
+  --text-lg: 1.125rem;
+  /* 18px - Regular body text */
+  --text-xl: 1.25rem;
+  /* 20px - Large body text */
+  --text-2xl: 1.5rem;
+  /* 24px - H1 headers */
+  --text-3xl: 1.875rem;
+  /* 30px - Large headers */
+  --text-4xl: 2.25rem;
+  /* 36px - Display headers */
 
   /* Modal and popup width variables - increased by 40% total (20% + additional 20%) */
-  --modal-width-sm: 36rem;     /* 576px - Small modal (increased from 30rem/480px by 20%) */
-  --modal-width-md: 43.2rem;   /* 691px - Medium modal (increased from 36rem/576px by 20%) */
-  --modal-width-lg: 46.08rem;  /* 737px - Large modal (increased from 38.4rem/614px by 20%) */
-  --modal-width-xl: 57.6rem;   /* 922px - Extra large modal (increased from 48rem/768px by 20%) */
-  --modal-width-2xl: 72rem;    /* 1152px - 2XL modal (increased from 60rem/960px by 20%) */
+  --modal-width-sm: 36rem;
+  /* 576px - Small modal (increased from 30rem/480px by 20%) */
+  --modal-width-md: 43.2rem;
+  /* 691px - Medium modal (increased from 36rem/576px by 20%) */
+  --modal-width-lg: 46.08rem;
+  /* 737px - Large modal (increased from 38.4rem/614px by 20%) */
+  --modal-width-xl: 57.6rem;
+  /* 922px - Extra large modal (increased from 48rem/768px by 20%) */
+  --modal-width-2xl: 72rem;
+  /* 1152px - 2XL modal (increased from 60rem/960px by 20%) */
 
   /* Ultra-reduced breathing space variables for maximum compactness */
-  --space-xs: 0.0625rem;   /* 1px - ultra reduced from 2px */
-  --space-sm: 0.125rem;    /* 2px - ultra reduced from 4px */
-  --space-md: 0.25rem;     /* 4px - ultra reduced from 6px */
-  --space-lg: 0.375rem;    /* 6px - ultra reduced from 8px */
-  --space-xl: 0.5rem;      /* 8px - ultra reduced from 12px */
-  --space-2xl: 0.75rem;    /* 12px - ultra reduced from 16px */
-  --space-3xl: 1rem;       /* 16px - ultra reduced from 20px */
+  --space-xs: 0.0625rem;
+  /* 1px - ultra reduced from 2px */
+  --space-sm: 0.125rem;
+  /* 2px - ultra reduced from 4px */
+  --space-md: 0.25rem;
+  /* 4px - ultra reduced from 6px */
+  --space-lg: 0.375rem;
+  /* 6px - ultra reduced from 8px */
+  --space-xl: 0.5rem;
+  /* 8px - ultra reduced from 12px */
+  --space-2xl: 0.75rem;
+  /* 12px - ultra reduced from 16px */
+  --space-3xl: 1rem;
+  /* 16px - ultra reduced from 20px */
 
   /* Updated sidebar spacing variables for 5px gaps */
-  --sidebar-group-spacing: 0.3125rem;   /* 5px between menu groups */
-  --sidebar-item-spacing: 0.3125rem;    /* 5px between menu items */
-  --sidebar-button-padding-y: 0.3125rem; /* 5px top/bottom padding */
-  --sidebar-button-padding-x: 0.625rem;  /* 10px left/right padding */
-  --sidebar-button-margin-y: 0.3125rem; /* 5px top/bottom margin */
+  --sidebar-group-spacing: 0.3125rem;
+  /* 5px between menu groups */
+  --sidebar-item-spacing: 0.3125rem;
+  /* 5px between menu items */
+  --sidebar-button-padding-y: 0.3125rem;
+  /* 5px top/bottom padding */
+  --sidebar-button-padding-x: 0.625rem;
+  /* 10px left/right padding */
+  --sidebar-button-margin-y: 0.3125rem;
+  /* 5px top/bottom margin */
 }
 
 .dark {
@@ -110,8 +140,10 @@
   --card-foreground: oklch(0.985 0 0);
   --popover: oklch(0.145 0 0);
   --popover-foreground: oklch(0.985 0 0);
-  --primary: #FD9646; /* Same orange color for dark mode */
-  --primary-foreground: #ffffff; /* White text on orange */
+  --primary: #FD9646;
+  /* Same orange color for dark mode */
+  --primary-foreground: #ffffff;
+  /* White text on orange */
   --secondary: oklch(0.269 0 0);
   --secondary-foreground: oklch(0.985 0 0);
   --muted: oklch(0.269 0 0);
@@ -132,7 +164,8 @@
   --chart-5: oklch(0.645 0.246 16.439);
   --sidebar: oklch(0.205 0 0);
   --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: #FD9646; /* Same orange for dark mode */
+  --sidebar-primary: #FD9646;
+  /* Same orange for dark mode */
   --sidebar-primary-foreground: #ffffff;
   --sidebar-accent: oklch(0.269 0 0);
   --sidebar-accent-foreground: oklch(0.985 0 0);
@@ -207,9 +240,11 @@
   body {
     @apply bg-background text-foreground;
     font-family: 'Poppins', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    font-size: var(--text-lg); /* Updated to use 18px as regular body text */
+    font-size: var(--text-lg);
+    /* Updated to use 18px as regular body text */
     font-weight: var(--font-weight-normal);
-    line-height: 1.4; /* Further reduced from 1.5 */
+    line-height: 1.4;
+    /* Further reduced from 1.5 */
   }
 
   /* Universal card border styling */
@@ -225,45 +260,63 @@
  */
 @layer base {
   h1:not([class*="text-"]) {
-    font-size: var(--text-2xl); /* 24px */
+    font-size: var(--text-2xl);
+    /* 24px */
     font-weight: var(--font-weight-medium);
-    line-height: 1.1; /* Further reduced from 1.2 */
-    margin-bottom: var(--space-lg); /* Now 6px instead of 8px */
+    line-height: 1.1;
+    /* Further reduced from 1.2 */
+    margin-bottom: var(--space-lg);
+    /* Now 6px instead of 8px */
   }
 
   h2:not([class*="text-"]) {
-    font-size: var(--text-xl); /* 20px */
+    font-size: var(--text-xl);
+    /* 20px */
     font-weight: var(--font-weight-medium);
-    line-height: 1.2; /* Further reduced from 1.3 */
-    margin-bottom: var(--space-md); /* Now 4px instead of 6px */
+    line-height: 1.2;
+    /* Further reduced from 1.3 */
+    margin-bottom: var(--space-md);
+    /* Now 4px instead of 6px */
   }
 
   h3:not([class*="text-"]) {
-    font-size: var(--text-lg); /* 18px */
+    font-size: var(--text-lg);
+    /* 18px */
     font-weight: var(--font-weight-medium);
-    line-height: 1.3; /* Further reduced from 1.4 */
-    margin-bottom: var(--space-md); /* Now 4px instead of 6px */
+    line-height: 1.3;
+    /* Further reduced from 1.4 */
+    margin-bottom: var(--space-md);
+    /* Now 4px instead of 6px */
   }
 
   h4:not([class*="text-"]) {
-    font-size: var(--text-base); /* 16px */
+    font-size: var(--text-base);
+    /* 16px */
     font-weight: var(--font-weight-medium);
-    line-height: 1.3; /* Further reduced from 1.4 */
-    margin-bottom: var(--space-sm); /* Now 2px instead of 4px */
+    line-height: 1.3;
+    /* Further reduced from 1.4 */
+    margin-bottom: var(--space-sm);
+    /* Now 2px instead of 4px */
   }
 
   h5:not([class*="text-"]) {
-    font-size: var(--text-sm); /* 14px */
+    font-size: var(--text-sm);
+    /* 14px */
     font-weight: var(--font-weight-medium);
-    line-height: 1.4; /* Further reduced from 1.5 */
-    margin-bottom: var(--space-sm); /* Now 2px instead of 4px */
+    line-height: 1.4;
+    /* Further reduced from 1.5 */
+    margin-bottom: var(--space-sm);
+    /* Now 2px instead of 4px */
   }
 
   h6:not([class*="text-"]) {
-    font-size: var(--text-xs); /* 12px */
+    font-size: var(--text-xs);
+    /* 12px */
     font-weight: var(--font-weight-medium);
-    line-height: 1.4; /* Further reduced from 1.5 */
-    margin-bottom: var(--space-xs); /* Now 1px instead of 2px */
+    line-height: 1.4;
+    /* Further reduced from 1.5 */
+    margin-bottom: var(--space-xs);
+    /* Now 1px instead of 2px */
   }
 
   /* Updated paragraph text with ultra-reduced spacing */
@@ -271,113 +324,150 @@
   /* Large Body Text - 20px for important descriptions */
   .text-body-large,
   p.large:not([class*="text-"]) {
-    font-size: var(--text-xl); /* 20px */
+    font-size: var(--text-xl);
+    /* 20px */
     font-weight: var(--font-weight-normal);
-    line-height: 1.4; /* Further reduced from 1.5 */
-    margin-bottom: var(--space-lg); /* Now 6px instead of 8px */
+    line-height: 1.4;
+    /* Further reduced from 1.5 */
+    margin-bottom: var(--space-lg);
+    /* Now 6px instead of 8px */
   }
 
   /* Regular Body Text - 18px for standard content */
   p:not([class*="text-"]) {
-    font-size: var(--text-lg); /* 18px */
+    font-size: var(--text-lg);
+    /* 18px */
     font-weight: var(--font-weight-normal);
-    line-height: 1.4; /* Further reduced from 1.5 */
-    margin-bottom: var(--space-lg); /* Now 6px instead of 8px */
+    line-height: 1.4;
+    /* Further reduced from 1.5 */
+    margin-bottom: var(--space-lg);
+    /* Now 6px instead of 8px */
   }
 
   /* Small Body Text - 16px for secondary information */
   .text-body-small,
   p.small:not([class*="text-"]) {
-    font-size: var(--text-base); /* 16px */
+    font-size: var(--text-base);
+    /* 16px */
     font-weight: var(--font-weight-normal);
-    line-height: 1.3; /* Further reduced from 1.4 */
-    margin-bottom: var(--space-md); /* Now 4px instead of 6px */
+    line-height: 1.3;
+    /* Further reduced from 1.4 */
+    margin-bottom: var(--space-md);
+    /* Now 4px instead of 6px */
   }
 
   /* Extra Small Text - 14px for fine print and micro-data */
   .text-body-xs,
   p.xs:not([class*="text-"]) {
-    font-size: var(--text-sm); /* 14px */
+    font-size: var(--text-sm);
+    /* 14px */
     font-weight: var(--font-weight-normal);
-    line-height: 1.3; /* Further reduced from 1.4 */
-    margin-bottom: var(--space-sm); /* Now 2px instead of 4px */
+    line-height: 1.3;
+    /* Further reduced from 1.4 */
+    margin-bottom: var(--space-sm);
+    /* Now 2px instead of 4px */
   }
 
   /* Form elements with ultra-reduced spacing */
   label:not([class*="text-"]) {
-    font-size: var(--text-base); /* Increased from text-sm to text-base */
+    font-size: var(--text-base);
+    /* Increased from text-sm to text-base */
     font-weight: var(--font-weight-medium);
-    line-height: 1.3; /* Further reduced from 1.4 */
-    margin-bottom: var(--space-xs); /* Now 1px instead of 2px */
+    line-height: 1.3;
+    /* Further reduced from 1.4 */
+    margin-bottom: var(--space-xs);
+    /* Now 1px instead of 2px */
     display: block;
   }
 
   button:not([class*="text-"]) {
-    font-size: var(--text-base); /* Increased from text-sm to text-base */
+    font-size: var(--text-base);
+    /* Increased from text-sm to text-base */
     font-weight: var(--font-weight-medium);
-    line-height: 1.3; /* Further reduced from 1.4 */
-    padding: var(--space-sm) var(--space-md); /* Now 2px 4px instead of 4px 6px */
+    line-height: 1.3;
+    /* Further reduced from 1.4 */
+    padding: var(--space-sm) var(--space-md);
+    /* Now 2px 4px instead of 4px 6px */
   }
 
   input:not([class*="text-"]) {
-    font-size: var(--text-base); /* Increased from text-sm to text-base */
+    font-size: var(--text-base);
+    /* Increased from text-sm to text-base */
     font-weight: var(--font-weight-normal);
-    line-height: 1.3; /* Further reduced from 1.4 */
-    padding: var(--space-sm); /* Now 2px instead of 4px */
+    line-height: 1.3;
+    /* Further reduced from 1.4 */
+    padding: var(--space-sm);
+    /* Now 2px instead of 4px */
   }
 
   textarea:not([class*="text-"]) {
-    font-size: var(--text-base); /* Increased from text-sm to text-base */
+    font-size: var(--text-base);
+    /* Increased from text-sm to text-base */
     font-weight: var(--font-weight-normal);
-    line-height: 1.3; /* Further reduced from 1.4 */
-    padding: var(--space-sm); /* Now 2px instead of 4px */
+    line-height: 1.3;
+    /* Further reduced from 1.4 */
+    padding: var(--space-sm);
+    /* Now 2px instead of 4px */
   }
 
   select:not([class*="text-"]) {
-    font-size: var(--text-base); /* Increased from text-sm to text-base */
+    font-size: var(--text-base);
+    /* Increased from text-sm to text-base */
     font-weight: var(--font-weight-normal);
-    line-height: 1.3; /* Further reduced from 1.4 */
-    padding: var(--space-sm); /* Now 2px instead of 4px */
+    line-height: 1.3;
+    /* Further reduced from 1.4 */
+    padding: var(--space-sm);
+    /* Now 2px instead of 4px */
   }
 
   /* Lists with ultra-reduced spacing */
   ul:not([class*="space-"]),
   ol:not([class*="space-"]) {
-    margin-bottom: var(--space-lg); /* Now 6px instead of 8px */
+    margin-bottom: var(--space-lg);
+    /* Now 6px instead of 8px */
   }
 
   li:not([class*="space-"]) {
-    margin-bottom: var(--space-xs); /* Now 1px instead of 2px */
-    line-height: 1.4; /* Further reduced from 1.5 */
+    margin-bottom: var(--space-xs);
+    /* Now 1px instead of 2px */
+    line-height: 1.4;
+    /* Further reduced from 1.5 */
   }
 
   /* Ultra-reduced spacing for nested elements */
-  li > ul,
-  li > ol {
-    margin-top: var(--space-xs); /* Now 1px instead of 2px */
-    margin-bottom: var(--space-sm); /* Now 2px instead of 4px */
+  li>ul,
+  li>ol {
+    margin-top: var(--space-xs);
+    /* Now 1px instead of 2px */
+    margin-bottom: var(--space-sm);
+    /* Now 2px instead of 4px */
   }
 
   /* Ultra-reduced spacing for sections and divs */
   section:not([class*="space-"]) {
-    margin-bottom: var(--space-2xl); /* Now 12px instead of 16px */
+    margin-bottom: var(--space-2xl);
+    /* Now 12px instead of 16px */
   }
 
   article:not([class*="space-"]) {
-    margin-bottom: var(--space-xl); /* Now 8px instead of 12px */
+    margin-bottom: var(--space-xl);
+    /* Now 8px instead of 12px */
   }
 
   /* Card and content spacing ultra-reduced */
   .card-content:not([class*="p-"]) {
-    padding: var(--space-lg); /* Now 6px instead of 8px */
+    padding: var(--space-lg);
+    /* Now 6px instead of 8px */
   }
 
   .card-header:not([class*="p-"]) {
-    padding: var(--space-lg) var(--space-lg) var(--space-md) var(--space-lg); /* Now 6px 6px 4px 6px */
+    padding: var(--space-lg) var(--space-lg) var(--space-md) var(--space-lg);
+    /* Now 6px 6px 4px 6px */
   }
 
   .card-footer:not([class*="p-"]) {
-    padding: var(--space-md) var(--space-lg) var(--space-lg) var(--space-lg); /* Now 4px 6px 6px 6px */
+    padding: var(--space-md) var(--space-lg) var(--space-lg) var(--space-lg);
+    /* Now 4px 6px 6px 6px */
   }
 
   /* Remove default margins for consistency - but maintain ultra-reduced breathing space */
@@ -392,22 +482,24 @@
   }
 
   /* Ensure adequate but ultra-reduced spacing between adjacent elements */
-  h1 + p,
-  h2 + p,
-  h3 + p,
-  h4 + p,
-  h5 + p,
-  h6 + p {
-    margin-top: var(--space-sm); /* Now 2px instead of 4px */
+  h1+p,
+  h2+p,
+  h3+p,
+  h4+p,
+  h5+p,
+  h6+p {
+    margin-top: var(--space-sm);
+    /* Now 2px instead of 4px */
   }
 
-  p + h1,
-  p + h2,
-  p + h3,
-  p + h4,
-  p + h5,
-  p + h6 {
-    margin-top: var(--space-xl); /* Now 8px instead of 12px */
+  p+h1,
+  p+h2,
+  p+h3,
+  p+h4,
+  p+h5,
+  p+h6 {
+    margin-top: var(--space-xl);
+    /* Now 8px instead of 12px */
   }
 }
 
@@ -452,12 +544,13 @@ html {
   [role="dialog"],
   .modal-content {
     background-color: white !important;
+    border: unset;
   }
 
   /* Additional specificity for nested modal content */
-  .modal-content > *,
-  [data-slot="dialog-content"] > *,
-  [data-slot="alert-dialog-content"] > * {
+  .modal-content>*,
+  [data-slot="dialog-content"]>*,
+  [data-slot="alert-dialog-content"]>* {
     background-color: inherit;
   }
 
@@ -544,125 +637,218 @@ html {
 
 /* Enhanced spacing utilities with ultra-reduced values */
 @layer utilities {
-  .space-xs { margin: var(--space-xs); }
-  .space-sm { margin: var(--space-sm); }
-  .space-md { margin: var(--space-md); }
-  .space-lg { margin: var(--space-lg); }
-  .space-xl { margin: var(--space-xl); }
-  .space-2xl { margin: var(--space-2xl); }
-  .space-3xl { margin: var(--space-3xl); }
+  .space-xs {
+    margin: var(--space-xs);
+  }
 
-  .p-xs { padding: var(--space-xs); }
-  .p-sm { padding: var(--space-sm); }
-  .p-md { padding: var(--space-md); }
-  .p-lg { padding: var(--space-lg); }
-  .p-xl { padding: var(--space-xl); }
-  .p-2xl { padding: var(--space-2xl); }
-  .p-3xl { padding: var(--space-3xl); }
+  .space-sm {
+    margin: var(--space-sm);
+  }
 
-  .m-xs { margin: var(--space-xs); }
-  .m-sm { margin: var(--space-sm); }
-  .m-md { margin: var(--space-md); }
-  .m-lg { margin: var(--space-lg); }
-  .m-xl { margin: var(--space-xl); }
-  .m-2xl { margin: var(--space-2xl); }
-  .m-3xl { margin: var(--space-3xl); }
+  .space-md {
+    margin: var(--space-md);
+  }
+
+  .space-lg {
+    margin: var(--space-lg);
+  }
+
+  .space-xl {
+    margin: var(--space-xl);
+  }
+
+  .space-2xl {
+    margin: var(--space-2xl);
+  }
+
+  .space-3xl {
+    margin: var(--space-3xl);
+  }
+
+  .p-xs {
+    padding: var(--space-xs);
+  }
+
+  .p-sm {
+    padding: var(--space-sm);
+  }
+
+  .p-md {
+    padding: var(--space-md);
+  }
+
+  .p-lg {
+    padding: var(--space-lg);
+  }
+
+  .p-xl {
+    padding: var(--space-xl);
+  }
+
+  .p-2xl {
+    padding: var(--space-2xl);
+  }
+
+  .p-3xl {
+    padding: var(--space-3xl);
+  }
+
+  .m-xs {
+    margin: var(--space-xs);
+  }
+
+  .m-sm {
+    margin: var(--space-sm);
+  }
+
+  .m-md {
+    margin: var(--space-md);
+  }
+
+  .m-lg {
+    margin: var(--space-lg);
+  }
+
+  .m-xl {
+    margin: var(--space-xl);
+  }
+
+  .m-2xl {
+    margin: var(--space-2xl);
+  }
+
+  .m-3xl {
+    margin: var(--space-3xl);
+  }
 
   /* Body text utility classes with ultra-tight line heights */
   .text-body-large {
-    font-size: var(--text-xl) !important; /* 20px */
-    line-height: 1.4 !important; /* Further reduced from 1.5 */
+    font-size: var(--text-xl) !important;
+    /* 20px */
+    line-height: 1.4 !important;
+    /* Further reduced from 1.5 */
   }
 
   .text-body-regular {
-    font-size: var(--text-lg) !important; /* 18px */
-    line-height: 1.4 !important; /* Further reduced from 1.5 */
+    font-size: var(--text-lg) !important;
+    /* 18px */
+    line-height: 1.4 !important;
+    /* Further reduced from 1.5 */
   }
 
   .text-body-small {
-    font-size: var(--text-base) !important; /* 16px */
-    line-height: 1.3 !important; /* Further reduced from 1.4 */
+    font-size: var(--text-base) !important;
+    /* 16px */
+    line-height: 1.3 !important;
+    /* Further reduced from 1.4 */
   }
 
   .text-body-xs {
-    font-size: var(--text-sm) !important; /* 14px */
-    line-height: 1.3 !important; /* Further reduced from 1.4 */
+    font-size: var(--text-sm) !important;
+    /* 14px */
+    line-height: 1.3 !important;
+    /* Further reduced from 1.4 */
   }
 
   /* Modal width utility classes - increased by 40% total (20% + additional 20%) */
   .max-w-modal-sm {
-    max-width: var(--modal-width-sm) !important; /* 576px */
+    max-width: var(--modal-width-sm) !important;
+    /* 576px */
   }
 
   .max-w-modal-md {
-    max-width: var(--modal-width-md) !important; /* 691px */
+    max-width: var(--modal-width-md) !important;
+    /* 691px */
   }
 
   .max-w-modal-lg {
-    max-width: var(--modal-width-lg) !important; /* 737px */
+    max-width: var(--modal-width-lg) !important;
+    /* 737px */
   }
 
   .max-w-modal-xl {
-    max-width: var(--modal-width-xl) !important; /* 922px */
+    max-width: var(--modal-width-xl) !important;
+    /* 922px */
   }
 
   .max-w-modal-2xl {
-    max-width: var(--modal-width-2xl) !important; /* 1152px */
+    max-width: var(--modal-width-2xl) !important;
+    /* 1152px */
   }
 
   /* Enhanced modal-content class with increased width - 20% larger */
   .modal-content {
-    width: 95vw !important; /* 95% of viewport width for better responsiveness (increased from 90%) */
-    max-width: 90rem !important; /* 1440px maximum width - 20% larger than previous 1200px */
-    min-width: var(--modal-width-xl) !important; /* Minimum width now 922px */
+    width: 95vw !important;
+    /* 95% of viewport width for better responsiveness (increased from 90%) */
+    max-width: 90rem !important;
+    /* 1440px maximum width - 20% larger than previous 1200px */
+    min-width: var(--modal-width-xl) !important;
+    /* Minimum width now 922px */
   }
 
   /* Alternative modal-content sizes for different use cases - all increased by 20% */
   .modal-content-sm {
-    width: 84vw !important; /* Increased from 70vw */
-    max-width: var(--modal-width-xl) !important; /* Now 922px (increased from 768px) */
-    min-width: var(--modal-width-lg) !important; /* Now 737px (increased from 614px) */
+    width: 84vw !important;
+    /* Increased from 70vw */
+    max-width: var(--modal-width-xl) !important;
+    /* Now 922px (increased from 768px) */
+    min-width: var(--modal-width-lg) !important;
+    /* Now 737px (increased from 614px) */
   }
 
   .modal-content-lg {
-    width: 98vw !important; /* Increased from 95vw */
-    max-width: 105rem !important; /* 1680px - extra large modal content (increased from 1400px) */
-    min-width: var(--modal-width-2xl) !important; /* Now 1152px (increased from 960px) */
+    width: 98vw !important;
+    /* Increased from 95vw */
+    max-width: 105rem !important;
+    /* 1680px - extra large modal content (increased from 1400px) */
+    min-width: var(--modal-width-2xl) !important;
+    /* Now 1152px (increased from 960px) */
   }
 }
 
 /* Updated sidebar spacing for exact 5px gaps */
 @layer components {
+
   /* Exact 5px spacing between sidebar groups */
   [data-sidebar] [role="group"]:not(:first-child) {
-    margin-top: var(--sidebar-group-spacing) !important; /* 5px between groups */
+    margin-top: var(--sidebar-group-spacing) !important;
+    /* 5px between groups */
   }
 
   /* Exact 5px spacing within sidebar menu items */
   [data-sidebar] [role="menuitem"] {
-    margin-bottom: var(--sidebar-item-spacing) !important; /* 5px between items */
+    margin-bottom: var(--sidebar-item-spacing) !important;
+    /* 5px between items */
   }
 
   /* Updated padding and margin for sidebar menu buttons with 5px consistency */
   [data-sidebar] [data-slot="sidebar-menu-button"] {
-    padding-top: var(--sidebar-button-padding-y) !important; /* 5px top/bottom padding */
+    padding-top: var(--sidebar-button-padding-y) !important;
+    /* 5px top/bottom padding */
     padding-bottom: var(--sidebar-button-padding-y) !important;
-    padding-left: var(--sidebar-button-padding-x) !important; /* 10px left/right */
+    padding-left: var(--sidebar-button-padding-x) !important;
+    /* 10px left/right */
     padding-right: var(--sidebar-button-padding-x) !important;
-    margin-top: var(--sidebar-button-margin-y) !important; /* 5px top/bottom margin */
+    margin-top: var(--sidebar-button-margin-y) !important;
+    /* 5px top/bottom margin */
     margin-bottom: var(--sidebar-button-margin-y) !important;
-    line-height: 1.2 !important; /* Tighter line height for compact buttons */
-    transition: background-color 0.2s ease-in-out !important; /* 
+    line-height: 1.2 !important;
+    /* Tighter line height for compact buttons */
+    transition: background-color 0.2s ease-in-out !important;
+    /* 
     Smooth hover transition */
-    height:39px;
+    height: 39px;
   }
 
   /* Hover state for sidebar menu buttons - consistent 5px inner spacing */
   [data-sidebar] [data-slot="sidebar-menu-button"]:hover {
-    background-color: #EBF6FF !important; /* Very light blue hover background */
-    padding-top: var(--sidebar-button-padding-y) !important; /* 5px top/bottom padding */
+    background-color: #EBF6FF !important;
+    /* Very light blue hover background */
+    padding-top: var(--sidebar-button-padding-y) !important;
+    /* 5px top/bottom padding */
     padding-bottom: var(--sidebar-button-padding-y) !important;
-    padding-left: var(--sidebar-button-padding-x) !important; /* 10px left/right */
+    padding-left: var(--sidebar-button-padding-x) !important;
+    /* 10px left/right */
     padding-right: var(--sidebar-button-padding-x) !important;
   }
 
@@ -670,59 +856,76 @@ html {
   .sidebar [role="menuitem"] button:hover,
   .sidebar-menu-button:hover,
   [data-sidebar] button[role="menuitem"]:hover {
-    background-color: #EBF6FF !important; /* Very light blue hover background */
+    background-color: #EBF6FF !important;
+    /* Very light blue hover background */
     transition: background-color 0.2s ease-in-out !important;
-    margin-top: var(--sidebar-button-margin-y) !important; /* 5px top/bottom margin */
+    margin-top: var(--sidebar-button-margin-y) !important;
+    /* 5px top/bottom margin */
     margin-bottom: var(--sidebar-button-margin-y) !important;
-    padding-top: var(--sidebar-button-padding-y) !important; /* 5px top/bottom padding */
+    padding-top: var(--sidebar-button-padding-y) !important;
+    /* 5px top/bottom padding */
     padding-bottom: var(--sidebar-button-padding-y) !important;
-    padding-left: var(--sidebar-button-padding-x) !important; /* 10px left/right */
+    padding-left: var(--sidebar-button-padding-x) !important;
+    /* 10px left/right */
     padding-right: var(--sidebar-button-padding-x) !important;
   }
 
   /* Active state styling for sidebar menu buttons - consistent 5px inner spacing */
   [data-sidebar] [data-slot="sidebar-menu-button"][data-active="true"] {
-    background: linear-gradient(360deg, #17376B -17.65%, #2F66C0 155.88%) !important; /* Blue gradient active background */
-    border-radius: 0px 20px 20px 0px !important; /* Border radius as requested */
+    background: linear-gradient(360deg, #17376B -17.65%, #2F66C0 155.88%) !important;
+    /* Blue gradient active background */
+    border-radius: 0px 20px 20px 0px !important;
+    /* Border radius as requested */
     color: white !important;
-    padding-top: var(--sidebar-button-padding-y) !important; /* 5px top/bottom padding - consistent with other states */
+    padding-top: var(--sidebar-button-padding-y) !important;
+    /* 5px top/bottom padding - consistent with other states */
     padding-bottom: var(--sidebar-button-padding-y) !important;
-    padding-left: var(--sidebar-button-padding-x) !important; /* 10px left/right */
+    padding-left: var(--sidebar-button-padding-x) !important;
+    /* 10px left/right */
     padding-right: var(--sidebar-button-padding-x) !important;
   }
 
   /* Active state hover styling for sidebar menu buttons */
   [data-sidebar] [data-slot="sidebar-menu-button"][data-active="true"]:hover {
-    background: linear-gradient(360deg, #17376B -17.65%, #2F66C0 155.88%) !important; /* Keep blue gradient on hover when active */
+    background: linear-gradient(360deg, #17376B -17.65%, #2F66C0 155.88%) !important;
+    /* Keep blue gradient on hover when active */
     color: white !important;
   }
 
   /* Active state text styling for nested divs in active menu items */
   [data-sidebar] [data-slot="sidebar-menu-button"][data-active="true"] .text-muted-foreground {
-    color: rgba(255, 255, 255, 0.8) !important; /* Light white for description text */
+    color: rgba(255, 255, 255, 0.8) !important;
+    /* Light white for description text */
   }
 
   /* Updated sidebar group labels with 5px spacing */
   [data-sidebar] [data-slot="sidebar-group-label"] {
-    padding-top: var(--sidebar-item-spacing) !important; /* 5px */
-    padding-bottom: var(--sidebar-item-spacing) !important; /* 5px */
-    margin-bottom: var(--sidebar-item-spacing) !important; /* 5px */
-    line-height: 1.2 !important; /* Tighter line height */
+    padding-top: var(--sidebar-item-spacing) !important;
+    /* 5px */
+    padding-bottom: var(--sidebar-item-spacing) !important;
+    /* 5px */
+    margin-bottom: var(--sidebar-item-spacing) !important;
+    /* 5px */
+    line-height: 1.2 !important;
+    /* Tighter line height */
   }
 
   /* Updated sidebar group content with 5px gaps */
   [data-sidebar] [data-slot="sidebar-group-content"] {
-    gap: var(--sidebar-item-spacing) !important; /* 5px gap between items */
+    gap: var(--sidebar-item-spacing) !important;
+    /* 5px gap between items */
   }
 
   /* Updated sidebar menu with 5px spacing */
   [data-sidebar] [data-slot="sidebar-menu"] {
-    gap: var(--sidebar-item-spacing) !important; /* 5px gap between menu items */
+    gap: var(--sidebar-item-spacing) !important;
+    /* 5px gap between menu items */
   }
 
   /* Updated sidebar header with 5px consistency */
   .sidebar-header {
-    padding: var(--sidebar-item-spacing) !important; /* 5px */
+    padding: var(--sidebar-item-spacing) !important;
+    /* 5px */
   }
 
   /* System status with 5px spacing */
@@ -742,177 +945,186 @@ html {
 }
 
 /* Enhanced tabs styling for consistent appearance */
-  [data-slot="tabs-list"] {
-    background: #f8f9fa !important;
-    border: 1px solid #e9ecef !important;
-    border-radius: 12px !important;
-    padding: 4px !important;
-    gap: 4px !important;
-  }
+[data-slot="tabs-list"] {
+  background: #f8f9fa !important;
+  border: 1px solid #e9ecef !important;
+  border-radius: 12px !important;
+  padding: 4px !important;
+  gap: 4px !important;
+}
 
-  [data-slot="tabs-trigger"] {
-    background: transparent !important;
-    border: none !important;
-    border-radius: 8px !important;
-    padding: 12px 24px !important;
-    font-weight: 500 !important;
-    color: #6b7280 !important;
-    transition: all 0.2s ease-in-out !important;
-    cursor: pointer !important;
-  }
+[data-slot="tabs-trigger"] {
+  background: transparent !important;
+  border: none !important;
+  border-radius: 8px !important;
+  padding: 12px 24px !important;
+  font-weight: 500 !important;
+  color: #6b7280 !important;
+  transition: all 0.2s ease-in-out !important;
+  cursor: pointer !important;
+}
 
-  [data-slot="tabs-trigger"]:hover {
-    color: #374151 !important;
-    background: rgba(255, 255, 255, 0.5) !important;
-  }
+[data-slot="tabs-trigger"]:hover {
+  color: #374151 !important;
+  background: rgba(255, 255, 255, 0.5) !important;
+}
 
-  [data-slot="tabs-trigger"][data-state="active"] {
-    background: white !important;
-    color: #111827 !important;
-    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06) !important;
-    border-bottom: 2px solid #FD9646 !important;
-  }
+[data-slot="tabs-trigger"][data-state="active"] {
+  background: white !important;
+  color: #111827 !important;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06) !important;
+  border-bottom: 2px solid #FD9646 !important;
+}
 
-  [data-slot="tabs-content"] {
-    margin-top: 16px !important;
-    outline: none !important;
-  }
+[data-slot="tabs-content"] {
+  margin-top: 16px !important;
+  outline: none !important;
+}
 
-  /* Override any conflicting tab styles in specific components */
-  .modal-content [data-slot="tabs-list"],
-  .dialog-content [data-slot="tabs-list"],
-  [data-state="open"] [data-slot="tabs-list"] {
-    background: #f8f9fa !important;
-    border: 1px solid #e9ecef !important;
-    border-radius: 12px !important;
-    padding: 4px !important;
-  }
+/* Override any conflicting tab styles in specific components */
+.modal-content [data-slot="tabs-list"],
+.dialog-content [data-slot="tabs-list"],
+[data-state="open"] [data-slot="tabs-list"] {
+  background: #f8f9fa !important;
+  border: 1px solid #e9ecef !important;
+  border-radius: 12px !important;
+  padding: 4px !important;
+}
 
-  .modal-content [data-slot="tabs-trigger"],
-  .dialog-content [data-slot="tabs-trigger"],
-  [data-state="open"] [data-slot="tabs-trigger"] {
-    background: transparent !important;
-    border: none !important;
-    border-radius: 8px !important;
-    padding: 12px 24px !important;
-    font-weight: 500 !important;
-    color: #6b7280 !important;
-    transition: all 0.2s ease-in-out !important;
-  }
+.modal-content [data-slot="tabs-trigger"],
+.dialog-content [data-slot="tabs-trigger"],
+[data-state="open"] [data-slot="tabs-trigger"] {
+  background: transparent !important;
+  border: none !important;
+  border-radius: 8px !important;
+  padding: 12px 24px !important;
+  font-weight: 500 !important;
+  color: #6b7280 !important;
+  transition: all 0.2s ease-in-out !important;
+}
 
-  .modal-content [data-slot="tabs-trigger"]:hover,
-  .dialog-content [data-slot="tabs-trigger"]:hover,
-  [data-state="open"] [data-slot="tabs-trigger"]:hover {
-    color: #374151 !important;
-    background: rgba(255, 255, 255, 0.5) !important;
-  }
+.modal-content [data-slot="tabs-trigger"]:hover,
+.dialog-content [data-slot="tabs-trigger"]:hover,
+[data-state="open"] [data-slot="tabs-trigger"]:hover {
+  color: #374151 !important;
+  background: rgba(255, 255, 255, 0.5) !important;
+}
 
-  .modal-content [data-slot="tabs-trigger"][data-state="active"],
-  .dialog-content [data-slot="tabs-trigger"][data-state="active"],
-  [data-state="open"] [data-slot="tabs-trigger"][data-state="active"] {
-    background: white !important;
-    color: #111827 !important;
-    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06) !important;
-    border-bottom: 2px solid #FD9646 !important;
-  }
+.modal-content [data-slot="tabs-trigger"][data-state="active"],
+.dialog-content [data-slot="tabs-trigger"][data-state="active"],
+[data-state="open"] [data-slot="tabs-trigger"][data-state="active"] {
+  background: white !important;
+  color: #111827 !important;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06) !important;
+  border-bottom: 2px solid #FD9646 !important;
+}
 
-  /* Additional specificity for dialog overlays */
-  [data-radix-popper-content-wrapper] [data-slot="tabs-list"],
-  [role="dialog"] [data-slot="tabs-list"] {
-    background: #f8f9fa !important;
-    border: 1px solid #e9ecef !important;
-    border-radius: 12px !important;
-    padding: 4px !important;
-  }
+/* Additional specificity for dialog overlays */
+[data-radix-popper-content-wrapper] [data-slot="tabs-list"],
+[role="dialog"] [data-slot="tabs-list"] {
+  background: #f8f9fa !important;
+  border: 1px solid #e9ecef !important;
+  border-radius: 12px !important;
+  padding: 4px !important;
+}
 
-  /* Select dropdown positioning and z-index for modals */
-  [data-radix-popper-content-wrapper] [data-slot="select-content"],
-  [role="dialog"] [data-slot="select-content"],
-  [data-state="open"] [data-slot="select-content"] {
-    z-index: 9999 !important;
-    background: white !important;
-    border: 1px solid #e5e7eb !important;
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05) !important;
-  }
+/* Select dropdown positioning and z-index for modals */
+[data-radix-popper-content-wrapper] [data-slot="select-content"],
+[role="dialog"] [data-slot="select-content"],
+[data-state="open"] [data-slot="select-content"] {
+  z-index: 9999 !important;
+  background: white !important;
+  border: 1px solid #e5e7eb !important;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05) !important;
+}
 
-  /* Select items in modals */
-  [data-radix-popper-content-wrapper] [data-slot="select-item"],
-  [role="dialog"] [data-slot="select-item"],
-  [data-state="open"] [data-slot="select-item"] {
-    color: #374151 !important;
-    background: transparent !important;
-    cursor: pointer !important;
-  }
+/* Select items in modals */
+[data-radix-popper-content-wrapper] [data-slot="select-item"],
+[role="dialog"] [data-slot="select-item"],
+[data-state="open"] [data-slot="select-item"] {
+  color: #374151 !important;
+  background: transparent !important;
+  cursor: pointer !important;
+}
 
-  [data-radix-popper-content-wrapper] [data-slot="select-item"]:hover,
-  [role="dialog"] [data-slot="select-item"]:hover,
-  [data-state="open"] [data-slot="select-item"]:hover,
-  [data-radix-popper-content-wrapper] [data-slot="select-item"][data-highlighted],
-  [role="dialog"] [data-slot="select-item"][data-highlighted],
-  [data-state="open"] [data-slot="select-item"][data-highlighted] {
-    background: #f3f4f6 !important;
-    color: #111827 !important;
-  }
+[data-radix-popper-content-wrapper] [data-slot="select-item"]:hover,
+[role="dialog"] [data-slot="select-item"]:hover,
+[data-state="open"] [data-slot="select-item"]:hover,
+[data-radix-popper-content-wrapper] [data-slot="select-item"][data-highlighted],
+[role="dialog"] [data-slot="select-item"][data-highlighted],
+[data-state="open"] [data-slot="select-item"][data-highlighted] {
+  background: #f3f4f6 !important;
+  color: #111827 !important;
+}
 
-  /* Ensure Select trigger works in modals */
-  [data-radix-popper-content-wrapper] [data-slot="select-trigger"],
-  [role="dialog"] [data-slot="select-trigger"],
-  [data-state="open"] [data-slot="select-trigger"],[data-slot="textarea"] {
-    /* background: white !important; */
-    border: 1px solid #d1d5db !important;
-    color: #717182 !important;
-     background: #f8f9fa !important;
-  }
+/* Ensure Select trigger works in modals */
+[data-radix-popper-content-wrapper] [data-slot="select-trigger"],
+[role="dialog"] [data-slot="select-trigger"],
+[data-state="open"] [data-slot="select-trigger"],
+[data-slot="textarea"] {
+  /* background: white !important; */
+  border: 1px solid #d1d5db !important;
+  color: #717182 !important;
+  background: #f8f9fa !important;
+}
 
-  [data-radix-popper-content-wrapper] [data-slot="select-trigger"]:hover,
-  [role="dialog"] [data-slot="select-trigger"]:hover,
-  [data-state="open"] [data-slot="select-trigger"]:hover {
-    background: #f9fafb !important;
-    border-color: #9ca3af !important;
-  }
+[data-radix-popper-content-wrapper] [data-slot="select-trigger"]:hover,
+[role="dialog"] [data-slot="select-trigger"]:hover,
+[data-state="open"] [data-slot="select-trigger"]:hover {
+  background: #f9fafb !important;
+  border-color: #9ca3af !important;
+}
 
-  [data-radix-popper-content-wrapper] [data-slot="tabs-trigger"],
-  [role="dialog"] [data-slot="tabs-trigger"] {
-    background: transparent !important;
-    border: none !important;
-    border-radius: 8px !important;
-    padding: 12px 24px !important;
-    font-weight: 500 !important;
-    color: #6b7280 !important;
-    transition: all 0.2s ease-in-out !important;
-  }
+[data-radix-popper-content-wrapper] [data-slot="tabs-trigger"],
+[role="dialog"] [data-slot="tabs-trigger"] {
+  background: transparent !important;
+  border: none !important;
+  border-radius: 8px !important;
+  padding: 12px 24px !important;
+  font-weight: 500 !important;
+  color: #6b7280 !important;
+  transition: all 0.2s ease-in-out !important;
+}
 
-  [data-radix-popper-content-wrapper] [data-slot="tabs-trigger"]:hover,
-  [role="dialog"] [data-slot="tabs-trigger"]:hover {
-    color: #374151 !important;
-    background: rgba(255, 255, 255, 0.5) !important;
-  }
+[data-radix-popper-content-wrapper] [data-slot="tabs-trigger"]:hover,
+[role="dialog"] [data-slot="tabs-trigger"]:hover {
+  color: #374151 !important;
+  background: rgba(255, 255, 255, 0.5) !important;
+}
 
-  [data-radix-popper-content-wrapper] [data-slot="tabs-trigger"][data-state="active"],
-  [role="dialog"] [data-slot="tabs-trigger"][data-state="active"] {
-    background: white !important;
-    color: #111827 !important;
-    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06) !important;
-    border-bottom: 2px solid #FD9646 !important;
-  }
+[data-radix-popper-content-wrapper] [data-slot="tabs-trigger"][data-state="active"],
+[role="dialog"] [data-slot="tabs-trigger"][data-state="active"] {
+  background: white !important;
+  color: #111827 !important;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06) !important;
+  border-bottom: 2px solid #FD9646 !important;
+}
 
-  .modal-content [data-slot="tabs-trigger"][data-state="active"],
-  .dialog-content [data-slot="tabs-trigger"][data-state="active"] {
-    background: white !important;
-    color: #111827 !important;
-    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1) !important;
-    border-bottom: 2px solid #FD9646 !important;
-  }
-.cls-link{
+.modal-content [data-slot="tabs-trigger"][data-state="active"],
+.dialog-content [data-slot="tabs-trigger"][data-state="active"] {
+  background: white !important;
+  color: #111827 !important;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1) !important;
+  border-bottom: 2px solid #FD9646 !important;
+}
+
+.cls-link {
   color: var(--Link);
 }
-.cls-addcomapany{
-  color:#133769 !important;
-  background-color:#eceef2 !important;
+
+.cls-addcomapany {
+  color: #133769 !important;
+  background-color: #eceef2 !important;
 }
 
-  /* Cursor pointer for interactive elements */
+.cls-slider-range {
+  color: #FD9646;
+  background-color: white;
+}
+
+/* Cursor pointer for interactive elements */
 @layer base {
+
   button,
   a,
   [role="button"],
@@ -943,30 +1155,59 @@ html {
   [data-slot="tooltip-trigger"],
   .cursor-pointer {
     cursor: pointer;
-   
+
   }
-  [data-slot="select-trigger"],[data-slot="input"]{
-     background: #f8f9fa !important;
-     border:1px solid #e5e7eb !important;
+
+  [data-slot="select-trigger"],
+  [data-slot="input"] {
+    background: #f8f9fa !important;
+    border: 1px solid #e5e7eb !important;
     color: #717182 !important;
   }
-  [data-state ="checked"][data-slot="checkbox"]{
-    color:#fff !important;
+
+  [data-state="checked"],
+  [data-slot="checkbox"] {
+    color: #fff !important;
     background: #fd9646 !important;
   }
-  [data-slot="checkbox"] [data-state ="unchecked"]{
-    border:1px solid #e5e7eb !important;
+
+  [data-slot="checkbox"],
+  [data-state="unchecked"] {
+    border: 1px solid #e5e7eb !important;
     border-radius: 3px;
     background: #f3f3f5 !important;
   }
-  [data-slot="slider-track"]{
-    background: #e5e7eb !important; /* Gray background for the track */
+
+  [data-slot="slider-track"] {
+    background: #e5e7eb !important;
+    /* Gray background for the track */
   }
-  
-  [data-slot="slider-range"]{
-    background: #fd9646 !important; /* Orange color for the active range */
+
+  [data-slot="slider-range"] {
+    background: #fd9646 !important;
+    /* Orange color for the active range */
   }
-  
+
+  .cls-gray {
+    color: #717182 !important;
+  }
+
+  .cls-cancel {
+    border: 1px solid #e5e7eb !important;
+    background-color: #eceef2 !important;
+  }
+
+  .bg-card {
+    background-color: white !important;
+  }
+
+  .text-muted-foreground {
+    color: #717182 !important;
+  }
+
+  .font-semibold {
+    font-weight: 600  !important;
+  }
 
   /* Ensure disabled elements show default cursor */
   button:disabled,
