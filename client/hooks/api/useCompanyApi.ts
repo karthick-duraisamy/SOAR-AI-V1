@@ -1,5 +1,5 @@
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
 
 const API_BASE_URL = '/api';
@@ -31,6 +31,10 @@ export const useCompanyApi = () => {
     error: null,
   });
 
+  // Cache for recent requests to prevent duplicate API calls
+  const requestCache = useRef<Map<string, { data: any; timestamp: number }>>(new Map());
+  const CACHE_DURATION = 30000; // 30 seconds cache
+
   const setLoading = useCallback((loading: boolean) => {
     setState(prev => ({ ...prev, loading }));
   }, []);
@@ -45,6 +49,17 @@ export const useCompanyApi = () => {
 
   // Search companies with filters
   const searchCompanies = useCallback(async (filters: any = {}) => {
+    // Create cache key from filters
+    const cacheKey = JSON.stringify(filters);
+    const now = Date.now();
+    
+    // Check cache first
+    const cached = requestCache.current.get(cacheKey);
+    if (cached && (now - cached.timestamp) < CACHE_DURATION) {
+      setData(cached.data);
+      return cached.data;
+    }
+
     setLoading(true);
     setError(null);
 
@@ -58,6 +73,22 @@ export const useCompanyApi = () => {
           },
         }
       );
+      
+      // Cache the response
+      requestCache.current.set(cacheKey, {
+        data: response.data,
+        timestamp: now
+      });
+
+      // Clean old cache entries to prevent memory leaks
+      if (requestCache.current.size > 10) {
+        const entries = Array.from(requestCache.current.entries());
+        entries.forEach(([key, value]) => {
+          if ((now - value.timestamp) > CACHE_DURATION) {
+            requestCache.current.delete(key);
+          }
+        });
+      }
       
       setData(response.data);
       return response.data;
