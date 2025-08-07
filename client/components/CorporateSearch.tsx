@@ -92,7 +92,7 @@ import {
 
 // Import useDebounce hook
 import { useDebounce } from "../hooks/useDebounce";
-const [isSearching, setIsSearching] = useState(false);
+
 // API utility functions
 
 const transformCompanyData = (company) => {
@@ -316,6 +316,7 @@ export function CorporateSearch({
   initialFilters,
   onNavigate,
 }: CorporateSearchProps) {
+  const [isSearching, setIsSearching] = useState(false);
   const [searchParams, setSearchParams] = useState({
     industry: "",
     location: "",
