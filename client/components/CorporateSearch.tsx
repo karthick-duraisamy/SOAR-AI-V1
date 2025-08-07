@@ -80,34 +80,34 @@ const transformCompanyData = (company) => {
   return {
     id: company.id,
     name: company.name,
-    type: getCompanyTypeDisplay(company.size),
+    type: getCompanyTypeDisplay(company.company_type || company.size),
     industry: getIndustryDisplay(company.industry),
     location: company.location,
     aiScore: Math.floor(Math.random() * 20) + 80, // Random AI score for demo
     rating: (Math.random() * 1 + 4).toFixed(1), // Random rating 4.0-5.0
-    established: company.created_at ? new Date(company.created_at).getFullYear() : 2020,
+    established: company.year_established || (company.created_at ? new Date(company.created_at).getFullYear() : 2020),
     employees: company.employee_count || Math.floor(Math.random() * 5000) + 100,
-    specialties: company.description ? company.description.split(',').map(s => s.trim()).slice(0, 3) : ["Business Services", "Corporate Solutions"],
+    specialties: company.specialties ? company.specialties.split(',').map(s => s.trim()).filter(s => s).slice(0, 3) : ["Business Services", "Corporate Solutions"],
     travelBudget: company.travel_budget ? `${(company.travel_budget / 1000000).toFixed(1)}M` : "1.0M",
-    annualTravelVolume: `${Math.floor(Math.random() * 5000) + 1000} trips`,
+    annualTravelVolume: company.annual_travel_volume || `${Math.floor(Math.random() * 5000) + 1000} trips`,
     contracts: Math.floor(Math.random() * 20) + 1,
     revenue: company.annual_revenue || Math.floor(Math.random() * 50000000) + 10000000,
-    phone: "+1 (555) " + Math.floor(Math.random() * 900 + 100) + "-" + Math.floor(Math.random() * 9000 + 1000),
-    email: `contact@${company.name.toLowerCase().replace(/[^a-z0-9]/g, '')}.com`,
+    phone: company.phone || "+1 (555) " + Math.floor(Math.random() * 900 + 100) + "-" + Math.floor(Math.random() * 9000 + 1000),
+    email: company.email || `contact@${company.name.toLowerCase().replace(/[^a-z0-9]/g, '')}.com`,
     website: company.website || `www.${company.name.toLowerCase().replace(/[^a-z0-9]/g, '')}.com`,
     aiRecommendation: generateAIRecommendation(company),
     compliance: Math.floor(Math.random() * 20) + 80,
     financialStability: Math.floor(Math.random() * 20) + 80,
-    travelFrequency: getRandomTravelFrequency(),
+    travelFrequency: company.travel_frequency || getRandomTravelFrequency(),
     destinations: getRandomDestinations(),
-    preferredClass: getRandomPreferredClass(),
+    preferredClass: company.preferred_class || getRandomPreferredClass(),
     teamSize: Math.floor((company.employee_count || 1000) * 0.1),
     travelManagers: Math.floor(Math.random() * 5) + 1,
-    currentAirlines: getRandomAirlines(),
-    paymentTerms: getRandomPaymentTerms(),
-    creditRating: getRandomCreditRating(),
-    sustainabilityFocus: getRandomSustainabilityFocus(),
-    technologyIntegration: getRandomTechIntegration(),
+    currentAirlines: company.current_airlines ? company.current_airlines.split(',').map(s => s.trim()).filter(s => s).slice(0, 2) : getRandomAirlines(),
+    paymentTerms: company.payment_terms || getRandomPaymentTerms(),
+    creditRating: company.credit_rating || getRandomCreditRating(),
+    sustainabilityFocus: company.sustainability_focus || getRandomSustainabilityFocus(),
+    technologyIntegration: company.technology_integration ? company.technology_integration.split(',').map(s => s.trim()).filter(s => s).slice(0, 2) : getRandomTechIntegration(),
     seasonality: getRandomSeasonality(),
     meetingTypes: getRandomMeetingTypes(),
     companySize: getSizeDisplay(company.size),
@@ -116,8 +116,8 @@ const transformCompanyData = (company) => {
     contractValue: Math.floor(Math.random() * 3000000) + 500000,
     competitorAirlines: Math.floor(Math.random() * 5) + 1,
     loyaltyPotential: Math.floor(Math.random() * 30) + 70,
-    expansionPlans: getRandomExpansionPlans(),
-    riskLevel: getRandomRiskLevel()
+    expansionPlans: company.expansion_plans || getRandomExpansionPlans(),
+    riskLevel: company.risk_level || getRandomRiskLevel()
   };
 };
 
@@ -458,65 +458,44 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
     setSuccessMessage('');
 
     try {
-      // Map frontend fields to Django model fields
+      // Map frontend fields to Django model fields - include ALL form sections
       const companyData = {
+        // Basic Info
         name: newCompany.name,
+        company_type: newCompany.type,
         industry: newCompany.industry,
-        size: newCompany.companySize,
         location: newCompany.location,
+        email: newCompany.email,
+        phone: newCompany.phone,
         website: newCompany.website || '',
-        annual_revenue: newCompany.revenue ? parseFloat(newCompany.revenue) : null,
+        
+        // Business Details
         employee_count: newCompany.employees ? parseInt(newCompany.employees) : null,
-        travel_budget: newCompany.travelBudget ? parseFloat(newCompany.travelBudget) : null,
+        annual_revenue: newCompany.revenue ? parseFloat(newCompany.revenue) * 1000000 : null, // Convert millions to actual amount
+        year_established: newCompany.established ? parseInt(newCompany.established) : null,
+        size: newCompany.companySize,
+        credit_rating: newCompany.creditRating,
+        payment_terms: newCompany.paymentTerms,
+        
+        // Travel Profile
+        travel_budget: newCompany.travelBudget ? parseFloat(newCompany.travelBudget) * 1000000 : null, // Convert millions to actual amount
+        annual_travel_volume: newCompany.annualTravelVolume,
+        travel_frequency: newCompany.travelFrequency,
+        preferred_class: newCompany.preferredClass,
+        sustainability_focus: newCompany.sustainabilityFocus,
+        risk_level: newCompany.riskLevel,
+        current_airlines: newCompany.currentAirlines,
+        
+        // Additional Info
+        expansion_plans: newCompany.expansionPlans,
+        specialties: newCompany.specialties,
+        technology_integration: newCompany.technologyIntegration,
         description: newCompany.notes || ''
       };
 
       console.log('Sending company data:', companyData);
 
       const savedCompany = await companyApi.createCompany(companyData);
-
-      // Generate display data for the frontend
-      const companyDataForFrontend = {
-        id: savedCompany.id,
-        name: newCompany.name,
-        type: newCompany.type,
-        industry: newCompany.industry,
-        location: newCompany.location,
-        website: newCompany.website,
-        phone: newCompany.phone,
-        email: newCompany.email,
-        established: parseInt(newCompany.established) || 2024,
-        employees: parseInt(newCompany.employees) || 100,
-        revenue: parseInt(newCompany.revenue) * 1000000 || 1000000,
-        travelBudget: newCompany.travelBudget,
-        annualTravelVolume: newCompany.annualTravelVolume,
-        travelFrequency: newCompany.travelFrequency,
-        preferredClass: newCompany.preferredClass,
-        companySize: newCompany.companySize,
-        creditRating: newCompany.creditRating,
-        paymentTerms: newCompany.paymentTerms,
-        sustainabilityFocus: newCompany.sustainabilityFocus,
-        riskLevel: newCompany.riskLevel,
-        expansionPlans: newCompany.expansionPlans,
-        specialties: newCompany.specialties.split(',').map(s => s.trim()).filter(s => s),
-        technologyIntegration: newCompany.technologyIntegration.split(',').map(s => s.trim()).filter(s => s),
-        currentAirlines: newCompany.currentAirlines.split(',').map(s => s.trim()).filter(s => s),
-        aiScore: Math.floor(Math.random() * 20) + 80, // Random score between 80-100
-        rating: (Math.random() * 1 + 4).toFixed(1), // Random rating between 4.0-5.0
-        contracts: 0,
-        aiRecommendation: `New corporate client with potential for ${newCompany.travelFrequency.toLowerCase()} travel needs. Consider outreach for partnership opportunities.`,
-        compliance: Math.floor(Math.random() * 20) + 80,
-        financialStability: Math.floor(Math.random() * 20) + 80,
-        destinations: ["North America"], // Default
-        teamSize: Math.floor(parseInt(newCompany.employees) * 0.1) || 10,
-        travelManagers: 1,
-        decisionMakers: 2,
-        contractValue: 0,
-        competitorAirlines: 1,
-        loyaltyPotential: Math.floor(Math.random() * 30) + 70,
-        seasonality: "Year-round",
-        meetingTypes: ["Business Meetings"]
-      };
 
       // Reset form
       setNewCompany({
@@ -549,14 +528,21 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
       setShowAddCompanyDialog(false);
       setSuccessMessage(`${newCompany.name} has been successfully added to the corporate database.`);
 
-      // Refresh the companies list
-      // await loadCompanies();
+      // Refresh the companies list to show the new company
+      try {
+        const companies = await companyApi.searchCompanies(searchParams);
+        const transformedCompanies = companies.map(transformCompanyData);
+        setFilteredCorporates(transformedCompanies);
+      } catch (refreshError) {
+        console.error('Error refreshing companies list:', refreshError);
+      }
 
       setTimeout(() => setSuccessMessage(''), 5000);
 
     } catch (error) {
       console.error('Error saving company:', error);
-      setSuccessMessage(`Error: Failed to save company. ${error.message}`);
+      const errorMessage = error.response?.data?.message || error.message || 'Failed to save company';
+      setSuccessMessage(`Error: ${errorMessage}`);
       setTimeout(() => setSuccessMessage(''), 5000);
     } finally {
       setIsSubmitting(false);
@@ -567,7 +553,8 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
     return newCompany.name.trim() !== '' && 
            newCompany.industry !== '' && 
            newCompany.companySize !== '' && 
-           newCompany.location.trim() !== '';
+           newCompany.location.trim() !== '' &&
+           newCompany.email.trim() !== '';
   };
 
   // Show specific components based on state

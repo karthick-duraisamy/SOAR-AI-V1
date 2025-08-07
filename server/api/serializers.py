@@ -37,6 +37,26 @@ class CompanySerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(f"Invalid size. Must be one of: {valid_sizes}")
         return value
 
+    def validate_email(self, value):
+        if value and not '@' in value:
+            raise serializers.ValidationError("Invalid email format.")
+        return value
+
+    def validate_annual_revenue(self, value):
+        if value is not None and value < 0:
+            raise serializers.ValidationError("Annual revenue cannot be negative.")
+        return value
+
+    def validate_employee_count(self, value):
+        if value is not None and value < 1:
+            raise serializers.ValidationError("Employee count must be at least 1.")
+        return value
+
+    def validate_travel_budget(self, value):
+        if value is not None and value < 0:
+            raise serializers.ValidationError("Travel budget cannot be negative.")
+        return value
+
 class ContactSerializer(serializers.ModelSerializer):
     company_name = serializers.CharField(source='company.name', read_only=True)
     full_name = serializers.SerializerMethodField()

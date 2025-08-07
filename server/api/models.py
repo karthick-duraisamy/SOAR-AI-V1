@@ -32,15 +32,91 @@ class Company(models.Model):
         ('other', 'Other'),
     ]
 
+    TRAVEL_FREQUENCY_CHOICES = [
+        ('Daily', 'Daily'),
+        ('Weekly', 'Weekly'),
+        ('Monthly', 'Monthly'),
+        ('Quarterly', 'Quarterly'),
+        ('Bi-weekly', 'Bi-weekly'),
+    ]
+
+    PREFERRED_CLASS_CHOICES = [
+        ('Economy', 'Economy'),
+        ('Economy Plus', 'Economy Plus'),
+        ('Business', 'Business'),
+        ('First', 'First Class'),
+        ('Business/First', 'Business/First'),
+    ]
+
+    CREDIT_RATING_CHOICES = [
+        ('AAA', 'AAA'),
+        ('AA', 'AA'),
+        ('A', 'A'),
+        ('BBB', 'BBB'),
+        ('BB', 'BB'),
+    ]
+
+    PAYMENT_TERMS_CHOICES = [
+        ('Net 15', 'Net 15'),
+        ('Net 30', 'Net 30'),
+        ('Net 45', 'Net 45'),
+        ('Net 60', 'Net 60'),
+    ]
+
+    SUSTAINABILITY_CHOICES = [
+        ('Very High', 'Very High'),
+        ('High', 'High'),
+        ('Medium', 'Medium'),
+        ('Low', 'Low'),
+    ]
+
+    RISK_LEVEL_CHOICES = [
+        ('Very Low', 'Very Low'),
+        ('Low', 'Low'),
+        ('Medium', 'Medium'),
+        ('High', 'High'),
+    ]
+
+    EXPANSION_CHOICES = [
+        ('Aggressive', 'Aggressive'),
+        ('Moderate', 'Moderate'),
+        ('Conservative', 'Conservative'),
+        ('Rapid', 'Rapid'),
+        ('Stable', 'Stable'),
+    ]
+
+    # Basic Info fields
     name = models.CharField(max_length=255)
+    company_type = models.CharField(max_length=50, choices=COMPANY_SIZES, blank=True)
     industry = models.CharField(max_length=50, choices=INDUSTRIES)
-    size = models.CharField(max_length=20, choices=COMPANY_SIZES)
     location = models.CharField(max_length=255)
+    email = models.EmailField(blank=True)
+    phone = models.CharField(max_length=20, blank=True)
     website = models.URLField(blank=True, null=True)
-    annual_revenue = models.DecimalField(max_digits=15, decimal_places=2, null=True, blank=True)
+
+    # Business Details fields
     employee_count = models.IntegerField(null=True, blank=True)
+    annual_revenue = models.DecimalField(max_digits=15, decimal_places=2, null=True, blank=True)
+    year_established = models.IntegerField(null=True, blank=True)
+    size = models.CharField(max_length=20, choices=COMPANY_SIZES)
+    credit_rating = models.CharField(max_length=10, choices=CREDIT_RATING_CHOICES, blank=True)
+    payment_terms = models.CharField(max_length=20, choices=PAYMENT_TERMS_CHOICES, blank=True)
+
+    # Travel Profile fields
     travel_budget = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
-    description = models.TextField(blank=True)
+    annual_travel_volume = models.CharField(max_length=100, blank=True)
+    travel_frequency = models.CharField(max_length=20, choices=TRAVEL_FREQUENCY_CHOICES, blank=True)
+    preferred_class = models.CharField(max_length=20, choices=PREFERRED_CLASS_CHOICES, blank=True)
+    sustainability_focus = models.CharField(max_length=20, choices=SUSTAINABILITY_CHOICES, blank=True)
+    risk_level = models.CharField(max_length=20, choices=RISK_LEVEL_CHOICES, blank=True)
+    current_airlines = models.TextField(blank=True)  # Store as comma-separated values
+
+    # Additional Info fields
+    expansion_plans = models.CharField(max_length=20, choices=EXPANSION_CHOICES, blank=True)
+    specialties = models.TextField(blank=True)  # Store as comma-separated values
+    technology_integration = models.TextField(blank=True)  # Store as comma-separated values
+    description = models.TextField(blank=True)  # This will be used for additional notes
+
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
