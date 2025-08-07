@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react'; // Import useCallback
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
@@ -69,6 +69,9 @@ import {
   AlertCircle as AlertCircleIcon,
   CheckCircle
 } from 'lucide-react';
+
+// Import useDebounce hook
+import { useDebounce } from '../hooks/useDebounce';
 
 // API utility functions
 
@@ -272,6 +275,9 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
     ...initialFilters
   });
 
+  // Debounce search parameters
+  const debouncedSearchParams = useDebounce(searchParams, 500); // 500ms debounce delay
+
   // Initialize company API hook
   const companyApi = useCompanyApi();
 
@@ -336,7 +342,7 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
     notes: ''
   });
 
-  const loadCompanies = async (filters = {}) => {
+  const loadCompanies = useCallback(async (filters = {}) => {
     setIsLoading(true);
     setError('');
 
@@ -351,23 +357,26 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [companyApi]); // Dependency array includes companyApi
 
-  const handleSearch = async () => {
+  // Optimize handleSearch to prevent duplicate calls
+  const handleSearch = useCallback(async () => {
+    // Prevent multiple simultaneous searches
+    if (isSearching) {
+      return;
+    }
+
     setIsSearching(true);
     setError('');
 
     try {
-      // Simulate AI processing
-      await new Promise(resolve =>           setTimeout(resolve, 1500));
-
       // Merge basic search params with advanced filters
       const mergedFilters = {
-        ...searchParams,
+        ...debouncedSearchParams,
         ...advancedFilters
       };
 
-      // Use loadCompanies instead of duplicate fetchCompanies call
+      // Only call loadCompanies once with merged filters
       await loadCompanies(mergedFilters);
     } catch (error) {
       console.error('Error searching companies:', error);
@@ -376,7 +385,12 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
     } finally {
       setIsSearching(false);
     }
-  };
+  }, [isSearching, debouncedSearchParams, advancedFilters, loadCompanies]); // Dependencies for useCallback
+
+  // Effect to trigger search when debouncedSearchParams change
+  useEffect(() => {
+    handleSearch();
+  }, [handleSearch]); // Effect depends on handleSearch
 
   const handleViewProfile = (corporate) => {
     setSelectedCorporate(corporate);
