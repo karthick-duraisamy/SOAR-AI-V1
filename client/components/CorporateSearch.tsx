@@ -377,7 +377,7 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
 
     try {
       // Simulate AI processing
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      await new Promise(resolve =>           setTimeout(resolve, 1500));
 
       // Merge basic search params with advanced filters
       const mergedFilters = {
