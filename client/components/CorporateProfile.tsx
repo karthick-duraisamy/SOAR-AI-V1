@@ -264,39 +264,55 @@ export function CorporateProfile({ corporateData, onBack }: CorporateProfileProp
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <PieChart className="h-5 w-5" />
+                  <div className="w-5 h-5 border-2 border-gray-400 rounded-full flex items-center justify-center">
+                    <div className="w-1 h-2 bg-gray-400 rounded-sm"></div>
+                  </div>
                   Travel Purpose Breakdown
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium">Business Meetings</span>
-                    <div className="flex items-center gap-2">
-                      <div className="w-4 h-4 bg-[#FD9646] rounded-sm"></div>
-                      <span className="text-sm font-semibold">70%</span>
-                      <Edit className="h-3 w-3 text-gray-400 cursor-pointer" />
+              <CardContent className="space-y-6">
+                <div className="space-y-6">
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium text-gray-800">Business Meetings</span>
+                      <div className="flex items-center gap-3">
+                        <span className="text-sm font-semibold text-gray-900">70%</span>
+                        <Edit className="h-4 w-4 text-gray-400 cursor-pointer" />
+                      </div>
+                    </div>
+                    <div className="w-full bg-gray-100 rounded-full h-2">
+                      <div className="bg-[#FD9646] h-2 rounded-full" style={{ width: '70%' }}></div>
                     </div>
                   </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium">Training & Development</span>
-                    <div className="flex items-center gap-2">
-                      <div className="w-4 h-4 bg-[#FD9646] rounded-sm"></div>
-                      <span className="text-sm font-semibold">20%</span>
-                      <Edit className="h-3 w-3 text-gray-400 cursor-pointer" />
+                  
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium text-gray-800">Training & Development</span>
+                      <div className="flex items-center gap-3">
+                        <span className="text-sm font-semibold text-gray-900">20%</span>
+                        <Edit className="h-4 w-4 text-gray-400 cursor-pointer" />
+                      </div>
+                    </div>
+                    <div className="w-full bg-gray-100 rounded-full h-2">
+                      <div className="bg-[#FD9646] h-2 rounded-full" style={{ width: '20%' }}></div>
                     </div>
                   </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium">Events & Conferences</span>
-                    <div className="flex items-center gap-2">
-                      <div className="w-4 h-4 bg-[#FD9646] rounded-sm"></div>
-                      <span className="text-sm font-semibold">10%</span>
-                      <Edit className="h-3 w-3 text-gray-400 cursor-pointer" />
+                  
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium text-gray-800">Events & Conferences</span>
+                      <div className="flex items-center gap-3">
+                        <span className="text-sm font-semibold text-gray-900">10%</span>
+                        <Edit className="h-4 w-4 text-gray-400 cursor-pointer" />
+                      </div>
+                    </div>
+                    <div className="w-full bg-gray-100 rounded-full h-2">
+                      <div className="bg-[#FD9646] h-2 rounded-full" style={{ width: '10%' }}></div>
                     </div>
                   </div>
                 </div>
-                <Button variant="outline" size="sm" className="w-full mt-4">
-                  <Plus className="h-4 w-4 mr-2" />
+                <Button variant="outline" size="sm" className="w-full mt-6 flex items-center justify-center gap-2 text-gray-600 border-gray-200 hover:bg-gray-50">
+                  <Plus className="h-4 w-4" />
                   Add Purpose
                 </Button>
               </CardContent>
