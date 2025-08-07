@@ -939,6 +939,19 @@ html {
      border:1px solid #e5e7eb !important;
     color: #717182 !important;
   }
+  [data-state ="checked"][data-slot="checkbox"]{
+    color:#fff !important;
+    background: #fd9646 !important;
+  }
+  [data-slot="checkbox"] [data-state ="unchecked"]{
+    border:1px solid #e5e7eb !important;
+    border-radius: 3px;
+    background: #f3f3f5 !important;
+  }
+  [data-slot="slider-track"]{
+    background: #fd9646 !important;
+  }
+  
 
   /* Ensure disabled elements show default cursor */
   button:disabled,

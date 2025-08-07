@@ -906,7 +906,7 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
 
       {/* Advanced Filters Dialog */}
       <Dialog open={showAdvancedFilters} onOpenChange={setShowAdvancedFilters}>
-        <DialogContent className="max-w-[60rem] w-[95vw] max-h-[85vh] overflow-y-auto">
+        <DialogContent className="max-w-[60rem] w-[95vw] max-h-[85vh] overflow-y-auto" style={{ maxWidth: 'min(var(--modal-width-xl, 80rem), calc(100% - 2rem))' }}>
           <DialogHeader className="pb-6">
             <DialogTitle className="flex items-center gap-3 text-xl">
               <Filter className="h-6 w-6 text-orange-500" />
