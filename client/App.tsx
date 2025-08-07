@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Button } from './components/ui/button';
 import { Badge } from './components/ui/badge';
-import soarLogo from './public/SOAR Logo.svg';
+import soarLogo from '/soar-logo.svg';
 import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarProvider, SidebarTrigger, SidebarInset } from './components/ui/sidebar';
 import { TooltipProvider } from './components/ui/tooltip';
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from './components/ui/breadcrumb';
@@ -481,7 +481,7 @@ export default function App() {
               <div className="flex items-center gap-3">
                 <div className="flex-shrink-0">
                   <img 
-                    src={soarLogo} 
+                    src="/soar-logo.png" 
                     alt="SOAR AI - Corporate Intelligence Platform" 
                     className="h-12 w-auto"
                   />
@@ -541,7 +541,7 @@ export default function App() {
                                   <Icon className="h-4 w-4 flex-shrink-0" />
                                   <div className="flex-1 text-left min-w-0">
                                     <div className="font-medium text-sm truncate leading-tight">{item.label}</div>
-                                    <div className="text-xs text-muted-foreground truncate leading-tight" style={isActive ? { color: 'rgba(255, 255, 255, 0.8)' } : {color: '#717182'}}>
+                                    <div className="text-xs text-muted-foreground truncate leading-tight" style={isActive ? { color: 'rgba(255, 255, 255, 0.8)' } : {}}>
                                       {item.description}
                                     </div>
                                   </div>
@@ -602,7 +602,7 @@ export default function App() {
                                 borderRadius: '0px 20px 20px 0px'
                               } : {
                                 marginTop: 'var(--sidebar-button-margin-y)',
-                                marginBottom: 'var(--sidebar-button-margin-y)'                                
+                                marginBottom: 'var(--sidebar-button-margin-y)'
                               }}
                               data-slot="sidebar-menu-button"
                               data-active={isActive}

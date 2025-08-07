@@ -653,7 +653,6 @@ html {
     margin-bottom: var(--sidebar-button-margin-y) !important;
     line-height: 1.2 !important; /* Tighter line height for compact buttons */
     transition: background-color 0.2s ease-in-out !important; /* Smooth hover transition */
-    height: 39px;
   }
 
   /* Hover state for sidebar menu buttons - consistent 5px inner spacing */
@@ -664,11 +663,6 @@ html {
     padding-left: var(--sidebar-button-padding-x) !important; /* 10px left/right */
     padding-right: var(--sidebar-button-padding-x) !important;
   }
-
-.cls-addcompany{
-  color: #133769 !important;
-  background-color: #eceef2 !important;
-}
 
   /* Additional hover coverage for SidebarMenuButton components - consistent 5px inner spacing */
   .sidebar [role="menuitem"] button:hover,
