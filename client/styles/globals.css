@@ -1072,7 +1072,7 @@ html {
 [role="dialog"] [data-slot="select-trigger"]:hover,
 [data-state="open"] [data-slot="select-trigger"]:hover {
   background: #f9fafb !important;
-  border-color: #9ca3af !important;
+  border-color: unset !important;
 }
 
 [data-radix-popper-content-wrapper] [data-slot="tabs-trigger"],
@@ -1215,6 +1215,11 @@ html {
     background-color: var(--primary) !important;
   }
 
+  .border{
+    border-color:#cccc
+  }
+  
+  
   /* Ensure disabled elements show default cursor */
   button:disabled,
   a[aria-disabled="true"],

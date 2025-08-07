@@ -697,7 +697,7 @@ export function CorporateProfile({ corporateData, onBack }: CorporateProfileProp
                   </div>
                   <div>
                     <p className="text-sm text-muted-foreground">Credit Rating</p>
-                    <Badge variant="default" className="text-lg p-2">{corporateData.creditRating}</Badge>
+                    <Badge variant="default" className="text-lg p-2 bg-[rgb(253,150,70)] text-white">{corporateData.creditRating}</Badge>
                   </div>
                   <div>
                     <p className="text-sm text-muted-foreground">Payment Terms</p>
@@ -729,7 +729,7 @@ export function CorporateProfile({ corporateData, onBack }: CorporateProfileProp
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-sm">Sustainability Focus</span>
-                    <Badge variant={corporateData.sustainabilityFocus === 'High' ? 'default' : 'secondary'}>
+                    <Badge className="bg-[rgb(253,150,70)] text-white" variant={corporateData.sustainabilityFocus === 'High' ? 'default' : 'secondary'}>
                       {corporateData.sustainabilityFocus}
                     </Badge>
                   </div>
