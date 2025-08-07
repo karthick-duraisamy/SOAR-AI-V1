@@ -781,7 +781,7 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
                     <div>
                       <div className="flex items-center gap-2 mb-1">
                         <h3 className="text-lg font-semibold text-gray-900">{corporate.name}</h3>
-                        <Badge variant="secondary" className="bg-orange-100 text-orange-700 text-xs">
+                        <Badge variant="secondary" className="bg-orange-500 hover:bg-orange-600 text-white text-xs">
                           AI Score {corporate.aiScore}
                         </Badge>
                       </div>
@@ -799,7 +799,7 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
                           <Calendar className="h-3 w-3" />
                           Est. {corporate.established}
                         </span>
-                        <span className="flex items-center gap-1">
+                        <span className="flex items-center gap-1 cls-link">
                           <Globe className="h-3 w-3" />
                           {corporate.website}
                         </span>
