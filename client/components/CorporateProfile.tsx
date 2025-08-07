@@ -395,7 +395,7 @@ export function CorporateProfile({ corporateData, onBack }: CorporateProfileProp
                 <div className="pt-2">
                   <Label className="text-sm text-gray-600 font-medium">Policy Notes</Label>
                   <p className="text-sm text-gray-500 mt-1 p-2 bg-gray-50 rounded">
-                    C-level executives: Business class for flights > 4 hours...
+                    C-level executives: Business class for flights  4 hours...
                   </p>
                 </div>
               </CardContent>

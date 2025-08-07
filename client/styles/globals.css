@@ -1208,6 +1208,12 @@ html {
   .font-semibold {
     font-weight: 600  !important;
   }
+  [data-slot="progress"]{
+            background-color: color-mix(in oklab, var(--primary) 20%, transparent) !important;
+  }
+  [data-slot="progress-indicator"]{
+    background-color: var(--primary) !important;
+  }
 
   /* Ensure disabled elements show default cursor */
   button:disabled,
