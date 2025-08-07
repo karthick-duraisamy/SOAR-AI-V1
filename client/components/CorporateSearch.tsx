@@ -354,10 +354,27 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
     }
   }, []); // Remove companyApi dependency to prevent recreation
 
-  // Load companies on component mount
+  // Load companies on component mount - use a separate effect with direct API call
   useEffect(() => {
-    loadCompanies();
-  }, []); // Remove loadCompanies dependency to prevent infinite loop
+    const initialLoad = async () => {
+      setIsLoading(true);
+      setError('');
+
+      try {
+        const companies = await companyApi.searchCompanies({});
+        const transformedCompanies = companies.map(transformCompanyData);
+        setFilteredCorporates(transformedCompanies);
+      } catch (error) {
+        console.error('Error loading companies:', error);
+        setError('Failed to load companies. Please try again.');
+        setFilteredCorporates([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    initialLoad();
+  }, []); // Only run once on mount
 
   // Optimize handleSearch to prevent duplicate calls
   const handleSearch = useCallback(async () => {
@@ -372,7 +389,7 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
     try {
       // Merge basic search params with advanced filters
       const mergedFilters = {
-        ...debouncedSearchParams,
+        ...searchParams, // Use searchParams directly instead of debouncedSearchParams
         ...advancedFilters
       };
 
@@ -387,7 +404,7 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
     } finally {
       setIsSearching(false);
     }
-  }, [isSearching, debouncedSearchParams, advancedFilters]); // Dependencies for useCallback
+  }, [isSearching, searchParams, advancedFilters]); // Use searchParams instead of debouncedSearchParams
 
   const handleViewProfile = (corporate) => {
     setSelectedCorporate(corporate);
