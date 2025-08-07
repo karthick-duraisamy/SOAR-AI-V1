@@ -385,9 +385,8 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
         ...advancedFilters
       };
 
-      const companies = await fetchCompanies(mergedFilters);
-      const transformedCompanies = companies.map(transformCompanyData);
-      setFilteredCorporates(transformedCompanies);
+      // Use loadCompanies instead of duplicate fetchCompanies call
+      await loadCompanies(mergedFilters);
     } catch (error) {
       console.error('Error searching companies:', error);
       setError('Search failed. Please try again.');
