@@ -329,25 +329,6 @@ export function CorporateSearch({
   // Debounce search parameters
   const debouncedSearchParams = useDebounce(searchParams, 500); // 500ms debounce delay
 
-  // Auto-search when debounced search params change (but not on initial load)
-  const [hasInitialLoad, setHasInitialLoad] = useState(false);
-
-  useEffect(() => {
-    // Skip auto-search on initial load
-    if (!hasInitialLoad) {
-      setHasInitialLoad(true);
-      return;
-    }
-
-    // Only auto-search if there are actual search parameters
-    const hasFilters = Object.values(debouncedSearchParams).some(
-      (value) => value && value.trim() !== "",
-    );
-    if (hasFilters && !isSearching) {
-      handleSearch();
-    }
-  }, [debouncedSearchParams, hasInitialLoad, isSearching, handleSearch]);
-
   // Initialize company API hook
   const companyApi = useCompanyApi();
 
@@ -428,11 +409,6 @@ export function CorporateSearch({
     [companyApi],
   );
 
-  // Load companies on component mount - only once
-  useEffect(() => {
-    loadCompanies({});
-  }, [loadCompanies]);
-
   // Optimize handleSearch to prevent duplicate calls
   const handleSearch = useCallback(async () => {
     // Prevent multiple simultaneous searches
@@ -449,6 +425,30 @@ export function CorporateSearch({
     // Use the unified loadCompanies function
     await loadCompanies(mergedFilters);
   }, [isSearching, debouncedSearchParams, advancedFilters, loadCompanies]);
+
+  // Load companies on component mount - only once
+  useEffect(() => {
+    loadCompanies({});
+  }, [loadCompanies]);
+
+  // Auto-search when debounced search params change (but not on initial load)
+  const [hasInitialLoad, setHasInitialLoad] = useState(false);
+
+  useEffect(() => {
+    // Skip auto-search on initial load
+    if (!hasInitialLoad) {
+      setHasInitialLoad(true);
+      return;
+    }
+
+    // Only auto-search if there are actual search parameters
+    const hasFilters = Object.values(debouncedSearchParams).some(
+      (value) => value && value.trim() !== "",
+    );
+    if (hasFilters && !isSearching) {
+      handleSearch();
+    }
+  }, [debouncedSearchParams, hasInitialLoad, isSearching, handleSearch]);
 
   const handleViewProfile = (corporate) => {
     setSelectedCorporate(corporate);
