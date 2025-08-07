@@ -960,7 +960,11 @@ html {
     background: #f3f3f5 !important;
   }
   [data-slot="slider-track"]{
-    background: #fd9646 !important;
+    background: #e5e7eb !important; /* Gray background for the track */
+  }
+  
+  [data-slot="slider-range"]{
+    background: #fd9646 !important; /* Orange color for the active range */
   }
   
 
