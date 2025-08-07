@@ -480,10 +480,11 @@ export default function App() {
             <SidebarHeader className="border-b border-gray-200 p-4">
               <div className="flex items-center gap-3">
                 <div className="flex-shrink-0">
-                  <div className="flex flex-col">
-                    <h1 className="text-lg font-semibold text-slate-800 tracking-wide">SOAR AI</h1>
-                    <p className="text-xs text-slate-500 font-normal">Corporate Intelligence Platform</p>
-                  </div>
+                  <img 
+                    src="/soar-logo.png" 
+                    alt="SOAR AI - Corporate Intelligence Platform" 
+                    className="h-12 w-auto"
+                  />
                 </div>
               </div>
             </SidebarHeader>
