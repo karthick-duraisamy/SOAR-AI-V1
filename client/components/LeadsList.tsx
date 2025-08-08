@@ -407,29 +407,9 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
       )}
 
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900 mb-1">All Leads</h1>
-          <p className="text-gray-600 text-sm">Comprehensive lead management with status tracking and AI suggestions</p>
-        </div>
-        <div className="flex items-center gap-3">
-          <Button variant="outline" className="text-gray-700 border-gray-300 hover:bg-gray-50">
-            <Download className="h-4 w-4 mr-2" />
-            Export
-          </Button>
-          <Button variant="outline" className="text-gray-700 border-gray-300 hover:bg-gray-50" onClick={fetchLeads}>
-            <RefreshCw className="h-4 w-4 mr-2" />
-            Refresh
-          </Button>
-          <Button variant="outline" className="text-gray-700 border-gray-300 hover:bg-gray-50" onClick={() => onNavigate('email-campaigns')}>
-            <Mail className="h-4 w-4 mr-2" />
-            Email Campaign
-          </Button>
-          <Button className="bg-orange-500 hover:bg-orange-600 text-white" onClick={() => setShowNewLeadDialog(true)}>
-            <Plus className="h-4 w-4 mr-2" />
-            Add New Lead
-          </Button>
-        </div>
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold text-gray-900 mb-1">All Leads</h1>
+        <p className="text-gray-600 text-sm">Comprehensive lead management with status tracking and AI suggestions</p>
       </div>
 
       {/* Lead Filters */}
@@ -528,6 +508,117 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
           </div>
         </CardContent>
       </Card>
+
+      {/* Metrics Cards Section */}
+      <div className="mb-6">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h2 className="text-lg font-semibold text-gray-900">Qualified Leads</h2>
+            <p className="text-sm text-gray-600">High-potential leads ready for offer creation and contract initiation</p>
+          </div>
+          <div className="flex items-center gap-3">
+            <Button variant="outline" className="text-gray-700 border-gray-300 hover:bg-gray-50">
+              <Download className="h-4 w-4 mr-2" />
+              Export
+            </Button>
+            <Button variant="outline" className="text-gray-700 border-gray-300 hover:bg-gray-50" onClick={fetchLeads}>
+              <RefreshCw className="h-4 w-4 mr-2" />
+              Refresh
+            </Button>
+            <Button variant="outline" className="text-gray-700 border-gray-300 hover:bg-gray-50" onClick={() => onNavigate('email-campaigns')}>
+              <Mail className="h-4 w-4 mr-2" />
+              Email Campaign
+            </Button>
+            <Button className="bg-orange-500 hover:bg-orange-600 text-white" onClick={() => setShowNewLeadDialog(true)}>
+              <Plus className="h-4 w-4 mr-2" />
+              Add New Lead
+            </Button>
+          </div>
+        </div>
+
+        {/* Statistics Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+          <Card className="bg-white border border-gray-200">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600 mb-1">Qualified Leads</p>
+                  <p className="text-2xl font-bold text-gray-900">
+                    {filteredLeads.filter(lead => lead.status === 'qualified').length}
+                  </p>
+                  <p className="text-xs text-gray-500">High-potential prospects</p>
+                </div>
+                <div className="flex items-center justify-center w-10 h-10 bg-blue-100 rounded-lg">
+                  <Users className="h-5 w-5 text-blue-600" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-white border border-gray-200">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600 mb-1">Contract Ready</p>
+                  <p className="text-2xl font-bold text-gray-900">
+                    {filteredLeads.filter(lead => lead.status === 'qualified' && lead.contractReady).length}
+                  </p>
+                  <p className="text-xs text-gray-500">Ready for contract initiation</p>
+                </div>
+                <div className="flex items-center justify-center w-10 h-10 bg-green-100 rounded-lg">
+                  <CheckCircle className="h-5 w-5 text-green-600" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-white border border-gray-200">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600 mb-1">Avg Deal Size</p>
+                  <p className="text-2xl font-bold text-gray-900">
+                    {(() => {
+                      const qualifiedLeads = filteredLeads.filter(lead => lead.status === 'qualified');
+                      if (qualifiedLeads.length === 0) return '$0K';
+                      const avgValue = qualifiedLeads.reduce((sum, lead) => {
+                        const value = parseInt(lead.travelBudget.replace(/[^0-9]/g, '')) || 0;
+                        return sum + value;
+                      }, 0) / qualifiedLeads.length;
+                      return `$${Math.round(avgValue)}K`;
+                    })()}
+                  </p>
+                  <p className="text-xs text-gray-500">Average qualified deal value</p>
+                </div>
+                <div className="flex items-center justify-center w-10 h-10 bg-yellow-100 rounded-lg">
+                  <DollarSign className="h-5 w-5 text-yellow-600" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-white border border-gray-200">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600 mb-1">Conversion Rate</p>
+                  <p className="text-2xl font-bold text-gray-900">
+                    {(() => {
+                      const totalLeads = filteredLeads.length;
+                      const qualifiedLeads = filteredLeads.filter(lead => lead.status === 'qualified').length;
+                      return totalLeads > 0 ? `${Math.round((qualifiedLeads / totalLeads) * 100)}%` : '0%';
+                    })()}
+                  </p>
+                  <p className="text-xs text-gray-500">Qualified to contact rate</p>
+                </div>
+                <div className="flex items-center justify-center w-10 h-10 bg-purple-100 rounded-lg">
+                  <TrendingUp className="h-5 w-5 text-purple-600" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
 
       {/* Leads Header */}
       <div className="flex items-center justify-between mb-4">
