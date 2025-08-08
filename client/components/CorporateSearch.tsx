@@ -87,7 +87,7 @@ const transformCompanyData = (company) => {
     rating: (Math.random() * 1 + 4).toFixed(1), // Random rating 4.0-5.0
     established: company.year_established || (company.created_at ? new Date(company.created_at).getFullYear() : 2020),
     employees: company.employee_count || Math.floor(Math.random() * 5000) + 100,
-    specialties: company.specialties ? company.specialties.split(',').map(s => s.trim()).filter(s => s).slice(0, 3) : ["Business Services", "Corporate Solutions"],
+    specialties: company.specialties ? company.specialties.split(',').map(s => s.trim()).filter(s => s).slice(0, 5) : ["Business Services", "Corporate Solutions"],
     travelBudget: company.travel_budget ? `${(company.travel_budget / 1000000).toFixed(1)}M` : "1.0M",
     annualTravelVolume: company.annual_travel_volume || `${Math.floor(Math.random() * 5000) + 1000} trips`,
     contracts: Math.floor(Math.random() * 20) + 1,
@@ -103,11 +103,11 @@ const transformCompanyData = (company) => {
     preferredClass: company.preferred_class || getRandomPreferredClass(),
     teamSize: Math.floor((company.employee_count || 1000) * 0.1),
     travelManagers: Math.floor(Math.random() * 5) + 1,
-    currentAirlines: company.current_airlines ? company.current_airlines.split(',').map(s => s.trim()).filter(s => s).slice(0, 2) : getRandomAirlines(),
+    currentAirlines: company.current_airlines ? company.current_airlines.split(',').map(s => s.trim()).filter(s => s).slice(0, 5) : getRandomAirlines(),
     paymentTerms: company.payment_terms || getRandomPaymentTerms(),
     creditRating: company.credit_rating || getRandomCreditRating(),
     sustainabilityFocus: company.sustainability_focus || getRandomSustainabilityFocus(),
-    technologyIntegration: company.technology_integration ? company.technology_integration.split(',').map(s => s.trim()).filter(s => s).slice(0, 2) : getRandomTechIntegration(),
+    technologyIntegration: company.technology_integration ? company.technology_integration.split(',').map(s => s.trim()).filter(s => s).slice(0, 5) : getRandomTechIntegration(),
     seasonality: getRandomSeasonality(),
     meetingTypes: getRandomMeetingTypes(),
     companySize: getSizeDisplay(company.size),
@@ -344,6 +344,7 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
     try {
       const companies = await companyApi.searchCompanies(filters);
       const transformedCompanies = companies.map(transformCompanyData);
+      console.log(companies,'companies')
       setFilteredCorporates(transformedCompanies);
     } catch (error) {
       console.error('Error loading companies:', error);
@@ -364,6 +365,7 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
         const companies = await companyApi.searchCompanies({});
         const transformedCompanies = companies.map(transformCompanyData);
         setFilteredCorporates(transformedCompanies);
+        console.log(companies,'companies')
       } catch (error) {
         console.error('Error loading companies:', error);
         setError('Failed to load companies. Please try again.');

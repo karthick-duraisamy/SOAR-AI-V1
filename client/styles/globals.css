@@ -1073,6 +1073,7 @@ html {
 [data-state="open"] [data-slot="select-trigger"]:hover {
   background: #f9fafb !important;
   border-color: unset !important;
+  border:unset !important;
 }
 
 [data-radix-popper-content-wrapper] [data-slot="tabs-trigger"],
@@ -1161,7 +1162,8 @@ html {
   [data-slot="select-trigger"],
   [data-slot="input"] {
     background: #f8f9fa !important;
-    border: 1px solid #e5e7eb !important;
+    /* border: 1px solid #e5e7eb !important; */
+    border:unset;
     color: #717182 !important;
   }
 

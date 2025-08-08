@@ -171,6 +171,7 @@ export function CorporateProfile({ corporateData, onBack }: CorporateProfileProp
                   <p className="text-sm text-muted-foreground mb-2">Core Specialties</p>
                   <div className="flex flex-wrap gap-2">
                     {corporateData.specialties?.map((specialty, index) => (
+      
                       <Badge key={index} variant="outline">{specialty}</Badge>
                     ))}
                   </div>
@@ -804,6 +805,7 @@ export function CorporateProfile({ corporateData, onBack }: CorporateProfileProp
             <CardContent>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                 {corporateData.technologyIntegration?.map((tech, index) => (
+      console.log(tech,'technologyIntegration',corporateData),
                   <div key={index} className="flex items-center gap-2 p-3 border rounded-lg">
                     <Activity className="h-4 w-4 text-green-500" />
                     <span className="text-sm font-medium">{tech}</span>
