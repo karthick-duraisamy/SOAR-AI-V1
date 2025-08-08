@@ -5,10 +5,10 @@ import { Badge } from './ui/badge';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
-import { 
-  Building2, 
-  Mail, 
-  Phone, 
+import {
+  Building2,
+  Mail,
+  Phone,
   Globe,
   MapPin,
   Calendar,
@@ -53,7 +53,7 @@ interface AllLeadsProps {
 
 interface Lead {
   id: number;
-  company: { name: string; };
+  company: { name: string; industry?: string; }; // Added industry to Lead interface
   contact: { first_name: string; last_name: string; position: string; email: string; phone: string; };
   status: string;
   source: string;
@@ -64,6 +64,7 @@ interface Lead {
   assigned_to?: { username: string; };
   created_at: string;
   updated_at: string;
+  engagement?: string; // Added engagement to Lead interface
 }
 
 const statusColors = {
@@ -136,15 +137,15 @@ export function AllLeads({ onNavigate }: AllLeadsProps) {
 
   // Filter states
   const [filters, setFilters] = useState({
-    search: '',
     status: 'all',
     industry: 'all',
     score: 'all',
-    engagement: 'all'
+    engagement: 'all',
+    search: ''
   });
 
   // Filter leads based on current filters
-  const filteredLeads = (Array.isArray(leads) ? leads : []).filter(lead => {
+  const filteredLeads = leads.filter(lead => {
     if (filters.search && !lead.company.name.toLowerCase().includes(filters.search.toLowerCase()) &&
         !lead.contact.first_name.toLowerCase().includes(filters.search.toLowerCase()) &&
         !lead.contact.last_name.toLowerCase().includes(filters.search.toLowerCase())) {
@@ -165,8 +166,8 @@ export function AllLeads({ onNavigate }: AllLeadsProps) {
       if (filters.score === 'low' && lead.score >= 60) return false;
     }
 
-    if (filters.engagement && filters.engagement !== 'all') {
-      // Add engagement filtering logic if needed
+    if (filters.engagement && filters.engagement !== 'all' && lead.engagement !== filters.engagement) {
+      return false;
     }
 
     return true;
@@ -192,13 +193,7 @@ export function AllLeads({ onNavigate }: AllLeadsProps) {
   };
 
   const clearFilters = () => {
-    setFilters({
-      search: '',
-      status: 'all',
-      industry: 'all',
-      score: 'all',
-      engagement: 'all'
-    });
+    setFilters({ status: 'all', industry: 'all', score: 'all', engagement: 'all', search: '' });
   };
 
   const getScoreColor = (score: number) => {
@@ -344,7 +339,7 @@ export function AllLeads({ onNavigate }: AllLeadsProps) {
             <Mail className="h-4 w-4 mr-2" />
             Email Campaign
           </Button>
-          <Button 
+          <Button
             className="bg-orange-600 hover:bg-orange-700 text-white"
             onClick={() => setShowNewLeadDialog(true)}
           >
@@ -405,10 +400,12 @@ export function AllLeads({ onNavigate }: AllLeadsProps) {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All industries</SelectItem>
-                  <SelectItem value="technology">Technology</SelectItem>
-                  <SelectItem value="manufacturing">Manufacturing</SelectItem>
-                  <SelectItem value="finance">Finance</SelectItem>
-                  <SelectItem value="healthcare">Healthcare</SelectItem>
+                  <SelectItem value="Technology">Technology</SelectItem>
+                  <SelectItem value="Manufacturing">Manufacturing</SelectItem>
+                  <SelectItem value="Financial Services">Financial Services</SelectItem>
+                  <SelectItem value="Banking">Banking</SelectItem>
+                  <SelectItem value="Consulting">Consulting</SelectItem>
+                  <SelectItem value="Retail">Retail</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -424,7 +421,7 @@ export function AllLeads({ onNavigate }: AllLeadsProps) {
                   <SelectItem value="all">All scores</SelectItem>
                   <SelectItem value="high">High (80+)</SelectItem>
                   <SelectItem value="medium">Medium (60-79)</SelectItem>
-                  <SelectItem value="low">Low (60)</SelectItem>
+                  <SelectItem value="low">Low (&lt;60)</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -438,6 +435,7 @@ export function AllLeads({ onNavigate }: AllLeadsProps) {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All levels</SelectItem>
+                  <SelectItem value="Very High">Very High</SelectItem>
                   <SelectItem value="High">High</SelectItem>
                   <SelectItem value="Medium">Medium</SelectItem>
                   <SelectItem value="Low">Low</SelectItem>
@@ -501,7 +499,7 @@ export function AllLeads({ onNavigate }: AllLeadsProps) {
                     <div className="flex items-center gap-3 mb-1">
                       <h3 className="text-lg font-semibold text-gray-900">{lead.company.name}</h3>
                       <Badge className={`${statusColors[lead.status] || 'bg-gray-100 text-gray-800'} text-xs px-2 py-1 rounded-md`}>
-                        {lead.status === 'contacted' ? 'Contacted Ready' : 
+                        {lead.status === 'contacted' ? 'Contacted Ready' :
                          lead.status === 'qualified' ? 'Decision Maker' :
                          lead.status}
                       </Badge>
@@ -574,32 +572,32 @@ export function AllLeads({ onNavigate }: AllLeadsProps) {
               <div className="grid grid-cols-2 gap-6 mb-4">
                 <div className="space-y-2">
                   <div className="text-sm">
-                    <span className="font-medium">Industry:</span> Technology
+                    <span className="font-medium">Industry:</span> {lead.company.industry || 'N/A'}
                   </div>
                   <div className="text-sm">
-                    <span className="font-medium">Company Size:</span> 2,500 employees
+                    <span className="font-medium">Company Size:</span> {lead.company.size || 'N/A'}
                   </div>
                   <div className="text-sm">
-                    <span className="font-medium">Revenue:</span> $150M
+                    <span className="font-medium">Revenue:</span> {lead.company.annual_revenue?.toLocaleString() || 'N/A'}
                   </div>
                   <div className="text-sm">
-                    <span className="font-medium">Source:</span> LinkedIn
+                    <span className="font-medium">Source:</span> {lead.source}
                   </div>
                   <div className="text-sm">
-                    <span className="font-medium">Assigned Agent:</span> John Smith
+                    <span className="font-medium">Assigned Agent:</span> {lead.assigned_to?.username || 'Unassigned'}
                   </div>
                 </div>
 
                 <div className="space-y-2">
                   <div className="text-sm">
-                    <span className="font-medium">Last Contact:</span> 2024-07-12
+                    <span className="font-medium">Last Contact:</span> {lead.updated_at}
                   </div>
                   <div className="text-sm">
-                    <span className="font-medium">Follow-up Date:</span> 2024-07-15
+                    <span className="font-medium">Follow-up Date:</span> N/A
                   </div>
                   <div className="text-sm">
-                    <span className="font-medium">Engagement:</span> 
-                    <span className="text-green-600 ml-1">High</span>
+                    <span className="font-medium">Engagement:</span>
+                    <span className={`${engagementColors[lead.engagement] || 'text-gray-600'} ml-1`}>{lead.engagement || 'N/A'}</span>
                   </div>
                   <div className="flex flex-wrap gap-1">
                     <Badge variant="outline" className="text-xs">Enterprise</Badge>
@@ -723,9 +721,9 @@ export function AllLeads({ onNavigate }: AllLeadsProps) {
                 <Label htmlFor="industry" className="text-right">
                   Industry *
                 </Label>
-                <Select 
-                  name="industry" 
-                  value={newLeadForm.industry} 
+                <Select
+                  name="industry"
+                  value={newLeadForm.industry}
                   onValueChange={(value) => setNewLeadForm(prev => ({...prev, industry: value}))}
                   required
                 >
@@ -733,7 +731,7 @@ export function AllLeads({ onNavigate }: AllLeadsProps) {
                     <SelectValue placeholder="Select industry" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="technology">Technology</SelectItem>
+                    <SelectItem value="Technology">Technology</SelectItem>
                     <SelectItem value="finance">Finance & Banking</SelectItem>
                     <SelectItem value="healthcare">Healthcare</SelectItem>
                     <SelectItem value="manufacturing">Manufacturing</SelectItem>
@@ -765,9 +763,9 @@ export function AllLeads({ onNavigate }: AllLeadsProps) {
                 <Label htmlFor="companySize" className="text-right">
                   Company Size
                 </Label>
-                <Select 
-                  name="companySize" 
-                  value={newLeadForm.companySize} 
+                <Select
+                  name="companySize"
+                  value={newLeadForm.companySize}
                   onValueChange={(value) => setNewLeadForm(prev => ({...prev, companySize: value}))}
                 >
                   <SelectTrigger className="col-span-3 border-gray-300">
@@ -895,9 +893,9 @@ export function AllLeads({ onNavigate }: AllLeadsProps) {
                 <Label htmlFor="status" className="text-right">
                   Initial Status
                 </Label>
-                <Select 
-                  name="status" 
-                  value={newLeadForm.status} 
+                <Select
+                  name="status"
+                  value={newLeadForm.status}
                   onValueChange={(value) => setNewLeadForm(prev => ({...prev, status: value}))}
                 >
                   <SelectTrigger className="col-span-3 border-gray-300">
@@ -915,9 +913,9 @@ export function AllLeads({ onNavigate }: AllLeadsProps) {
                 <Label htmlFor="source" className="text-right">
                   Lead Source
                 </Label>
-                <Select 
-                  name="source" 
-                  value={newLeadForm.source} 
+                <Select
+                  name="source"
+                  value={newLeadForm.source}
                   onValueChange={(value) => setNewLeadForm(prev => ({...prev, source: value}))}
                 >
                   <SelectTrigger className="col-span-3 border-gray-300">
