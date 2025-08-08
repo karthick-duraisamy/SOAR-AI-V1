@@ -462,36 +462,35 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
       )}
 
       {/* Header */}
-      <div className="mb-6">
+      <div className="mb-6 flex justify-between">
+        <div>
         <h1 className="text-2xl font-bold text-gray-900 mb-1">All Leads</h1>
         <p className="text-gray-600 text-sm">Comprehensive lead management with status tracking and AI suggestions</p>
+        </div>
+        <div className="flex items-center gap-3">
+          <Button variant="outline" className="text-gray-700 border-gray-300 hover:bg-gray-50">
+            <Download className="h-4 w-4 mr-2" />
+            Export
+          </Button>
+          <Button variant="outline" className="text-gray-700 border-gray-300 hover:bg-gray-50" onClick={fetchLeads}>
+            <RefreshCw className="h-4 w-4 mr-2" />
+            Refresh
+          </Button>
+          <Button variant="outline" className="text-gray-700 border-gray-300 hover:bg-gray-50" onClick={() => onNavigate('email-campaigns')}>
+            <Mail className="h-4 w-4 mr-2" />
+            Email Campaign
+          </Button>
+          <Button className="bg-orange-500 hover:bg-orange-600 text-white" onClick={() => setShowNewLeadDialog(true)}>
+            <Plus className="h-4 w-4 mr-2" />
+            Add New Lead
+          </Button>
+        </div>
       </div>
 
       {/* Metrics Cards Section - Moved to top */}
       <div className="mb-6">
         <div className="flex items-center justify-end  mb-4">
-          {/* <div>
-            <h2 className="text-lg font-semibold text-gray-900">Qualified Leads</h2>
-            <p className="text-sm text-gray-600">High-potential leads ready for offer creation and contract initiation</p>
-          </div> */}
-          <div className="flex items-center gap-3">
-            <Button variant="outline" className="text-gray-700 border-gray-300 hover:bg-gray-50">
-              <Download className="h-4 w-4 mr-2" />
-              Export
-            </Button>
-            <Button variant="outline" className="text-gray-700 border-gray-300 hover:bg-gray-50" onClick={fetchLeads}>
-              <RefreshCw className="h-4 w-4 mr-2" />
-              Refresh
-            </Button>
-            <Button variant="outline" className="text-gray-700 border-gray-300 hover:bg-gray-50" onClick={() => onNavigate('email-campaigns')}>
-              <Mail className="h-4 w-4 mr-2" />
-              Email Campaign
-            </Button>
-            <Button className="bg-orange-500 hover:bg-orange-600 text-white" onClick={() => setShowNewLeadDialog(true)}>
-              <Plus className="h-4 w-4 mr-2" />
-              Add New Lead
-            </Button>
-          </div>
+          
         </div>
 
         {/* Statistics Cards */}
@@ -602,10 +601,10 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
       {/* Lead Filters */}
       <Card className="mb-6 bg-white border border-gray-200">
         <CardContent className="p-4">
-          <div className="flex items-center gap-2 mb-4">
+          <div className="flex items-center gap-2 mb-5 justify-between">
             <div className="flex items-center gap-2 ">
               <Filter className="h-4 w-4 text-gray-500" />
-              <span className="text-sm font-medium text-gray-700 justify-space-between">Lead Filters</span>
+              <span className="text-sm font-medium text-gray-700 ">Lead Filters</span>
             </div>            
             <Button 
               variant="outline" 
