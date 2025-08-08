@@ -412,104 +412,7 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
         <p className="text-gray-600 text-sm">Comprehensive lead management with status tracking and AI suggestions</p>
       </div>
 
-      {/* Lead Filters */}
-      <Card className="mb-6 bg-white border border-gray-200">
-        <CardContent className="p-4">
-          <div className="flex items-center gap-2 mb-4">
-            <Filter className="h-4 w-4 text-gray-500" />
-            <span className="text-sm font-medium text-gray-700">Lead Filters</span>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-            <div>
-              <Label className="text-xs text-gray-600 mb-1 block">Search</Label>
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                <Input
-                  placeholder="Company or contact..."
-                  className="pl-10 text-sm border-gray-200"
-                  value={filters.search}
-                  onChange={(e) => setFilters({...filters, search: e.target.value})}
-                />
-              </div>
-            </div>
-            <div>
-              <Label className="text-xs text-gray-600 mb-1 block">Status</Label>
-              <Select value={filters.status} onValueChange={(value) => setFilters({...filters, status: value})}>
-                <SelectTrigger className="text-sm border-gray-200">
-                  <SelectValue placeholder="All statuses" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All statuses</SelectItem>
-                  <SelectItem value="qualified">Qualified</SelectItem>
-                  <SelectItem value="contacted">Contacted</SelectItem>
-                  <SelectItem value="in-progress">In Progress</SelectItem>
-                  <SelectItem value="responded">Responded</SelectItem>
-                  <SelectItem value="unqualified">Unqualified</SelectItem>
-                  <SelectItem value="new">New</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label className="text-xs text-gray-600 mb-1 block">Industry</Label>
-              <Select value={filters.industry} onValueChange={(value) => setFilters({...filters, industry: value})}>
-                <SelectTrigger className="text-sm border-gray-200">
-                  <SelectValue placeholder="All industries" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All industries</SelectItem>
-                  <SelectItem value="Technology">Technology</SelectItem>
-                  <SelectItem value="Manufacturing">Manufacturing</SelectItem>
-                  <SelectItem value="Financial Services">Financial Services</SelectItem>
-                  <SelectItem value="Banking">Banking</SelectItem>
-                  <SelectItem value="Consulting">Consulting</SelectItem>
-                  <SelectItem value="Retail">Retail</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label className="text-xs text-gray-600 mb-1 block">Score</Label>
-              <Select value={filters.score} onValueChange={(value) => setFilters({...filters, score: value})}>
-                <SelectTrigger className="text-sm border-gray-200">
-                  <SelectValue placeholder="All scores" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All scores</SelectItem>
-                  <SelectItem value="high">High (80+)</SelectItem>
-                  <SelectItem value="medium">Medium (60-79)</SelectItem>
-                  <SelectItem value="low">Low (&lt;60)</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label className="text-xs text-gray-600 mb-1 block">Engagement</Label>
-              <Select value={filters.engagement} onValueChange={(value) => setFilters({...filters, engagement: value})}>
-                <SelectTrigger className="text-sm border-gray-200">
-                  <SelectValue placeholder="All levels" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All levels</SelectItem>
-                  <SelectItem value="Very High">Very High</SelectItem>
-                  <SelectItem value="High">High</SelectItem>
-                  <SelectItem value="Medium">Medium</SelectItem>
-                  <SelectItem value="Low">Low</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-          <div className="flex justify-end mt-4">
-            <Button 
-              variant="outline" 
-              size="sm" 
-              className="text-gray-600 border-gray-300"
-              onClick={() => setFilters({ status: 'all', industry: 'all', score: 'all', engagement: 'all', search: '' })}
-            >
-              Clear Filters
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Metrics Cards Section */}
+      {/* Metrics Cards Section - Moved to top */}
       <div className="mb-6">
         <div className="flex items-center justify-between mb-4">
           <div>
@@ -619,6 +522,103 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
           </Card>
         </div>
       </div>
+
+      {/* Lead Filters */}
+      <Card className="mb-6 bg-white border border-gray-200">
+        <CardContent className="p-4">
+          <div className="flex items-center gap-2 mb-4">
+            <Filter className="h-4 w-4 text-gray-500" />
+            <span className="text-sm font-medium text-gray-700">Lead Filters</span>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+            <div>
+              <Label className="text-xs text-gray-600 mb-1 block">Search</Label>
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Input
+                  placeholder="Company or contact..."
+                  className="pl-10 text-sm border-gray-200"
+                  value={filters.search}
+                  onChange={(e) => setFilters({...filters, search: e.target.value})}
+                />
+              </div>
+            </div>
+            <div>
+              <Label className="text-xs text-gray-600 mb-1 block">Status</Label>
+              <Select value={filters.status} onValueChange={(value) => setFilters({...filters, status: value})}>
+                <SelectTrigger className="text-sm border-gray-200">
+                  <SelectValue placeholder="All statuses" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All statuses</SelectItem>
+                  <SelectItem value="qualified">Qualified</SelectItem>
+                  <SelectItem value="contacted">Contacted</SelectItem>
+                  <SelectItem value="in-progress">In Progress</SelectItem>
+                  <SelectItem value="responded">Responded</SelectItem>
+                  <SelectItem value="unqualified">Unqualified</SelectItem>
+                  <SelectItem value="new">New</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label className="text-xs text-gray-600 mb-1 block">Industry</Label>
+              <Select value={filters.industry} onValueChange={(value) => setFilters({...filters, industry: value})}>
+                <SelectTrigger className="text-sm border-gray-200">
+                  <SelectValue placeholder="All industries" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All industries</SelectItem>
+                  <SelectItem value="Technology">Technology</SelectItem>
+                  <SelectItem value="Manufacturing">Manufacturing</SelectItem>
+                  <SelectItem value="Financial Services">Financial Services</SelectItem>
+                  <SelectItem value="Banking">Banking</SelectItem>
+                  <SelectItem value="Consulting">Consulting</SelectItem>
+                  <SelectItem value="Retail">Retail</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label className="text-xs text-gray-600 mb-1 block">Score</Label>
+              <Select value={filters.score} onValueChange={(value) => setFilters({...filters, score: value})}>
+                <SelectTrigger className="text-sm border-gray-200">
+                  <SelectValue placeholder="All scores" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All scores</SelectItem>
+                  <SelectItem value="high">High (80+)</SelectItem>
+                  <SelectItem value="medium">Medium (60-79)</SelectItem>
+                  <SelectItem value="low">Low (&lt;60)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label className="text-xs text-gray-600 mb-1 block">Engagement</Label>
+              <Select value={filters.engagement} onValueChange={(value) => setFilters({...filters, engagement: value})}>
+                <SelectTrigger className="text-sm border-gray-200">
+                  <SelectValue placeholder="All levels" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All levels</SelectItem>
+                  <SelectItem value="Very High">Very High</SelectItem>
+                  <SelectItem value="High">High</SelectItem>
+                  <SelectItem value="Medium">Medium</SelectItem>
+                  <SelectItem value="Low">Low</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <div className="flex justify-end mt-4">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="text-gray-600 border-gray-300"
+              onClick={() => setFilters({ status: 'all', industry: 'all', score: 'all', engagement: 'all', search: '' })}
+            >
+              Clear Filters
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Leads Header */}
       <div className="flex items-center justify-between mb-4">
