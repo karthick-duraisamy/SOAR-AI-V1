@@ -272,6 +272,7 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
     travelBudget: '',
     companySize: '',
     travelFrequency: '',
+    globalSearch: '',
     ...initialFilters
   });
 
@@ -411,6 +412,36 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
   const handleViewProfile = (corporate) => {
     setSelectedCorporate(corporate);
     setShowCorporateProfile(true);
+  };
+
+  const handleClearFilters = () => {
+    // Reset search parameters
+    setSearchParams({
+      industry: '',
+      location: '',
+      travelBudget: '',
+      companySize: '',
+      travelFrequency: '',
+      globalSearch: ''
+    });
+
+    // Reset advanced filters
+    setAdvancedFilters({
+      industries: [],
+      maturity: [],
+      employeeRange: [100, 10000],
+      travelFrequency: '',
+      preferredClass: '',
+      annualTravelVolume: [100, 20000],
+      revenueRange: '',
+      creditRating: '',
+      travelBudgetRange: [0.5, 10],
+      techRequirements: [],
+      sustainabilityLevel: ''
+    });
+
+    // Reload companies with no filters
+    loadCompanies({});
   };
 
   const handleMoveAsLead = async (corporate) => {
@@ -616,6 +647,20 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
 
       {/* Filters Section */}
       <div className="bg-white rounded-lg border border-gray-200 p-6 mb-6">
+        {/* Global Search Row */}
+        <div className="mb-6">
+          <Label className="text-sm font-medium text-gray-900 mb-2 block">Global Search</Label>
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <Input
+              placeholder="Search by company name..."
+              value={searchParams.globalSearch || ''}
+              onChange={(e) => setSearchParams({...searchParams, globalSearch: e.target.value})}
+              className="pl-10 h-10 bg-white border-gray-300"
+            />
+          </div>
+        </div>
+
         {/* Top Row - 3 columns */}
         <div className="grid grid-cols-3 gap-6 mb-6">
           <div className="space-y-2">
@@ -725,6 +770,15 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
           >
             <Filter className="h-4 w-4" />
             Advanced Filters
+          </Button>
+
+          <Button 
+            variant="outline" 
+            onClick={handleClearFilters}
+            className="border-gray-300 text-gray-700 hover:bg-gray-50 px-4 py-2 rounded-md flex items-center gap-2"
+          >
+            <X className="h-4 w-4" />
+            Clear Filters
           </Button>
         </div>
       </div>

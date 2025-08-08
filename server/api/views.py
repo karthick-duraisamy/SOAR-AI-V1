@@ -1,4 +1,3 @@
-
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -32,7 +31,8 @@ class CompanyViewSet(viewsets.ModelViewSet):
         travel_budget = filters.get('travelBudget', '')
         travel_frequency = filters.get('travelFrequency', '')
         company_size = filters.get('companySize', '')
-        
+        global_search = filters.get('globalSearch', '') # Added global search parameter
+
         # Advanced filters support
         industries = filters.get('industries', [])
         employee_range = filters.get('employeeRange', [])
@@ -40,22 +40,26 @@ class CompanyViewSet(viewsets.ModelViewSet):
         credit_rating = filters.get('creditRating', '')
         sustainability_level = filters.get('sustainabilityLevel', '')
         preferred_class = filters.get('preferredClass', '')
-        
+
         companies = self.queryset.filter(is_active=True)
-        
+
+        # Apply global search filter (company name)
+        if global_search:
+            companies = companies.filter(name__icontains=global_search)
+
         if query:
             companies = companies.filter(
                 Q(name__icontains=query) | 
                 Q(location__icontains=query) |
                 Q(description__icontains=query)
             )
-        
+
         if industry:
             companies = companies.filter(industry=industry)
-        
+
         if size:
             companies = companies.filter(size=size)
-            
+
         if location:
             # Handle location filtering with different mapping
             location_mapping = {
@@ -65,7 +69,7 @@ class CompanyViewSet(viewsets.ModelViewSet):
                 'global': ['Global', 'Worldwide', 'International'],
                 'emerging': ['Brazil', 'India', 'South Africa', 'Eastern Europe']
             }
-            
+
             if location in location_mapping:
                 location_filters = Q()
                 for loc in location_mapping[location]:
@@ -73,7 +77,7 @@ class CompanyViewSet(viewsets.ModelViewSet):
                 companies = companies.filter(location_filters)
             else:
                 companies = companies.filter(location__icontains=location)
-        
+
         # Handle travel budget filtering
         if travel_budget:
             budget_ranges = {
@@ -83,14 +87,14 @@ class CompanyViewSet(viewsets.ModelViewSet):
                 '3m-5m': (3000000, 5000000),
                 'above-5m': (5000000, float('inf'))
             }
-            
+
             if travel_budget in budget_ranges:
                 min_budget, max_budget = budget_ranges[travel_budget]
                 if max_budget == float('inf'):
                     companies = companies.filter(travel_budget__gte=min_budget)
                 else:
                     companies = companies.filter(travel_budget__gte=min_budget, travel_budget__lt=max_budget)
-        
+
         # Handle company size filtering
         if company_size:
             size_mapping = {
@@ -100,14 +104,14 @@ class CompanyViewSet(viewsets.ModelViewSet):
                 'large': ['large'],
                 'enterprise': ['enterprise']
             }
-            
+
             if company_size in size_mapping:
                 companies = companies.filter(size__in=size_mapping[company_size])
-        
+
         # Handle multiple industries filter (advanced filter)
         if industries:
             companies = companies.filter(industry__in=industries)
-        
+
         # Handle employee range filter (advanced filter)
         if employee_range and len(employee_range) == 2:
             min_employees, max_employees = employee_range
@@ -115,7 +119,7 @@ class CompanyViewSet(viewsets.ModelViewSet):
                 employee_count__gte=min_employees,
                 employee_count__lte=max_employees
             )
-        
+
         # Handle revenue range filter (advanced filter)
         if revenue_range:
             revenue_ranges = {
@@ -125,7 +129,7 @@ class CompanyViewSet(viewsets.ModelViewSet):
                 '100m-500m': (100000000, 500000000),
                 'above-500m': (500000000, float('inf'))
             }
-            
+
             if revenue_range in revenue_ranges:
                 min_revenue, max_revenue = revenue_ranges[revenue_range]
                 if max_revenue == float('inf'):
@@ -135,7 +139,7 @@ class CompanyViewSet(viewsets.ModelViewSet):
                         annual_revenue__gte=min_revenue,
                         annual_revenue__lt=max_revenue
                     )
-        
+
         serializer = self.get_serializer(companies, many=True)
         return Response(serializer.data)
 
@@ -163,14 +167,14 @@ class ContactViewSet(viewsets.ModelViewSet):
 class LeadViewSet(viewsets.ModelViewSet):
     queryset = Lead.objects.select_related('company', 'contact', 'assigned_to').all()
     serializer_class = LeadSerializer
-    
+
     def create(self, request, *args, **kwargs):
         data = request.data
-        
+
         # Extract company and contact data
         company_data = data.get('company', {})
         contact_data = data.get('contact', {})
-        
+
         try:
             # Create or get company
             company, created = Company.objects.get_or_create(
@@ -184,7 +188,7 @@ class LeadViewSet(viewsets.ModelViewSet):
                     'is_active': True
                 }
             )
-            
+
             # Create contact
             contact = Contact.objects.create(
                 company=company,
@@ -195,7 +199,7 @@ class LeadViewSet(viewsets.ModelViewSet):
                 position=contact_data.get('position', ''),
                 is_decision_maker=contact_data.get('is_decision_maker', False)
             )
-            
+
             # Create lead
             lead = Lead.objects.create(
                 company=company,
@@ -208,25 +212,25 @@ class LeadViewSet(viewsets.ModelViewSet):
                 notes=data.get('notes', ''),
                 assigned_to=request.user if request.user.is_authenticated else None
             )
-            
+
             serializer = self.get_serializer(lead)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
-            
+
         except Exception as e:
             return Response(
                 {'error': f'Failed to create lead: {str(e)}'}, 
                 status=status.HTTP_400_BAD_REQUEST
             )
-    
+
     def get_queryset(self):
         queryset = self.queryset
-        
+
         # Get query parameters
         search = self.request.query_params.get('search', None)
         status = self.request.query_params.get('status', None)
         industry = self.request.query_params.get('industry', None)
         score = self.request.query_params.get('score', None)
-        
+
         # Apply filters
         if search:
             queryset = queryset.filter(
@@ -235,13 +239,13 @@ class LeadViewSet(viewsets.ModelViewSet):
                 Q(contact__last_name__icontains=search) |
                 Q(contact__email__icontains=search)
             )
-        
+
         if status:
             queryset = queryset.filter(status=status)
-            
+
         if industry:
             queryset = queryset.filter(company__industry=industry)
-            
+
         if score:
             if score == 'high':
                 queryset = queryset.filter(score__gte=80)
@@ -249,14 +253,14 @@ class LeadViewSet(viewsets.ModelViewSet):
                 queryset = queryset.filter(score__gte=60, score__lt=80)
             elif score == 'low':
                 queryset = queryset.filter(score__lt=60)
-        
+
         return queryset.order_by('-created_at')
 
     @action(detail=False, methods=['get'])
     def pipeline_stats(self, request):
         stats = {}
         total_leads = self.queryset.count()
-        
+
         for status, status_label in Lead.LEAD_STATUS_CHOICES:
             count = self.queryset.filter(status=status).count()
             stats[status] = {
@@ -264,7 +268,7 @@ class LeadViewSet(viewsets.ModelViewSet):
                 'label': status_label,
                 'percentage': (count / total_leads * 100) if total_leads > 0 else 0
             }
-        
+
         stats['summary'] = {
             'total_leads': total_leads,
             'qualified_leads': self.queryset.filter(status='qualified').count(),
@@ -272,7 +276,7 @@ class LeadViewSet(viewsets.ModelViewSet):
             'active_leads': self.queryset.filter(status__in=['new', 'contacted', 'qualified']).count(),
             'conversion_rate': (self.queryset.filter(status='won').count() / total_leads * 100) if total_leads > 0 else 0
         }
-        
+
         return Response(stats)
 
     @action(detail=False, methods=['get'])
@@ -293,7 +297,7 @@ class LeadViewSet(viewsets.ModelViewSet):
         score = request.data.get('score', 0)
         lead.score = score
         lead.save()
-        
+
         return Response({'status': 'score updated', 'new_score': lead.score})
 
     @action(detail=True, methods=['post'])
@@ -301,7 +305,7 @@ class LeadViewSet(viewsets.ModelViewSet):
         lead = self.get_object()
         lead.status = 'qualified'
         lead.save()
-        
+
         return Response({'status': 'lead qualified'})
 
     @action(detail=True, methods=['post'])
@@ -310,7 +314,7 @@ class LeadViewSet(viewsets.ModelViewSet):
         lead.status = 'unqualified'
         lead.notes = request.data.get('reason', lead.notes)
         lead.save()
-        
+
         return Response({'status': 'lead disqualified'})
 
 class OpportunityViewSet(viewsets.ModelViewSet):
@@ -322,41 +326,41 @@ class OpportunityViewSet(viewsets.ModelViewSet):
         pipeline = {}
         total_value = 0
         total_weighted_value = 0
-        
+
         for stage, stage_label in Opportunity.OPPORTUNITY_STAGES:
             opportunities = self.queryset.filter(stage=stage)
             stage_value = sum(float(opp.value) for opp in opportunities)
             weighted_value = sum(float(opp.value) * (opp.probability / 100) for opp in opportunities)
-            
+
             pipeline[stage] = {
                 'count': opportunities.count(),
                 'label': stage_label,
                 'total_value': stage_value,
                 'weighted_value': weighted_value
             }
-            
+
             total_value += stage_value
             total_weighted_value += weighted_value
-        
+
         pipeline['summary'] = {
             'total_opportunities': self.queryset.count(),
             'total_value': total_value,
             'total_weighted_value': total_weighted_value,
             'average_deal_size': total_value / self.queryset.count() if self.queryset.count() > 0 else 0
         }
-        
+
         return Response(pipeline)
 
     @action(detail=False, methods=['get'])
     def closing_soon(self, request):
         days = int(request.query_params.get('days', 30))
         end_date = timezone.now().date() + timedelta(days=days)
-        
+
         opportunities = self.queryset.filter(
             estimated_close_date__lte=end_date,
             stage__in=['proposal', 'negotiation']
         ).order_by('estimated_close_date')
-        
+
         serializer = self.get_serializer(opportunities, many=True)
         return Response(serializer.data)
 
@@ -368,12 +372,12 @@ class ContractViewSet(viewsets.ModelViewSet):
     def renewal_alerts(self, request):
         days_ahead = int(request.query_params.get('days', 30))
         alert_date = timezone.now().date() + timedelta(days=days_ahead)
-        
+
         contracts = self.queryset.filter(
             end_date__lte=alert_date,
             status='active'
         ).order_by('end_date')
-        
+
         serializer = self.get_serializer(contracts, many=True)
         return Response(serializer.data)
 
@@ -382,7 +386,7 @@ class ContractViewSet(viewsets.ModelViewSet):
         contracts = self.queryset.filter(
             Q(status='at_risk') | Q(risk_score__gte=7)
         ).order_by('-risk_score')
-        
+
         serializer = self.get_serializer(contracts, many=True)
         return Response(serializer.data)
 
@@ -394,7 +398,7 @@ class ContractViewSet(viewsets.ModelViewSet):
             end_date__lte=timezone.now().date() + timedelta(days=30),
             status='active'
         ).count()
-        
+
         stats = {
             'total_contracts': total_contracts,
             'active_contracts': active_contracts,
@@ -403,7 +407,7 @@ class ContractViewSet(viewsets.ModelViewSet):
             'average_value': self.queryset.aggregate(avg=Avg('value'))['avg'] or 0,
             'breach_count': ContractBreach.objects.filter(is_resolved=False).count()
         }
-        
+
         return Response(stats)
 
 class ContractBreachViewSet(viewsets.ModelViewSet):
@@ -423,7 +427,7 @@ class ContractBreachViewSet(viewsets.ModelViewSet):
         breach.resolved_date = timezone.now()
         breach.resolution_notes = request.data.get('notes', '')
         breach.save()
-        
+
         return Response({'status': 'breach resolved'})
 
 class EmailCampaignViewSet(viewsets.ModelViewSet):
@@ -433,12 +437,12 @@ class EmailCampaignViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['get'])
     def performance(self, request):
         campaigns = self.queryset.filter(status__in=['active', 'completed'])
-        
+
         performance_data = []
         for campaign in campaigns:
             open_rate = (campaign.emails_opened / campaign.emails_sent * 100) if campaign.emails_sent > 0 else 0
             click_rate = (campaign.emails_clicked / campaign.emails_sent * 100) if campaign.emails_sent > 0 else 0
-            
+
             performance_data.append({
                 'id': campaign.id,
                 'name': campaign.name,
@@ -447,7 +451,7 @@ class EmailCampaignViewSet(viewsets.ModelViewSet):
                 'click_rate': click_rate,
                 'status': campaign.status
             })
-        
+
         return Response(performance_data)
 
 class TravelOfferViewSet(viewsets.ModelViewSet):
@@ -460,7 +464,7 @@ class TravelOfferViewSet(viewsets.ModelViewSet):
             status='active',
             valid_until__gt=timezone.now()
         ).order_by('-created_at')
-        
+
         serializer = self.get_serializer(offers, many=True)
         return Response(serializer.data)
 
@@ -470,7 +474,7 @@ class TravelOfferViewSet(viewsets.ModelViewSet):
         active_offers = self.queryset.filter(status='active').count()
         total_bookings = self.queryset.aggregate(total=Sum('bookings_count'))['total'] or 0
         total_revenue = self.queryset.aggregate(total=Sum('revenue_generated'))['total'] or 0
-        
+
         stats = {
             'total_offers': total_offers,
             'active_offers': active_offers,
@@ -478,7 +482,7 @@ class TravelOfferViewSet(viewsets.ModelViewSet):
             'total_revenue': total_revenue,
             'average_booking_value': (total_revenue / total_bookings) if total_bookings > 0 else 0
         }
-        
+
         return Response(stats)
 
 class SupportTicketViewSet(viewsets.ModelViewSet):
@@ -493,7 +497,7 @@ class SupportTicketViewSet(viewsets.ModelViewSet):
             priority__in=['high', 'urgent'], 
             status__in=['open', 'in_progress']
         ).count()
-        
+
         resolved_tickets = self.queryset.filter(status='resolved')
         if resolved_tickets.exists():
             avg_resolution_time = resolved_tickets.aggregate(
@@ -502,10 +506,10 @@ class SupportTicketViewSet(viewsets.ModelViewSet):
             avg_resolution_hours = avg_resolution_time.total_seconds() / 3600 if avg_resolution_time else 0
         else:
             avg_resolution_hours = 0
-            
+
         satisfaction_scores = self.queryset.filter(satisfaction_rating__isnull=False)
         avg_satisfaction = satisfaction_scores.aggregate(avg=Avg('satisfaction_rating'))['avg'] or 0
-        
+
         stats = {
             'total_tickets': total_tickets,
             'open_tickets': open_tickets,
@@ -513,19 +517,19 @@ class SupportTicketViewSet(viewsets.ModelViewSet):
             'avg_resolution_time_hours': round(avg_resolution_hours, 2),
             'satisfaction_score': round(avg_satisfaction, 1)
         }
-        
+
         return Response(stats)
 
     @action(detail=False, methods=['get'])
     def agent_workload(self, request):
         from django.contrib.auth.models import User
-        
+
         agents = User.objects.filter(
             supportticket__isnull=False
         ).annotate(
             assigned_tickets=Count('supportticket', filter=Q(supportticket__status__in=['open', 'in_progress']))
         ).distinct()
-        
+
         workload = []
         for agent in agents:
             workload.append({
@@ -533,7 +537,7 @@ class SupportTicketViewSet(viewsets.ModelViewSet):
                 'assigned_tickets': agent.assigned_tickets,
                 'total_resolved': self.queryset.filter(assigned_to=agent, status='resolved').count()
             })
-        
+
         return Response(workload)
 
 class RevenueForecastViewSet(viewsets.ModelViewSet):
@@ -546,7 +550,7 @@ class RevenueForecastViewSet(viewsets.ModelViewSet):
         forecasts = self.queryset.filter(
             period__startswith=str(current_year)
         ).order_by('period')
-        
+
         serializer = self.get_serializer(forecasts, many=True)
         return Response(serializer.data)
 
@@ -558,7 +562,7 @@ class ActivityLogViewSet(viewsets.ReadOnlyModelViewSet):
     def recent_activity(self, request):
         days = int(request.query_params.get('days', 7))
         start_date = timezone.now() - timedelta(days=days)
-        
+
         activities = self.queryset.filter(timestamp__gte=start_date)
         serializer = self.get_serializer(activities, many=True)
         return Response(serializer.data)
@@ -572,10 +576,10 @@ class AIConversationViewSet(viewsets.ModelViewSet):
         # This would integrate with your AI service
         query = request.data.get('query', '')
         user = request.user if request.user.is_authenticated else None
-        
+
         # Mock AI response for now
         response = f"Thank you for your query: '{query}'. This is a mock AI response. In a real implementation, this would connect to your AI service."
-        
+
         conversation = AIConversation.objects.create(
             user=user,
             query=query,
@@ -584,13 +588,13 @@ class AIConversationViewSet(viewsets.ModelViewSet):
             entities_mentioned=request.data.get('entities', []),
             actions_suggested=['View Dashboard', 'Search Companies', 'Create Lead']
         )
-        
+
         serializer = self.get_serializer(conversation)
         return Response(serializer.data)
 
 # Dashboard API Views
 class DashboardAPIView(viewsets.ViewSet):
-    
+
     @action(detail=False, methods=['get'])
     def overview(self, request):
         # Get overview stats for the main dashboard
@@ -630,5 +634,5 @@ class DashboardAPIView(viewsets.ViewSet):
                 ).count()
             }
         }
-        
+
         return Response(overview_data)
