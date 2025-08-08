@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
@@ -35,6 +34,17 @@ import {
   ExternalLink
 } from 'lucide-react';
 import { toast } from "sonner";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "./ui/dialog";
+
 
 interface AllLeadsProps {
   onNavigate: (screen: string, filters?: any) => void;
@@ -85,27 +95,34 @@ export function AllLeads({ onNavigate }: AllLeadsProps) {
   const [error, setError] = useState<string | null>(null);
   const [selectedLeads, setSelectedLeads] = useState<number[]>([]);
   const [selectAll, setSelectAll] = useState(false);
-  
-  // Filter states
-  const [filters, setFilters] = useState({
-    search: '',
+  const [showNewLeadDialog, setShowNewLeadDialog] = useState(false);
+
+  // Lead form states
+  const [newLeadForm, setNewLeadForm] = useState({
+    companyName: '',
+    firstName: '',
+    lastName: '',
+    position: '',
+    email: '',
+    phone: '',
     status: '',
-    industry: '',
+    source: '',
     score: '',
-    engagement: ''
+    estimatedValue: '',
+    notes: ''
   });
 
   // Fetch leads from API
   const fetchLeads = async () => {
     setLoading(true);
     setError(null);
-    
+
     try {
       const response = await fetch('/api/leads/');
       if (!response.ok) {
         throw new Error('Failed to fetch leads');
       }
-      
+
       const data = await response.json();
       setLeads(data);
     } catch (err) {
@@ -120,6 +137,15 @@ export function AllLeads({ onNavigate }: AllLeadsProps) {
     fetchLeads();
   }, []);
 
+  // Filter states
+  const [filters, setFilters] = useState({
+    search: '',
+    status: '',
+    industry: '',
+    score: '',
+    engagement: ''
+  });
+
   // Filter leads based on current filters
   const filteredLeads = leads.filter(lead => {
     if (filters.search && !lead.company.name.toLowerCase().includes(filters.search.toLowerCase()) &&
@@ -127,17 +153,17 @@ export function AllLeads({ onNavigate }: AllLeadsProps) {
         !lead.contact.last_name.toLowerCase().includes(filters.search.toLowerCase())) {
       return false;
     }
-    
+
     if (filters.status && lead.status !== filters.status) {
       return false;
     }
-    
+
     if (filters.score) {
       if (filters.score === 'high' && lead.score < 80) return false;
       if (filters.score === 'medium' && (lead.score < 60 || lead.score >= 80)) return false;
       if (filters.score === 'low' && lead.score >= 60) return false;
     }
-    
+
     return true;
   });
 
@@ -175,6 +201,71 @@ export function AllLeads({ onNavigate }: AllLeadsProps) {
     if (score >= 60) return 'text-yellow-600';
     return 'text-red-600';
   };
+
+  // Handle input change for the new lead form
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setNewLeadForm(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  // Handle form submission for adding a new lead
+  const handleAddLead = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    try {
+      const response = await fetch('/api/leads/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          company: { name: newLeadForm.companyName },
+          contact: {
+            first_name: newLeadForm.firstName,
+            last_name: newLeadForm.lastName,
+            position: newLeadForm.position,
+            email: newLeadForm.email,
+            phone: newLeadForm.phone,
+          },
+          status: newLeadForm.status,
+          source: newLeadForm.source,
+          score: parseInt(newLeadForm.score) || 0, // Ensure score is a number
+          estimated_value: parseInt(newLeadForm.estimatedValue) || 0, // Ensure estimatedValue is a number
+          notes: newLeadForm.notes,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to add lead');
+      }
+
+      const newLead = await response.json();
+      setLeads(prev => [...prev, newLead]);
+      setNewLeadForm({ // Reset form
+        companyName: '',
+        firstName: '',
+        lastName: '',
+        position: '',
+        email: '',
+        phone: '',
+        status: '',
+        source: '',
+        score: '',
+        estimatedValue: '',
+        notes: ''
+      });
+      setShowNewLeadDialog(false);
+      toast.success('Lead added successfully!');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'An error occurred');
+      toast.error('Failed to add lead');
+    }
+  };
+
 
   if (loading) {
     return (
@@ -218,7 +309,7 @@ export function AllLeads({ onNavigate }: AllLeadsProps) {
           <h1 className="text-2xl font-bold text-gray-900 mb-2">All Leads</h1>
           <p className="text-gray-600">Comprehensive lead management with status tracking and AI suggestions</p>
         </div>
-        
+
         <div className="flex items-center gap-3">
           <Button variant="outline" className="text-gray-600 border-gray-300">
             <Download className="h-4 w-4 mr-2" />
@@ -232,7 +323,10 @@ export function AllLeads({ onNavigate }: AllLeadsProps) {
             <Mail className="h-4 w-4 mr-2" />
             Email Campaign
           </Button>
-          <Button className="bg-orange-600 hover:bg-orange-700 text-white">
+          <Button 
+            className="bg-orange-600 hover:bg-orange-700 text-white"
+            onClick={() => setShowNewLeadDialog(true)}
+          >
             <Plus className="h-4 w-4 mr-2" />
             Add New Lead
           </Button>
@@ -348,7 +442,7 @@ export function AllLeads({ onNavigate }: AllLeadsProps) {
           </h2>
           <p className="text-sm text-gray-600">Comprehensive lead management with status tracking and AI suggestions</p>
         </div>
-        
+
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-2">
             <input
@@ -377,11 +471,11 @@ export function AllLeads({ onNavigate }: AllLeadsProps) {
                     onChange={(e) => handleSelectLead(lead.id, e.target.checked)}
                     className="rounded border-gray-300"
                   />
-                  
+
                   <div className="flex items-center justify-center w-12 h-12 bg-blue-100 rounded-lg">
                     <Building2 className="h-6 w-6 text-blue-600" />
                   </div>
-                  
+
                   <div>
                     <div className="flex items-center gap-3 mb-1">
                       <h3 className="text-lg font-semibold text-gray-900">{lead.company.name}</h3>
@@ -396,11 +490,11 @@ export function AllLeads({ onNavigate }: AllLeadsProps) {
                         </Badge>
                       )}
                     </div>
-                    
+
                     <p className="text-gray-700 font-medium">
                       {lead.contact.first_name} {lead.contact.last_name} • {lead.contact.position}
                     </p>
-                    
+
                     <div className="flex items-center gap-6 text-sm text-gray-600 mt-1">
                       <span className="flex items-center gap-1">
                         <Mail className="h-3 w-3" />
@@ -421,7 +515,7 @@ export function AllLeads({ onNavigate }: AllLeadsProps) {
                     </div>
                   </div>
                 </div>
-                
+
                 <div className="text-right">
                   <div className={`text-lg font-bold ${getScoreColor(lead.score)} mb-1`}>
                     Score: {lead.score}
@@ -474,7 +568,7 @@ export function AllLeads({ onNavigate }: AllLeadsProps) {
                     <span className="font-medium">Assigned Agent:</span> John Smith
                   </div>
                 </div>
-                
+
                 <div className="space-y-2">
                   <div className="text-sm">
                     <span className="font-medium">Last Contact:</span> 2024-07-12
@@ -552,7 +646,7 @@ export function AllLeads({ onNavigate }: AllLeadsProps) {
                     Move to Opportunity
                   </Button>
                 </div>
-                
+
                 <div className="flex gap-2">
                   <Button size="sm" variant="outline" className="text-red-700 border-red-300">
                     Disqualify
@@ -573,12 +667,177 @@ export function AllLeads({ onNavigate }: AllLeadsProps) {
           <Users className="h-12 w-12 mx-auto mb-4 text-gray-400" />
           <h3 className="text-lg font-semibold text-gray-900 mb-2">No leads found</h3>
           <p className="text-gray-600 mb-4">Try adjusting your filters or add new leads to get started.</p>
-          <Button className="bg-orange-600 hover:bg-orange-700 text-white">
+          <Button className="bg-orange-600 hover:bg-orange-700 text-white" onClick={() => setShowNewLeadDialog(true)}>
             <Plus className="h-4 w-4 mr-2" />
             Add New Lead
           </Button>
         </div>
       )}
+
+      {/* New Lead Dialog */}
+      <Dialog open={showNewLeadDialog} onOpenChange={setShowNewLeadDialog}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Add New Lead</DialogTitle>
+            <DialogDescription>
+              Enter the lead details below. Click save when you're done.
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleAddLead}>
+            <div className="grid gap-4 py-4">
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="companyName" className="text-right">
+                  Company
+                </Label>
+                <Input
+                  id="companyName"
+                  name="companyName"
+                  value={newLeadForm.companyName}
+                  onChange={handleInputChange}
+                  className="col-span-3"
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="firstName" className="text-right">
+                  First Name
+                </Label>
+                <Input
+                  id="firstName"
+                  name="firstName"
+                  value={newLeadForm.firstName}
+                  onChange={handleInputChange}
+                  className="col-span-3"
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="lastName" className="text-right">
+                  Last Name
+                </Label>
+                <Input
+                  id="lastName"
+                  name="lastName"
+                  value={newLeadForm.lastName}
+                  onChange={handleInputChange}
+                  className="col-span-3"
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="position" className="text-right">
+                  Position
+                </Label>
+                <Input
+                  id="position"
+                  name="position"
+                  value={newLeadForm.position}
+                  onChange={handleInputChange}
+                  className="col-span-3"
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="email" className="text-right">
+                  Email
+                </Label>
+                <Input
+                  id="email"
+                  name="email"
+                  type="email"
+                  value={newLeadForm.email}
+                  onChange={handleInputChange}
+                  className="col-span-3"
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="phone" className="text-right">
+                  Phone
+                </Label>
+                <Input
+                  id="phone"
+                  name="phone"
+                  value={newLeadForm.phone}
+                  onChange={handleInputChange}
+                  className="col-span-3"
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="status" className="text-right">
+                  Status
+                </Label>
+                <Select 
+                  name="status" 
+                  value={newLeadForm.status} 
+                  onValueChange={(value) => setNewLeadForm(prev => ({...prev, status: value}))}
+                >
+                  <SelectTrigger className="col-span-3 border-gray-300">
+                    <SelectValue placeholder="Select status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="new">New</SelectItem>
+                    <SelectItem value="qualified">Qualified</SelectItem>
+                    <SelectItem value="contacted">Contacted</SelectItem>
+                    <SelectItem value="in-progress">In Progress</SelectItem>
+                    <SelectItem value="unqualified">Unqualified</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="source" className="text-right">
+                  Source
+                </Label>
+                <Input
+                  id="source"
+                  name="source"
+                  value={newLeadForm.source}
+                  onChange={handleInputChange}
+                  className="col-span-3"
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="score" className="text-right">
+                  Score
+                </Label>
+                <Input
+                  id="score"
+                  name="score"
+                  type="number"
+                  value={newLeadForm.score}
+                  onChange={handleInputChange}
+                  className="col-span-3"
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="estimatedValue" className="text-right">
+                  Estimated Value
+                </Label>
+                <Input
+                  id="estimatedValue"
+                  name="estimatedValue"
+                  value={newLeadForm.estimatedValue}
+                  onChange={handleInputChange}
+                  className="col-span-3"
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="notes" className="text-right">
+                  Notes
+                </Label>
+                <Input
+                  id="notes"
+                  name="notes"
+                  value={newLeadForm.notes}
+                  onChange={handleInputChange}
+                  className="col-span-3"
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <DialogClose asChild>
+                <Button type="button" variant="outline">Cancel</Button>
+              </DialogClose>
+              <Button type="submit">Save Lead</Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

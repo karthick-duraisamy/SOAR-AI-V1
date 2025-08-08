@@ -164,6 +164,60 @@ class LeadViewSet(viewsets.ModelViewSet):
     queryset = Lead.objects.select_related('company', 'contact', 'assigned_to').all()
     serializer_class = LeadSerializer
     
+    def create(self, request, *args, **kwargs):
+        data = request.data
+        
+        # Extract company and contact data
+        company_data = data.get('company', {})
+        contact_data = data.get('contact', {})
+        
+        try:
+            # Create or get company
+            company, created = Company.objects.get_or_create(
+                name=company_data.get('name'),
+                defaults={
+                    'industry': company_data.get('industry', ''),
+                    'location': company_data.get('location', ''),
+                    'size': company_data.get('size', ''),
+                    'annual_revenue': company_data.get('annual_revenue'),
+                    'travel_budget': company_data.get('travel_budget'),
+                    'is_active': True
+                }
+            )
+            
+            # Create contact
+            contact = Contact.objects.create(
+                company=company,
+                first_name=contact_data.get('first_name'),
+                last_name=contact_data.get('last_name'),
+                email=contact_data.get('email'),
+                phone=contact_data.get('phone', ''),
+                position=contact_data.get('position', ''),
+                is_decision_maker=contact_data.get('is_decision_maker', False)
+            )
+            
+            # Create lead
+            lead = Lead.objects.create(
+                company=company,
+                contact=contact,
+                status=data.get('status', 'new'),
+                source=data.get('source', 'website'),
+                priority=data.get('priority', 'medium'),
+                score=data.get('score', 0),
+                estimated_value=data.get('estimated_value'),
+                notes=data.get('notes', ''),
+                assigned_to=request.user if request.user.is_authenticated else None
+            )
+            
+            serializer = self.get_serializer(lead)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+            
+        except Exception as e:
+            return Response(
+                {'error': f'Failed to create lead: {str(e)}'}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+    
     def get_queryset(self):
         queryset = self.queryset
         
