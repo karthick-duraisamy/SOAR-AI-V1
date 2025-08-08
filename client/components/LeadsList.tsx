@@ -9,6 +9,7 @@ import { Checkbox } from './ui/checkbox';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from './ui/dialog';
 import { Textarea } from './ui/textarea';
 import { Alert, AlertDescription } from './ui/alert';
+import { Skeleton } from './ui/skeleton';
 import { useLeadApi } from '../hooks/api/useLeadApi';
 import { 
   Users, 
@@ -372,16 +373,70 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
     }
   }, [selectedLeads, filteredLeads]);
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600 mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Loading leads...</p>
-        </div>
-      </div>
-    );
-  }
+  const renderLoadingCards = () => (
+    <div className="space-y-4">
+      {[...Array(3)].map((_, index) => (
+        <Card key={index} className="bg-white border border-gray-200">
+          <CardContent className="p-6">
+            <div className="flex items-start justify-between mb-4">
+              <div className="flex items-center gap-4">
+                <Skeleton className="w-4 h-4" />
+                <Skeleton className="w-10 h-10 rounded-lg" />
+                <div>
+                  <div className="flex items-center gap-2 mb-1">
+                    <Skeleton className="h-6 w-48" />
+                    <Skeleton className="h-6 w-20 rounded-full" />
+                  </div>
+                  <Skeleton className="h-4 w-64 mb-2" />
+                  <div className="flex items-center gap-4">
+                    <Skeleton className="h-3 w-32" />
+                    <Skeleton className="h-3 w-28" />
+                    <Skeleton className="h-3 w-24" />
+                    <Skeleton className="h-3 w-16" />
+                  </div>
+                </div>
+              </div>
+              <div className="text-right">
+                <Skeleton className="h-4 w-16 mb-1" />
+                <Skeleton className="h-4 w-20 mb-1" />
+                <Skeleton className="h-6 w-24 rounded-full" />
+              </div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+              <div className="space-y-2">
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-3/4" />
+                <Skeleton className="h-4 w-1/2" />
+              </div>
+              <div className="space-y-2">
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-2/3" />
+                <div className="flex gap-1">
+                  <Skeleton className="h-6 w-16 rounded-full" />
+                  <Skeleton className="h-6 w-20 rounded-full" />
+                </div>
+              </div>
+            </div>
+            <Skeleton className="h-16 w-full mb-4 rounded-lg" />
+            <div className="flex items-center justify-between">
+              <div className="flex gap-2">
+                <Skeleton className="h-8 w-20" />
+                <Skeleton className="h-8 w-24" />
+                <Skeleton className="h-8 w-28" />
+                <Skeleton className="h-8 w-20" />
+              </div>
+              <div className="flex gap-2">
+                <Skeleton className="h-8 w-24" />
+                <Skeleton className="h-8 w-20" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      ))}
+    </div>
+  );
 
   if (leadApi.error) {
     return (
@@ -441,85 +496,106 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
 
         {/* Statistics Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-          <Card className="bg-white border border-gray-200">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600 mb-1">Qualified Leads</p>
-                  <p className="text-2xl font-bold text-gray-900">
-                    {filteredLeads.filter(lead => lead.status === 'qualified').length}
-                  </p>
-                  <p className="text-xs text-gray-500">High-potential prospects</p>
-                </div>
-                <div className="flex items-center justify-center w-10 h-10 bg-blue-100 rounded-lg">
-                  <Users className="h-5 w-5 text-blue-600" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+          {loading ? (
+            <>
+              {[...Array(4)].map((_, index) => (
+                <Card key={index} className="bg-white border border-gray-200">
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1">
+                        <Skeleton className="h-4 w-24 mb-1" />
+                        <Skeleton className="h-8 w-12 mb-1" />
+                        <Skeleton className="h-3 w-32" />
+                      </div>
+                      <Skeleton className="w-10 h-10 rounded-lg" />
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </>
+          ) : (
+            <>
+              <Card className="bg-white border border-gray-200">
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-gray-600 mb-1">Qualified Leads</p>
+                      <p className="text-2xl font-bold text-gray-900">
+                        {filteredLeads.filter(lead => lead.status === 'qualified').length}
+                      </p>
+                      <p className="text-xs text-gray-500">High-potential prospects</p>
+                    </div>
+                    <div className="flex items-center justify-center w-10 h-10 bg-blue-100 rounded-lg">
+                      <Users className="h-5 w-5 text-blue-600" />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
 
-          <Card className="bg-white border border-gray-200">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600 mb-1">Contract Ready</p>
-                  <p className="text-2xl font-bold text-gray-900">
-                    {filteredLeads.filter(lead => lead.status === 'qualified' && lead.contractReady).length}
-                  </p>
-                  <p className="text-xs text-gray-500">Ready for contract initiation</p>
-                </div>
-                <div className="flex items-center justify-center w-10 h-10 bg-green-100 rounded-lg">
-                  <CheckCircle className="h-5 w-5 text-green-600" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+              <Card className="bg-white border border-gray-200">
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-gray-600 mb-1">Contract Ready</p>
+                      <p className="text-2xl font-bold text-gray-900">
+                        {filteredLeads.filter(lead => lead.status === 'qualified' && lead.contractReady).length}
+                      </p>
+                      <p className="text-xs text-gray-500">Ready for contract initiation</p>
+                    </div>
+                    <div className="flex items-center justify-center w-10 h-10 bg-green-100 rounded-lg">
+                      <CheckCircle className="h-5 w-5 text-green-600" />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
 
-          <Card className="bg-white border border-gray-200">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600 mb-1">Avg Deal Size</p>
-                  <p className="text-2xl font-bold text-gray-900">
-                    {(() => {
-                      const qualifiedLeads = filteredLeads.filter(lead => lead.status === 'qualified');
-                      if (qualifiedLeads.length === 0) return '$0K';
-                      const avgValue = qualifiedLeads.reduce((sum, lead) => {
-                        const value = parseInt(lead.travelBudget.replace(/[^0-9]/g, '')) || 0;
-                        return sum + value;
-                      }, 0) / qualifiedLeads.length;
-                      return `$${Math.round(avgValue)}K`;
-                    })()}
-                  </p>
-                  <p className="text-xs text-gray-500">Average qualified deal value</p>
-                </div>
-                <div className="flex items-center justify-center w-10 h-10 bg-yellow-100 rounded-lg">
-                  <DollarSign className="h-5 w-5 text-yellow-600" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+              <Card className="bg-white border border-gray-200">
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-gray-600 mb-1">Avg Deal Size</p>
+                      <p className="text-2xl font-bold text-gray-900">
+                        {(() => {
+                          const qualifiedLeads = filteredLeads.filter(lead => lead.status === 'qualified');
+                          if (qualifiedLeads.length === 0) return '$0K';
+                          const avgValue = qualifiedLeads.reduce((sum, lead) => {
+                            const value = parseInt(lead.travelBudget.replace(/[^0-9]/g, '')) || 0;
+                            return sum + value;
+                          }, 0) / qualifiedLeads.length;
+                          return `$${Math.round(avgValue)}K`;
+                        })()}
+                      </p>
+                      <p className="text-xs text-gray-500">Average qualified deal value</p>
+                    </div>
+                    <div className="flex items-center justify-center w-10 h-10 bg-yellow-100 rounded-lg">
+                      <DollarSign className="h-5 w-5 text-yellow-600" />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
 
-          <Card className="bg-white border border-gray-200">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600 mb-1">Conversion Rate</p>
-                  <p className="text-2xl font-bold text-gray-900">
-                    {(() => {
-                      const totalLeads = filteredLeads.length;
-                      const qualifiedLeads = filteredLeads.filter(lead => lead.status === 'qualified').length;
-                      return totalLeads > 0 ? `${Math.round((qualifiedLeads / totalLeads) * 100)}%` : '0%';
-                    })()}
-                  </p>
-                  <p className="text-xs text-gray-500">Qualified to contact rate</p>
-                </div>
-                <div className="flex items-center justify-center w-10 h-10 bg-purple-100 rounded-lg">
-                  <TrendingUp className="h-5 w-5 text-purple-600" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+              <Card className="bg-white border border-gray-200">
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-gray-600 mb-1">Conversion Rate</p>
+                      <p className="text-2xl font-bold text-gray-900">
+                        {(() => {
+                          const totalLeads = filteredLeads.length;
+                          const qualifiedLeads = filteredLeads.filter(lead => lead.status === 'qualified').length;
+                          return totalLeads > 0 ? `${Math.round((qualifiedLeads / totalLeads) * 100)}%` : '0%';
+                        })()}
+                      </p>
+                      <p className="text-xs text-gray-500">Qualified to contact rate</p>
+                    </div>
+                    <div className="flex items-center justify-center w-10 h-10 bg-purple-100 rounded-lg">
+                      <TrendingUp className="h-5 w-5 text-purple-600" />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </>
+          )}
         </div>
       </div>
 
@@ -639,8 +715,19 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
       </div>
 
       {/* Leads List */}
-      <div className="space-y-4">
-        {filteredLeads.map((lead) => (
+      {loading ? (
+        <div className="space-y-6">
+          <div className="flex items-center justify-center py-8">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600 mx-auto mb-4"></div>
+              <p className="text-muted-foreground">Loading leads...</p>
+            </div>
+          </div>
+          {renderLoadingCards()}
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {filteredLeads.map((lead) => (
           <Card key={lead.id} className="bg-white border border-gray-200 hover:shadow-md transition-shadow">
             <CardContent className="p-6">
               {/* Lead Header Row */}
@@ -861,7 +948,8 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
             </CardContent>
           </Card>
         ))}
-      </div>
+        </div>
+      )}
 
       {filteredLeads.length === 0 && (
         <div className="text-center py-12">
