@@ -1045,6 +1045,7 @@ html {
   color: #374151 !important;
   background: transparent !important;
   cursor: pointer !important;
+  border:none !important;
 }
 
 [data-radix-popper-content-wrapper] [data-slot="select-item"]:hover,

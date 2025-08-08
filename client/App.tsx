@@ -389,9 +389,9 @@ export default function App() {
       case "lead-management":
         return <LeadManagement onNavigate={navigateToSection} />;
       case 'leads-list':
-        return <AllLeads onNavigate={navigateToSection} />;
+        return <LeadsList onNavigate={navigateToSection} initialFilters={sectionFilters} />; 
       case 'all-leads':
-        return <LeadsList onNavigate={navigateToSection} initialFilters={sectionFilters} />;
+        return <AllLeads onNavigate={navigateToSection} />;
       case "qualified-leads":
         return (
           <LeadsList
