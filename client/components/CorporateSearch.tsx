@@ -456,7 +456,7 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
 
       // Navigate to leads if onNavigate is available
       if (onNavigate) {
-        onNavigate('leads', { 
+        onNavigate('leads-list', { 
           message: `${corporate.name} has been successfully moved to leads management`
         });
       }
