@@ -1332,7 +1332,7 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
                         <SelectValue placeholder="Select size category" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="startup">Startup (1-50)</SelectItem>
+                        <SelectItem value="startup">Starp (1-50)</SelectItem>
                         <SelectItem value="small">Small (51-200)</SelectItem>
                         <SelectItem value="medium">Medium (201-1000)</SelectItem>
                         <SelectItem value="large">Large (1001-5000)</SelectItem>
