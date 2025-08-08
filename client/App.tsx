@@ -126,7 +126,7 @@ export default function App() {
     ];
 
     // If navigating to AI Assistant, return base path
-    if (sectionsectionId === "ai-assistant") {
+    if (sectionId === "ai-assistant") {
       return basePath;
     }
 
@@ -364,10 +364,11 @@ export default function App() {
   // Function to get badge counts for different menu items
   const getBadgeCount = (itemId: string) => {
     const counts = {
-      "leads-list": 6, // Total leads count
+      // leads-list was removed as per the instruction
       "qualified-leads": 3, // Qualified leads count
       "unqualified-leads": 1, // Unqualified leads count
       opportunities: 5, // Opportunities count
+      "all-leads": 6, // Total leads count
     };
     return counts[itemId] || 0;
   };
@@ -596,12 +597,7 @@ export default function App() {
           icon: UsersIcon,
           description: "Complete lead management",
         },
-        {
-          id: "all-leads",
-          label: "All Leads",
-          icon: Users,
-          description: "All leads with advanced filtering",
-        },
+        // Removed duplicate "All Leads" entry
         {
           id: "qualified-leads",
           label: "Qualified Leads",
@@ -826,8 +822,7 @@ export default function App() {
                                     </div>
                                   </div>
                                   {/* Number badge for specific menu items */}
-                                  {(item.id === "leads-list" ||
-                                    item.id === "qualified-leads" ||
+                                  {(item.id === "qualified-leads" ||
                                     item.id === "unqualified-leads" ||
                                     item.id === "opportunities" ||
                                     item.id === "all-leads") && (
@@ -930,8 +925,7 @@ export default function App() {
                                 </div>
                               </div>
                               {/* Number badge for specific menu items */}
-                              {(item.id === "leads-list" ||
-                                item.id === "qualified-leads" ||
+                              {(item.id === "qualified-leads" ||
                                 item.id === "unqualified-leads" ||
                                 item.id === "opportunities") && (
                                 <Badge
