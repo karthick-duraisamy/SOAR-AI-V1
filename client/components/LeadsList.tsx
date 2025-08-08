@@ -247,7 +247,8 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
     try {
       setLoading(true);
       const apiLeads = await leadApi.getLeads();
-      const transformedLeads = apiLeads.map(transformApiLeadToUILead);
+      console.log('Fetched leads:', apiLeads);
+      const transformedLeads = apiLeads.results.map(transformApiLeadToUILead);
       setLeads(transformedLeads);
     } catch (error) {
       console.error('Error fetching leads:', error);
