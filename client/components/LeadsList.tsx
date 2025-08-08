@@ -15,6 +15,7 @@ import { ScrollArea } from './ui/scroll-area';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from './ui/dropdown-menu';
 import { OfferCreation } from './OfferCreation';
 import { MarketingCampaign } from './MarketingCampaign';
+import { useLeadApi } from '../hooks/api/useLeadApi';
 import { 
   Users, 
   UserCheck, 
@@ -86,401 +87,54 @@ interface LeadsListProps {
   onNavigate: (screen: string, filters?: any) => void;
 }
 
-const allLeadsData = [
-  {
-    id: 1,
-    company: 'TechCorp Solutions',
-    contact: 'Sarah Johnson',
-    title: 'Procurement Director',
-    email: 'sarah.johnson@techcorp.com',
-    phone: '+1 (555) 123-4567',
-    website: 'https://www.techcorpsolutions.com',
-    industry: 'Technology',
-    employees: 2500,
-    revenue: '$150M',
-    location: 'San Francisco, CA',
-    status: 'qualified',
-    score: 92,
-    source: 'LinkedIn',
-    lastContact: '2024-07-12',
-    nextAction: 'Schedule demo',
-    notes: 'Expressed strong interest in our enterprise solutions',
-    engagement: 'High',
-    travelBudget: '$450K',
-    decisionMaker: true,
-    urgency: 'High',
-    aiSuggestion: 'Schedule product demo within 3 days. High conversion probability.',
-    tags: ['Enterprise', 'High-Value', 'Decision Maker'],
-    contractReady: true,
-    lastActivity: '2024-07-12',
-    followUpDate: '2024-07-15',
-    assignedAgent: 'agent1',
+// Transform API lead data to match the component's expected format
+const transformApiLeadToUILead = (apiLead: any) => {
+  return {
+    id: apiLead.id,
+    company: apiLead.company?.name || 'Unknown Company',
+    contact: `${apiLead.contact?.first_name || ''} ${apiLead.contact?.last_name || ''}`.trim() || 'Unknown Contact',
+    title: apiLead.contact?.position || 'Unknown Position',
+    email: apiLead.contact?.email || 'unknown@email.com',
+    phone: apiLead.contact?.phone || 'N/A',
+    website: `https://www.${(apiLead.company?.name || 'company').toLowerCase().replace(/\s+/g, '')}.com`,
+    industry: apiLead.company?.industry || 'Unknown',
+    employees: apiLead.company?.size || 0,
+    revenue: `$${Math.floor(Math.random() * 1000)}M`, // Placeholder since not in API
+    location: apiLead.company?.location || 'Unknown Location',
+    status: apiLead.status || 'new',
+    score: apiLead.score || 50,
+    source: apiLead.source || 'Unknown',
+    lastContact: apiLead.created_at ? new Date(apiLead.created_at).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+    nextAction: apiLead.next_action || 'Follow up',
+    notes: apiLead.notes || '',
+    engagement: apiLead.score >= 80 ? 'High' : apiLead.score >= 60 ? 'Medium' : 'Low',
+    travelBudget: apiLead.estimated_value ? `$${Math.floor(apiLead.estimated_value / 1000)}K` : '$0K',
+    decisionMaker: Math.random() > 0.5, // Placeholder logic
+    urgency: apiLead.priority || 'Medium',
+    aiSuggestion: `AI Score: ${apiLead.score}. ${apiLead.score >= 80 ? 'High priority lead - contact immediately' : apiLead.score >= 60 ? 'Medium priority - follow up within 2 days' : 'Low priority - add to nurture campaign'}`,
+    tags: [apiLead.company?.industry || 'General', apiLead.status || 'New'],
+    contractReady: apiLead.status === 'qualified',
+    lastActivity: apiLead.updated_at ? new Date(apiLead.updated_at).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+    followUpDate: apiLead.next_action_date || new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+    assignedAgent: apiLead.assigned_to?.username || null,
     history: [
       {
         id: 1,
         type: 'note',
-        action: 'Lead created from LinkedIn outreach',
-        user: 'John Smith',
-        timestamp: '2024-07-08 09:15:00',
-        details: 'Initial contact made through LinkedIn connection. Showed immediate interest in enterprise solutions.',
+        action: 'Lead created',
+        user: 'System',
+        timestamp: apiLead.created_at || new Date().toISOString(),
+        details: apiLead.notes || 'Lead created in the system',
         icon: 'plus'
-      },
-      {
-        id: 2,
-        type: 'call',
-        action: 'Discovery call scheduled',
-        user: 'Sarah Wilson',
-        timestamp: '2024-07-09 14:30:00',
-        details: 'Scheduled 30-minute discovery call for July 10th. Discussed travel requirements and current pain points.',
-        icon: 'phone'
-      },
-      {
-        id: 3,
-        type: 'meeting',
-        action: 'Qualification meeting completed',
-        user: 'Mike Johnson',
-        timestamp: '2024-07-10 10:00:00',
-        details: 'Conducted qualification meeting with Sarah Johnson. Confirmed budget of $450K and decision-making authority.',
-        icon: 'calendar'
-      },
-      {
-        id: 4,
-        type: 'note',
-        action: 'Lead qualified as high-priority',
-        user: 'John Smith',
-        timestamp: '2024-07-11 16:45:00',
-        details: 'Updated lead status to qualified based on meeting outcomes. High engagement and budget confirmation.',
-        icon: 'check'
-      },
-      {
-        id: 5,
-        type: 'email',
-        action: 'Follow-up email sent',
-        user: 'Sarah Wilson',
-        timestamp: '2024-07-12 08:20:00',
-        details: 'Sent follow-up email with enterprise solution overview and case studies. Awaiting response for demo scheduling.',
-        icon: 'mail'
       }
     ]
-  },
-  {
-    id: 2,
-    company: 'Global Manufacturing Ltd',
-    contact: 'Michael Chen',
-    title: 'Travel Manager',
-    email: 'mchen@globalmanuf.com',
-    phone: '+1 (555) 234-5678',
-    website: 'https://www.globalmanufacturing.com',
-    industry: 'Manufacturing',
-    employees: 5000,
-    revenue: '$500M',
-    location: 'Chicago, IL',
-    status: 'qualified',
-    score: 87,
-    source: 'Website',
-    lastContact: '2024-07-11',
-    nextAction: 'Send proposal',
-    notes: 'Looking to optimize travel costs for manufacturing sites',
-    engagement: 'High',
-    travelBudget: '$320K',
-    decisionMaker: false,
-    urgency: 'Medium',
-    aiSuggestion: 'Send detailed cost comparison proposal. Mention case studies.',
-    tags: ['Manufacturing', 'Cost-Focused', 'Multi-Location'],
-    contractReady: true,
-    lastActivity: '2024-07-11',
-    followUpDate: '2024-07-14',
-    assignedAgent: 'agent2',
-    history: [
-      {
-        id: 1,
-        type: 'note',
-        action: 'Lead created from website inquiry',
-        user: 'Alice Brown',
-        timestamp: '2024-07-05 11:30:00',
-        details: 'Inbound inquiry from website contact form. Interested in cost optimization for multi-location travel.',
-        icon: 'plus'
-      },
-      {
-        id: 2,
-        type: 'call',
-        action: 'Initial qualification call',
-        user: 'Robert Davis',
-        timestamp: '2024-07-06 15:45:00',
-        details: 'Spoke with Michael Chen about current travel program. Identified pain points in cost management.',
-        icon: 'phone'
-      },
-      {
-        id: 3,
-        type: 'note',
-        action: 'Proposal preparation initiated',
-        user: 'Alice Brown',
-        timestamp: '2024-07-11 09:00:00',
-        details: 'Started preparing detailed cost comparison proposal with manufacturing-specific case studies.',
-        icon: 'file'
-      }
-    ]
-  },
-  {
-    id: 3,
-    company: 'Innovation Partners',
-    contact: 'Lisa Wang',
-    title: 'Operations VP',
-    email: 'lwang@innovpartners.com',
-    phone: '+1 (555) 345-6789',
-    website: 'https://www.innovationpartners.com',
-    industry: 'Consulting',
-    employees: 800,
-    revenue: '$80M',
-    location: 'New York, NY',
-    status: 'contacted',
-    score: 78,
-    source: 'Referral',
-    lastContact: '2024-07-10',
-    nextAction: 'Follow up call',
-    notes: 'Interested but needs board approval for travel policy changes',
-    engagement: 'Medium',
-    travelBudget: '$280K',
-    decisionMaker: false,
-    urgency: 'Low',
-    aiSuggestion: 'Prepare board presentation materials. Follow up in 2 days.',
-    tags: ['Consulting', 'Board Approval', 'ROI-Focused'],
-    contractReady: false,
-    lastActivity: '2024-07-10',
-    followUpDate: '2024-07-12',
-    history: [
-      {
-        id: 1,
-        type: 'note',
-        action: 'Lead created from referral',
-        user: 'Tom Wilson',
-        timestamp: '2024-07-08 14:20:00',
-        details: 'Referral from existing client. Consulting firm looking for travel policy optimization.',
-        icon: 'plus'
-      },
-      {
-        id: 2,
-        type: 'email',
-        action: 'Introduction email sent',
-        user: 'Jennifer Lee',
-        timestamp: '2024-07-09 10:15:00',
-        details: 'Sent introduction email with company overview and initial solution framework.',
-        icon: 'mail'
-      },
-      {
-        id: 3,
-        type: 'call',
-        action: 'Discovery call completed',
-        user: 'Tom Wilson',
-        timestamp: '2024-07-10 16:30:00',
-        details: 'Discussed current travel policies and board approval requirements. Need to prepare ROI presentation.',
-        icon: 'phone'
-      }
-    ]
-  },
-  {
-    id: 4,
-    company: 'StartupFlow Inc',
-    contact: 'David Rodriguez',
-    title: 'CEO',
-    email: 'david@startupflow.com',
-    phone: '+1 (555) 456-7890',
-    website: 'https://www.startupflow.com',
-    industry: 'Technology',
-    employees: 150,
-    revenue: '$25M',
-    location: 'Austin, TX',
-    status: 'unqualified',
-    score: 45,
-    source: 'Cold Email',
-    lastContact: '2024-07-09',
-    nextAction: 'Nurture campaign',
-    notes: 'Too small for enterprise package, might fit SMB offering in 6 months',
-    engagement: 'Low',
-    travelBudget: '$45K',
-    decisionMaker: true,
-    urgency: 'Low',
-    aiSuggestion: 'Add to SMB nurture campaign. Follow up in Q4 for growth stage.',
-    tags: ['Startup', 'Future Prospect', 'SMB'],
-    contractReady: false,
-    lastActivity: '2024-07-09',
-    followUpDate: '2024-10-01',
-    history: [
-      {
-        id: 1,
-        type: 'note',
-        action: 'Lead created from cold email',
-        user: 'Mark Thompson',
-        timestamp: '2024-07-07 13:45:00',
-        details: 'Cold email outreach to tech startups. Initial response showed interest but limited budget.',
-        icon: 'plus'
-      },
-      {
-        id: 2,
-        type: 'call',
-        action: 'Qualification call completed',
-        user: 'Lisa Garcia',
-        timestamp: '2024-07-09 11:00:00',
-        details: 'Spoke with CEO David Rodriguez. Company too small for enterprise solution currently.',
-        icon: 'phone'
-      },
-      {
-        id: 3,
-        type: 'note',
-        action: 'Moved to nurture campaign',
-        user: 'Mark Thompson',
-        timestamp: '2024-07-09 15:20:00',
-        details: 'Added to SMB nurture campaign for future follow-up when company grows.',
-        icon: 'archive'
-      }
-    ]
-  },
-  {
-    id: 5,
-    company: 'MegaCorp Enterprises',
-    contact: 'Jennifer Smith',
-    title: 'Procurement Manager',
-    email: 'jsmith@megacorp.com',
-    phone: '+1 (555) 567-8901',
-    website: 'https://www.megacorpenterprises.com',
-    industry: 'Financial Services',
-    employees: 12000,
-    revenue: '$2.5B',
-    location: 'Boston, MA',
-    status: 'qualified',
-    score: 95,
-    source: 'Trade Show',
-    lastContact: '2024-07-13',
-    nextAction: 'Contract negotiation',
-    notes: 'Ready to move forward with pilot program for 500 employees',
-    engagement: 'Very High',
-    travelBudget: '$1.2M',
-    decisionMaker: true,
-    urgency: 'High',
-    aiSuggestion: 'Prepare contract terms. Emphasize pilot success metrics.',
-    tags: ['Enterprise', 'Pilot Ready', 'High-Value'],
-    contractReady: true,
-    lastActivity: '2024-07-13',
-    followUpDate: '2024-07-16',
-    assignedAgent: 'agent4',
-    history: [
-      {
-        id: 1,
-        type: 'note',
-        action: 'Lead created from trade show',
-        user: 'Amanda Clark',
-        timestamp: '2024-07-01 10:30:00',
-        details: 'Met at Travel Industry Trade Show. Showed high interest in enterprise solutions.',
-        icon: 'plus'
-      },
-      {
-        id: 2,
-        type: 'meeting',
-        action: 'Trade show demo completed',
-        user: 'David Kim',
-        timestamp: '2024-07-01 14:15:00',
-        details: 'Conducted live demo at trade show booth. Very positive response from procurement team.',
-        icon: 'presentation'
-      },
-      {
-        id: 3,
-        type: 'call',
-        action: 'Follow-up call scheduled',
-        user: 'Amanda Clark',
-        timestamp: '2024-07-02 09:45:00',
-        details: 'Scheduled follow-up call for detailed requirements gathering.',
-        icon: 'phone'
-      },
-      {
-        id: 4,
-        type: 'meeting',
-        action: 'Requirements meeting completed',
-        user: 'David Kim',
-        timestamp: '2024-07-05 11:00:00',
-        details: 'Detailed requirements meeting with procurement team. Confirmed pilot program interest.',
-        icon: 'calendar'
-      },
-      {
-        id: 5,
-        type: 'demo',
-        action: 'Custom demo delivered',
-        user: 'Amanda Clark',
-        timestamp: '2024-07-10 15:30:00',
-        details: 'Delivered custom demo showcasing enterprise features. Excellent feedback received.',
-        icon: 'presentation'
-      },
-      {
-        id: 6,
-        type: 'note',
-        action: 'Pilot program approved',
-        user: 'David Kim',
-        timestamp: '2024-07-13 10:00:00',
-        details: 'Received approval for pilot program with 500 employees. Ready for contract negotiations.',
-        icon: 'check'
-      }
-    ]
-  },
-  {
-    id: 6,
-    company: 'RegionalBank Corp',
-    contact: 'Robert Kim',
-    title: 'Admin Director',
-    email: 'rkim@regionalbank.com',
-    phone: '+1 (555) 678-9012',
-    website: 'https://www.regionalbankco.com',
-    industry: 'Banking',
-    employees: 3200,
-    revenue: '$800M',
-    location: 'Denver, CO',
-    status: 'contacted',
-    score: 72,
-    source: 'Email Campaign',
-    lastContact: '2024-07-08',
-    nextAction: 'Send information packet',
-    notes: 'Requested detailed pricing and compliance documentation',
-    engagement: 'Medium',
-    travelBudget: '$180K',
-    decisionMaker: false,
-    urgency: 'Medium',
-    aiSuggestion: 'Send compliance materials. Schedule call with decision makers.',
-    tags: ['Banking', 'Compliance-Focused', 'Documentation'],
-    contractReady: false,
-    lastActivity: '2024-07-08',
-    followUpDate: '2024-07-11',
-    history: [
-      {
-        id: 1,
-        type: 'note',
-        action: 'Lead created from email campaign',
-        user: 'Rachel Green',
-        timestamp: '2024-07-06 12:00:00',
-        details: 'Responded to email campaign about banking compliance solutions.',
-        icon: 'plus'
-      },
-      {
-        id: 2,
-        type: 'email',
-        action: 'Initial response received',
-        user: 'Rachel Green',
-        timestamp: '2024-07-07 09:30:00',
-        details: 'Received inquiry about compliance documentation and pricing details.',
-        icon: 'mail'
-      },
-      {
-        id: 3,
-        type: 'call',
-        action: 'Information gathering call',
-        user: 'Steven Brown',
-        timestamp: '2024-07-08 14:45:00',
-        details: 'Discussed compliance requirements and requested detailed documentation package.',
-        icon: 'phone'
-      }
-    ]
-  }
-];
+  };
+};
 
 export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
-  const [leads, setLeads] = useState(allLeadsData);
+  const [leads, setLeads] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const leadApi = useLeadApi();
   const [successMessage, setSuccessMessage] = useState('');
   const [selectedLead, setSelectedLead] = useState(null);
   const [showContactDialog, setShowContactDialog] = useState(false);
@@ -588,8 +242,26 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
     { id: 'agent8', name: 'Rachel Green', email: 'rachel.green@soarai.com', specialties: ['Insurance', 'Real Estate'], currentLeads: 11 }
   ];
 
+  // Fetch leads from API
+  const fetchLeads = async () => {
+    try {
+      setLoading(true);
+      const apiLeads = await leadApi.getLeads();
+      const transformedLeads = apiLeads.map(transformApiLeadToUILead);
+      setLeads(transformedLeads);
+    } catch (error) {
+      console.error('Error fetching leads:', error);
+      toast.error('Failed to fetch leads');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Apply initial filters when component mounts or initialFilters change
   useEffect(() => {
+    // Fetch leads on component mount
+    fetchLeads();
+
     if (initialFilters) {
       setFilters(prev => ({
         ...prev,
@@ -605,7 +277,7 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
           title: initialFilters.newLead.title || 'Decision Maker',
           email: initialFilters.newLead.email,
           phone: initialFilters.newLead.phone,
-          website: initialFilters.newLead.website || `https://wwwwww.techcorpsolutions.com${initialFilters.newLead.company.toLowerCase().replace(/\s+/g, '')}.com`,
+          website: initialFilters.newLead.website || `https://www.${initialFilters.newLead.company.toLowerCase().replace(/\s+/g, '')}.com`,
           industry: initialFilters.newLead.industry,
           employees: initialFilters.newLead.employees,
           revenue: initialFilters.newLead.revenue,
@@ -1247,6 +919,32 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
     setTimeout(() => setSuccessMessage(''), 5000);
   };
 
+  // Loading state
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600 mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading leads...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Error state
+  if (leadApi.error) {
+    return (
+      <div className="text-center py-8">
+        <AlertTriangle className="h-12 w-12 mx-auto mb-4 text-red-500" />
+        <p className="text-red-600 mb-4">Error: {leadApi.error}</p>
+        <Button onClick={fetchLeads}>
+          <RefreshCw className="h-4 w-4 mr-2" />
+          Try Again
+        </Button>
+      </div>
+    );
+  }
+
   // If we're showing offer creation, render that component instead
   if (showOfferCreation && selectedLead) {
     return (
@@ -1269,67 +967,63 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
     );
   }
 
-  const handleCreateNewLead = () => {
-    const newLead = {
-      id: Math.max(...leads.map(l => l.id)) + 1,
-      company: newLeadForm.company,
-      contact: newLeadForm.contact,
-      title: newLeadForm.title,
-      email: newLeadForm.email,
-      phone: newLeadForm.phone,
-      industry: newLeadForm.industry,
-      employees: parseInt(newLeadForm.employees) || 0,
-      revenue: newLeadForm.revenue,
-      location: newLeadForm.location,
-      status: newLeadForm.status,
-      score: 50, // Default score for new leads
-      source: newLeadForm.source,
-      lastContact: new Date().toISOString().split('T')[0],
-      nextAction: 'Initial contact',
-      notes: newLeadForm.notes,
-      engagement: 'Low',
-      travelBudget: newLeadForm.travelBudget,
-      decisionMaker: newLeadForm.decisionMaker,
-      urgency: 'Medium',
-      aiSuggestion: 'New lead requires initial qualification and outreach.',
-      tags: newLeadForm.tags,
-      contractReady: false,
-      lastActivity: new Date().toISOString().split('T')[0],
-      followUpDate: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-      history: [
-        {
-          id: 1,
-          type: 'note',
-          action: 'Lead created manually',
-          user: 'Current User',
-          timestamp: new Date().toISOString().split('T')[0] + ' ' + new Date().toTimeString().split(' ')[0],
-          details: newLeadForm.notes || 'Lead created manually through the system',
-          icon: 'plus'
-        }
-      ]
-    };
+  const handleCreateNewLead = async () => {
+    try {
+      // Prepare API data structure
+      const leadData = {
+        company: {
+          name: newLeadForm.company,
+          industry: newLeadForm.industry,
+          location: newLeadForm.location,
+          size: parseInt(newLeadForm.employees) || 0
+        },
+        contact: {
+          first_name: newLeadForm.contact.split(' ')[0] || newLeadForm.contact,
+          last_name: newLeadForm.contact.split(' ').slice(1).join(' ') || '',
+          email: newLeadForm.email,
+          phone: newLeadForm.phone,
+          position: newLeadForm.title
+        },
+        status: newLeadForm.status,
+        source: newLeadForm.source,
+        priority: 'medium',
+        score: 50,
+        estimated_value: newLeadForm.travelBudget ? parseInt(newLeadForm.travelBudget.replace(/[^0-9]/g, '')) * 1000 : null,
+        notes: newLeadForm.notes,
+        next_action: 'Initial contact'
+      };
 
-    setLeads([newLead, ...leads]);
-    setShowNewLeadDialog(false);
-    setSuccessMessage(`New lead "${newLeadForm.company}" has been created successfully with status: ${newLeadForm.status}`);
-    setTimeout(() => setSuccessMessage(''), 5000);
-    setNewLeadForm({
-      company: '',
-      contact: '',
-      title: '',
-      email: '',
-      phone: '',
-      industry: '',
-      employees: '',
-      revenue: '',
-      location: '',
-      source: '',
-      status: 'new',
-      travelBudget: '',
-      decisionMaker: false,
-      notes: '',
-      tags: []
-    });
+      const createdLead = await leadApi.createLead(leadData);
+      
+      // Refresh the leads list to include the new lead
+      await fetchLeads();
+      
+      setShowNewLeadDialog(false);
+      setSuccessMessage(`New lead "${newLeadForm.company}" has been created successfully with status: ${newLeadForm.status}`);
+      setTimeout(() => setSuccessMessage(''), 5000);
+      
+      // Reset form
+      setNewLeadForm({
+        company: '',
+        contact: '',
+        title: '',
+        email: '',
+        phone: '',
+        industry: '',
+        employees: '',
+        revenue: '',
+        location: '',
+        source: '',
+        status: 'new',
+        travelBudget: '',
+        decisionMaker: false,
+        notes: '',
+        tags: []
+      });
+    } catch (error) {
+      console.error('Error creating lead:', error);
+      toast.error('Failed to create lead. Please try again.');
+    }
   };
 
   const handleSendContact = () => {
