@@ -213,8 +213,8 @@ export function AllLeads({ onNavigate }: AllLeadsProps) {
     e.preventDefault();
 
     // Validate required fields
-    if (!newLeadForm.companyName.trim() || !newLeadForm.firstName.trim() || !newLeadForm.email.trim()) {
-      toast.error('Please fill in all required fields (Company Name, First Name, and Email)');
+    if (!newLeadForm.companyName.trim() || !newLeadForm.firstName.trim() || !newLeadForm.email.trim() || !newLeadForm.industry.trim()) {
+      toast.error('Please fill in all required fields (Company Name, First Name, Email, and Industry)');
       return;
     }
 
@@ -245,10 +245,10 @@ export function AllLeads({ onNavigate }: AllLeadsProps) {
       };
 
       const newLead = await leadApi.createLead(leadData);
-      
+
       // Add to leads list
       setLeads(prev => [newLead, ...prev]);
-      
+
       // Reset form
       setNewLeadForm({
         companyName: '',
@@ -269,10 +269,10 @@ export function AllLeads({ onNavigate }: AllLeadsProps) {
         notes: '',
         isDecisionMaker: false
       });
-      
+
       setShowNewLeadDialog(false);
       toast.success('Lead added successfully!');
-      
+
     } catch (err) {
       toast.error('Failed to add lead. Please try again.');
       console.error('Error creating lead:', err);
@@ -713,12 +713,13 @@ export function AllLeads({ onNavigate }: AllLeadsProps) {
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="industry" className="text-right">
-                  Industry
+                  Industry *
                 </Label>
                 <Select 
                   name="industry" 
                   value={newLeadForm.industry} 
                   onValueChange={(value) => setNewLeadForm(prev => ({...prev, industry: value}))}
+                  required
                 >
                   <SelectTrigger className="col-span-3 border-gray-300">
                     <SelectValue placeholder="Select industry" />

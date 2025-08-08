@@ -137,6 +137,8 @@ export const useLeadApi = () => {
     setError(null);
 
     try {
+      console.log('Creating lead with data:', leadData);
+      
       const response: AxiosResponse<Lead> = await axios.post(
         `${API_BASE_URL}/leads/`,
         leadData,
@@ -147,10 +149,18 @@ export const useLeadApi = () => {
         }
       );
       
+      console.log('Lead creation response:', response.data);
       setData(response.data);
       return response.data;
     } catch (error: any) {
-      const errorMessage = error.response?.data?.detail || error.message || 'Failed to create lead';
+      console.error('Lead creation error:', error);
+      console.error('Error response:', error.response?.data);
+      
+      const errorMessage = error.response?.data?.error || 
+                          error.response?.data?.detail || 
+                          error.response?.data?.message ||
+                          error.message || 
+                          'Failed to create lead';
       setError(errorMessage);
       throw error;
     } finally {
