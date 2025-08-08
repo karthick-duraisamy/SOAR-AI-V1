@@ -1,4 +1,3 @@
-
 import { useState, useCallback } from 'react';
 import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
 
@@ -58,7 +57,7 @@ export const useCompanyApi = () => {
           },
         }
       );
-      
+
       setData(response.data);
       return response.data;
     } catch (error: any) {
@@ -79,7 +78,7 @@ export const useCompanyApi = () => {
       const response: AxiosResponse<Company[]> = await axios.get(
         `${API_BASE_URL}/companies/`
       );
-      
+
       setData(response.data);
       return response.data;
     } catch (error: any) {
@@ -100,7 +99,7 @@ export const useCompanyApi = () => {
       const response: AxiosResponse<Company> = await axios.get(
         `${API_BASE_URL}/companies/${id}/`
       );
-      
+
       setData(response.data);
       return response.data;
     } catch (error: any) {
@@ -127,7 +126,7 @@ export const useCompanyApi = () => {
           },
         }
       );
-      
+
       setData(response.data);
       return response.data;
     } catch (error: any) {
@@ -154,7 +153,7 @@ export const useCompanyApi = () => {
           },
         }
       );
-      
+
       setData(response.data);
       return response.data;
     } catch (error: any) {
@@ -184,13 +183,43 @@ export const useCompanyApi = () => {
     }
   }, [setLoading, setError, setData]);
 
+  // Create new lead from corporate data
+  const createLead = useCallback(async (leadData: any) => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const response: AxiosResponse<any> = await axios.post(
+        `${API_BASE_URL}/leads/`,
+        leadData,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+
+      setData(response.data);
+      return response.data;
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.error || 
+                          error.response?.data?.detail || 
+                          error.message || 
+                          'Failed to create lead';
+      setError(errorMessage);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  }, [setLoading, setError, setData]);
+
   return {
     ...state,
     searchCompanies,
-    getCompanies,
     getCompanyById,
     createCompany,
     updateCompany,
     deleteCompany,
+    createLead,
   };
 };

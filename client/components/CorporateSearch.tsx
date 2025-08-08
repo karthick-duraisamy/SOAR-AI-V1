@@ -413,41 +413,59 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
     setShowCorporateProfile(true);
   };
 
-  const handleMoveAsLead = (corporate) => {
-    // Convert corporate data to lead format
-    const leadData = {
-      company: corporate.name,
-      contact: 'Contact Name', // Would be extracted from corporate data or user input
-      title: 'Decision Maker',
-      email: corporate.email,
-      phone: corporate.phone,
-      industry: corporate.industry,
-      employees: corporate.employees,
-      revenue: `$${corporate.revenue / 1000000}M`,
-      location: corporate.location,
-      source: 'Corporate Search',
-      travelBudget: `$${corporate.travelBudget}`,
-      decisionMaker: true,
-      notes: `Moved from corporate search. AI Score: ${corporate.aiScore}. ${corporate.aiRecommendation}`,
-      tags: ['Corporate Search', 'High Priority', corporate.companySize],
-      aiScore: corporate.aiScore,
-      contractValue: corporate.contractValue,
-      specialties: corporate.specialties,
-      travelFrequency: corporate.travelFrequency,
-      destinations: corporate.destinations,
-      preferredClass: corporate.preferredClass,
-      sustainabilityFocus: corporate.sustainabilityFocus,
-      technologyIntegration: corporate.technologyIntegration
-    };
+  const handleMoveAsLead = async (corporate) => {
+    try {
+      // Prepare the lead data in the format expected by the Django backend
+      const leadData = {
+        company: {
+          name: corporate.name,
+          industry: corporate.industry === 'Technology & Software' ? 'technology' : 
+                   corporate.industry === 'Finance & Banking' ? 'finance' :
+                   corporate.industry === 'Business Services' ? 'consulting' : 'other',
+          location: corporate.location,
+          size: corporate.companySize?.toLowerCase() || 'medium',
+          annual_revenue: corporate.revenue || null,
+          travel_budget: corporate.contractValue || null,
+          employee_count: corporate.employees || null
+        },
+        contact: {
+          first_name: 'Contact', // Default contact info - would be better to get from user input
+          last_name: 'Person',
+          email: corporate.email,
+          phone: corporate.phone || '',
+          position: 'Decision Maker',
+          is_decision_maker: true
+        },
+        status: 'new',
+        source: 'corporate_search',
+        priority: corporate.aiScore >= 80 ? 'high' : corporate.aiScore >= 60 ? 'medium' : 'low',
+        score: corporate.aiScore,
+        estimated_value: corporate.contractValue || null,
+        notes: `Moved from corporate search. AI Score: ${corporate.aiScore}. ${corporate.aiRecommendation}. Specialties: ${corporate.specialties?.join(', ') || 'N/A'}. Travel Frequency: ${corporate.travelFrequency || 'N/A'}. Preferred Class: ${corporate.preferredClass || 'N/A'}.`
+      };
 
-    // Add to moved leads tracking
-    setMovedAsLeadIds(prev => new Set([...prev, corporate.id]));
+      // Call the API to create the lead
+      const createdLead = await companyApi.createLead(leadData);
 
-    // Navigate to leads with the new lead data
-    onNavigate('leads', { 
-      newLead: leadData,
-      message: `${corporate.name} has been successfully moved to leads management`
-    });
+      // Add to moved leads tracking
+      setMovedAsLeadIds(prev => new Set([...prev, corporate.id]));
+
+      // Show success message
+      setSuccessMessage(`${corporate.name} has been successfully moved to leads management`);
+      setTimeout(() => setSuccessMessage(''), 5000);
+
+      // Navigate to leads if onNavigate is available
+      if (onNavigate) {
+        onNavigate('leads', { 
+          message: `${corporate.name} has been successfully moved to leads management`
+        });
+      }
+
+    } catch (error) {
+      console.error('Error moving corporate as lead:', error);
+      setSuccessMessage(`Error: Failed to move ${corporate.name} as lead. Please try again.`);
+      setTimeout(() => setSuccessMessage(''), 5000);
+    }
   };
 
   const handleBackToSearch = () => {
