@@ -392,20 +392,20 @@ export default function App() {
         return <LeadsList onNavigate={navigateToSection} initialFilters={sectionFilters} />; 
       case 'all-leads':
         return <AllLeads onNavigate={navigateToSection} />;
-      case "qualified-leads":
-        return (
-          <LeadsList
-            initialFilters={{ ...sectionFilters, status: "qualified" }}
-            onNavigate={navigateToSection}
-          />
-        );
-      case "unqualified-leads":
-        return (
-          <LeadsList
-            initialFilters={{ ...sectionFilters, status: "unqualified" }}
-            onNavigate={navigateToSection}
-          />
-        );
+      // case "qualified-leads":
+      //   return (
+      //     <LeadsList
+      //       initialFilters={{ ...sectionFilters, status: "qualified" }}
+      //       onNavigate={navigateToSection}
+      //     />
+      //   );
+      // case "unqualified-leads":
+      //   return (
+      //     <LeadsList
+      //       initialFilters={{ ...sectionFilters, status: "unqualified" }}
+      //       onNavigate={navigateToSection}
+      //     />
+      //   );
       case "email-campaigns":
         return <EmailCampaigns onNavigate={navigateToSection} />;
       case "opportunities":
@@ -598,18 +598,18 @@ export default function App() {
           description: "Complete lead management",
         },
         // Removed duplicate "All Leads" entry
-        {
-          id: "qualified-leads",
-          label: "Qualified Leads",
-          icon: UserCheck,
-          description: "High-potential prospects",
-        },
-        {
-          id: "unqualified-leads",
-          label: "Unqualified Leads",
-          icon: UserX,
-          description: "Nurturing opportunities",
-        },
+        // {
+        //   id: "qualified-leads",
+        //   label: "Qualified Leads",
+        //   icon: UserCheck,
+        //   description: "High-potential prospects",
+        // },
+        // {
+        //   id: "unqualified-leads",
+        //   label: "Unqualified Leads",
+        //   icon: UserX,
+        //   description: "Nurturing opportunities",
+        // },
         {
           id: "email-campaigns",
           label: "Email Campaigns",
