@@ -246,8 +246,8 @@ export function AllLeads({ onNavigate }: AllLeadsProps) {
 
       const newLead = await leadApi.createLead(leadData);
 
-      // Add to leads list
-      setLeads(prev => [newLead, ...prev]);
+      // Refresh the leads list from the server to ensure consistency
+      await fetchLeads();
 
       // Reset form
       setNewLeadForm({
