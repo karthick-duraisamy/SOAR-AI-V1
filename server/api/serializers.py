@@ -69,18 +69,42 @@ class ContactSerializer(serializers.ModelSerializer):
         return f"{obj.first_name} {obj.last_name}"
 
 class LeadSerializer(serializers.ModelSerializer):
-    company_name = serializers.CharField(source='company.name', read_only=True)
-    contact_name = serializers.CharField(source='contact.first_name', read_only=True)
-    contact_full_name = serializers.SerializerMethodField()
-    assigned_to_name = serializers.CharField(source='assigned_to.username', read_only=True)
+    company = serializers.SerializerMethodField()
+    contact = serializers.SerializerMethodField()
+    assigned_to = serializers.SerializerMethodField()
     days_since_created = serializers.SerializerMethodField()
     
     class Meta:
         model = Lead
         fields = '__all__'
     
-    def get_contact_full_name(self, obj):
-        return f"{obj.contact.first_name} {obj.contact.last_name}"
+    def get_company(self, obj):
+        return {
+            'id': obj.company.id,
+            'name': obj.company.name,
+            'industry': obj.company.industry,
+            'location': obj.company.location,
+        }
+    
+    def get_contact(self, obj):
+        return {
+            'id': obj.contact.id,
+            'first_name': obj.contact.first_name,
+            'last_name': obj.contact.last_name,
+            'email': obj.contact.email,
+            'phone': obj.contact.phone,
+            'position': obj.contact.position,
+        }
+    
+    def get_assigned_to(self, obj):
+        if obj.assigned_to:
+            return {
+                'id': obj.assigned_to.id,
+                'username': obj.assigned_to.username,
+                'first_name': obj.assigned_to.first_name,
+                'last_name': obj.assigned_to.last_name,
+            }
+        return None
     
     def get_days_since_created(self, obj):
         from django.utils import timezone

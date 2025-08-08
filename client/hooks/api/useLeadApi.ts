@@ -12,22 +12,44 @@ interface ApiState<T> {
 
 interface Lead {
   id: number;
-  company: string;
-  contact: string;
-  title: string;
-  email: string;
-  phone: string;
-  industry: string;
-  employees: number;
-  revenue: string;
-  location: string;
-  source: string;
+  company: {
+    id: number;
+    name: string;
+    industry: string;
+    location: string;
+  };
+  contact: {
+    id: number;
+    first_name: string;
+    last_name: string;
+    email: string;
+    phone: string;
+    position: string;
+  };
   status: string;
+  source: string;
   priority: string;
+  score: number;
+  estimated_value: number | null;
   notes: string;
-  tags: string[];
+  assigned_to?: {
+    id: number;
+    username: string;
+    first_name: string;
+    last_name: string;
+  };
+  next_action: string;
+  next_action_date: string | null;
   created_at: string;
   updated_at: string;
+}
+
+interface LeadFilters {
+  search?: string;
+  status?: string;
+  industry?: string;
+  score?: string;
+  engagement?: string;
 }
 
 export const useLeadApi = () => {
@@ -50,20 +72,37 @@ export const useLeadApi = () => {
   }, []);
 
   // Get all leads
-  const getLeads = useCallback(async (filters?: any) => {
+  const getLeads = useCallback(async (filters?: LeadFilters) => {
     setLoading(true);
     setError(null);
 
     try {
+      const params = new URLSearchParams();
+      
+      if (filters?.search) {
+        params.append('search', filters.search);
+      }
+      if (filters?.status) {
+        params.append('status', filters.status);
+      }
+      if (filters?.industry) {
+        params.append('industry', filters.industry);
+      }
+      if (filters?.score) {
+        params.append('score', filters.score);
+      }
+      if (filters?.engagement) {
+        params.append('engagement', filters.engagement);
+      }
+
       const response: AxiosResponse<Lead[]> = await axios.get(
-        `${API_BASE_URL}/leads/`,
-        { params: filters }
+        `${API_BASE_URL}/leads/?${params.toString()}`
       );
       
       setData(response.data);
       return response.data;
     } catch (error: any) {
-      const errorMessage = error.response?.data?.message || error.message || 'Failed to fetch leads';
+      const errorMessage = error.response?.data?.detail || error.message || 'Failed to fetch leads';
       setError(errorMessage);
       throw error;
     } finally {
@@ -84,7 +123,7 @@ export const useLeadApi = () => {
       setData(response.data);
       return response.data;
     } catch (error: any) {
-      const errorMessage = error.response?.data?.message || error.message || 'Failed to fetch lead';
+      const errorMessage = error.response?.data?.detail || error.message || 'Failed to fetch lead';
       setError(errorMessage);
       throw error;
     } finally {
@@ -111,7 +150,7 @@ export const useLeadApi = () => {
       setData(response.data);
       return response.data;
     } catch (error: any) {
-      const errorMessage = error.response?.data?.message || error.message || 'Failed to create lead';
+      const errorMessage = error.response?.data?.detail || error.message || 'Failed to create lead';
       setError(errorMessage);
       throw error;
     } finally {
@@ -138,7 +177,7 @@ export const useLeadApi = () => {
       setData(response.data);
       return response.data;
     } catch (error: any) {
-      const errorMessage = error.response?.data?.message || error.message || 'Failed to update lead';
+      const errorMessage = error.response?.data?.detail || error.message || 'Failed to update lead';
       setError(errorMessage);
       throw error;
     } finally {
@@ -156,7 +195,80 @@ export const useLeadApi = () => {
       setData(null);
       return true;
     } catch (error: any) {
-      const errorMessage = error.response?.data?.message || error.message || 'Failed to delete lead';
+      const errorMessage = error.response?.data?.detail || error.message || 'Failed to delete lead';
+      setError(errorMessage);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  }, [setLoading, setError, setData]);
+
+  // Qualify lead
+  const qualifyLead = useCallback(async (id: number) => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const response = await axios.post(`${API_BASE_URL}/leads/${id}/qualify/`);
+      return response.data;
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.detail || error.message || 'Failed to qualify lead';
+      setError(errorMessage);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  }, [setLoading, setError]);
+
+  // Disqualify lead
+  const disqualifyLead = useCallback(async (id: number, reason?: string) => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const response = await axios.post(`${API_BASE_URL}/leads/${id}/disqualify/`, {
+        reason
+      });
+      return response.data;
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.detail || error.message || 'Failed to disqualify lead';
+      setError(errorMessage);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  }, [setLoading, setError]);
+
+  // Update lead score
+  const updateLeadScore = useCallback(async (id: number, score: number) => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const response = await axios.post(`${API_BASE_URL}/leads/${id}/update_score/`, {
+        score
+      });
+      return response.data;
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.detail || error.message || 'Failed to update lead score';
+      setError(errorMessage);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  }, [setLoading, setError]);
+
+  // Get pipeline stats
+  const getPipelineStats = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const response = await axios.get(`${API_BASE_URL}/leads/pipeline_stats/`);
+      setData(response.data);
+      return response.data;
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.detail || error.message || 'Failed to fetch pipeline stats';
       setError(errorMessage);
       throw error;
     } finally {
@@ -171,5 +283,9 @@ export const useLeadApi = () => {
     createLead,
     updateLead,
     deleteLead,
+    qualifyLead,
+    disqualifyLead,
+    updateLeadScore,
+    getPipelineStats,
   };
 };

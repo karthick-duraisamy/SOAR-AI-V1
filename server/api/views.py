@@ -161,8 +161,42 @@ class ContactViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
 class LeadViewSet(viewsets.ModelViewSet):
-    queryset = Lead.objects.all()
+    queryset = Lead.objects.select_related('company', 'contact', 'assigned_to').all()
     serializer_class = LeadSerializer
+    
+    def get_queryset(self):
+        queryset = self.queryset
+        
+        # Get query parameters
+        search = self.request.query_params.get('search', None)
+        status = self.request.query_params.get('status', None)
+        industry = self.request.query_params.get('industry', None)
+        score = self.request.query_params.get('score', None)
+        
+        # Apply filters
+        if search:
+            queryset = queryset.filter(
+                Q(company__name__icontains=search) |
+                Q(contact__first_name__icontains=search) |
+                Q(contact__last_name__icontains=search) |
+                Q(contact__email__icontains=search)
+            )
+        
+        if status:
+            queryset = queryset.filter(status=status)
+            
+        if industry:
+            queryset = queryset.filter(company__industry=industry)
+            
+        if score:
+            if score == 'high':
+                queryset = queryset.filter(score__gte=80)
+            elif score == 'medium':
+                queryset = queryset.filter(score__gte=60, score__lt=80)
+            elif score == 'low':
+                queryset = queryset.filter(score__lt=60)
+        
+        return queryset.order_by('-created_at')
 
     @action(detail=False, methods=['get'])
     def pipeline_stats(self, request):

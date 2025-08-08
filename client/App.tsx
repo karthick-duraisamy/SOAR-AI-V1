@@ -35,7 +35,8 @@ import { AIAssistant } from "./components/AIAssistant";
 import { Dashboard } from "./components/Dashboard";
 import { CorporateSearch } from "./components/CorporateSearch";
 import { LeadManagement } from "./components/LeadManagement";
-import { LeadsList } from "./components/LeadsList";
+import { LeadsList } from './components/LeadsList';
+import { AllLeads } from './components/AllLeads';
 import { EmailCampaigns } from "./components/EmailCampaigns";
 import { Opportunities } from "./components/Opportunities";
 import { RevenuePrediction } from "./components/RevenuePrediction";
@@ -125,7 +126,7 @@ export default function App() {
     ];
 
     // If navigating to AI Assistant, return base path
-    if (sectionId === "ai-assistant") {
+    if (sectionsectionId === "ai-assistant") {
       return basePath;
     }
 
@@ -386,14 +387,10 @@ export default function App() {
         );
       case "lead-management":
         return <LeadManagement onNavigate={navigateToSection} />;
-      case "leads-list":
-      case "leads":
-        return (
-          <LeadsList
-            initialFilters={sectionFilters}
-            onNavigate={navigateToSection}
-          />
-        );
+      case 'leads-list':
+        return <LeadsList onNavigate={navigateToSection} initialFilters={sectionFilters} />;
+      case 'all-leads':
+        return <AllLeads onNavigate={navigateToSection} />;
       case "qualified-leads":
         return (
           <LeadsList
@@ -472,6 +469,8 @@ export default function App() {
       case "leads-list":
       case "leads":
         return "All Leads";
+      case "all-leads":
+        return "All Leads";
       case "qualified-leads":
         return "Qualified Leads";
       case "unqualified-leads":
@@ -519,6 +518,8 @@ export default function App() {
         return "Lead pipeline management with qualification tracking";
       case "leads-list":
       case "leads":
+        return "Comprehensive lead list with status and suggestions";
+      case "all-leads":
         return "Comprehensive lead list with status and suggestions";
       case "qualified-leads":
         return "High-potential leads ready for conversion";
@@ -594,6 +595,12 @@ export default function App() {
           label: "All Leads",
           icon: UsersIcon,
           description: "Complete lead management",
+        },
+        {
+          id: "all-leads",
+          label: "All Leads",
+          icon: Users,
+          description: "All leads with advanced filtering",
         },
         {
           id: "qualified-leads",
@@ -822,7 +829,8 @@ export default function App() {
                                   {(item.id === "leads-list" ||
                                     item.id === "qualified-leads" ||
                                     item.id === "unqualified-leads" ||
-                                    item.id === "opportunities") && (
+                                    item.id === "opportunities" ||
+                                    item.id === "all-leads") && (
                                     <Badge
                                       className="bg-[#FD9646] text-white text-xs font-medium px-2 py-0.5 rounded-full flex-shrink-0"
                                       style={{
