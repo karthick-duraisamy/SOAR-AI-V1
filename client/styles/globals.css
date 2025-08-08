@@ -1221,7 +1221,10 @@ html {
   .border{
     border-color:#cccc
   }
-  
+
+  [data-slot="alert"] {
+    grid-template-columns: auto 1fr !important;
+  }
   
   /* Ensure disabled elements show default cursor */
   button:disabled,

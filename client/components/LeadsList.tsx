@@ -414,11 +414,11 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
 
       {/* Metrics Cards Section - Moved to top */}
       <div className="mb-6">
-        <div className="flex items-center justify-between mb-4">
-          <div>
+        <div className="flex items-center justify-end  mb-4">
+          {/* <div>
             <h2 className="text-lg font-semibold text-gray-900">Qualified Leads</h2>
             <p className="text-sm text-gray-600">High-potential leads ready for offer creation and contract initiation</p>
-          </div>
+          </div> */}
           <div className="flex items-center gap-3">
             <Button variant="outline" className="text-gray-700 border-gray-300 hover:bg-gray-50">
               <Download className="h-4 w-4 mr-2" />
@@ -527,8 +527,19 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
       <Card className="mb-6 bg-white border border-gray-200">
         <CardContent className="p-4">
           <div className="flex items-center gap-2 mb-4">
-            <Filter className="h-4 w-4 text-gray-500" />
-            <span className="text-sm font-medium text-gray-700">Lead Filters</span>
+            <div className="flex items-center gap-2 ">
+              <Filter className="h-4 w-4 text-gray-500" />
+              <span className="text-sm font-medium text-gray-700 justify-space-between">Lead Filters</span>
+            </div>            
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="text-gray-600 border-gray-300"
+              onClick={() => setFilters({ status: 'all', industry: 'all', score: 'all', engagement: 'all', search: '' })}
+            >
+              Clear Filters
+            </Button>
+            
           </div>
           <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
             <div>
@@ -607,16 +618,7 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
               </Select>
             </div>
           </div>
-          <div className="flex justify-end mt-4">
-            <Button 
-              variant="outline" 
-              size="sm" 
-              className="text-gray-600 border-gray-300"
-              onClick={() => setFilters({ status: 'all', industry: 'all', score: 'all', engagement: 'all', search: '' })}
-            >
-              Clear Filters
-            </Button>
-          </div>
+        
         </CardContent>
       </Card>
 
