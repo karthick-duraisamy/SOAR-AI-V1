@@ -969,37 +969,50 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
 
   const handleCreateNewLead = async () => {
     try {
-      // Prepare API data structure
+      // Validate required fields
+      if (!newLeadForm.company || !newLeadForm.contact || !newLeadForm.email || !newLeadForm.industry) {
+        toast.error('Please fill in all required fields (Company, Contact, Email, and Industry)');
+        return;
+      }
+
+      // Prepare API data structure to match the backend expectations
       const leadData = {
         company: {
           name: newLeadForm.company,
           industry: newLeadForm.industry,
-          location: newLeadForm.location,
-          size: parseInt(newLeadForm.employees) || 0
+          location: newLeadForm.location || '',
+          size: newLeadForm.employees ? 'medium' : 'startup', // Map to backend size choices
+          annual_revenue: newLeadForm.revenue ? parseFloat(newLeadForm.revenue.replace(/[^0-9.]/g, '')) : null,
+          travel_budget: newLeadForm.travelBudget ? parseFloat(newLeadForm.travelBudget.replace(/[^0-9.]/g, '')) : null
         },
         contact: {
           first_name: newLeadForm.contact.split(' ')[0] || newLeadForm.contact,
           last_name: newLeadForm.contact.split(' ').slice(1).join(' ') || '',
           email: newLeadForm.email,
-          phone: newLeadForm.phone,
-          position: newLeadForm.title
+          phone: newLeadForm.phone || '',
+          position: newLeadForm.title || '',
+          is_decision_maker: newLeadForm.decisionMaker || false
         },
-        status: newLeadForm.status,
-        source: newLeadForm.source,
+        status: newLeadForm.status || 'new',
+        source: newLeadForm.source || 'website',
         priority: 'medium',
         score: 50,
-        estimated_value: newLeadForm.travelBudget ? parseInt(newLeadForm.travelBudget.replace(/[^0-9]/g, '')) * 1000 : null,
-        notes: newLeadForm.notes,
+        estimated_value: newLeadForm.travelBudget ? parseFloat(newLeadForm.travelBudget.replace(/[^0-9.]/g, '')) : null,
+        notes: newLeadForm.notes || '',
         next_action: 'Initial contact'
       };
 
+      console.log('Creating lead with data:', leadData);
+      
       const createdLead = await leadApi.createLead(leadData);
+      
+      console.log('Lead created successfully:', createdLead);
       
       // Refresh the leads list to include the new lead
       await fetchLeads();
       
       setShowNewLeadDialog(false);
-      setSuccessMessage(`New lead "${newLeadForm.company}" has been created successfully with status: ${newLeadForm.status}`);
+      setSuccessMessage(`New lead "${newLeadForm.company}" has been created successfully!`);
       setTimeout(() => setSuccessMessage(''), 5000);
       
       // Reset form
@@ -1020,6 +1033,9 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
         notes: '',
         tags: []
       });
+
+      toast.success('Lead added successfully!');
+      
     } catch (error) {
       console.error('Error creating lead:', error);
       toast.error('Failed to create lead. Please try again.');
