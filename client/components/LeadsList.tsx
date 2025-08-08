@@ -121,10 +121,10 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
   const [selectedLeads, setSelectedLeads] = useState([]);
   const [selectAll, setSelectAll] = useState(false);
   const [filters, setFilters] = useState({
-    status: initialFilters?.status || '',
-    industry: '',
-    score: '',
-    engagement: '',
+    status: initialFilters?.status || 'all',
+    industry: 'all',
+    score: 'all',
+    engagement: 'all',
     search: ''
   });
 
@@ -349,14 +349,14 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
   };
 
   const filteredLeads = leads.filter(lead => {
-    if (filters.status && lead.status !== filters.status) return false;
-    if (filters.industry && lead.industry !== filters.industry) return false;
-    if (filters.score && (
+    if (filters.status && filters.status !== 'all' && lead.status !== filters.status) return false;
+    if (filters.industry && filters.industry !== 'all' && lead.industry !== filters.industry) return false;
+    if (filters.score && filters.score !== 'all' && (
       (filters.score === 'high' && lead.score < 80) ||
       (filters.score === 'medium' && (lead.score < 60 || lead.score >= 80)) ||
       (filters.score === 'low' && lead.score >= 60)
     )) return false;
-    if (filters.engagement && lead.engagement !== filters.engagement) return false;
+    if (filters.engagement && filters.engagement !== 'all' && lead.engagement !== filters.engagement) return false;
     if (filters.search && !lead.company.toLowerCase().includes(filters.search.toLowerCase()) && 
         !lead.contact.toLowerCase().includes(filters.search.toLowerCase())) return false;
     return true;
@@ -459,7 +459,7 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
                   <SelectValue placeholder="All statuses" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All statuses</SelectItem>
+                  <SelectItem value="all">All statuses</SelectItem>
                   <SelectItem value="qualified">Qualified</SelectItem>
                   <SelectItem value="contacted">Contacted</SelectItem>
                   <SelectItem value="in-progress">In Progress</SelectItem>
@@ -476,7 +476,7 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
                   <SelectValue placeholder="All industries" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All industries</SelectItem>
+                  <SelectItem value="all">All industries</SelectItem>
                   <SelectItem value="Technology">Technology</SelectItem>
                   <SelectItem value="Manufacturing">Manufacturing</SelectItem>
                   <SelectItem value="Financial Services">Financial Services</SelectItem>
@@ -493,7 +493,7 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
                   <SelectValue placeholder="All scores" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All scores</SelectItem>
+                  <SelectItem value="all">All scores</SelectItem>
                   <SelectItem value="high">High (80+)</SelectItem>
                   <SelectItem value="medium">Medium (60-79)</SelectItem>
                   <SelectItem value="low">Low (&lt;60)</SelectItem>
@@ -507,7 +507,7 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
                   <SelectValue placeholder="All levels" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All levels</SelectItem>
+                  <SelectItem value="all">All levels</SelectItem>
                   <SelectItem value="Very High">Very High</SelectItem>
                   <SelectItem value="High">High</SelectItem>
                   <SelectItem value="Medium">Medium</SelectItem>
@@ -521,7 +521,7 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
               variant="outline" 
               size="sm" 
               className="text-gray-600 border-gray-300"
-              onClick={() => setFilters({ status: '', industry: '', score: '', engagement: '', search: '' })}
+              onClick={() => setFilters({ status: 'all', industry: 'all', score: 'all', engagement: 'all', search: '' })}
             >
               Clear Filters
             </Button>
