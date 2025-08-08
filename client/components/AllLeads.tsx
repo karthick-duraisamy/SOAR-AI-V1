@@ -137,28 +137,36 @@ export function AllLeads({ onNavigate }: AllLeadsProps) {
   // Filter states
   const [filters, setFilters] = useState({
     search: '',
-    status: '',
-    industry: '',
-    score: '',
-    engagement: ''
+    status: 'all',
+    industry: 'all',
+    score: 'all',
+    engagement: 'all'
   });
 
   // Filter leads based on current filters
-  const filteredLeads = leads.filter(lead => {
+  const filteredLeads = (Array.isArray(leads) ? leads : []).filter(lead => {
     if (filters.search && !lead.company.name.toLowerCase().includes(filters.search.toLowerCase()) &&
         !lead.contact.first_name.toLowerCase().includes(filters.search.toLowerCase()) &&
         !lead.contact.last_name.toLowerCase().includes(filters.search.toLowerCase())) {
       return false;
     }
 
-    if (filters.status && lead.status !== filters.status) {
+    if (filters.status && filters.status !== 'all' && lead.status !== filters.status) {
       return false;
     }
 
-    if (filters.score) {
+    if (filters.industry && filters.industry !== 'all' && lead.company.industry !== filters.industry) {
+      return false;
+    }
+
+    if (filters.score && filters.score !== 'all') {
       if (filters.score === 'high' && lead.score < 80) return false;
       if (filters.score === 'medium' && (lead.score < 60 || lead.score >= 80)) return false;
       if (filters.score === 'low' && lead.score >= 60) return false;
+    }
+
+    if (filters.engagement && filters.engagement !== 'all') {
+      // Add engagement filtering logic if needed
     }
 
     return true;
@@ -186,10 +194,10 @@ export function AllLeads({ onNavigate }: AllLeadsProps) {
   const clearFilters = () => {
     setFilters({
       search: '',
-      status: '',
-      industry: '',
-      score: '',
-      engagement: ''
+      status: 'all',
+      industry: 'all',
+      score: 'all',
+      engagement: 'all'
     });
   };
 
@@ -378,7 +386,7 @@ export function AllLeads({ onNavigate }: AllLeadsProps) {
                   <SelectValue placeholder="All statuses" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All statuses</SelectItem>
+                  <SelectItem value="all">All statuses</SelectItem>
                   <SelectItem value="qualified">Qualified</SelectItem>
                   <SelectItem value="contacted">Contacted</SelectItem>
                   <SelectItem value="new">New</SelectItem>
@@ -396,7 +404,7 @@ export function AllLeads({ onNavigate }: AllLeadsProps) {
                   <SelectValue placeholder="All industries" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All industries</SelectItem>
+                  <SelectItem value="all">All industries</SelectItem>
                   <SelectItem value="technology">Technology</SelectItem>
                   <SelectItem value="manufacturing">Manufacturing</SelectItem>
                   <SelectItem value="finance">Finance</SelectItem>
@@ -413,7 +421,7 @@ export function AllLeads({ onNavigate }: AllLeadsProps) {
                   <SelectValue placeholder="All scores" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All scores</SelectItem>
+                  <SelectItem value="all">All scores</SelectItem>
                   <SelectItem value="high">High (80+)</SelectItem>
                   <SelectItem value="medium">Medium (60-79)</SelectItem>
                   <SelectItem value="low">Low (60)</SelectItem>
@@ -429,7 +437,7 @@ export function AllLeads({ onNavigate }: AllLeadsProps) {
                   <SelectValue placeholder="All levels" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All levels</SelectItem>
+                  <SelectItem value="all">All levels</SelectItem>
                   <SelectItem value="High">High</SelectItem>
                   <SelectItem value="Medium">Medium</SelectItem>
                   <SelectItem value="Low">Low</SelectItem>
