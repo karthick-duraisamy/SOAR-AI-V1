@@ -124,6 +124,14 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
   const [disqualifyReason, setDisqualifyReason] = useState('');
   const [selectedLeads, setSelectedLeads] = useState([]);
   const [selectAll, setSelectAll] = useState(false);
+  const [showContactDialog, setShowContactDialog] = useState(false);
+  const [selectedLeadForContact, setSelectedLeadForContact] = useState<any>(null);
+  const [contactForm, setContactForm] = useState({
+    method: 'Email',
+    subject: '',
+    message: '',
+    followUpDate: ''
+  });
   const [filters, setFilters] = useState({
     status: initialFilters?.status || 'all',
     industry: 'all',
@@ -406,6 +414,70 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
     } catch (error) {
       console.error('Error disqualifying lead:', error);
       toast.error('Failed to disqualify lead. Please try again.');
+    }
+  };
+
+  const handleContactLead = (lead: any) => {
+    setSelectedLeadForContact(lead);
+    setContactForm({
+      method: 'Email',
+      subject: `Partnership Opportunity - ${lead.company}`,
+      message: `Hi ${lead.contact.split(' ')[0]},
+
+I hope this message finds you well. I wanted to follow up regarding our corporate travel solutions that could benefit ${lead.company}.
+
+Based on your organization's profile, I believe we can help optimize your travel operations and reduce costs.
+
+Would you be available for a brief call this week to discuss how we can support your travel needs?
+
+Best regards,
+SOAR-AI Team`,
+      followUpDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+    });
+    setShowContactDialog(true);
+  };
+
+  const handleSendMessage = async () => {
+    if (!selectedLeadForContact || !contactForm.subject || !contactForm.message) {
+      toast.error('Please fill in all required fields');
+      return;
+    }
+
+    try {
+      // Here you would typically call an API to send the message
+      console.log('Sending message:', {
+        leadId: selectedLeadForContact.id,
+        method: contactForm.method,
+        subject: contactForm.subject,
+        message: contactForm.message,
+        followUpDate: contactForm.followUpDate
+      });
+
+      // Update lead status to contacted
+      setLeads(prevLeads => 
+        prevLeads.map(lead => 
+          lead.id === selectedLeadForContact.id 
+            ? { ...lead, status: 'contacted', lastContact: new Date().toISOString().split('T')[0] }
+            : lead
+        )
+      );
+
+      setSuccessMessage(`Message sent to ${selectedLeadForContact.company} successfully!`);
+      setTimeout(() => setSuccessMessage(''), 5000);
+      toast.success('Message sent successfully!');
+      
+      // Close dialog and reset state
+      setShowContactDialog(false);
+      setSelectedLeadForContact(null);
+      setContactForm({
+        method: 'Email',
+        subject: '',
+        message: '',
+        followUpDate: ''
+      });
+    } catch (error) {
+      console.error('Error sending message:', error);
+      toast.error('Failed to send message. Please try again.');
     }
   };
 
@@ -1059,7 +1131,11 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
               {/* Action Buttons */}
               <div className="flex items-center justify-between">
                 <div className="flex gap-2 flex-wrap">
-                  <Button size="sm" className="bg-orange-500 hover:bg-orange-600 text-white">
+                  <Button 
+                    size="sm" 
+                    className="bg-orange-500 hover:bg-orange-600 text-white"
+                    onClick={() => handleContactLead(lead)}
+                  >
                     <Mail className="h-4 w-4 mr-1" />
                     Contact
                   </Button>
@@ -1322,6 +1398,97 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
             >
               <Plus className="h-4 w-4 mr-2" />
               Create Lead
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Contact Lead Dialog */}
+      <Dialog open={showContactDialog} onOpenChange={setShowContactDialog}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Mail className="h-5 w-5 text-orange-600" />
+              Contact {selectedLeadForContact?.company}
+            </DialogTitle>
+            <DialogDescription>
+              Send a personalized message to {selectedLeadForContact?.contact}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label className="text-sm font-medium text-gray-700 mb-2 block">Contact Method</Label>
+              <Select 
+                value={contactForm.method} 
+                onValueChange={(value) => setContactForm({...contactForm, method: value})}
+              >
+                <SelectTrigger className="border-orange-200 focus:border-orange-500 focus:ring-orange-500">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Email">Email</SelectItem>
+                  <SelectItem value="Phone">Phone</SelectItem>
+                  <SelectItem value="LinkedIn">LinkedIn</SelectItem>
+                  <SelectItem value="In-Person Meeting">In-Person Meeting</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label className="text-sm font-medium text-gray-700 mb-2 block">Subject</Label>
+              <Input
+                value={contactForm.subject}
+                onChange={(e) => setContactForm({...contactForm, subject: e.target.value})}
+                placeholder="Enter subject line..."
+                className="border-gray-300 focus:border-orange-500 focus:ring-orange-500"
+              />
+            </div>
+
+            <div>
+              <Label className="text-sm font-medium text-gray-700 mb-2 block">Message</Label>
+              <Textarea
+                value={contactForm.message}
+                onChange={(e) => setContactForm({...contactForm, message: e.target.value})}
+                placeholder="Enter your message..."
+                className="min-h-[200px] resize-none border-gray-300 focus:border-orange-500 focus:ring-orange-500"
+                rows={10}
+              />
+            </div>
+
+            <div>
+              <Label className="text-sm font-medium text-gray-700 mb-2 block">Follow-up Date</Label>
+              <Input
+                type="date"
+                value={contactForm.followUpDate}
+                onChange={(e) => setContactForm({...contactForm, followUpDate: e.target.value})}
+                className="border-gray-300 focus:border-orange-500 focus:ring-orange-500"
+              />
+            </div>
+          </div>
+          <DialogFooter className="flex gap-2">
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                setShowContactDialog(false);
+                setSelectedLeadForContact(null);
+                setContactForm({
+                  method: 'Email',
+                  subject: '',
+                  message: '',
+                  followUpDate: ''
+                });
+              }}
+              className="text-gray-600 border-gray-300"
+            >
+              Cancel
+            </Button>
+            <Button 
+              onClick={handleSendMessage}
+              className="bg-orange-500 hover:bg-orange-600 text-white"
+              disabled={!contactForm.subject || !contactForm.message}
+            >
+              <Mail className="h-4 w-4 mr-2" />
+              Send Message
             </Button>
           </DialogFooter>
         </DialogContent>
