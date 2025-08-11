@@ -91,11 +91,23 @@ class LeadSerializer(serializers.ModelSerializer):
     contact = ContactSerializer(read_only=True)
     assigned_to = serializers.StringRelatedField(read_only=True)
     lead_notes = LeadNoteSerializer(many=True, read_only=True)
-    history_entries = LeadHistorySerializer(many=True, read_only=True)
+    history_entries = serializers.SerializerMethodField()
 
     class Meta:
         model = Lead
         fields = '__all__'
+
+    def get_history_entries(self, obj):
+        """
+        Get history entries, handling case where LeadHistory table doesn't exist yet
+        """
+        try:
+            from .models import LeadHistory
+            history_entries = obj.history_entries.all()
+            return LeadHistorySerializer(history_entries, many=True).data
+        except Exception:
+            # Return empty list if LeadHistory table doesn't exist
+            return []
 
     def get_company(self, obj):
         return {

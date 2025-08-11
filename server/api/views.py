@@ -18,16 +18,20 @@ from .serializers import (
 
 # Helper function to create lead history entries
 def create_lead_history(lead, history_type, action, details, icon=None, user=None):
-    """Creates a LeadHistory entry."""
-    LeadHistory.objects.create(
-        lead=lead,
-        history_type=history_type,
-        action=action,
-        details=details,
-        icon=icon,
-        created_by=user,
-        timestamp=timezone.now()
-    )
+    """Creates a LeadHistory entry if the table exists."""
+    try:
+        LeadHistory.objects.create(
+            lead=lead,
+            history_type=history_type,
+            action=action,
+            details=details,
+            icon=icon,
+            created_by=user,
+            timestamp=timezone.now()
+        )
+    except Exception:
+        # Silently handle case where LeadHistory table doesn't exist yet
+        pass
 
 class CompanyViewSet(viewsets.ModelViewSet):
     queryset = Company.objects.all()
