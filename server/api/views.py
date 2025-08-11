@@ -556,6 +556,18 @@ class LeadViewSet(viewsets.ModelViewSet):
         }
         return icon_map.get(status, 'plus')
 
+    @action(detail=True, methods=['get'])
+    def history(self, request, pk=None):
+        """Get history for a specific lead"""
+        try:
+            lead = self.get_object()
+            history_entries = lead.history_entries.all().order_by('timestamp')
+            serializer = LeadHistorySerializer(history_entries, many=True)
+            return Response(serializer.data)
+        except Exception as e:
+            # If LeadHistory table doesn't exist, return empty list
+            return Response([])
+
 class OpportunityViewSet(viewsets.ModelViewSet):
     queryset = Opportunity.objects.all()
     serializer_class = OpportunitySerializer

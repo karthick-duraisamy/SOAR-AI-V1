@@ -456,7 +456,7 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
             author: { username: 'System' }
           });
         }
-        
+
         setLeads(prev => [newLead, ...prev]);
         setSuccessMessage(initialFilters.message || `${initialFilters.newLead.company} has been successfully added as a lead`);
         setTimeout(() => setSuccessMessage(''), 5000);
