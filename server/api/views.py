@@ -821,6 +821,19 @@ class LeadNoteViewSet(viewsets.ModelViewSet):
 
         return queryset
 
+class LeadHistoryViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = LeadHistory.objects.all()
+    serializer_class = LeadHistorySerializer
+
+    def get_queryset(self):
+        queryset = self.queryset
+        lead_id = self.request.query_params.get('lead_id', None)
+
+        if lead_id:
+            queryset = queryset.filter(lead_id=lead_id)
+
+        return queryset.order_by('timestamp')
+
 class AIConversationViewSet(viewsets.ModelViewSet):
     queryset = AIConversation.objects.all()
     serializer_class = AIConversationSerializer
