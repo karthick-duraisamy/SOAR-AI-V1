@@ -505,8 +505,8 @@ SOAR-AI Team`,
     }
 
     try {
-      // Call API to save the note using relative path
-      const response = await fetch(`/api/leads/${selectedLeadForNote.id}/add_note/`, {
+      // Call API to save the note
+      const response = await fetch(`http://localhost:8000/api/leads/${selectedLeadForNote.id}/add_note/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -519,8 +519,7 @@ SOAR-AI Team`,
       });
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || 'Failed to save note');
+        throw new Error('Failed to save note');
       }
 
       const noteData = await response.json();
