@@ -464,8 +464,16 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
       {/* Header */}
       <div className="mb-6 flex justify-between">
         <div>
-        <h1 className="text-2xl font-bold text-gray-900 mb-1">All Leads</h1>
-        <p className="text-gray-600 text-sm">Comprehensive lead management with status tracking and AI suggestions</p>
+        <h1 className="text-2xl font-bold text-gray-900 mb-1">
+          {filters.status === 'qualified' ? 'Qualified Leads' : 
+           filters.status === 'unqualified' ? 'Unqualified Leads' : 
+           'All Leads'}
+        </h1>
+        <p className="text-gray-600 text-sm">
+          {filters.status === 'qualified' ? 'High-potential leads ready for offer creation and contract initiation' :
+           filters.status === 'unqualified' ? 'Leads requiring nurturing, re-engagement, or future follow-up' :
+           'Comprehensive lead management with status tracking and AI suggestions'}
+        </p>
         </div>
         <div className="flex items-center gap-3">
           <Button variant="outline" className="text-gray-700 border-gray-300 hover:bg-gray-50">
@@ -514,85 +522,181 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
             </>
           ) : (
             <>
-              <Card className="bg-white border border-gray-200">
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-gray-600 mb-1">Qualified Leads</p>
-                      <p className="text-2xl font-bold text-gray-900">
-                        {filteredLeads.filter(lead => lead.status === 'qualified').length}
-                      </p>
-                      <p className="text-xs text-gray-500">High-potential prospects</p>
-                    </div>
-                    <div className="flex items-center justify-center w-10 h-10 bg-blue-100 rounded-lg">
-                      <Users className="h-5 w-5 text-blue-600" />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+              {/* Dynamic cards based on status filter */}
+              {filters.status === 'unqualified' ? (
+                // Unqualified Leads View
+                <>
+                  <Card className="bg-white border border-gray-200">
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm font-medium text-gray-600 mb-1">Unqualified Leads</p>
+                          <p className="text-2xl font-bold text-gray-900">
+                            {filteredLeads.filter(lead => lead.status === 'unqualified').length}
+                          </p>
+                          <p className="text-xs text-gray-500">Requiring nurturing</p>
+                        </div>
+                        <div className="flex items-center justify-center w-10 h-10 bg-gray-100 rounded-lg">
+                          <UserX className="h-5 w-5 text-gray-600" />
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
 
-              <Card className="bg-white border border-gray-200">
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-gray-600 mb-1">Contract Ready</p>
-                      <p className="text-2xl font-bold text-gray-900">
-                        {filteredLeads.filter(lead => lead.status === 'qualified' && lead.contractReady).length}
-                      </p>
-                      <p className="text-xs text-gray-500">Ready for contract initiation</p>
-                    </div>
-                    <div className="flex items-center justify-center w-10 h-10 bg-green-100 rounded-lg">
-                      <CheckCircle className="h-5 w-5 text-green-600" />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+                  <Card className="bg-white border border-gray-200">
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm font-medium text-gray-600 mb-1">Future Potential</p>
+                          <p className="text-2xl font-bold text-gray-900">
+                            {(() => {
+                              const unqualifiedLeads = filteredLeads.filter(lead => lead.status === 'unqualified');
+                              const highScoreLeads = unqualifiedLeads.filter(lead => lead.score >= 60);
+                              return unqualifiedLeads.length > 0 ? `${Math.round((highScoreLeads.length / unqualifiedLeads.length) * 100)}%` : '0%';
+                            })()}
+                          </p>
+                          <p className="text-xs text-gray-500">May qualify in 6-12 months</p>
+                        </div>
+                        <div className="flex items-center justify-center w-10 h-10 bg-yellow-100 rounded-lg">
+                          <TrendingUp className="h-5 w-5 text-yellow-600" />
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
 
-              <Card className="bg-white border border-gray-200">
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-gray-600 mb-1">Avg Deal Size</p>
-                      <p className="text-2xl font-bold text-gray-900">
-                        {(() => {
-                          const qualifiedLeads = filteredLeads.filter(lead => lead.status === 'qualified');
-                          if (qualifiedLeads.length === 0) return '$0K';
-                          const avgValue = qualifiedLeads.reduce((sum, lead) => {
-                            const value = parseInt(lead.travelBudget.replace(/[^0-9]/g, '')) || 0;
-                            return sum + value;
-                          }, 0) / qualifiedLeads.length;
-                          return `$${Math.round(avgValue)}K`;
-                        })()}
-                      </p>
-                      <p className="text-xs text-gray-500">Average qualified deal value</p>
-                    </div>
-                    <div className="flex items-center justify-center w-10 h-10 bg-yellow-100 rounded-lg">
-                      <DollarSign className="h-5 w-5 text-yellow-600" />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+                  <Card className="bg-white border border-gray-200">
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm font-medium text-gray-600 mb-1">Avg Score</p>
+                          <p className="text-2xl font-bold text-gray-900">
+                            {(() => {
+                              const unqualifiedLeads = filteredLeads.filter(lead => lead.status === 'unqualified');
+                              if (unqualifiedLeads.length === 0) return '0';
+                              const avgScore = unqualifiedLeads.reduce((sum, lead) => sum + lead.score, 0) / unqualifiedLeads.length;
+                              return Math.round(avgScore);
+                            })()}
+                          </p>
+                          <p className="text-xs text-gray-500">Below qualification threshold</p>
+                        </div>
+                        <div className="flex items-center justify-center w-10 h-10 bg-orange-100 rounded-lg">
+                          <Target className="h-5 w-5 text-orange-600" />
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
 
-              <Card className="bg-white border border-gray-200">
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-gray-600 mb-1">Conversion Rate</p>
-                      <p className="text-2xl font-bold text-gray-900">
-                        {(() => {
-                          const totalLeads = filteredLeads.length;
-                          const qualifiedLeads = filteredLeads.filter(lead => lead.status === 'qualified').length;
-                          return totalLeads > 0 ? `${Math.round((qualifiedLeads / totalLeads) * 100)}%` : '0%';
-                        })()}
-                      </p>
-                      <p className="text-xs text-gray-500">Qualified to contact rate</p>
-                    </div>
-                    <div className="flex items-center justify-center w-10 h-10 bg-purple-100 rounded-lg">
-                      <TrendingUp className="h-5 w-5 text-purple-600" />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+                  <Card className="bg-white border border-gray-200">
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm font-medium text-gray-600 mb-1">Re-engagement</p>
+                          <p className="text-2xl font-bold text-gray-900">
+                            {(() => {
+                              const unqualifiedLeads = filteredLeads.filter(lead => lead.status === 'unqualified');
+                              const recentlyContacted = unqualifiedLeads.filter(lead => {
+                                const lastContact = new Date(lead.lastContact);
+                                const monthsAgo = (Date.now() - lastContact.getTime()) / (1000 * 60 * 60 * 24 * 30);
+                                return monthsAgo <= 3;
+                              });
+                              return unqualifiedLeads.length > 0 ? `${Math.round((recentlyContacted.length / unqualifiedLeads.length) * 100)}%` : '0%';
+                            })()}
+                          </p>
+                          <p className="text-xs text-gray-500">Re-qualification success rate</p>
+                        </div>
+                        <div className="flex items-center justify-center w-10 h-10 bg-blue-100 rounded-lg">
+                          <RefreshCw className="h-5 w-5 text-blue-600" />
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </>
+              ) : (
+                // Default View (All Leads, Qualified, etc.)
+                <>
+                  <Card className="bg-white border border-gray-200">
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm font-medium text-gray-600 mb-1">Qualified Leads</p>
+                          <p className="text-2xl font-bold text-gray-900">
+                            {filteredLeads.filter(lead => lead.status === 'qualified').length}
+                          </p>
+                          <p className="text-xs text-gray-500">High-potential prospects</p>
+                        </div>
+                        <div className="flex items-center justify-center w-10 h-10 bg-blue-100 rounded-lg">
+                          <Users className="h-5 w-5 text-blue-600" />
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="bg-white border border-gray-200">
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm font-medium text-gray-600 mb-1">Contract Ready</p>
+                          <p className="text-2xl font-bold text-gray-900">
+                            {filteredLeads.filter(lead => lead.status === 'qualified' && lead.contractReady).length}
+                          </p>
+                          <p className="text-xs text-gray-500">Ready for contract initiation</p>
+                        </div>
+                        <div className="flex items-center justify-center w-10 h-10 bg-green-100 rounded-lg">
+                          <CheckCircle className="h-5 w-5 text-green-600" />
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="bg-white border border-gray-200">
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm font-medium text-gray-600 mb-1">Avg Deal Size</p>
+                          <p className="text-2xl font-bold text-gray-900">
+                            {(() => {
+                              const relevantLeads = filters.status === 'qualified' ? 
+                                filteredLeads.filter(lead => lead.status === 'qualified') :
+                                filteredLeads.filter(lead => lead.status === 'qualified');
+                              if (relevantLeads.length === 0) return '$0K';
+                              const avgValue = relevantLeads.reduce((sum, lead) => {
+                                const value = parseInt(lead.travelBudget.replace(/[^0-9]/g, '')) || 0;
+                                return sum + value;
+                              }, 0) / relevantLeads.length;
+                              return `$${Math.round(avgValue)}K`;
+                            })()}
+                          </p>
+                          <p className="text-xs text-gray-500">Average qualified deal value</p>
+                        </div>
+                        <div className="flex items-center justify-center w-10 h-10 bg-yellow-100 rounded-lg">
+                          <DollarSign className="h-5 w-5 text-yellow-600" />
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="bg-white border border-gray-200">
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm font-medium text-gray-600 mb-1">Conversion Rate</p>
+                          <p className="text-2xl font-bold text-gray-900">
+                            {(() => {
+                              const totalLeads = filteredLeads.length;
+                              const qualifiedLeads = filteredLeads.filter(lead => lead.status === 'qualified').length;
+                              return totalLeads > 0 ? `${Math.round((qualifiedLeads / totalLeads) * 100)}%` : '0%';
+                            })()}
+                          </p>
+                          <p className="text-xs text-gray-500">Qualified to contact rate</p>
+                        </div>
+                        <div className="flex items-center justify-center w-10 h-10 bg-purple-100 rounded-lg">
+                          <TrendingUp className="h-5 w-5 text-purple-600" />
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </>
+              )}
             </>
           )}
         </div>
