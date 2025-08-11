@@ -111,57 +111,134 @@ const transformApiLeadToUILead = (apiLead: any) => {
     lastActivity: apiLead.updated_at ? new Date(apiLead.updated_at).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
     followUpDate: apiLead.next_action_date || new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
     assignedAgent: apiLead.assigned_to?.username || null,
-    history: [
-      {
-        id: 1,
-        type: 'note',
-        action: 'Lead created from LinkedIn outreach',
-        user: 'System',
-        timestamp: apiLead.created_at || new Date().toISOString(),
-        details: 'Initial contact made through LinkedIn connection. Showed immediate interest in enterprise solutions.',
-        icon: 'plus'
-      },
-      {
-        id: 2,
-        type: 'call',
-        action: 'Discovery call scheduled',
-        user: 'Sarah Wilson',
-        timestamp: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-        details: 'Scheduled 30-minute discovery call for next week. Discussed travel requirements and current pain points.',
-        icon: 'phone'
-      },
-      {
-        id: 3,
-        type: 'meeting',
-        action: 'Qualification meeting completed',
-        user: 'Mike Johnson',
-        timestamp: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
-        details: `Conducted qualification meeting with ${apiLead.contact?.first_name || 'contact'}. Confirmed budget of $${Math.floor(Math.random() * 500 + 200)}K and decision-making authority.`,
-        icon: 'calendar'
-      },
-      {
-        id: 4,
-        type: 'qualification',
-        action: apiLead.status === 'qualified' ? 'Lead qualified as high-priority' : 'Lead status updated',
-        user: 'John Smith',
-        timestamp: new Date().toISOString(),
-        details: apiLead.status === 'qualified' 
-          ? 'Lead qualified based on budget, authority, and timeline. Ready for proposal stage.'
-          : `Lead status changed to ${apiLead.status}. ${apiLead.notes || 'Status update based on recent interactions.'}`,
-        icon: 'check-circle'
-      },
-      // Add all lead notes to history
-      ...(apiLead.lead_notes || []).map((note: any, index: number) => ({
-        id: index + 5,
+    history: buildLeadHistory(apiLead)
+  };
+};
+
+// Build comprehensive history for each lead
+const buildLeadHistory = (apiLead: any) => {
+  const history = [];
+  let historyId = 1;
+
+  // Lead creation
+  history.push({
+    id: historyId++,
+    type: 'creation',
+    action: 'Lead created',
+    user: 'System',
+    timestamp: apiLead.created_at || new Date().toISOString(),
+    details: `Lead created from ${apiLead.source || 'unknown source'}. Initial contact information collected for ${apiLead.company?.name || 'company'}.`,
+    icon: 'plus'
+  });
+
+  // Status changes
+  if (apiLead.status === 'contacted') {
+    history.push({
+      id: historyId++,
+      type: 'status_change',
+      action: 'Lead contacted',
+      user: apiLead.assigned_to?.username || 'Sales Team',
+      timestamp: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
+      details: `Initial contact made with ${apiLead.contact?.first_name || 'contact'}. Outreach sent via email.`,
+      icon: 'mail'
+    });
+  }
+
+  if (apiLead.status === 'responded') {
+    history.push({
+      id: historyId++,
+      type: 'response',
+      action: 'Lead responded',
+      user: apiLead.contact?.first_name || 'Contact',
+      timestamp: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+      details: `${apiLead.contact?.first_name || 'Contact'} responded to initial outreach. Expressed interest in travel solutions.`,
+      icon: 'message-circle'
+    });
+  }
+
+  if (apiLead.status === 'in-progress') {
+    history.push({
+      id: historyId++,
+      type: 'call',
+      action: 'Discovery call scheduled',
+      user: apiLead.assigned_to?.username || 'Sales Team',
+      timestamp: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+      details: 'Scheduled 30-minute discovery call. Discussed travel requirements and current pain points.',
+      icon: 'phone'
+    });
+  }
+
+  if (apiLead.status === 'qualified') {
+    history.push({
+      id: historyId++,
+      type: 'qualification',
+      action: 'Lead qualified as high-priority',
+      user: apiLead.assigned_to?.username || 'Sales Manager',
+      timestamp: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
+      details: `Lead qualified based on budget (${apiLead.estimated_value ? `$${Math.floor(apiLead.estimated_value / 1000)}K` : 'TBD'}), authority, and timeline. Ready for proposal stage.`,
+      icon: 'check-circle'
+    });
+  }
+
+  if (apiLead.status === 'unqualified') {
+    history.push({
+      id: historyId++,
+      type: 'disqualification',
+      action: 'Lead disqualified',
+      user: apiLead.assigned_to?.username || 'Sales Team',
+      timestamp: new Date().toISOString(),
+      details: 'Lead disqualified due to budget constraints or timeline mismatch. Moved to nurture campaign.',
+      icon: 'x-circle'
+    });
+  }
+
+  // Score updates
+  if (apiLead.score && apiLead.score > 50) {
+    history.push({
+      id: historyId++,
+      type: 'score_update',
+      action: 'Lead score updated',
+      user: 'AI System',
+      timestamp: new Date(Date.now() - 1 * 60 * 60 * 1000).toISOString(),
+      details: `Lead score updated to ${apiLead.score} based on engagement metrics and profile analysis.`,
+      icon: 'trending-up'
+    });
+  }
+
+  // Add all lead notes to history
+  if (apiLead.lead_notes && apiLead.lead_notes.length > 0) {
+    apiLead.lead_notes.forEach((note: any) => {
+      history.push({
+        id: historyId++,
         type: 'note',
         action: 'Note added',
         user: note.created_by?.username || 'User',
         timestamp: note.created_at,
         details: note.note,
-        icon: 'message-square'
-      }))
-    ].sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime())
-  };
+        icon: 'message-square',
+        metadata: {
+          next_action: note.next_action,
+          urgency: note.urgency
+        }
+      });
+    });
+  }
+
+  // Assignment changes
+  if (apiLead.assigned_to) {
+    history.push({
+      id: historyId++,
+      type: 'assignment',
+      action: 'Lead assigned',
+      user: 'Sales Manager',
+      timestamp: apiLead.created_at || new Date().toISOString(),
+      details: `Lead assigned to ${apiLead.assigned_to.first_name} ${apiLead.assigned_to.last_name} for follow-up.`,
+      icon: 'user'
+    });
+  }
+
+  // Sort history by timestamp (oldest first)
+  return history.sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
 };
 
 export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
@@ -194,6 +271,7 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
   const [expandedNotes, setExpandedNotes] = useState<{[key: number]: boolean}>({});
   const [showHistoryDialog, setShowHistoryDialog] = useState(false);
   const [selectedLeadForHistory, setSelectedLeadForHistory] = useState<any>(null);
+  const [leadHistories, setLeadHistories] = useState<{[key: number]: any[]}>({});
   const [filters, setFilters] = useState({
     status: initialFilters?.status || 'all',
     industry: 'all',
@@ -397,6 +475,15 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
 
       console.log('Lead created successfully:', createdLead);
 
+      // Add history entry for new lead
+      addHistoryEntry(createdLead.id, {
+        type: 'creation',
+        action: 'Lead created',
+        user: 'Sales Team',
+        details: `New lead created for ${newLeadForm.company}. Contact: ${newLeadForm.contact}. Source: ${newLeadForm.source}. Initial status: ${newLeadForm.status}.`,
+        icon: 'plus'
+      });
+
       await fetchLeads();
 
       setShowNewLeadDialog(false);
@@ -433,6 +520,17 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
     try {
       await leadApi.qualifyLead(leadId);
       
+      const lead = leads.find(l => l.id === leadId);
+      
+      // Add history entry
+      addHistoryEntry(leadId, {
+        type: 'qualification',
+        action: 'Lead qualified',
+        user: 'Sales Manager',
+        details: `Lead qualified as high-priority prospect. ${lead?.company} is now ready for proposal and contract negotiation.`,
+        icon: 'check-circle'
+      });
+      
       // Update local state
       setLeads(prevLeads => 
         prevLeads.map(lead => 
@@ -462,6 +560,15 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
 
     try {
       await leadApi.disqualifyLead(selectedLeadForDisqualify.id, disqualifyReason);
+      
+      // Add history entry
+      addHistoryEntry(selectedLeadForDisqualify.id, {
+        type: 'disqualification',
+        action: 'Lead disqualified',
+        user: 'Sales Manager',
+        details: `Lead disqualified. Reason: ${disqualifyReason || 'No specific reason provided'}. Lead moved to nurture campaign for future consideration.`,
+        icon: 'x-circle'
+      });
       
       // Update local state
       setLeads(prevLeads => 
@@ -522,6 +629,15 @@ SOAR-AI Team`,
         followUpDate: contactForm.followUpDate
       });
 
+      // Add history entry
+      addHistoryEntry(selectedLeadForContact.id, {
+        type: 'communication',
+        action: `${contactForm.method} sent`,
+        user: 'Sales Team',
+        details: `${contactForm.method} sent to ${selectedLeadForContact.contact}. Subject: "${contactForm.subject}". ${contactForm.followUpDate ? `Follow-up scheduled for ${contactForm.followUpDate}.` : ''}`,
+        icon: contactForm.method.toLowerCase() === 'email' ? 'mail' : contactForm.method.toLowerCase() === 'phone' ? 'phone' : 'message-circle'
+      });
+
       // Update lead status to contacted
       setLeads(prevLeads => 
         prevLeads.map(lead => 
@@ -565,18 +681,65 @@ SOAR-AI Team`,
     setShowHistoryDialog(true);
   };
 
+  // Function to add history entry for any action
+  const addHistoryEntry = (leadId: number, entry: any) => {
+    setLeadHistories(prev => ({
+      ...prev,
+      [leadId]: [
+        ...(prev[leadId] || []),
+        {
+          ...entry,
+          id: Date.now() + Math.random(),
+          timestamp: new Date().toISOString()
+        }
+      ]
+    }));
+
+    // Also update the lead's history in the leads array
+    setLeads(prevLeads => 
+      prevLeads.map(lead => 
+        lead.id === leadId 
+          ? {
+              ...lead,
+              history: [
+                ...lead.history,
+                {
+                  ...entry,
+                  id: Date.now() + Math.random(),
+                  timestamp: new Date().toISOString()
+                }
+              ].sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime())
+            }
+          : lead
+      )
+    );
+  };
+
   const getHistoryIcon = (type: string) => {
     switch (type) {
+      case 'creation':
+        return <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center"><Plus className="h-4 w-4 text-blue-600" /></div>;
       case 'note':
-        return <Plus className="h-4 w-4 text-blue-600" />;
+        return <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center"><MessageSquare className="h-4 w-4 text-blue-600" /></div>;
       case 'call':
         return <div className="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center"><Phone className="h-4 w-4 text-purple-600" /></div>;
       case 'meeting':
         return <div className="w-8 h-8 rounded-full bg-pink-100 flex items-center justify-center"><Calendar className="h-4 w-4 text-pink-600" /></div>;
       case 'qualification':
         return <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center"><CheckCircle className="h-4 w-4 text-green-600" /></div>;
+      case 'disqualification':
+        return <div className="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center"><UserX className="h-4 w-4 text-red-600" /></div>;
+      case 'communication':
       case 'email':
         return <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center"><Mail className="h-4 w-4 text-blue-600" /></div>;
+      case 'response':
+        return <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center"><MessageCircle className="h-4 w-4 text-green-600" /></div>;
+      case 'status_change':
+        return <div className="w-8 h-8 rounded-full bg-yellow-100 flex items-center justify-center"><RefreshCw className="h-4 w-4 text-yellow-600" /></div>;
+      case 'score_update':
+        return <div className="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center"><TrendingUp className="h-4 w-4 text-orange-600" /></div>;
+      case 'assignment':
+        return <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center"><User className="h-4 w-4 text-indigo-600" /></div>;
       default:
         return <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center"><Activity className="h-4 w-4 text-gray-600" /></div>;
     }
@@ -630,6 +793,19 @@ SOAR-AI Team`,
       setSuccessMessage(`Note added to ${selectedLeadForNote.company} successfully!`);
       setTimeout(() => setSuccessMessage(''), 5000);
       toast.success('Note saved successfully!');
+
+      // Add history entry
+      addHistoryEntry(selectedLeadForNote.id, {
+        type: 'note',
+        action: 'Note added',
+        user: 'Sales Team',
+        details: noteForm.note,
+        icon: 'message-square',
+        metadata: {
+          next_action: noteForm.nextAction,
+          urgency: noteForm.urgency
+        }
+      });
 
       // Call API in the background
       const noteData = await leadApi.addNote(selectedLeadForNote.id, {
@@ -1838,38 +2014,51 @@ SOAR-AI Team`,
           </DialogHeader>
           
           <div className="space-y-4 max-h-[60vh] overflow-y-auto">
-            {selectedLeadForHistory?.history?.map((item: any, index: number) => (
-              <div key={item.id || index} className="flex items-start gap-4 p-4 rounded-lg border border-gray-100 hover:bg-gray-50">
-                <div className="flex-shrink-0 mt-1">
-                  {getHistoryIcon(item.type)}
-                </div>
-                
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs px-2 py-1 bg-gray-100 rounded-full text-gray-600 uppercase font-medium">
-                        {item.type}
+            {selectedLeadForHistory?.history?.length > 0 ? (
+              selectedLeadForHistory.history.map((item: any, index: number) => (
+                <div key={item.id || index} className="flex items-start gap-4 p-4 rounded-lg border border-gray-100 hover:bg-gray-50 transition-colors">
+                  <div className="flex-shrink-0 mt-1">
+                    {getHistoryIcon(item.type)}
+                  </div>
+                  
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs px-2 py-1 bg-gray-100 rounded-full text-gray-600 uppercase font-medium">
+                          {item.type.replace('_', ' ')}
+                        </span>
+                        <h4 className="text-sm font-semibold text-gray-900">
+                          {item.action}
+                        </h4>
+                        {item.metadata?.urgency && item.metadata.urgency !== 'Medium' && (
+                          <Badge className={`text-xs px-1 py-0 ${getUrgencyBadgeStyle(item.metadata.urgency)}`}>
+                            {item.metadata.urgency}
+                          </Badge>
+                        )}
+                      </div>
+                      <span className="text-xs text-gray-500">
+                        {new Date(item.timestamp).toLocaleDateString()} at {new Date(item.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
                       </span>
-                      <h4 className="text-sm font-semibold text-gray-900">
-                        {item.action}
-                      </h4>
                     </div>
-                    <span className="text-xs text-gray-500">
-                      {new Date(item.timestamp).toLocaleDateString()} at {new Date(item.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
-                    </span>
-                  </div>
-                  
-                  <p className="text-sm text-gray-700 mb-2">
-                    {item.details}
-                  </p>
-                  
-                  <div className="flex items-center gap-1 text-xs text-gray-500">
-                    <User className="h-3 w-3" />
-                    <span>by {item.user}</span>
+                    
+                    <p className="text-sm text-gray-700 mb-2">
+                      {item.details}
+                    </p>
+                    
+                    {item.metadata?.next_action && (
+                      <p className="text-xs text-blue-600 mb-2">
+                        <strong>Next Action:</strong> {item.metadata.next_action}
+                      </p>
+                    )}
+                    
+                    <div className="flex items-center gap-1 text-xs text-gray-500">
+                      <User className="h-3 w-3" />
+                      <span>by {item.user}</span>
+                    </div>
                   </div>
                 </div>
-              </div>
-            )) || (
+              ))
+            ) : (
               <div className="text-center py-8">
                 <History className="h-12 w-12 mx-auto mb-4 text-gray-400" />
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">No History Available</h3>
