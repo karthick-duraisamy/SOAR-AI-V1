@@ -1135,7 +1135,7 @@ SOAR-AI Team`,
               <p className="text-muted-foreground">Loading leads...</p>
             </div>
           </div>
-          {renderLoadingCards()}
+          {/* {renderLoadingCards()} */}
         </div>
       ) : (
         <div className="space-y-4">
@@ -1458,7 +1458,7 @@ SOAR-AI Team`,
         </div>
       )}
 
-      {filteredLeads.length === 0 && (
+      {/* {filteredLeads.length === 0 && (
         <div className="text-center py-12">
           <Users className="h-12 w-12 mx-auto mb-4 text-gray-400" />
           <h3 className="text-lg font-semibold text-gray-900 mb-2">No leads found</h3>
@@ -1468,7 +1468,7 @@ SOAR-AI Team`,
             Add New Lead
           </Button>
         </div>
-      )}
+      )} */}
 
       {/* Add New Lead Dialog */}
       <Dialog open={showNewLeadDialog} onOpenChange={setShowNewLeadDialog}>
