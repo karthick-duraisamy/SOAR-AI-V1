@@ -70,6 +70,17 @@ interface LeadsListProps {
 
 // Transform API lead data to match the component's expected format
 const transformApiLeadToUILead = (apiLead: any) => {
+  // Get the latest note from lead_notes array if available
+  const latestNote = apiLead.lead_notes && apiLead.lead_notes.length > 0 
+    ? apiLead.lead_notes[0] // Notes are ordered by -created_at in the backend
+    : null;
+  
+  // Combine original notes with latest lead notes
+  const combinedNotes = [
+    apiLead.notes || '',
+    latestNote ? `[${new Date(latestNote.created_at).toLocaleDateString()}] ${latestNote.note}` : ''
+  ].filter(Boolean).join(' | ');
+
   return {
     id: apiLead.id,
     company: apiLead.company?.name || 'Unknown Company',
@@ -86,12 +97,13 @@ const transformApiLeadToUILead = (apiLead: any) => {
     score: apiLead.score || 50,
     source: apiLead.source || 'Unknown',
     lastContact: apiLead.created_at ? new Date(apiLead.created_at).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
-    nextAction: apiLead.next_action || 'Follow up',
-    notes: apiLead.notes || '',
+    nextAction: latestNote?.next_action || apiLead.next_action || 'Follow up',
+    notes: combinedNotes,
+    leadNotes: apiLead.lead_notes || [], // Store all notes for display
     engagement: apiLead.score >= 80 ? 'High' : apiLead.score >= 60 ? 'Medium' : 'Low',
     travelBudget: apiLead.estimated_value ? `$${Math.floor(apiLead.estimated_value / 1000)}K` : '$0K',
     decisionMaker: Math.random() > 0.5,
-    urgency: apiLead.priority || 'Medium',
+    urgency: latestNote?.urgency || apiLead.priority || 'Medium',
     aiSuggestion: `AI Score: ${apiLead.score}. ${apiLead.score >= 80 ? 'High priority lead - contact immediately' : apiLead.score >= 60 ? 'Medium priority - follow up within 2 days' : 'Low priority - add to nurture campaign'}`,
     tags: [apiLead.company?.industry || 'General', apiLead.status || 'New'],
     contractReady: apiLead.status === 'qualified',
@@ -107,7 +119,17 @@ const transformApiLeadToUILead = (apiLead: any) => {
         timestamp: apiLead.created_at || new Date().toISOString(),
         details: apiLead.notes || 'Lead created in the system',
         icon: 'plus'
-      }
+      },
+      // Add all lead notes to history
+      ...(apiLead.lead_notes || []).map((note: any, index: number) => ({
+        id: index + 2,
+        type: 'note',
+        action: 'Note added',
+        user: note.created_by?.username || 'User',
+        timestamp: note.created_at,
+        details: note.note,
+        icon: 'message-square'
+      }))
     ]
   };
 };
@@ -505,23 +527,35 @@ SOAR-AI Team`,
     }
 
     try {
-      // Call API to save the note using the leadApi hook
-      const noteData = await leadApi.addNote(selectedLeadForNote.id, {
-        note: noteForm.note,
-        next_action: noteForm.nextAction,
-        urgency: noteForm.urgency
-      });
+      // Optimistically update the UI first
+      const optimisticUpdate = {
+        ...selectedLeadForNote,
+        notes: selectedLeadForNote.notes 
+          ? `${selectedLeadForNote.notes} | [${new Date().toLocaleDateString()}] ${noteForm.note}`
+          : `[${new Date().toLocaleDateString()}] ${noteForm.note}`,
+        nextAction: noteForm.nextAction || selectedLeadForNote.nextAction,
+        urgency: noteForm.urgency,
+        leadNotes: [
+          {
+            id: Date.now(),
+            note: noteForm.note,
+            next_action: noteForm.nextAction,
+            urgency: noteForm.urgency,
+            created_at: new Date().toISOString(),
+            created_by: { username: 'You' }
+          },
+          ...(selectedLeadForNote.leadNotes || [])
+        ]
+      };
 
-      console.log('Note saved successfully:', noteData);
+      // Update leads state immediately for better UX
+      setLeads(prevLeads => 
+        prevLeads.map(lead => 
+          lead.id === selectedLeadForNote.id ? optimisticUpdate : lead
+        )
+      );
 
-      // Refresh the leads list to get updated data from the server
-      await fetchLeads();
-
-      setSuccessMessage(`Note added to ${selectedLeadForNote.company} successfully!`);
-      setTimeout(() => setSuccessMessage(''), 5000);
-      toast.success('Note saved successfully!');
-      
-      // Close dialog and reset state
+      // Close dialog immediately
       setShowAddNoteDialog(false);
       setSelectedLeadForNote(null);
       setNoteForm({
@@ -529,9 +563,36 @@ SOAR-AI Team`,
         nextAction: '',
         urgency: 'Medium'
       });
+
+      // Show success message immediately
+      setSuccessMessage(`Note added to ${selectedLeadForNote.company} successfully!`);
+      setTimeout(() => setSuccessMessage(''), 5000);
+      toast.success('Note saved successfully!');
+
+      // Call API in the background
+      const noteData = await leadApi.addNote(selectedLeadForNote.id, {
+        note: noteForm.note,
+        next_action: noteForm.nextAction,
+        urgency: noteForm.urgency
+      });
+
+      console.log('Note saved to server successfully:', noteData);
+
+      // Optionally refresh the data from server to ensure consistency
+      setTimeout(async () => {
+        try {
+          await fetchLeads();
+        } catch (error) {
+          console.error('Background refresh failed:', error);
+        }
+      }, 1000);
+
     } catch (error) {
       console.error('Error saving note:', error);
       toast.error('Failed to save note. Please try again.');
+      
+      // Revert the optimistic update on error
+      await fetchLeads();
     }
   };
 
@@ -1175,10 +1236,59 @@ SOAR-AI Team`,
                 </AlertDescription>
               </Alert>
 
-              {/* Notes */}
-              {lead.notes && (
+              {/* Notes Section */}
+              {(lead.notes || (lead.leadNotes && lead.leadNotes.length > 0)) && (
                 <div className="mb-4 p-3 bg-gray-50 rounded-lg">
-                  <p className="text-sm text-gray-700"><strong>Notes:</strong> {lead.notes}</p>
+                  <div className="flex items-center justify-between mb-2">
+                    <h4 className="text-sm font-semibold text-gray-800 flex items-center gap-1">
+                      <MessageSquare className="h-4 w-4" />
+                      Notes & Updates
+                    </h4>
+                    {lead.leadNotes && lead.leadNotes.length > 0 && (
+                      <span className="text-xs text-gray-500 bg-gray-200 px-2 py-1 rounded-full">
+                        {lead.leadNotes.length} note{lead.leadNotes.length !== 1 ? 's' : ''}
+                      </span>
+                    )}
+                  </div>
+                  
+                  {/* Original notes */}
+                  {lead.notes && (
+                    <div className="text-sm text-gray-700 mb-2">
+                      <strong>Original Notes:</strong> {lead.notes.split(' | ')[0]}
+                    </div>
+                  )}
+                  
+                  {/* Recent lead notes */}
+                  {lead.leadNotes && lead.leadNotes.length > 0 && (
+                    <div className="space-y-2">
+                      <div className="text-xs font-medium text-gray-600">Recent Activity:</div>
+                      {lead.leadNotes.slice(0, 2).map((note: any, index: number) => (
+                        <div key={note.id || index} className="text-sm bg-white p-2 rounded border-l-2 border-blue-200">
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="text-xs text-gray-500">
+                              {new Date(note.created_at).toLocaleDateString()} • {note.created_by?.username || 'User'}
+                            </span>
+                            {note.urgency && note.urgency !== 'Medium' && (
+                              <Badge className={`text-xs px-1 py-0 ${getUrgencyBadgeStyle(note.urgency)}`}>
+                                {note.urgency}
+                              </Badge>
+                            )}
+                          </div>
+                          <p className="text-gray-700">{note.note}</p>
+                          {note.next_action && (
+                            <p className="text-xs text-blue-600 mt-1">
+                              <strong>Next:</strong> {note.next_action}
+                            </p>
+                          )}
+                        </div>
+                      ))}
+                      {lead.leadNotes.length > 2 && (
+                        <div className="text-xs text-gray-500 text-center">
+                          +{lead.leadNotes.length - 2} more note{lead.leadNotes.length - 2 !== 1 ? 's' : ''}
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               )}
 
