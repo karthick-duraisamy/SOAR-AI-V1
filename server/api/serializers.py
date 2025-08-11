@@ -2,7 +2,7 @@ from rest_framework import serializers
 from .models import (
     Company, Contact, Lead, Opportunity, Contract, ContractBreach,
     EmailCampaign, TravelOffer, SupportTicket, RevenueForecast,
-    ActivityLog, AIConversation, LeadNote
+    ActivityLog, AIConversation, LeadNote, LeadHistory
 )
 
 class CompanySerializer(serializers.ModelSerializer):
@@ -74,11 +74,24 @@ class LeadNoteSerializer(serializers.ModelSerializer):
         model = LeadNote
         fields = '__all__'
 
+class LeadHistorySerializer(serializers.ModelSerializer):
+    user_name = serializers.SerializerMethodField()
+
+    class Meta:
+        model = LeadHistory
+        fields = '__all__'
+
+    def get_user_name(self, obj):
+        if obj.user:
+            return f"{obj.user.first_name} {obj.user.last_name}".strip() or obj.user.username
+        return "System"
+
 class LeadSerializer(serializers.ModelSerializer):
     company = CompanySerializer(read_only=True)
     contact = ContactSerializer(read_only=True)
     assigned_to = serializers.StringRelatedField(read_only=True)
     lead_notes = LeadNoteSerializer(many=True, read_only=True)
+    history_entries = LeadHistorySerializer(many=True, read_only=True)
 
     class Meta:
         model = Lead

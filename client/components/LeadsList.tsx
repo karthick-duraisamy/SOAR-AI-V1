@@ -63,11 +63,50 @@ import {
   Eye
 } from 'lucide-react';
 import { toast } from "sonner";
+import { format } from 'date-fns';
 
 interface LeadsListProps {
   initialFilters?: any;
   onNavigate: (screen: string, filters?: any) => void;
 }
+
+// Helper function to transform API history entry to a consistent format
+const transformHistoryEntry = (entry: any) => {
+  const iconMap: { [key: string]: string } = {
+    'lead_created': 'plus',
+    'lead_contacted': 'mail',
+    'lead_responded': 'message-circle',
+    'discovery_call_scheduled': 'phone',
+    'lead_qualified': 'check-circle',
+    'lead_disqualified': 'x-circle',
+    'score_updated': 'trending-up',
+    'note_added': 'message-square',
+    'lead_assigned': 'user',
+    'status_change': 'refresh-cw',
+    'email_sent': 'mail',
+    'phone_call': 'phone',
+    'meeting_scheduled': 'calendar',
+    'proposal_sent': 'briefcase',
+    'contract_signed': 'handshake',
+    'deal_won': 'trophy',
+    'deal_lost': 'x',
+  };
+
+  return {
+    id: entry.id,
+    type: entry.type,
+    action: entry.action,
+    user: entry.user?.username || entry.created_by?.username || 'Unknown User',
+    timestamp: entry.created_at || entry.timestamp,
+    details: entry.details || entry.note,
+    metadata: entry.metadata || {
+      next_action: entry.next_action,
+      urgency: entry.urgency
+    },
+    icon: iconMap[entry.type] || 'activity' // Default to 'activity' if type not mapped
+  };
+};
+
 
 // Transform API lead data to match the component's expected format
 const transformApiLeadToUILead = (apiLead: any) => {
@@ -75,7 +114,7 @@ const transformApiLeadToUILead = (apiLead: any) => {
   const latestNote = apiLead.lead_notes && apiLead.lead_notes.length > 0 
     ? apiLead.lead_notes[0] // Notes are ordered by -created_at in the backend
     : null;
-  
+
   // Combine original notes with latest lead notes
   const combinedNotes = [
     apiLead.notes || '',
@@ -103,7 +142,7 @@ const transformApiLeadToUILead = (apiLead: any) => {
     leadNotes: apiLead.lead_notes || [], // Store all notes for display
     engagement: apiLead.score >= 80 ? 'High' : apiLead.score >= 60 ? 'Medium' : 'Low',
     travelBudget: apiLead.estimated_value ? `$${Math.floor(apiLead.estimated_value / 1000)}K` : '$0K',
-    decisionMaker: Math.random() > 0.5,
+    decisionMaker: apiLead.contact?.is_decision_maker || Math.random() > 0.5,
     urgency: latestNote?.urgency || apiLead.priority || 'Medium',
     aiSuggestion: `AI Score: ${apiLead.score}. ${apiLead.score >= 80 ? 'High priority lead - contact immediately' : apiLead.score >= 60 ? 'Medium priority - follow up within 2 days' : 'Low priority - add to nurture campaign'}`,
     tags: [apiLead.company?.industry || 'General', apiLead.status || 'New'],
@@ -111,11 +150,12 @@ const transformApiLeadToUILead = (apiLead: any) => {
     lastActivity: apiLead.updated_at ? new Date(apiLead.updated_at).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
     followUpDate: apiLead.next_action_date || new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
     assignedAgent: apiLead.assigned_to?.username || null,
-    history: buildLeadHistory(apiLead)
+    // History will be fetched separately via API and mapped in the dialog
+    history_entries: apiLead.history_entries || [] 
   };
 };
 
-// Build comprehensive history for each lead
+// Build comprehensive history for each lead (This function is now primarily for reference if needed, but history is fetched from API)
 const buildLeadHistory = (apiLead: any) => {
   const history = [];
   let historyId = 1;
@@ -271,7 +311,7 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
   const [expandedNotes, setExpandedNotes] = useState<{[key: number]: boolean}>({});
   const [showHistoryDialog, setShowHistoryDialog] = useState(false);
   const [selectedLeadForHistory, setSelectedLeadForHistory] = useState<any>(null);
-  const [leadHistories, setLeadHistories] = useState<{[key: number]: any[]}>({});
+  const [leadHistories, setLeadHistories] = useState<{[key: number]: any[]}>({}); // This is now for local history if API fails or is not used
   const [filters, setFilters] = useState({
     status: initialFilters?.status || 'all',
     industry: 'all',
@@ -303,10 +343,17 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
   const fetchLeads = async () => {
     try {
       setLoading(true);
-      const apiLeads = await leadApi.getLeads();
+      const apiResponse = await leadApi.getLeads(); // Assuming getLeads returns { results: [], count: N }
+      const apiLeads = apiResponse.results;
       console.log('Fetched leads:', apiLeads);
-      const transformedLeads = apiLeads.results.map(transformApiLeadToUILead);
+
+      // Transform leads and include history entries from API response
+      const transformedLeads = apiLeads.map((apiLead: any) => ({
+        ...transformApiLeadToUILead(apiLead),
+        history_entries: apiLead.history || [] // Directly use history from API response
+      }));
       setLeads(transformedLeads);
+
     } catch (error) {
       console.error('Error fetching leads:', error);
       toast.error('Failed to fetch leads');
@@ -326,7 +373,7 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
 
       if (initialFilters.newLead) {
         const newLead = {
-          id: Math.max(...leads.map(l => l.id)) + 1,
+          id: Math.max(...leads.map(l => l.id)) + 1, // This might be problematic if leads is empty initially
           company: initialFilters.newLead.company,
           contact: initialFilters.newLead.contact || 'Contact Name',
           title: initialFilters.newLead.title || 'Decision Maker',
@@ -352,7 +399,7 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
           contractReady: false,
           lastActivity: new Date().toISOString().split('T')[0],
           followUpDate: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-          history: [
+          history_entries: [ // Placeholder for history, actual history will come from API
             {
               id: 1,
               type: 'note',
@@ -475,16 +522,11 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
 
       console.log('Lead created successfully:', createdLead);
 
-      // Add history entry for new lead
-      addHistoryEntry(createdLead.id, {
-        type: 'creation',
-        action: 'Lead created',
-        user: 'Sales Team',
-        details: `New lead created for ${newLeadForm.company}. Contact: ${newLeadForm.contact}. Source: ${newLeadForm.source}. Initial status: ${newLeadForm.status}.`,
-        icon: 'plus'
-      });
+      // Add history entry for new lead (This part should also be handled by the backend and returned)
+      // For now, assuming backend creates the initial history entry.
+      // If not, this would need an API call like addHistoryEntry.
 
-      await fetchLeads();
+      await fetchLeads(); // Refresh to show the new lead
 
       setShowNewLeadDialog(false);
       setSuccessMessage(`New lead "${newLeadForm.company}" has been created successfully!`);
@@ -519,26 +561,9 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
   const handleQualifyLead = async (leadId: number) => {
     try {
       await leadApi.qualifyLead(leadId);
-      
-      const lead = leads.find(l => l.id === leadId);
-      
-      // Add history entry
-      addHistoryEntry(leadId, {
-        type: 'qualification',
-        action: 'Lead qualified',
-        user: 'Sales Manager',
-        details: `Lead qualified as high-priority prospect. ${lead?.company} is now ready for proposal and contract negotiation.`,
-        icon: 'check-circle'
-      });
-      
-      // Update local state
-      setLeads(prevLeads => 
-        prevLeads.map(lead => 
-          lead.id === leadId 
-            ? { ...lead, status: 'qualified' }
-            : lead
-        )
-      );
+
+      // Fetch updated lead data to reflect status change and potential history
+      await fetchLeads();
 
       setSuccessMessage('Lead has been qualified successfully!');
       setTimeout(() => setSuccessMessage(''), 5000);
@@ -560,29 +585,14 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
 
     try {
       await leadApi.disqualifyLead(selectedLeadForDisqualify.id, disqualifyReason);
-      
-      // Add history entry
-      addHistoryEntry(selectedLeadForDisqualify.id, {
-        type: 'disqualification',
-        action: 'Lead disqualified',
-        user: 'Sales Manager',
-        details: `Lead disqualified. Reason: ${disqualifyReason || 'No specific reason provided'}. Lead moved to nurture campaign for future consideration.`,
-        icon: 'x-circle'
-      });
-      
-      // Update local state
-      setLeads(prevLeads => 
-        prevLeads.map(lead => 
-          lead.id === selectedLeadForDisqualify.id 
-            ? { ...lead, status: 'unqualified' }
-            : lead
-        )
-      );
+
+      // Fetch updated lead data
+      await fetchLeads();
 
       setSuccessMessage('Lead has been disqualified successfully!');
       setTimeout(() => setSuccessMessage(''), 5000);
       toast.success('Lead disqualified successfully!');
-      
+
       // Close dialog and reset state
       setShowDisqualifyDialog(false);
       setSelectedLeadForDisqualify(null);
@@ -621,36 +631,21 @@ SOAR-AI Team`,
 
     try {
       // Here you would typically call an API to send the message
-      console.log('Sending message:', {
-        leadId: selectedLeadForContact.id,
+      // And also create a history entry via API
+      await leadApi.sendMessage(selectedLeadForContact.id, {
         method: contactForm.method,
         subject: contactForm.subject,
         message: contactForm.message,
         followUpDate: contactForm.followUpDate
       });
 
-      // Add history entry
-      addHistoryEntry(selectedLeadForContact.id, {
-        type: 'communication',
-        action: `${contactForm.method} sent`,
-        user: 'Sales Team',
-        details: `${contactForm.method} sent to ${selectedLeadForContact.contact}. Subject: "${contactForm.subject}". ${contactForm.followUpDate ? `Follow-up scheduled for ${contactForm.followUpDate}.` : ''}`,
-        icon: contactForm.method.toLowerCase() === 'email' ? 'mail' : contactForm.method.toLowerCase() === 'phone' ? 'phone' : 'message-circle'
-      });
-
-      // Update lead status to contacted
-      setLeads(prevLeads => 
-        prevLeads.map(lead => 
-          lead.id === selectedLeadForContact.id 
-            ? { ...lead, status: 'contacted', lastContact: new Date().toISOString().split('T')[0] }
-            : lead
-        )
-      );
+      // Update lead status to contacted if applicable and refresh
+      await fetchLeads();
 
       setSuccessMessage(`Message sent to ${selectedLeadForContact.company} successfully!`);
       setTimeout(() => setSuccessMessage(''), 5000);
       toast.success('Message sent successfully!');
-      
+
       // Close dialog and reset state
       setShowContactDialog(false);
       setSelectedLeadForContact(null);
@@ -681,8 +676,33 @@ SOAR-AI Team`,
     setShowHistoryDialog(true);
   };
 
-  // Function to add history entry for any action
+  // Function to add history entry for any action (now should be done via API)
   const addHistoryEntry = (leadId: number, entry: any) => {
+    // This function would ideally make an API call to create a history entry
+    // For now, we'll simulate by updating local state if needed, but API is preferred
+    console.warn("addHistoryEntry called locally. Prefer using API for history updates.");
+
+    // Update the lead's history in the leads array for immediate UI feedback if necessary
+    setLeads(prevLeads => 
+      prevLeads.map(lead => 
+        lead.id === leadId 
+          ? {
+              ...lead,
+              history_entries: [
+                ...(lead.history_entries || []),
+                {
+                  ...entry,
+                  id: Date.now() + Math.random(), // Temp ID
+                  timestamp: new Date().toISOString(),
+                  user: { username: 'You' } // Assume current user
+                }
+              ].sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime())
+            }
+          : lead
+      )
+    );
+
+    // Also update the leadHistories state if it's used for fallback display
     setLeadHistories(prev => ({
       ...prev,
       [leadId]: [
@@ -692,54 +712,40 @@ SOAR-AI Team`,
           id: Date.now() + Math.random(),
           timestamp: new Date().toISOString()
         }
-      ]
+      ].sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime())
     }));
-
-    // Also update the lead's history in the leads array
-    setLeads(prevLeads => 
-      prevLeads.map(lead => 
-        lead.id === leadId 
-          ? {
-              ...lead,
-              history: [
-                ...lead.history,
-                {
-                  ...entry,
-                  id: Date.now() + Math.random(),
-                  timestamp: new Date().toISOString()
-                }
-              ].sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime())
-            }
-          : lead
-      )
-    );
   };
 
   const getHistoryIcon = (type: string) => {
     switch (type) {
-      case 'creation':
+      case 'lead_created':
         return <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center"><Plus className="h-4 w-4 text-blue-600" /></div>;
-      case 'note':
+      case 'note_added':
         return <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center"><MessageSquare className="h-4 w-4 text-blue-600" /></div>;
-      case 'call':
+      case 'phone_call':
         return <div className="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center"><Phone className="h-4 w-4 text-purple-600" /></div>;
-      case 'meeting':
+      case 'meeting_scheduled':
         return <div className="w-8 h-8 rounded-full bg-pink-100 flex items-center justify-center"><Calendar className="h-4 w-4 text-pink-600" /></div>;
-      case 'qualification':
+      case 'lead_qualified':
         return <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center"><CheckCircle className="h-4 w-4 text-green-600" /></div>;
-      case 'disqualification':
+      case 'lead_disqualified':
         return <div className="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center"><UserX className="h-4 w-4 text-red-600" /></div>;
-      case 'communication':
-      case 'email':
+      case 'email_sent':
         return <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center"><Mail className="h-4 w-4 text-blue-600" /></div>;
-      case 'response':
+      case 'lead_responded':
         return <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center"><MessageCircle className="h-4 w-4 text-green-600" /></div>;
       case 'status_change':
         return <div className="w-8 h-8 rounded-full bg-yellow-100 flex items-center justify-center"><RefreshCw className="h-4 w-4 text-yellow-600" /></div>;
-      case 'score_update':
+      case 'score_updated':
         return <div className="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center"><TrendingUp className="h-4 w-4 text-orange-600" /></div>;
-      case 'assignment':
+      case 'lead_assigned':
         return <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center"><User className="h-4 w-4 text-indigo-600" /></div>;
+      case 'proposal_sent':
+        return <div className="w-8 h-8 rounded-full bg-teal-100 flex items-center justify-center"><Briefcase className="h-4 w-4 text-teal-600" /></div>;
+      case 'contract_signed':
+        return <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center"><Handshake className="h-4 w-4 text-emerald-600" /></div>;
+      case 'deal_won':
+        return <div className="w-8 h-8 rounded-full bg-lime-100 flex items-center justify-center"><Award className="h-4 w-4 text-lime-600" /></div>;
       default:
         return <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center"><Activity className="h-4 w-4 text-gray-600" /></div>;
     }
@@ -752,35 +758,17 @@ SOAR-AI Team`,
     }
 
     try {
-      // Optimistically update the UI first
-      const optimisticUpdate = {
-        ...selectedLeadForNote,
-        notes: selectedLeadForNote.notes 
-          ? `${selectedLeadForNote.notes} | [${new Date().toLocaleDateString()}] ${noteForm.note}`
-          : `[${new Date().toLocaleDateString()}] ${noteForm.note}`,
-        nextAction: noteForm.nextAction || selectedLeadForNote.nextAction,
-        urgency: noteForm.urgency,
-        leadNotes: [
-          {
-            id: Date.now(),
-            note: noteForm.note,
-            next_action: noteForm.nextAction,
-            urgency: noteForm.urgency,
-            created_at: new Date().toISOString(),
-            created_by: { username: 'You' }
-          },
-          ...(selectedLeadForNote.leadNotes || [])
-        ]
-      };
+      // Call API to add note, which will also create a history entry
+      await leadApi.addNote(selectedLeadForNote.id, {
+        note: noteForm.note,
+        next_action: noteForm.nextAction,
+        urgency: noteForm.urgency
+      });
 
-      // Update leads state immediately for better UX
-      setLeads(prevLeads => 
-        prevLeads.map(lead => 
-          lead.id === selectedLeadForNote.id ? optimisticUpdate : lead
-        )
-      );
+      // Refresh leads to get the latest data including the new note and history
+      await fetchLeads();
 
-      // Close dialog immediately
+      // Close dialog and reset state
       setShowAddNoteDialog(false);
       setSelectedLeadForNote(null);
       setNoteForm({
@@ -789,48 +777,13 @@ SOAR-AI Team`,
         urgency: 'Medium'
       });
 
-      // Show success message immediately
       setSuccessMessage(`Note added to ${selectedLeadForNote.company} successfully!`);
       setTimeout(() => setSuccessMessage(''), 5000);
       toast.success('Note saved successfully!');
 
-      // Add history entry
-      addHistoryEntry(selectedLeadForNote.id, {
-        type: 'note',
-        action: 'Note added',
-        user: 'Sales Team',
-        details: noteForm.note,
-        icon: 'message-square',
-        metadata: {
-          next_action: noteForm.nextAction,
-          urgency: noteForm.urgency
-        }
-      });
-
-      // Call API in the background
-      const noteData = await leadApi.addNote(selectedLeadForNote.id, {
-        note: noteForm.note,
-        next_action: noteForm.nextAction,
-        urgency: noteForm.urgency
-      });
-
-      console.log('Note saved to server successfully:', noteData);
-
-      // Optionally refresh the data from server to ensure consistency
-      setTimeout(async () => {
-        try {
-          await fetchLeads();
-        } catch (error) {
-          console.error('Background refresh failed:', error);
-        }
-      }, 1000);
-
     } catch (error) {
       console.error('Error saving note:', error);
       toast.error('Failed to save note. Please try again.');
-      
-      // Revert the optimistic update on error
-      await fetchLeads();
     }
   };
 
@@ -983,7 +936,7 @@ SOAR-AI Team`,
       {/* Metrics Cards Section - Moved to top */}
       <div className="mb-6">
         <div className="flex items-center justify-end  mb-4">
-          
+
         </div>
 
         {/* Statistics Cards */}
@@ -1203,7 +1156,7 @@ SOAR-AI Team`,
             >
               Clear Filters
             </Button>
-            
+
           </div>
           <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
             <div>
@@ -1282,7 +1235,7 @@ SOAR-AI Team`,
               </Select>
             </div>
           </div>
-        
+
         </CardContent>
       </Card>
 
@@ -1311,7 +1264,6 @@ SOAR-AI Team`,
               <p className="text-muted-foreground">Loading leads...</p>
             </div>
           </div>
-          {/* {renderLoadingCards()} */}
         </div>
       ) : (
         <div className="space-y-4">
@@ -1337,6 +1289,9 @@ SOAR-AI Team`,
                         {lead.status === 'qualified' ? 'Qualified' : 
                          lead.status === 'contacted' ? 'Contacted' :
                          lead.status === 'in-progress' ? 'In Progress' :
+                         lead.status === 'responded' ? 'Responded' :
+                         lead.status === 'unqualified' ? 'Unqualified' :
+                         lead.status === 'new' ? 'New' :
                          lead.status}
                       </Badge>
                       {lead.decisionMaker && (
@@ -1499,7 +1454,7 @@ SOAR-AI Team`,
                         </span>
                       )}
                     </div>
-                    
+
                     <CollapsibleContent className="space-y-2">
                       {/* Original notes */}
                       {lead.notes && (
@@ -1507,7 +1462,7 @@ SOAR-AI Team`,
                           <strong>Original Notes:</strong> {lead.notes.split(' | ')[0]}
                         </div>
                       )}
-                      
+
                       {/* Recent lead notes */}
                       {lead.leadNotes && lead.leadNotes.length > 0 && (
                         <div className="space-y-2">
@@ -1633,18 +1588,6 @@ SOAR-AI Team`,
         ))}
         </div>
       )}
-
-      {/* {filteredLeads.length === 0 && (
-        <div className="text-center py-12">
-          <Users className="h-12 w-12 mx-auto mb-4 text-gray-400" />
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">No leads found</h3>
-          <p className="text-gray-600 mb-4">Try adjusting your filters or add new leads to get started.</p>
-          <Button className="bg-orange-500 hover:bg-orange-600 text-white" onClick={() => setShowNewLeadDialog(true)}>
-            <Plus className="h-4 w-4 mr-2" />
-            Add New Lead
-          </Button>
-        </div>
-      )} */}
 
       {/* Add New Lead Dialog */}
       <Dialog open={showNewLeadDialog} onOpenChange={setShowNewLeadDialog}>
@@ -2012,52 +1955,55 @@ SOAR-AI Team`,
               Complete activity history for {selectedLeadForHistory?.contact} at {selectedLeadForHistory?.company}
             </DialogDescription>
           </DialogHeader>
-          
+
           <div className="space-y-4 max-h-[60vh] overflow-y-auto">
-            {selectedLeadForHistory?.history?.length > 0 ? (
-              selectedLeadForHistory.history.map((item: any, index: number) => (
-                <div key={item.id || index} className="flex items-start gap-4 p-4 rounded-lg border border-gray-100 hover:bg-gray-50 transition-colors">
-                  <div className="flex-shrink-0 mt-1">
-                    {getHistoryIcon(item.type)}
-                  </div>
-                  
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs px-2 py-1 bg-gray-100 rounded-full text-gray-600 uppercase font-medium">
-                          {item.type.replace('_', ' ')}
+            {selectedLeadForHistory?.history_entries?.length > 0 ? (
+              selectedLeadForHistory.history_entries.map((entry: any) => {
+                const transformedEntry = transformHistoryEntry(entry);
+                return (
+                  <div key={transformedEntry.id} className="flex items-start gap-4 p-4 rounded-lg border border-gray-100 hover:bg-gray-50 transition-colors">
+                    <div className="flex-shrink-0 mt-1">
+                      {getHistoryIcon(transformedEntry.type)}
+                    </div>
+
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs px-2 py-1 bg-gray-100 rounded-full text-gray-600 uppercase font-medium">
+                            {transformedEntry.type.replace('_', ' ')}
+                          </span>
+                          <h4 className="text-sm font-semibold text-gray-900">
+                            {transformedEntry.action}
+                          </h4>
+                          {transformedEntry.metadata?.urgency && transformedEntry.metadata.urgency !== 'Medium' && (
+                            <Badge className={`text-xs px-1 py-0 ${getUrgencyBadgeStyle(transformedEntry.metadata.urgency)}`}>
+                              {transformedEntry.metadata.urgency}
+                            </Badge>
+                          )}
+                        </div>
+                        <span className="text-xs text-gray-500">
+                          {format(new Date(transformedEntry.timestamp), 'MM/dd/yyyy \'at\' HH:mm:ss')}
                         </span>
-                        <h4 className="text-sm font-semibold text-gray-900">
-                          {item.action}
-                        </h4>
-                        {item.metadata?.urgency && item.metadata.urgency !== 'Medium' && (
-                          <Badge className={`text-xs px-1 py-0 ${getUrgencyBadgeStyle(item.metadata.urgency)}`}>
-                            {item.metadata.urgency}
-                          </Badge>
-                        )}
                       </div>
-                      <span className="text-xs text-gray-500">
-                        {new Date(item.timestamp).toLocaleDateString()} at {new Date(item.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
-                      </span>
-                    </div>
-                    
-                    <p className="text-sm text-gray-700 mb-2">
-                      {item.details}
-                    </p>
-                    
-                    {item.metadata?.next_action && (
-                      <p className="text-xs text-blue-600 mb-2">
-                        <strong>Next Action:</strong> {item.metadata.next_action}
+
+                      <p className="text-sm text-gray-700 mb-2">
+                        {transformedEntry.details}
                       </p>
-                    )}
-                    
-                    <div className="flex items-center gap-1 text-xs text-gray-500">
-                      <User className="h-3 w-3" />
-                      <span>by {item.user}</span>
+
+                      {transformedEntry.metadata?.next_action && (
+                        <p className="text-xs text-blue-600 mb-2">
+                          <strong>Next Action:</strong> {transformedEntry.metadata.next_action}
+                        </p>
+                      )}
+
+                      <div className="flex items-center gap-1 text-xs text-gray-500">
+                        <User className="h-3 w-3" />
+                        <span>by {transformedEntry.user}</span>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))
+                );
+              })
             ) : (
               <div className="text-center py-8">
                 <History className="h-12 w-12 mx-auto mb-4 text-gray-400" />
@@ -2066,7 +2012,7 @@ SOAR-AI Team`,
               </div>
             )}
           </div>
-          
+
           <div className="flex justify-end pt-4 border-t">
             <Button 
               onClick={() => {

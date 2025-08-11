@@ -7,14 +7,27 @@ from datetime import datetime, timedelta
 from .models import (
     Company, Contact, Lead, Opportunity, Contract, ContractBreach,
     EmailCampaign, TravelOffer, SupportTicket, RevenueForecast, 
-    ActivityLog, AIConversation, LeadNote
+    ActivityLog, AIConversation, LeadNote, LeadHistory
 )
 from .serializers import (
     CompanySerializer, ContactSerializer, LeadSerializer, OpportunitySerializer,
     ContractSerializer, ContractBreachSerializer, EmailCampaignSerializer,
     TravelOfferSerializer, SupportTicketSerializer, RevenueForecastSerializer, 
-    ActivityLogSerializer, AIConversationSerializer, LeadNoteSerializer
+    ActivityLogSerializer, AIConversationSerializer, LeadNoteSerializer, LeadHistorySerializer
 )
+
+# Helper function to create lead history entries
+def create_lead_history(lead, history_type, action, details, icon=None, user=None):
+    """Creates a LeadHistory entry."""
+    LeadHistory.objects.create(
+        lead=lead,
+        history_type=history_type,
+        action=action,
+        details=details,
+        icon=icon,
+        created_by=user,
+        timestamp=timezone.now()
+    )
 
 class CompanyViewSet(viewsets.ModelViewSet):
     queryset = Company.objects.all()
@@ -200,27 +213,36 @@ class LeadViewSet(viewsets.ModelViewSet):
                 is_decision_maker=contact_data.get('is_decision_maker', False)
             )
 
-            # Create lead
+            # Create the lead
             lead = Lead.objects.create(
                 company=company,
                 contact=contact,
                 status=data.get('status', 'new'),
-                source=data.get('source', 'website'),
+                source=data.get('source'),
                 priority=data.get('priority', 'medium'),
                 score=data.get('score', 0),
                 estimated_value=data.get('estimated_value'),
                 notes=data.get('notes', ''),
-                assigned_to=request.user if request.user.is_authenticated else None
+                next_action=data.get('next_action', ''),
+                next_action_date=data.get('next_action_date')
             )
 
+            # Create initial history entry
+            create_lead_history(
+                lead=lead,
+                history_type='creation',
+                action='Lead created',
+                details=f"Lead created from {lead.source}. Initial contact information collected for {lead.company.name}.",
+                icon='plus',
+                user=self.request.user if self.request.user.is_authenticated else None
+            )
+
+            # Serialize and return the created lead
             serializer = self.get_serializer(lead)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
         except Exception as e:
-            return Response(
-                {'error': f'Failed to create lead: {str(e)}'}, 
-                status=status.HTTP_400_BAD_REQUEST
-            )
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
     def get_queryset(self):
         queryset = self.queryset
@@ -295,16 +317,38 @@ class LeadViewSet(viewsets.ModelViewSet):
     def update_score(self, request, pk=None):
         lead = self.get_object()
         score = request.data.get('score', 0)
+        old_score = lead.score
         lead.score = score
         lead.save()
+
+        # Create history entry for score update
+        create_lead_history(
+            lead=lead,
+            history_type='score_update',
+            action=f'Lead score updated to {lead.score}',
+            details=f'Lead score updated from {old_score} to {lead.score} based on engagement metrics and profile analysis.',
+            icon='trending-up',
+            user=request.user if request.user.is_authenticated else None
+        )
 
         return Response({'status': 'score updated', 'new_score': lead.score})
 
     @action(detail=True, methods=['post'])
     def qualify(self, request, pk=None):
         lead = self.get_object()
+        old_status = lead.status
         lead.status = 'qualified'
         lead.save()
+
+        # Create history entry for status change
+        create_lead_history(
+            lead=lead,
+            history_type='status_change',
+            action=f'Status changed from {old_status} to {lead.status}',
+            details=self._get_status_change_details(old_status, lead.status, lead),
+            icon=self._get_status_icon(lead.status),
+            user=request.user if request.user.is_authenticated else None
+        )
 
         return Response({'status': 'lead qualified'})
 
@@ -313,10 +357,21 @@ class LeadViewSet(viewsets.ModelViewSet):
         try:
             lead = self.get_object()
             reason = request.data.get('reason', '')
+            old_status = lead.status
 
             lead.status = 'unqualified'
             lead.notes = f"{lead.notes}\n\n[{timezone.now().strftime('%Y-%m-%d %H:%M')}] Disqualified: {reason}" if lead.notes else f"[{timezone.now().strftime('%Y-%m-%d %H:%M')}] Disqualified: {reason}"
             lead.save()
+
+            # Create history entry for status change
+            create_lead_history(
+                lead=lead,
+                history_type='status_change',
+                action=f'Status changed from {old_status} to {lead.status}',
+                details=self._get_status_change_details(old_status, lead.status, lead),
+                icon=self._get_status_icon(lead.status),
+                user=request.user if request.user.is_authenticated else None
+            )
 
             return Response({'message': 'Lead disqualified successfully'}, status=status.HTTP_200_OK)
         except Exception as e:
@@ -329,6 +384,8 @@ class LeadViewSet(viewsets.ModelViewSet):
             note_text = request.data.get('note', '')
             next_action = request.data.get('next_action', '')
             urgency = request.data.get('urgency', 'Medium')
+            old_status = lead.status
+            old_priority = lead.priority
 
             if not note_text.strip():
                 return Response({'error': 'Note text is required'}, status=status.HTTP_400_BAD_REQUEST)
@@ -352,10 +409,31 @@ class LeadViewSet(viewsets.ModelViewSet):
 
             lead.save()
 
+            # Create history entry for note addition
+            create_lead_history(
+                lead=lead,
+                history_type='note_added',
+                action=f'Note added: "{note_text[:30]}..."',
+                details=f"Note content: {note_text}. Next action: {next_action if next_action else 'None'}. Urgency: {urgency}.",
+                icon='file-text',
+                user=request.user if request.user.is_authenticated else None
+            )
+
+            # If priority changed due to urgency, create history for that too
+            if old_priority != lead.priority and lead.priority != 'medium':
+                create_lead_history(
+                    lead=lead,
+                    history_type='priority_change',
+                    action=f'Priority changed to {lead.priority}',
+                    details=f'Priority updated from {old_priority} to {lead.priority} due to note urgency.',
+                    icon='trending-up',
+                    user=request.user if request.user.is_authenticated else None
+                )
+
             # Return both the note data and updated lead information
             note_serializer = LeadNoteSerializer(note)
             lead_serializer = LeadSerializer(lead)
-            
+
             return Response({
                 'note': note_serializer.data,
                 'lead': lead_serializer.data,
@@ -364,6 +442,115 @@ class LeadViewSet(viewsets.ModelViewSet):
 
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+    def update(self, request, *args, **kwargs):
+        instance = self.get_object()
+        old_status = instance.status
+        old_score = instance.score
+        old_assigned_to = instance.assigned_to
+        old_priority = instance.priority
+        old_next_action = instance.next_action
+
+        response = super().update(request, *args, **kwargs)
+
+        if response.status_code == 200:
+            updated_instance = self.get_object()
+
+            # Track status changes
+            if old_status != updated_instance.status:
+                status_details = self._get_status_change_details(old_status, updated_instance.status, updated_instance)
+                create_lead_history(
+                    lead=updated_instance,
+                    history_type='status_change',
+                    action=f'Status changed from {old_status} to {updated_instance.status}',
+                    details=status_details,
+                    icon=self._get_status_icon(updated_instance.status),
+                    user=request.user if request.user.is_authenticated else None
+                )
+
+            # Track score changes
+            if old_score != updated_instance.score:
+                create_lead_history(
+                    lead=updated_instance,
+                    history_type='score_update',
+                    action=f'Lead score updated to {updated_instance.score}',
+                    details=f'Lead score updated from {old_score} to {updated_instance.score} based on engagement metrics and profile analysis.',
+                    icon='trending-up',
+                    user=request.user if request.user.is_authenticated else None
+                )
+
+            # Track assignment changes
+            if old_assigned_to != updated_instance.assigned_to:
+                if updated_instance.assigned_to:
+                    create_lead_history(
+                        lead=updated_instance,
+                        history_type='assignment',
+                        action=f'Lead assigned to {updated_instance.assigned_to.get_full_name()}',
+                        details=f'Lead assigned to {updated_instance.assigned_to.get_full_name()} for follow-up.',
+                        icon='user',
+                        user=request.user if request.user.is_authenticated else None
+                    )
+                elif old_assigned_to: # If assigned_to was removed
+                     create_lead_history(
+                        lead=updated_instance,
+                        history_type='assignment',
+                        action=f'Lead unassigned from {old_assigned_to.get_full_name()}',
+                        details=f'Lead unassigned from {old_assigned_to.get_full_name()}.',
+                        icon='user-x',
+                        user=request.user if request.user.is_authenticated else None
+                    )
+
+            # Track priority changes
+            if old_priority != updated_instance.priority:
+                create_lead_history(
+                    lead=updated_instance,
+                    history_type='priority_change',
+                    action=f'Priority changed to {updated_instance.priority}',
+                    details=f'Lead priority updated from {old_priority} to {updated_instance.priority}.',
+                    icon='trending-up',
+                    user=request.user if request.user.is_authenticated else None
+                )
+
+            # Track next action changes
+            if old_next_action != updated_instance.next_action:
+                create_lead_history(
+                    lead=updated_instance,
+                    history_type='next_action_update',
+                    action=f'Next action updated to "{updated_instance.next_action[:30]}..."',
+                    details=f'Next action updated from "{old_next_action}" to "{updated_instance.next_action}".',
+                    icon='calendar',
+                    user=request.user if request.user.is_authenticated else None
+                )
+
+        return response
+
+    def _get_status_change_details(self, old_status, new_status, lead):
+        """Get detailed description for status changes"""
+        details_map = {
+            'contacted': f'Initial contact made with {lead.contact.first_name}. Outreach sent via email.',
+            'responded': f'{lead.contact.first_name} responded to initial outreach. Expressed interest in travel solutions.',
+            'qualified': f'Lead qualified based on budget ({f"${int(lead.estimated_value/1000)}K" if lead.estimated_value else "TBD"}), authority, and timeline. Ready for proposal stage.',
+            'unqualified': 'Lead disqualified due to budget constraints or timeline mismatch. Moved to nurture campaign.',
+            'proposal_sent': 'Proposal sent to prospect. Awaiting response and feedback.',
+            'negotiation': 'Entered negotiation phase. Discussing terms and pricing.',
+            'won': 'Lead successfully converted to customer. Deal closed!',
+            'lost': 'Lead was lost to competitor or decided not to proceed.'
+        }
+        return details_map.get(new_status, f'Status updated from {old_status} to {new_status}.')
+
+    def _get_status_icon(self, status):
+        """Get appropriate icon for status"""
+        icon_map = {
+            'contacted': 'mail',
+            'responded': 'message-circle',
+            'qualified': 'check-circle',
+            'unqualified': 'x-circle',
+            'proposal_sent': 'file-text',
+            'negotiation': 'handshake',
+            'won': 'trophy',
+            'lost': 'x'
+        }
+        return icon_map.get(status, 'plus')
 
 class OpportunityViewSet(viewsets.ModelViewSet):
     queryset = Opportunity.objects.all()
@@ -466,7 +653,7 @@ class ContractBreachViewSet(viewsets.ModelViewSet):
     def active_breaches(self, request):
         breaches = self.queryset.filter(is_resolved=False).order_by('-severity', '-detected_date')
         serializer = self.get_serializer(breaches, many=True)
-        return Response(serializer.data)
+        return Response(breaches.data)
 
     @action(detail=True, methods=['post'])
     def resolve(self, request, pk=None):
@@ -514,7 +701,7 @@ class TravelOfferViewSet(viewsets.ModelViewSet):
         ).order_by('-created_at')
 
         serializer = self.get_serializer(offers, many=True)
-        return Response(serializer.data)
+        return Response(offers.data)
 
     @action(detail=False, methods=['get'])
     def performance_dashboard(self, request):

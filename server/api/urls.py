@@ -4,7 +4,7 @@ from .views import (
     CompanyViewSet, ContactViewSet, LeadViewSet, OpportunityViewSet,
     ContractViewSet, ContractBreachViewSet, EmailCampaignViewSet,
     TravelOfferViewSet, SupportTicketViewSet, RevenueForecastViewSet,
-    ActivityLogViewSet, LeadNoteViewSet, AIConversationViewSet, DashboardAPIView
+    ActivityLogViewSet, AIConversationViewSet, LeadNoteViewSet, LeadHistoryViewSet
 )
 
 router = DefaultRouter()
@@ -22,6 +22,7 @@ router.register(r'activity-logs', ActivityLogViewSet)
 router.register(r'ai-conversations', AIConversationViewSet)
 router.register(r'dashboard', DashboardAPIView, basename='dashboard')
 router.register(r'lead-notes', LeadNoteViewSet, basename='lead-note')
+router.register(r'lead-history', LeadHistoryViewSet)
 
 urlpatterns = [
     path('', include(router.urls)),

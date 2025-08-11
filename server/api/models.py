@@ -455,6 +455,59 @@ class LeadNote(models.Model):
     class Meta:
         ordering = ['-created_at']
 
+class LeadHistory(models.Model):
+    HISTORY_TYPES = [
+        ('creation', 'Lead Created'),
+        ('status_change', 'Status Changed'),
+        ('note_added', 'Note Added'),
+        ('score_update', 'Score Updated'),
+        ('assignment', 'Lead Assigned'),
+        ('contact_made', 'Contact Made'),
+        ('email_sent', 'Email Sent'),
+        ('call_made', 'Call Made'),
+        ('meeting_scheduled', 'Meeting Scheduled'),
+        ('qualification', 'Lead Qualified'),
+        ('disqualification', 'Lead Disqualified'),
+        ('opportunity_created', 'Opportunity Created'),
+        ('proposal_sent', 'Proposal Sent'),
+        ('negotiation_started', 'Negotiation Started'),
+        ('won', 'Lead Won'),
+        ('lost', 'Lead Lost'),
+    ]
+
+    ICON_TYPES = [
+        ('plus', 'Plus'),
+        ('mail', 'Mail'),
+        ('phone', 'Phone'),
+        ('message-circle', 'Message Circle'),
+        ('message-square', 'Message Square'),
+        ('trending-up', 'Trending Up'),
+        ('user', 'User'),
+        ('check-circle', 'Check Circle'),
+        ('x-circle', 'X Circle'),
+        ('calendar', 'Calendar'),
+        ('briefcase', 'Briefcase'),
+        ('file-text', 'File Text'),
+        ('handshake', 'Handshake'),
+        ('trophy', 'Trophy'),
+        ('x', 'X'),
+    ]
+
+    lead = models.ForeignKey(Lead, on_delete=models.CASCADE, related_name='history_entries')
+    history_type = models.CharField(max_length=25, choices=HISTORY_TYPES)
+    action = models.CharField(max_length=255)
+    details = models.TextField()
+    icon = models.CharField(max_length=20, choices=ICON_TYPES, default='plus')
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    metadata = models.JSONField(default=dict, blank=True)
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.lead.company.name} - {self.action}"
+
+    class Meta:
+        ordering = ['timestamp']
+
 class ActivityLog(models.Model):
     ACTION_TYPES = [
         ('create', 'Created'),
@@ -471,7 +524,7 @@ class ActivityLog(models.Model):
     action_type = models.CharField(max_length=20, choices=ACTION_TYPES)
     action = models.CharField(max_length=255)
     entity_type = models.CharField(max_length=100)
-    entity_id = models.IntegerField()
+    entity_id = models.IntegerInteger()
     details = models.JSONField(default=dict, blank=True)
     ip_address = models.GenericIPAddressField(null=True, blank=True)
     timestamp = models.DateTimeField(auto_now_add=True)
