@@ -119,6 +119,9 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
   const [successMessage, setSuccessMessage] = useState('');
   const [selectedLead, setSelectedLead] = useState(null);
   const [showNewLeadDialog, setShowNewLeadDialog] = useState(false);
+  const [showDisqualifyDialog, setShowDisqualifyDialog] = useState(false);
+  const [selectedLeadForDisqualify, setSelectedLeadForDisqualify] = useState<any>(null);
+  const [disqualifyReason, setDisqualifyReason] = useState('');
   const [selectedLeads, setSelectedLeads] = useState([]);
   const [selectAll, setSelectAll] = useState(false);
   const [filters, setFilters] = useState({
@@ -371,14 +374,22 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
     }
   };
 
-  const handleDisqualifyLead = async (leadId: number) => {
+  const handleDisqualifyLead = (lead: any) => {
+    setSelectedLeadForDisqualify(lead);
+    setShowDisqualifyDialog(true);
+    setDisqualifyReason('');
+  };
+
+  const handleConfirmDisqualify = async () => {
+    if (!selectedLeadForDisqualify) return;
+
     try {
-      await leadApi.disqualifyLead(leadId);
+      await leadApi.disqualifyLead(selectedLeadForDisqualify.id, disqualifyReason);
       
       // Update local state
       setLeads(prevLeads => 
         prevLeads.map(lead => 
-          lead.id === leadId 
+          lead.id === selectedLeadForDisqualify.id 
             ? { ...lead, status: 'unqualified' }
             : lead
         )
@@ -387,6 +398,11 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
       setSuccessMessage('Lead has been disqualified successfully!');
       setTimeout(() => setSuccessMessage(''), 5000);
       toast.success('Lead disqualified successfully!');
+      
+      // Close dialog and reset state
+      setShowDisqualifyDialog(false);
+      setSelectedLeadForDisqualify(null);
+      setDisqualifyReason('');
     } catch (error) {
       console.error('Error disqualifying lead:', error);
       toast.error('Failed to disqualify lead. Please try again.');
@@ -1098,7 +1114,7 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
                       size="sm" 
                       variant="outline" 
                       className="text-red-700 border-red-300 hover:bg-red-50"
-                      onClick={() => handleDisqualifyLead(lead.id)}
+                      onClick={() => handleDisqualifyLead(lead)}
                     >
                       <UserX className="h-4 w-4 mr-1" />
                       Disqualify
@@ -1306,6 +1322,55 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
             >
               <Plus className="h-4 w-4 mr-2" />
               Create Lead
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Disqualify Lead Dialog */}
+      <Dialog open={showDisqualifyDialog} onOpenChange={setShowDisqualifyDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-red-700">
+              <UserX className="h-5 w-5" />
+              Disqualify Lead
+            </DialogTitle>
+            <DialogDescription>
+              Please provide a reason for disqualifying {selectedLeadForDisqualify?.company}. This action will remove the lead from your active list.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="disqualifyReason" className="text-sm font-medium text-gray-700">
+                Reason for disqualify
+              </Label>
+              <Textarea
+                id="disqualifyReason"
+                value={disqualifyReason}
+                onChange={(e) => setDisqualifyReason(e.target.value)}
+                placeholder="Enter the reason for disqualifying this lead (optional)..."
+                className="mt-1 min-h-[120px] resize-none border-gray-300 focus:border-red-500 focus:ring-red-500"
+                rows={5}
+              />
+            </div>
+          </div>
+          <DialogFooter className="flex gap-2">
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                setShowDisqualifyDialog(false);
+                setSelectedLeadForDisqualify(null);
+                setDisqualifyReason('');
+              }}
+              className="text-gray-600 border-gray-300"
+            >
+              Skip
+            </Button>
+            <Button 
+              onClick={handleConfirmDisqualify}
+              className="bg-orange-500 hover:bg-orange-600 text-white"
+            >
+              Submit
             </Button>
           </DialogFooter>
         </DialogContent>
