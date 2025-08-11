@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Textarea } from './ui/textarea';
 import { Alert, AlertDescription } from './ui/alert';
 import { Skeleton } from './ui/skeleton';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from './ui/collapsible';
 import { useLeadApi } from '../hooks/api/useLeadApi';
 import { 
   Users, 
@@ -161,6 +162,7 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
     nextAction: '',
     urgency: 'Medium'
   });
+  const [expandedNotes, setExpandedNotes] = useState<{[key: number]: boolean}>({});
   const [filters, setFilters] = useState({
     status: initialFilters?.status || 'all',
     industry: 'all',
@@ -297,6 +299,13 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
       default:
         return 'bg-gray-100 text-gray-700 border-gray-200';
     }
+  };
+
+  const toggleNotesExpansion = (leadId: number) => {
+    setExpandedNotes(prev => ({
+      ...prev,
+      [leadId]: !prev[leadId]
+    }));
   };
 
   const handleSelectLead = (leadId, isChecked) => {
@@ -1239,56 +1248,70 @@ SOAR-AI Team`,
               {/* Notes Section */}
               {(lead.notes || (lead.leadNotes && lead.leadNotes.length > 0)) && (
                 <div className="mb-4 p-3 bg-gray-50 rounded-lg">
-                  <div className="flex items-center justify-between mb-2">
-                    <h4 className="text-sm font-semibold text-gray-800 flex items-center gap-1">
-                      <MessageSquare className="h-4 w-4" />
-                      Notes & Updates
-                    </h4>
-                    {lead.leadNotes && lead.leadNotes.length > 0 && (
-                      <span className="text-xs text-gray-500 bg-gray-200 px-2 py-1 rounded-full">
-                        {lead.leadNotes.length} note{lead.leadNotes.length !== 1 ? 's' : ''}
-                      </span>
-                    )}
-                  </div>
-                  
-                  {/* Original notes */}
-                  {lead.notes && (
-                    <div className="text-sm text-gray-700 mb-2">
-                      <strong>Original Notes:</strong> {lead.notes.split(' | ')[0]}
-                    </div>
-                  )}
-                  
-                  {/* Recent lead notes */}
-                  {lead.leadNotes && lead.leadNotes.length > 0 && (
-                    <div className="space-y-2">
-                      <div className="text-xs font-medium text-gray-600">Recent Activity:</div>
-                      {lead.leadNotes.slice(0, 2).map((note: any, index: number) => (
-                        <div key={note.id || index} className="text-sm bg-white p-2 rounded border-l-2 border-blue-200">
-                          <div className="flex items-center justify-between mb-1">
-                            <span className="text-xs text-gray-500">
-                              {new Date(note.created_at).toLocaleDateString()} • {note.created_by?.username || 'User'}
-                            </span>
-                            {note.urgency && note.urgency !== 'Medium' && (
-                              <Badge className={`text-xs px-1 py-0 ${getUrgencyBadgeStyle(note.urgency)}`}>
-                                {note.urgency}
-                              </Badge>
-                            )}
-                          </div>
-                          <p className="text-gray-700">{note.note}</p>
-                          {note.next_action && (
-                            <p className="text-xs text-blue-600 mt-1">
-                              <strong>Next:</strong> {note.next_action}
-                            </p>
-                          )}
-                        </div>
-                      ))}
-                      {lead.leadNotes.length > 2 && (
-                        <div className="text-xs text-gray-500 text-center">
-                          +{lead.leadNotes.length - 2} more note{lead.leadNotes.length - 2 !== 1 ? 's' : ''}
-                        </div>
+                  <Collapsible 
+                    open={expandedNotes[lead.id] || false} 
+                    onOpenChange={() => toggleNotesExpansion(lead.id)}
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <CollapsibleTrigger asChild>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="h-auto p-0 font-semibold text-gray-800 hover:bg-transparent flex items-center gap-1"
+                        >
+                          <MessageSquare className="h-4 w-4" />
+                          Notes & Updates
+                          <ChevronDown className={`h-3 w-3 transition-transform duration-200 ${expandedNotes[lead.id] ? 'rotate-180' : ''}`} />
+                        </Button>
+                      </CollapsibleTrigger>
+                      {lead.leadNotes && lead.leadNotes.length > 0 && (
+                        <span className="text-xs text-gray-500 bg-gray-200 px-2 py-1 rounded-full">
+                          {lead.leadNotes.length} note{lead.leadNotes.length !== 1 ? 's' : ''}
+                        </span>
                       )}
                     </div>
-                  )}
+                    
+                    <CollapsibleContent className="space-y-2">
+                      {/* Original notes */}
+                      {lead.notes && (
+                        <div className="text-sm text-gray-700 mb-2">
+                          <strong>Original Notes:</strong> {lead.notes.split(' | ')[0]}
+                        </div>
+                      )}
+                      
+                      {/* Recent lead notes */}
+                      {lead.leadNotes && lead.leadNotes.length > 0 && (
+                        <div className="space-y-2">
+                          <div className="text-xs font-medium text-gray-600">Recent Activity:</div>
+                          {(expandedNotes[lead.id] ? lead.leadNotes : lead.leadNotes.slice(0, 2)).map((note: any, index: number) => (
+                            <div key={note.id || index} className="text-sm bg-white p-2 rounded border-l-2 border-blue-200">
+                              <div className="flex items-center justify-between mb-1">
+                                <span className="text-xs text-gray-500">
+                                  {new Date(note.created_at).toLocaleDateString()} • {note.created_by?.username || 'User'}
+                                </span>
+                                {note.urgency && note.urgency !== 'Medium' && (
+                                  <Badge className={`text-xs px-1 py-0 ${getUrgencyBadgeStyle(note.urgency)}`}>
+                                    {note.urgency}
+                                  </Badge>
+                                )}
+                              </div>
+                              <p className="text-gray-700">{note.note}</p>
+                              {note.next_action && (
+                                <p className="text-xs text-blue-600 mt-1">
+                                  <strong>Next:</strong> {note.next_action}
+                                </p>
+                              )}
+                            </div>
+                          ))}
+                          {!expandedNotes[lead.id] && lead.leadNotes.length > 2 && (
+                            <div className="text-xs text-gray-500 text-center">
+                              +{lead.leadNotes.length - 2} more note{lead.leadNotes.length - 2 !== 1 ? 's' : ''} (click to expand)
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </CollapsibleContent>
+                  </Collapsible>
                 </div>
               )}
 
