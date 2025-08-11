@@ -505,51 +505,17 @@ SOAR-AI Team`,
     }
 
     try {
-      // Call API to save the note
-      const response = await fetch(`http://localhost:8000/api/leads/${selectedLeadForNote.id}/add_note/`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          note: noteForm.note,
-          next_action: noteForm.nextAction,
-          urgency: noteForm.urgency
-        })
+      // Call API to save the note using the leadApi hook
+      const noteData = await leadApi.addNote(selectedLeadForNote.id, {
+        note: noteForm.note,
+        next_action: noteForm.nextAction,
+        urgency: noteForm.urgency
       });
 
-      if (!response.ok) {
-        throw new Error('Failed to save note');
-      }
+      console.log('Note saved successfully:', noteData);
 
-      const noteData = await response.json();
-
-      // Update local state with the new note and next action
-      setLeads(prevLeads => 
-        prevLeads.map(lead => 
-          lead.id === selectedLeadForNote.id 
-            ? { 
-                ...lead, 
-                notes: lead.notes ? `${lead.notes}\n\n[${new Date().toLocaleString()}] ${noteForm.note}` : `[${new Date().toLocaleString()}] ${noteForm.note}`,
-                nextAction: noteForm.nextAction || lead.nextAction,
-                urgency: noteForm.urgency,
-                lastActivity: new Date().toISOString().split('T')[0],
-                history: [
-                  {
-                    id: (lead.history?.length || 0) + 1,
-                    type: 'note',
-                    action: 'Note added',
-                    user: 'Current User',
-                    timestamp: new Date().toISOString(),
-                    details: noteForm.note,
-                    icon: 'plus'
-                  },
-                  ...(lead.history || [])
-                ]
-              }
-            : lead
-        )
-      );
+      // Refresh the leads list to get updated data from the server
+      await fetchLeads();
 
       setSuccessMessage(`Note added to ${selectedLeadForNote.company} successfully!`);
       setTimeout(() => setSuccessMessage(''), 5000);

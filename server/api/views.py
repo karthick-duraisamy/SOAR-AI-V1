@@ -352,8 +352,15 @@ class LeadViewSet(viewsets.ModelViewSet):
 
             lead.save()
 
-            serializer = LeadNoteSerializer(note)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+            # Return both the note data and updated lead information
+            note_serializer = LeadNoteSerializer(note)
+            lead_serializer = LeadSerializer(lead)
+            
+            return Response({
+                'note': note_serializer.data,
+                'lead': lead_serializer.data,
+                'message': 'Note added successfully'
+            }, status=status.HTTP_201_CREATED)
 
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)

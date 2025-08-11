@@ -1,4 +1,3 @@
-
 import { useState, useCallback } from 'react';
 import axios, { AxiosResponse } from 'axios';
 
@@ -78,7 +77,7 @@ export const useLeadApi = () => {
 
     try {
       const params = new URLSearchParams();
-      
+
       if (filters?.search) {
         params.append('search', filters.search);
       }
@@ -98,7 +97,7 @@ export const useLeadApi = () => {
       const response: AxiosResponse<Lead[]> = await axios.get(
         `${API_BASE_URL}/leads/?${params.toString()}`
       );
-      
+
       setData(response.data);
       return response.data;
     } catch (error: any) {
@@ -119,7 +118,7 @@ export const useLeadApi = () => {
       const response: AxiosResponse<Lead> = await axios.get(
         `${API_BASE_URL}/leads/${id}/`
       );
-      
+
       setData(response.data);
       return response.data;
     } catch (error: any) {
@@ -138,7 +137,7 @@ export const useLeadApi = () => {
 
     try {
       console.log('Creating lead with data:', leadData);
-      
+
       const response: AxiosResponse<Lead> = await axios.post(
         `${API_BASE_URL}/leads/`,
         leadData,
@@ -148,14 +147,14 @@ export const useLeadApi = () => {
           },
         }
       );
-      
+
       console.log('Lead creation response:', response.data);
       setData(response.data);
       return response.data;
     } catch (error: any) {
       console.error('Lead creation error:', error);
       console.error('Error response:', error.response?.data);
-      
+
       const errorMessage = error.response?.data?.error || 
                           error.response?.data?.detail || 
                           error.response?.data?.message ||
@@ -183,7 +182,7 @@ export const useLeadApi = () => {
           },
         }
       );
-      
+
       setData(response.data);
       return response.data;
     } catch (error: any) {
@@ -286,6 +285,36 @@ export const useLeadApi = () => {
     }
   }, [setLoading, setError, setData]);
 
+  // Add note to lead
+  const addNote = useCallback(async (leadId: number, noteData: any) => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const response: AxiosResponse<any> = await axios.post(
+        `${API_BASE_URL}/leads/${leadId}/add_note/`,
+        noteData,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+
+      setData(response.data);
+      return response.data;
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.error || 
+                          error.response?.data?.detail || 
+                          error.message || 
+                          'Failed to add note';
+      setError(errorMessage);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  }, [setLoading, setError, setData]);
+
   return {
     ...state,
     getLeads,
@@ -297,5 +326,6 @@ export const useLeadApi = () => {
     disqualifyLead,
     updateLeadScore,
     getPipelineStats,
+    addNote,
   };
 };
