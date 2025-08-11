@@ -634,7 +634,7 @@ export function AllLeads({ onNavigate }: AllLeadsProps) {
                 <div className="flex gap-2 flex-wrap">
                   <Button size="sm" className="bg-orange-600 hover:bg-orange-700 text-white">
                     <MessageSquare className="h-4 w-4 mr-1" />
-                    Contact
+                    Contacts
                   </Button>
                   <Button size="sm" variant="outline" className="text-gray-700 border-gray-300">
                     <Edit className="h-4 w-4 mr-1" />
