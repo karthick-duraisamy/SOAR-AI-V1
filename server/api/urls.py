@@ -1,11 +1,10 @@
-
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from .views import (
     CompanyViewSet, ContactViewSet, LeadViewSet, OpportunityViewSet,
     ContractViewSet, ContractBreachViewSet, EmailCampaignViewSet,
-    TravelOfferViewSet, SupportTicketViewSet, RevenueForecastViewSet, 
-    ActivityLogViewSet, AIConversationViewSet, DashboardAPIView
+    TravelOfferViewSet, SupportTicketViewSet, RevenueForecastViewSet,
+    ActivityLogViewSet, LeadNoteViewSet, CorporateSearchView
 )
 
 router = DefaultRouter()
@@ -22,6 +21,7 @@ router.register(r'revenue-forecasts', RevenueForecastViewSet)
 router.register(r'activity-logs', ActivityLogViewSet)
 router.register(r'ai-conversations', AIConversationViewSet)
 router.register(r'dashboard', DashboardAPIView, basename='dashboard')
+router.register(r'lead-notes', LeadNoteViewSet, basename='lead-note')
 
 urlpatterns = [
     path('', include(router.urls)),

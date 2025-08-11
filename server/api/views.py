@@ -7,13 +7,13 @@ from datetime import datetime, timedelta
 from .models import (
     Company, Contact, Lead, Opportunity, Contract, ContractBreach,
     EmailCampaign, TravelOffer, SupportTicket, RevenueForecast, 
-    ActivityLog, AIConversation
+    ActivityLog, AIConversation, LeadNote
 )
 from .serializers import (
     CompanySerializer, ContactSerializer, LeadSerializer, OpportunitySerializer,
     ContractSerializer, ContractBreachSerializer, EmailCampaignSerializer,
     TravelOfferSerializer, SupportTicketSerializer, RevenueForecastSerializer, 
-    ActivityLogSerializer, AIConversationSerializer
+    ActivityLogSerializer, AIConversationSerializer, LeadNoteSerializer
 )
 
 class CompanyViewSet(viewsets.ModelViewSet):
@@ -274,7 +274,7 @@ class LeadViewSet(viewsets.ModelViewSet):
             'qualified_leads': self.queryset.filter(status='qualified').count(),
             'unqualified_leads': self.queryset.filter(status='unqualified').count(),
             'active_leads': self.queryset.filter(status__in=['new', 'contacted', 'qualified']).count(),
-            'conversion_rate': (self.queryset.filter(status='won').count() / total_leads * 100) if total_leads > 0 else 0
+            'conversion_rate': (self.queryset.filter(status='won').count() / max(Lead.objects.count(), 1)) if total_leads > 0 else 0
         }
 
         return Response(stats)
@@ -310,12 +310,53 @@ class LeadViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['post'])
     def disqualify(self, request, pk=None):
-        lead = self.get_object()
-        lead.status = 'unqualified'
-        lead.notes = request.data.get('reason', lead.notes)
-        lead.save()
+        try:
+            lead = self.get_object()
+            reason = request.data.get('reason', '')
 
-        return Response({'status': 'lead disqualified'})
+            lead.status = 'unqualified'
+            lead.notes = f"{lead.notes}\n\n[{timezone.now().strftime('%Y-%m-%d %H:%M')}] Disqualified: {reason}" if lead.notes else f"[{timezone.now().strftime('%Y-%m-%d %H:%M')}] Disqualified: {reason}"
+            lead.save()
+
+            return Response({'message': 'Lead disqualified successfully'}, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=True, methods=['post'])
+    def add_note(self, request, pk=None):
+        try:
+            lead = self.get_object()
+            note_text = request.data.get('note', '')
+            next_action = request.data.get('next_action', '')
+            urgency = request.data.get('urgency', 'Medium')
+
+            if not note_text.strip():
+                return Response({'error': 'Note text is required'}, status=status.HTTP_400_BAD_REQUEST)
+
+            # Create the note
+            note = LeadNote.objects.create(
+                lead=lead,
+                note=note_text,
+                next_action=next_action,
+                urgency=urgency,
+                created_by=request.user if request.user.is_authenticated else None
+            )
+
+            # Update lead's next action and urgency if provided
+            if next_action:
+                lead.next_action = next_action
+            if urgency and urgency in ['Low', 'Medium', 'High', 'Urgent']:
+                # Map urgency to priority
+                priority_map = {'Low': 'low', 'Medium': 'medium', 'High': 'high', 'Urgent': 'urgent'}
+                lead.priority = priority_map.get(urgency, 'medium')
+
+            lead.save()
+
+            serializer = LeadNoteSerializer(note)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 class OpportunityViewSet(viewsets.ModelViewSet):
     queryset = Opportunity.objects.all()
@@ -558,14 +599,33 @@ class ActivityLogViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = ActivityLog.objects.all()
     serializer_class = ActivityLogSerializer
 
-    @action(detail=False, methods=['get'])
-    def recent_activity(self, request):
-        days = int(request.query_params.get('days', 7))
-        start_date = timezone.now() - timedelta(days=days)
+    def get_queryset(self):
+        queryset = self.queryset
+        entity_type = self.request.query_params.get('entity_type', None)
+        entity_id = self.request.query_params.get('entity_id', None)
 
-        activities = self.queryset.filter(timestamp__gte=start_date)
-        serializer = self.get_serializer(activities, many=True)
-        return Response(serializer.data)
+        if entity_type:
+            queryset = queryset.filter(entity_type=entity_type)
+        if entity_id:
+            queryset = queryset.filter(entity_id=entity_id)
+
+        return queryset
+
+class LeadNoteViewSet(viewsets.ModelViewSet):
+    queryset = LeadNote.objects.all()
+    serializer_class = LeadNoteSerializer
+
+    def perform_create(self, serializer):
+        serializer.save(created_by=self.request.user if self.request.user.is_authenticated else None)
+
+    def get_queryset(self):
+        queryset = self.queryset
+        lead_id = self.request.query_params.get('lead_id', None)
+
+        if lead_id:
+            queryset = queryset.filter(lead_id=lead_id)
+
+        return queryset
 
 class AIConversationViewSet(viewsets.ModelViewSet):
     queryset = AIConversation.objects.all()

@@ -433,6 +433,28 @@ class RevenueForecast(models.Model):
     def __str__(self):
         return f"Revenue Forecast {self.period}"
 
+class LeadNote(models.Model):
+    URGENCY_CHOICES = [
+        ('Low', 'Low'),
+        ('Medium', 'Medium'),
+        ('High', 'High'),
+        ('Urgent', 'Urgent'),
+    ]
+
+    lead = models.ForeignKey(Lead, on_delete=models.CASCADE, related_name='lead_notes')
+    note = models.TextField()
+    next_action = models.CharField(max_length=255, blank=True)
+    urgency = models.CharField(max_length=10, choices=URGENCY_CHOICES, default='Medium')
+    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"Note for {self.lead.company.name} - {self.created_at.strftime('%Y-%m-%d')}"
+
+    class Meta:
+        ordering = ['-created_at']
+
 class ActivityLog(models.Model):
     ACTION_TYPES = [
         ('create', 'Created'),

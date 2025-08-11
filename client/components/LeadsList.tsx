@@ -132,6 +132,13 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
     message: '',
     followUpDate: ''
   });
+  const [showAddNoteDialog, setShowAddNoteDialog] = useState(false);
+  const [selectedLeadForNote, setSelectedLeadForNote] = useState<any>(null);
+  const [noteForm, setNoteForm] = useState({
+    note: '',
+    nextAction: '',
+    urgency: 'Medium'
+  });
   const [filters, setFilters] = useState({
     status: initialFilters?.status || 'all',
     industry: 'all',
@@ -478,6 +485,87 @@ SOAR-AI Team`,
     } catch (error) {
       console.error('Error sending message:', error);
       toast.error('Failed to send message. Please try again.');
+    }
+  };
+
+  const handleAddNote = (lead: any) => {
+    setSelectedLeadForNote(lead);
+    setNoteForm({
+      note: '',
+      nextAction: lead.nextAction || '',
+      urgency: lead.urgency || 'Medium'
+    });
+    setShowAddNoteDialog(true);
+  };
+
+  const handleSaveNote = async () => {
+    if (!selectedLeadForNote || !noteForm.note.trim()) {
+      toast.error('Please enter a note');
+      return;
+    }
+
+    try {
+      // Call API to save the note
+      const response = await fetch(`http://localhost:8000/api/leads/${selectedLeadForNote.id}/add_note/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          note: noteForm.note,
+          next_action: noteForm.nextAction,
+          urgency: noteForm.urgency
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to save note');
+      }
+
+      const noteData = await response.json();
+
+      // Update local state with the new note and next action
+      setLeads(prevLeads => 
+        prevLeads.map(lead => 
+          lead.id === selectedLeadForNote.id 
+            ? { 
+                ...lead, 
+                notes: lead.notes ? `${lead.notes}\n\n[${new Date().toLocaleString()}] ${noteForm.note}` : `[${new Date().toLocaleString()}] ${noteForm.note}`,
+                nextAction: noteForm.nextAction || lead.nextAction,
+                urgency: noteForm.urgency,
+                lastActivity: new Date().toISOString().split('T')[0],
+                history: [
+                  {
+                    id: (lead.history?.length || 0) + 1,
+                    type: 'note',
+                    action: 'Note added',
+                    user: 'Current User',
+                    timestamp: new Date().toISOString(),
+                    details: noteForm.note,
+                    icon: 'plus'
+                  },
+                  ...(lead.history || [])
+                ]
+              }
+            : lead
+        )
+      );
+
+      setSuccessMessage(`Note added to ${selectedLeadForNote.company} successfully!`);
+      setTimeout(() => setSuccessMessage(''), 5000);
+      toast.success('Note saved successfully!');
+      
+      // Close dialog and reset state
+      setShowAddNoteDialog(false);
+      setSelectedLeadForNote(null);
+      setNoteForm({
+        note: '',
+        nextAction: '',
+        urgency: 'Medium'
+      });
+    } catch (error) {
+      console.error('Error saving note:', error);
+      toast.error('Failed to save note. Please try again.');
     }
   };
 
@@ -1139,7 +1227,12 @@ SOAR-AI Team`,
                     <Mail className="h-4 w-4 mr-1" />
                     Contact
                   </Button>
-                  <Button size="sm" variant="outline" className="text-gray-700 border-gray-300">
+                  <Button 
+                    size="sm" 
+                    variant="outline" 
+                    className="text-gray-700 border-gray-300"
+                    onClick={() => handleAddNote(lead)}
+                  >
                     <MessageSquare className="h-4 w-4 mr-1" />
                     Add Note
                   </Button>
@@ -1489,6 +1582,86 @@ SOAR-AI Team`,
             >
               <Mail className="h-4 w-4 mr-2" />
               Send Message
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Add Note Dialog */}
+      <Dialog open={showAddNoteDialog} onOpenChange={setShowAddNoteDialog}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <MessageSquare className="h-5 w-5 text-orange-600" />
+              Add Note for {selectedLeadForNote?.company}
+            </DialogTitle>
+            <DialogDescription>
+              Update lead information and next actions
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label className="text-sm font-medium text-gray-700 mb-2 block">Note</Label>
+              <Textarea
+                value={noteForm.note}
+                onChange={(e) => setNoteForm({...noteForm, note: e.target.value})}
+                placeholder="Add your notes..."
+                className="min-h-[120px] resize-none border-gray-300 focus:border-orange-500 focus:ring-orange-500"
+                rows={5}
+              />
+            </div>
+
+            <div>
+              <Label className="text-sm font-medium text-gray-700 mb-2 block">Next Action</Label>
+              <Input
+                value={noteForm.nextAction}
+                onChange={(e) => setNoteForm({...noteForm, nextAction: e.target.value})}
+                placeholder="Contract negotiation"
+                className="border-gray-300 focus:border-orange-500 focus:ring-orange-500"
+              />
+            </div>
+
+            <div>
+              <Label className="text-sm font-medium text-gray-700 mb-2 block">Urgency</Label>
+              <Select 
+                value={noteForm.urgency} 
+                onValueChange={(value) => setNoteForm({...noteForm, urgency: value})}
+              >
+                <SelectTrigger className="border-orange-200 focus:border-orange-500 focus:ring-orange-500">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Low">Low</SelectItem>
+                  <SelectItem value="Medium">Medium</SelectItem>
+                  <SelectItem value="High">High</SelectItem>
+                  <SelectItem value="Urgent">Urgent</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter className="flex gap-2">
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                setShowAddNoteDialog(false);
+                setSelectedLeadForNote(null);
+                setNoteForm({
+                  note: '',
+                  nextAction: '',
+                  urgency: 'Medium'
+                });
+              }}
+              className="text-gray-600 border-gray-300"
+            >
+              Cancel
+            </Button>
+            <Button 
+              onClick={handleSaveNote}
+              className="bg-orange-500 hover:bg-orange-600 text-white"
+              disabled={!noteForm.note.trim()}
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Save Note
             </Button>
           </DialogFooter>
         </DialogContent>
