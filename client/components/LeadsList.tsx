@@ -349,6 +349,50 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
     }
   };
 
+  const handleQualifyLead = async (leadId: number) => {
+    try {
+      await leadApi.qualifyLead(leadId);
+      
+      // Update local state
+      setLeads(prevLeads => 
+        prevLeads.map(lead => 
+          lead.id === leadId 
+            ? { ...lead, status: 'qualified' }
+            : lead
+        )
+      );
+
+      setSuccessMessage('Lead has been qualified successfully!');
+      setTimeout(() => setSuccessMessage(''), 5000);
+      toast.success('Lead qualified successfully!');
+    } catch (error) {
+      console.error('Error qualifying lead:', error);
+      toast.error('Failed to qualify lead. Please try again.');
+    }
+  };
+
+  const handleDisqualifyLead = async (leadId: number) => {
+    try {
+      await leadApi.disqualifyLead(leadId);
+      
+      // Update local state
+      setLeads(prevLeads => 
+        prevLeads.map(lead => 
+          lead.id === leadId 
+            ? { ...lead, status: 'unqualified' }
+            : lead
+        )
+      );
+
+      setSuccessMessage('Lead has been disqualified successfully!');
+      setTimeout(() => setSuccessMessage(''), 5000);
+      toast.success('Lead disqualified successfully!');
+    } catch (error) {
+      console.error('Error disqualifying lead:', error);
+      toast.error('Failed to disqualify lead. Please try again.');
+    }
+  };
+
   const filteredLeads = leads.filter(lead => {
     if (filters.status && filters.status !== 'all' && lead.status !== filters.status) return false;
     if (filters.industry && filters.industry !== 'all' && lead.industry !== filters.industry) return false;
@@ -1038,10 +1082,28 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
                   )}
                 </div>
                 <div className="flex gap-2">
-                  <Button size="sm" variant="outline" className="text-red-700 border-red-300">
-                    <UserX className="h-4 w-4 mr-1" />
-                    Disqualify
-                  </Button>
+                  {lead.status !== 'qualified' && (
+                    <Button 
+                      size="sm" 
+                      variant="outline" 
+                      className="text-green-700 border-green-300 hover:bg-green-50"
+                      onClick={() => handleQualifyLead(lead.id)}
+                    >
+                      <UserCheck className="h-4 w-4 mr-1" />
+                      Qualify
+                    </Button>
+                  )}
+                  {lead.status !== 'unqualified' && (
+                    <Button 
+                      size="sm" 
+                      variant="outline" 
+                      className="text-red-700 border-red-300 hover:bg-red-50"
+                      onClick={() => handleDisqualifyLead(lead.id)}
+                    >
+                      <UserX className="h-4 w-4 mr-1" />
+                      Disqualify
+                    </Button>
+                  )}
                   <Button size="sm" variant="outline" className="text-gray-700 border-gray-300">
                     <Eye className="h-4 w-4 mr-1" />
                     Details
