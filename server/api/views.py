@@ -386,7 +386,7 @@ class LeadViewSet(viewsets.ModelViewSet):
             urgency = request.data.get('urgency', 'Medium')
             old_status = lead.status
             old_priority = lead.priority
-
+            
             if not note_text.strip():
                 return Response({'error': 'Note text is required'}, status=status.HTTP_400_BAD_REQUEST)
 

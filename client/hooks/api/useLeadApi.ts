@@ -213,12 +213,12 @@ export const useLeadApi = () => {
   }, [setLoading, setError, setData]);
 
   // Qualify lead
-  const qualifyLead = useCallback(async (id: number) => {
+  const qualifyLead = useCallback(async (id: number, data: { reason?: string; created_by?: string }) => {
     setLoading(true);
     setError(null);
 
     try {
-      const response = await axios.post(`${API_BASE_URL}/leads/${id}/qualify/`);
+      const response = await axios.post(`${API_BASE_URL}/leads/${id}/qualify/`, data);
       return response.data;
     } catch (error: any) {
       const errorMessage = error.response?.data?.detail || error.message || 'Failed to qualify lead';
@@ -230,14 +230,12 @@ export const useLeadApi = () => {
   }, [setLoading, setError]);
 
   // Disqualify lead
-  const disqualifyLead = useCallback(async (id: number, reason?: string) => {
+  const disqualifyLead = useCallback(async (id: number, data: { reason?: string; created_by?: string }) => {
     setLoading(true);
     setError(null);
 
     try {
-      const response = await axios.post(`${API_BASE_URL}/leads/${id}/disqualify/`, {
-        reason
-      });
+      const response = await axios.post(`${API_BASE_URL}/leads/${id}/disqualify/`, data);
       return response.data;
     } catch (error: any) {
       const errorMessage = error.response?.data?.detail || error.message || 'Failed to disqualify lead';
@@ -286,7 +284,7 @@ export const useLeadApi = () => {
   }, [setLoading, setError, setData]);
 
   // Add note to lead
-  const addNote = useCallback(async (leadId: number, noteData: any) => {
+  const addNote = useCallback(async (leadId: number, noteData: { note: string; created_by?: string }) => {
     setLoading(true);
     setError(null);
 
@@ -315,6 +313,27 @@ export const useLeadApi = () => {
     }
   }, [setLoading, setError, setData]);
 
+  // Get history for a lead
+  const getHistory = useCallback(async (leadId: number) => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const response: AxiosResponse<any> = await axios.get(
+        `${API_BASE_URL}/leads/${leadId}/history/`
+      );
+      setData(response.data);
+      return response.data;
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.detail || error.message || 'Failed to fetch history';
+      setError(errorMessage);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  }, [setLoading, setError, setData]);
+
+
   return {
     ...state,
     getLeads,
@@ -327,5 +346,6 @@ export const useLeadApi = () => {
     updateLeadScore,
     getPipelineStats,
     addNote,
+    getHistory,
   };
 };

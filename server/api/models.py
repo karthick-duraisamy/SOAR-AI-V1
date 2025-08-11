@@ -1,4 +1,3 @@
-
 from django.db import models
 from django.contrib.auth.models import User
 from django.utils import timezone
@@ -16,7 +15,7 @@ class Company(models.Model):
         ('partnership', 'Partnership'),
         ('nonprofit', 'Non-Profit'),
     ]
-    
+
     INDUSTRIES = [
         ('technology', 'Technology'),
         ('finance', 'Finance & Banking'),
@@ -165,7 +164,7 @@ class Lead(models.Model):
         ('won', 'Won'),
         ('lost', 'Lost'),
     ]
-    
+
     LEAD_SOURCE_CHOICES = [
         ('website', 'Website'),
         ('referral', 'Referral'),
@@ -524,7 +523,7 @@ class ActivityLog(models.Model):
     action_type = models.CharField(max_length=20, choices=ACTION_TYPES)
     action = models.CharField(max_length=255)
     entity_type = models.CharField(max_length=100)
-    entity_id = models.IntegerInteger()
+    entity_id = models.IntegerField()
     details = models.JSONField(default=dict, blank=True)
     ip_address = models.GenericIPAddressField(null=True, blank=True)
     timestamp = models.DateTimeField(auto_now_add=True)

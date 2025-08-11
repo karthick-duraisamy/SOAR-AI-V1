@@ -60,50 +60,92 @@ import {
   Archive,
   TrendingUp as TrendingUpIcon,
   MoreVertical,
-  Eye
+  Eye,
+  Handshake, // Added for contract_signed
+  Award,    // Added for deal_won
 } from 'lucide-react';
 import { toast } from "sonner";
 import { format } from 'date-fns';
+import { ScrollArea } from './ui/scroll-area';
 
 interface LeadsListProps {
   initialFilters?: any;
   onNavigate: (screen: string, filters?: any) => void;
 }
 
+// Interface for History Entry (as expected from API)
+interface HistoryEntry {
+  id: string | number;
+  type: string;
+  title: string;
+  description: string;
+  timestamp: string;
+  author: { username: string }; // Assuming author structure from API
+}
+
+// Interface for Lead (simplified for context)
+interface Lead {
+  id: number;
+  company: string;
+  contact: string;
+  title: string;
+  email: string;
+  phone: string;
+  website: string;
+  industry: string;
+  employees: number | string;
+  revenue: string;
+  location: string;
+  status: string;
+  score: number;
+  source: string;
+  lastContact: string;
+  nextAction: string;
+  notes: string;
+  leadNotes: any[];
+  engagement: string;
+  travelBudget: string;
+  decisionMaker: boolean;
+  urgency: string;
+  aiSuggestion: string;
+  tags: string[];
+  contractReady: boolean;
+  lastActivity: string;
+  followUpDate: string;
+  assignedAgent: string | null;
+  history_entries: HistoryEntry[]; // This will be populated from API calls
+}
+
 // Helper function to transform API history entry to a consistent format
 const transformHistoryEntry = (entry: any) => {
-  const iconMap: { [key: string]: string } = {
-    'lead_created': 'plus',
-    'lead_contacted': 'mail',
-    'lead_responded': 'message-circle',
-    'discovery_call_scheduled': 'phone',
-    'lead_qualified': 'check-circle',
-    'lead_disqualified': 'x-circle',
-    'score_updated': 'trending-up',
-    'note_added': 'message-square',
-    'lead_assigned': 'user',
-    'status_change': 'refresh-cw',
-    'email_sent': 'mail',
-    'phone_call': 'phone',
-    'meeting_scheduled': 'calendar',
-    'proposal_sent': 'briefcase',
-    'contract_signed': 'handshake',
-    'deal_won': 'trophy',
-    'deal_lost': 'x',
+  // Mapping from API's activity_type to our internal display type and icon
+  const typeMap: { [key: string]: { display: string, icon: string } } = {
+    'lead_created': { display: 'Lead Created', icon: 'plus' },
+    'note_added': { display: 'Note Added', icon: 'message-square' },
+    'phone_call': { display: 'Phone Call', icon: 'phone' },
+    'meeting_scheduled': { display: 'Meeting Scheduled', icon: 'calendar' },
+    'lead_qualified': { display: 'Lead Qualified', icon: 'check-circle' },
+    'lead_disqualified': { display: 'Lead Disqualified', icon: 'x-circle' },
+    'email_sent': { display: 'Email Sent', icon: 'mail' },
+    'lead_responded': { display: 'Lead Responded', icon: 'message-circle' },
+    'status_change': { display: 'Status Change', icon: 'refresh-cw' },
+    'score_updated': { display: 'Score Updated', icon: 'trending-up' },
+    'lead_assigned': { display: 'Lead Assigned', icon: 'user' },
+    'proposal_sent': { display: 'Proposal Sent', icon: 'briefcase' },
+    'contract_signed': { display: 'Contract Signed', icon: 'handshake' },
+    'deal_won': { display: 'Deal Won', icon: 'award' },
+    'discovery_call_scheduled': { display: 'Discovery Call Scheduled', icon: 'phone' },
+    'custom': { display: 'Custom Activity', icon: 'activity' }, // For generic or unmapped types
   };
 
   return {
     id: entry.id,
-    type: entry.type,
-    action: entry.action,
-    user: entry.user?.username || entry.created_by?.username || 'Unknown User',
-    timestamp: entry.created_at || entry.timestamp,
-    details: entry.details || entry.note,
-    metadata: entry.metadata || {
-      next_action: entry.next_action,
-      urgency: entry.urgency
-    },
-    icon: iconMap[entry.type] || 'activity' // Default to 'activity' if type not mapped
+    type: typeMap[entry.activity_type] ? typeMap[entry.activity_type].display : entry.activity_type.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase()), // Display type
+    action: entry.title || typeMap[entry.activity_type]?.display || 'Unknown Action', // Title or mapped display
+    user: entry.created_by?.username || 'Unknown User',
+    timestamp: entry.created_at,
+    details: entry.description,
+    icon: typeMap[entry.activity_type] ? typeMap[entry.activity_type].icon : 'activity' // Default to 'activity'
   };
 };
 
@@ -128,34 +170,35 @@ const transformApiLeadToUILead = (apiLead: any) => {
     title: apiLead.contact?.position || 'Unknown Position',
     email: apiLead.contact?.email || 'unknown@email.com',
     phone: apiLead.contact?.phone || 'N/A',
-    website: `https://www.${(apiLead.company?.name || 'company').toLowerCase().replace(/\s+/g, '')}.com`,
+    website: apiLead.company?.website || `https://www.${(apiLead.company?.name || 'company').toLowerCase().replace(/\s+/g, '')}.com`,
     industry: apiLead.company?.industry || 'Unknown',
     employees: apiLead.company?.size || 0,
-    revenue: `$${Math.floor(Math.random() * 1000)}M`,
+    revenue: apiLead.company?.annual_revenue ? `$${Math.floor(apiLead.company.annual_revenue / 1000)}K` : '$0K',
     location: apiLead.company?.location || 'Unknown Location',
     status: apiLead.status || 'new',
     score: apiLead.score || 50,
     source: apiLead.source || 'Unknown',
-    lastContact: apiLead.created_at ? new Date(apiLead.created_at).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
-    nextAction: latestNote?.next_action || apiLead.next_action || 'Follow up',
+    lastContact: apiLead.last_contact_at ? new Date(apiLead.last_contact_at).toISOString().split('T')[0] : apiLead.created_at ? new Date(apiLead.created_at).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+    nextAction: apiLead.next_action || 'Follow up',
     notes: combinedNotes,
     leadNotes: apiLead.lead_notes || [], // Store all notes for display
     engagement: apiLead.score >= 80 ? 'High' : apiLead.score >= 60 ? 'Medium' : 'Low',
-    travelBudget: apiLead.estimated_value ? `$${Math.floor(apiLead.estimated_value / 1000)}K` : '$0K',
+    travelBudget: apiLead.company?.travel_budget ? `$${Math.floor(apiLead.company.travel_budget / 1000)}K` : '$0K',
     decisionMaker: apiLead.contact?.is_decision_maker || Math.random() > 0.5,
-    urgency: latestNote?.urgency || apiLead.priority || 'Medium',
+    urgency: apiLead.priority || 'Medium', // Assuming 'priority' field maps to urgency
     aiSuggestion: `AI Score: ${apiLead.score}. ${apiLead.score >= 80 ? 'High priority lead - contact immediately' : apiLead.score >= 60 ? 'Medium priority - follow up within 2 days' : 'Low priority - add to nurture campaign'}`,
     tags: [apiLead.company?.industry || 'General', apiLead.status || 'New'],
     contractReady: apiLead.status === 'qualified',
-    lastActivity: apiLead.updated_at ? new Date(apiLead.updated_at).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+    lastActivity: apiLead.updated_at ? new Date(apiLead.updated_at).toISOString().split('T')[0] : apiLead.created_at ? new Date(apiLead.created_at).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
     followUpDate: apiLead.next_action_date || new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
     assignedAgent: apiLead.assigned_to?.username || null,
     // History will be fetched separately via API and mapped in the dialog
-    history_entries: apiLead.history_entries || [] 
+    history_entries: [] // This will be populated via getHistory API call
   };
 };
 
-// Build comprehensive history for each lead (This function is now primarily for reference if needed, but history is fetched from API)
+// This function is now primarily for reference if needed, but history is fetched from API
+// It's kept here as a fallback or for understanding the original logic.
 const buildLeadHistory = (apiLead: any) => {
   const history = [];
   let historyId = 1;
@@ -286,7 +329,7 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
   const [loading, setLoading] = useState(true);
   const leadApi = useLeadApi();
   const [successMessage, setSuccessMessage] = useState('');
-  const [selectedLead, setSelectedLead] = useState(null);
+  const [selectedLead, setSelectedLead] = useState<any>(null); // State for the lead selected in other dialogs
   const [showNewLeadDialog, setShowNewLeadDialog] = useState(false);
   const [showDisqualifyDialog, setShowDisqualifyDialog] = useState(false);
   const [selectedLeadForDisqualify, setSelectedLeadForDisqualify] = useState<any>(null);
@@ -311,7 +354,8 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
   const [expandedNotes, setExpandedNotes] = useState<{[key: number]: boolean}>({});
   const [showHistoryDialog, setShowHistoryDialog] = useState(false);
   const [selectedLeadForHistory, setSelectedLeadForHistory] = useState<any>(null);
-  const [leadHistories, setLeadHistories] = useState<{[key: number]: any[]}>({}); // This is now for local history if API fails or is not used
+  const [leadHistory, setLeadHistory] = useState<{ [key: number]: HistoryEntry[] }>({}); // Stores history entries fetched from API
+  const [isLoadingHistory, setIsLoadingHistory] = useState(false); // Loading state for history fetch
   const [filters, setFilters] = useState({
     status: initialFilters?.status || 'all',
     industry: 'all',
@@ -347,11 +391,8 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
       const apiLeads = apiResponse.results;
       console.log('Fetched leads:', apiLeads);
 
-      // Transform leads and include history entries from API response
-      const transformedLeads = apiLeads.map((apiLead: any) => ({
-        ...transformApiLeadToUILead(apiLead),
-        history_entries: apiLead.history || [] // Directly use history from API response
-      }));
+      // Transform leads - history_entries are not included here as they are fetched on demand
+      const transformedLeads = apiLeads.map((apiLead: any) => transformApiLeadToUILead(apiLead));
       setLeads(transformedLeads);
 
     } catch (error) {
@@ -372,8 +413,10 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
       }));
 
       if (initialFilters.newLead) {
+        // Logic to handle a new lead created from an external source (like a form submission)
+        // This part assumes the lead data is already structured.
         const newLead = {
-          id: Math.max(...leads.map(l => l.id)) + 1, // This might be problematic if leads is empty initially
+          id: Math.max(...leads.map(l => l.id), 0) + 1, // Ensure ID is unique, fallback to 0 if leads is empty
           company: initialFilters.newLead.company,
           contact: initialFilters.newLead.contact || 'Contact Name',
           title: initialFilters.newLead.title || 'Decision Maker',
@@ -390,7 +433,7 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
           lastContact: new Date().toISOString().split('T')[0],
           nextAction: 'Initial contact and qualification',
           notes: initialFilters.newLead.notes,
-          engagement: 'Low',
+          engagement: 'Low', // Default engagement
           travelBudget: initialFilters.newLead.travelBudget,
           decisionMaker: initialFilters.newLead.decisionMaker || true,
           urgency: 'Medium',
@@ -399,25 +442,27 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
           contractReady: false,
           lastActivity: new Date().toISOString().split('T')[0],
           followUpDate: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-          history_entries: [ // Placeholder for history, actual history will come from API
-            {
-              id: 1,
-              type: 'note',
-              action: 'Lead created from corporate search',
-              user: 'System',
-              timestamp: new Date().toISOString().split('T')[0] + ' ' + new Date().toTimeString().split(' ')[0],
-              details: initialFilters.newLead.notes,
-              icon: 'plus'
-            }
-          ]
+          history_entries: [] // Will be fetched if needed, or use the provided notes as initial history
         };
 
+        // For initial display, we can add a placeholder history entry from the notes
+        if (initialFilters.newLead.notes) {
+          newLead.history_entries.push({
+            id: Date.now(), // Temporary ID
+            type: 'note',
+            title: 'Initial Notes',
+            description: initialFilters.newLead.notes,
+            timestamp: new Date().toISOString(),
+            author: { username: 'System' }
+          });
+        }
+        
         setLeads(prev => [newLead, ...prev]);
         setSuccessMessage(initialFilters.message || `${initialFilters.newLead.company} has been successfully added as a lead`);
         setTimeout(() => setSuccessMessage(''), 5000);
       }
     }
-  }, [initialFilters]);
+  }, [initialFilters]); // Dependency array includes initialFilters
 
   const getStatusBadgeStyle = (status: string) => {
     switch (status) {
@@ -483,6 +528,7 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
     }
   };
 
+  // Function to create a new lead via API
   const handleCreateNewLead = async () => {
     try {
       if (!newLeadForm.company || !newLeadForm.contact || !newLeadForm.email || !newLeadForm.industry) {
@@ -495,9 +541,10 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
           name: newLeadForm.company,
           industry: newLeadForm.industry,
           location: newLeadForm.location || '',
-          size: newLeadForm.employees ? 'medium' : 'startup',
+          size: newLeadForm.employees ? 'medium' : 'startup', // Simplified size mapping
           annual_revenue: newLeadForm.revenue ? parseFloat(newLeadForm.revenue.replace(/[^0-9.]/g, '')) : null,
-          travel_budget: newLeadForm.travelBudget ? parseFloat(newLeadForm.travelBudget.replace(/[^0-9.]/g, '')) : null
+          travel_budget: newLeadForm.travelBudget ? parseFloat(newLeadForm.travelBudget.replace(/[^0-9.]/g, '')) : null,
+          website: newLeadForm.website || null
         },
         contact: {
           first_name: newLeadForm.contact.split(' ')[0] || newLeadForm.contact,
@@ -509,11 +556,12 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
         },
         status: newLeadForm.status || 'new',
         source: newLeadForm.source || 'website',
-        priority: 'medium',
-        score: 50,
+        priority: 'medium', // Default priority/urgency
+        score: 50, // Default score
         estimated_value: newLeadForm.travelBudget ? parseFloat(newLeadForm.travelBudget.replace(/[^0-9.]/g, '')) : null,
         notes: newLeadForm.notes || '',
-        next_action: 'Initial contact'
+        next_action: 'Initial contact',
+        next_action_date: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
       };
 
       console.log('Creating lead with data:', leadData);
@@ -522,22 +570,20 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
 
       console.log('Lead created successfully:', createdLead);
 
-      // Add history entry for new lead (This part should also be handled by the backend and returned)
-      // For now, assuming backend creates the initial history entry.
-      // If not, this would need an API call like addHistoryEntry.
-
-      await fetchLeads(); // Refresh to show the new lead
+      await fetchLeads(); // Refresh leads list to show the new lead
 
       setShowNewLeadDialog(false);
       setSuccessMessage(`New lead "${newLeadForm.company}" has been created successfully!`);
       setTimeout(() => setSuccessMessage(''), 5000);
 
+      // Reset form
       setNewLeadForm({
         company: '',
         contact: '',
         title: '',
         email: '',
         phone: '',
+        website: '',
         industry: '',
         employees: '',
         revenue: '',
@@ -558,6 +604,7 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
     }
   };
 
+  // Function to qualify a lead via API
   const handleQualifyLead = async (leadId: number) => {
     try {
       await leadApi.qualifyLead(leadId);
@@ -574,12 +621,14 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
     }
   };
 
+  // Function to open dialog for disqualifying a lead
   const handleDisqualifyLead = (lead: any) => {
     setSelectedLeadForDisqualify(lead);
     setShowDisqualifyDialog(true);
     setDisqualifyReason('');
   };
 
+  // Function to confirm disqualification via API
   const handleConfirmDisqualify = async () => {
     if (!selectedLeadForDisqualify) return;
 
@@ -603,6 +652,7 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
     }
   };
 
+  // Function to open dialog for contacting a lead
   const handleContactLead = (lead: any) => {
     setSelectedLeadForContact(lead);
     setContactForm({
@@ -618,11 +668,12 @@ Would you be available for a brief call this week to discuss how we can support 
 
 Best regards,
 SOAR-AI Team`,
-      followUpDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+      followUpDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0] // 7 days from now
     });
     setShowContactDialog(true);
   };
 
+  // Function to send message (and create history entry) via API
   const handleSendMessage = async () => {
     if (!selectedLeadForContact || !contactForm.subject || !contactForm.message) {
       toast.error('Please fill in all required fields');
@@ -630,8 +681,7 @@ SOAR-AI Team`,
     }
 
     try {
-      // Here you would typically call an API to send the message
-      // And also create a history entry via API
+      // This API call should ideally create the message and a history entry
       await leadApi.sendMessage(selectedLeadForContact.id, {
         method: contactForm.method,
         subject: contactForm.subject,
@@ -639,7 +689,7 @@ SOAR-AI Team`,
         followUpDate: contactForm.followUpDate
       });
 
-      // Update lead status to contacted if applicable and refresh
+      // Refresh leads list to show updated status (e.g., contacted) and history
       await fetchLeads();
 
       setSuccessMessage(`Message sent to ${selectedLeadForContact.company} successfully!`);
@@ -661,6 +711,7 @@ SOAR-AI Team`,
     }
   };
 
+  // Function to open dialog for adding a note
   const handleAddNote = (lead: any) => {
     setSelectedLeadForNote(lead);
     setNoteForm({
@@ -671,86 +722,43 @@ SOAR-AI Team`,
     setShowAddNoteDialog(true);
   };
 
+  // Function to open dialog for viewing lead history
   const handleShowHistory = (lead: any) => {
     setSelectedLeadForHistory(lead);
     setShowHistoryDialog(true);
   };
 
-  // Function to add history entry for any action (now should be done via API)
-  const addHistoryEntry = (leadId: number, entry: any) => {
-    // This function would ideally make an API call to create a history entry
-    // For now, we'll simulate by updating local state if needed, but API is preferred
-    console.warn("addHistoryEntry called locally. Prefer using API for history updates.");
+  // Handler for clicking the history button, fetches history if not already loaded
+  const handleHistoryClick = async (lead: Lead) => {
+    setSelectedLeadForHistory(lead);
+    setShowHistoryDialog(true);
 
-    // Update the lead's history in the leads array for immediate UI feedback if necessary
-    setLeads(prevLeads => 
-      prevLeads.map(lead => 
-        lead.id === leadId 
-          ? {
-              ...lead,
-              history_entries: [
-                ...(lead.history_entries || []),
-                {
-                  ...entry,
-                  id: Date.now() + Math.random(), // Temp ID
-                  timestamp: new Date().toISOString(),
-                  user: { username: 'You' } // Assume current user
-                }
-              ].sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime())
-            }
-          : lead
-      )
-    );
-
-    // Also update the leadHistories state if it's used for fallback display
-    setLeadHistories(prev => ({
-      ...prev,
-      [leadId]: [
-        ...(prev[leadId] || []),
-        {
-          ...entry,
-          id: Date.now() + Math.random(),
-          timestamp: new Date().toISOString()
-        }
-      ].sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime())
-    }));
-  };
-
-  const getHistoryIcon = (type: string) => {
-    switch (type) {
-      case 'lead_created':
-        return <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center"><Plus className="h-4 w-4 text-blue-600" /></div>;
-      case 'note_added':
-        return <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center"><MessageSquare className="h-4 w-4 text-blue-600" /></div>;
-      case 'phone_call':
-        return <div className="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center"><Phone className="h-4 w-4 text-purple-600" /></div>;
-      case 'meeting_scheduled':
-        return <div className="w-8 h-8 rounded-full bg-pink-100 flex items-center justify-center"><Calendar className="h-4 w-4 text-pink-600" /></div>;
-      case 'lead_qualified':
-        return <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center"><CheckCircle className="h-4 w-4 text-green-600" /></div>;
-      case 'lead_disqualified':
-        return <div className="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center"><UserX className="h-4 w-4 text-red-600" /></div>;
-      case 'email_sent':
-        return <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center"><Mail className="h-4 w-4 text-blue-600" /></div>;
-      case 'lead_responded':
-        return <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center"><MessageCircle className="h-4 w-4 text-green-600" /></div>;
-      case 'status_change':
-        return <div className="w-8 h-8 rounded-full bg-yellow-100 flex items-center justify-center"><RefreshCw className="h-4 w-4 text-yellow-600" /></div>;
-      case 'score_updated':
-        return <div className="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center"><TrendingUp className="h-4 w-4 text-orange-600" /></div>;
-      case 'lead_assigned':
-        return <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center"><User className="h-4 w-4 text-indigo-600" /></div>;
-      case 'proposal_sent':
-        return <div className="w-8 h-8 rounded-full bg-teal-100 flex items-center justify-center"><Briefcase className="h-4 w-4 text-teal-600" /></div>;
-      case 'contract_signed':
-        return <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center"><Handshake className="h-4 w-4 text-emerald-600" /></div>;
-      case 'deal_won':
-        return <div className="w-8 h-8 rounded-full bg-lime-100 flex items-center justify-center"><Award className="h-4 w-4 text-lime-600" /></div>;
-      default:
-        return <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center"><Activity className="h-4 w-4 text-gray-600" /></div>;
+    // Only fetch history if it's not already in the state for this lead
+    if (!leadHistory[lead.id]) {
+      setIsLoadingHistory(true);
+      try {
+        const history = await leadApi.getHistory(lead.id); // Assume getHistory API exists
+        setLeadHistory(prev => ({
+          ...prev,
+          [lead.id]: history.map((item: any) => ({ // Transform API response to internal format
+            id: item.id,
+            type: item.activity_type, // Map to internal type
+            title: item.title,
+            description: item.description,
+            timestamp: item.created_at,
+            author: item.created_by // Assuming created_by is an object { username: '...' }
+          }))
+        }));
+      } catch (error) {
+        console.error('Error fetching history:', error);
+        toast.error('Failed to load history for this lead.');
+      } finally {
+        setIsLoadingHistory(false);
+      }
     }
   };
 
+  // Function to save a note via API
   const handleSaveNote = async () => {
     if (!selectedLeadForNote || !noteForm.note.trim()) {
       toast.error('Please enter a note');
@@ -758,15 +766,24 @@ SOAR-AI Team`,
     }
 
     try {
-      // Call API to add note, which will also create a history entry
-      await leadApi.addNote(selectedLeadForNote.id, {
+      setIsSavingNote(true);
+      // Call API to add note, which should also create a history entry
+      await leadApi.addNote(selectedLeadForNote.id, { 
         note: noteForm.note,
         next_action: noteForm.nextAction,
-        urgency: noteForm.urgency
+        urgency: noteForm.urgency,
+        created_by: 'Current User' // This should ideally be handled by backend based on auth
       });
 
-      // Refresh leads to get the latest data including the new note and history
+      // Refresh the leads list to get the latest data including the new note
       await fetchLeads();
+
+      // Clear history cache for this lead to force a fresh fetch on next view
+      setLeadHistory(prev => {
+        const newHistory = { ...prev };
+        delete newHistory[selectedLeadForNote.id];
+        return newHistory;
+      });
 
       // Close dialog and reset state
       setShowAddNoteDialog(false);
@@ -784,9 +801,12 @@ SOAR-AI Team`,
     } catch (error) {
       console.error('Error saving note:', error);
       toast.error('Failed to save note. Please try again.');
+    } finally {
+      setIsSavingNote(false);
     }
   };
 
+  // Filter leads based on current filter settings
   const filteredLeads = leads.filter(lead => {
     if (filters.status && filters.status !== 'all' && lead.status !== filters.status) return false;
     if (filters.industry && filters.industry !== 'all' && lead.industry !== filters.industry) return false;
@@ -801,16 +821,18 @@ SOAR-AI Team`,
     return true;
   });
 
+  // Effect to update selectAll checkbox state based on filtered leads selection
   useEffect(() => {
     if (selectedLeads.length === 0) {
       setSelectAll(false);
     } else if (selectedLeads.length === filteredLeads.length && filteredLeads.length > 0) {
       setSelectAll(true);
     } else {
-      setSelectAll(false);
+      setSelectAll(false); // Partially selected
     }
   }, [selectedLeads, filteredLeads]);
 
+  // Render placeholder cards while loading
   const renderLoadingCards = () => (
     <div className="space-y-4">
       {[...Array(3)].map((_, index) => (
@@ -876,6 +898,7 @@ SOAR-AI Team`,
     </div>
   );
 
+  // Error state if API call fails
   if (leadApi.error) {
     return (
       <div className="text-center py-8">
@@ -935,10 +958,6 @@ SOAR-AI Team`,
 
       {/* Metrics Cards Section - Moved to top */}
       <div className="mb-6">
-        <div className="flex items-center justify-end  mb-4">
-
-        </div>
-
         {/* Statistics Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
           {loading ? (
@@ -1093,9 +1112,7 @@ SOAR-AI Team`,
                           <p className="text-sm font-medium text-gray-600 mb-1">Avg Deal Size</p>
                           <p className="text-2xl font-bold text-gray-900">
                             {(() => {
-                              const relevantLeads = filters.status === 'qualified' ? 
-                                filteredLeads.filter(lead => lead.status === 'qualified') :
-                                filteredLeads.filter(lead => lead.status === 'qualified');
+                              const relevantLeads = filteredLeads.filter(lead => lead.status === 'qualified'); // Consider only qualified leads for deal size
                               if (relevantLeads.length === 0) return '$0K';
                               const avgValue = relevantLeads.reduce((sum, lead) => {
                                 const value = parseInt(lead.travelBudget.replace(/[^0-9]/g, '')) || 0;
@@ -1120,7 +1137,7 @@ SOAR-AI Team`,
                           <p className="text-sm font-medium text-gray-600 mb-1">Conversion Rate</p>
                           <p className="text-2xl font-bold text-gray-900">
                             {(() => {
-                              const totalLeads = filteredLeads.length;
+                              const totalLeads = leads.length; // Use total leads for overall conversion
                               const qualifiedLeads = filteredLeads.filter(lead => lead.status === 'qualified').length;
                               return totalLeads > 0 ? `${Math.round((qualifiedLeads / totalLeads) * 100)}%` : '0%';
                             })()}
@@ -1248,7 +1265,7 @@ SOAR-AI Team`,
         <div className="flex items-center gap-3">
           <Checkbox 
             checked={selectAll}
-            onCheckedChange={handleSelectAll}
+            onCheckedChange={(e) => handleSelectAll(e.target.checked)}
             className="w-4 h-4 text-orange-500 rounded border-gray-300 focus:ring-orange-500"
           />
           <span className="text-sm font-medium text-gray-700">Select All</span>
@@ -1257,14 +1274,7 @@ SOAR-AI Team`,
 
       {/* Leads List */}
       {loading ? (
-        <div className="space-y-6">
-          <div className="flex items-center justify-center py-8">
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600 mx-auto mb-4"></div>
-              <p className="text-muted-foreground">Loading leads...</p>
-            </div>
-          </div>
-        </div>
+        renderLoadingCards()
       ) : (
         <div className="space-y-4">
           {filteredLeads.map((lead) => (
@@ -1527,7 +1537,7 @@ SOAR-AI Team`,
                     size="sm" 
                     variant="outline" 
                     className="text-gray-700 border-gray-300"
-                    onClick={() => handleShowHistory(lead)}
+                    onClick={() => handleHistoryClick(lead)} // Use the updated handler
                   >
                     <History className="h-4 w-4 mr-1" />
                     History
@@ -1957,58 +1967,110 @@ SOAR-AI Team`,
           </DialogHeader>
 
           <div className="space-y-4 max-h-[60vh] overflow-y-auto">
-            {selectedLeadForHistory?.history_entries?.length > 0 ? (
-              selectedLeadForHistory.history_entries.map((entry: any) => {
-                const transformedEntry = transformHistoryEntry(entry);
-                return (
-                  <div key={transformedEntry.id} className="flex items-start gap-4 p-4 rounded-lg border border-gray-100 hover:bg-gray-50 transition-colors">
-                    <div className="flex-shrink-0 mt-1">
-                      {getHistoryIcon(transformedEntry.type)}
-                    </div>
-
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between mb-2">
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs px-2 py-1 bg-gray-100 rounded-full text-gray-600 uppercase font-medium">
-                            {transformedEntry.type.replace('_', ' ')}
-                          </span>
-                          <h4 className="text-sm font-semibold text-gray-900">
-                            {transformedEntry.action}
-                          </h4>
-                          {transformedEntry.metadata?.urgency && transformedEntry.metadata.urgency !== 'Medium' && (
-                            <Badge className={`text-xs px-1 py-0 ${getUrgencyBadgeStyle(transformedEntry.metadata.urgency)}`}>
-                              {transformedEntry.metadata.urgency}
-                            </Badge>
-                          )}
-                        </div>
-                        <span className="text-xs text-gray-500">
-                          {format(new Date(transformedEntry.timestamp), 'MM/dd/yyyy \'at\' HH:mm:ss')}
-                        </span>
-                      </div>
-
-                      <p className="text-sm text-gray-700 mb-2">
-                        {transformedEntry.details}
-                      </p>
-
-                      {transformedEntry.metadata?.next_action && (
-                        <p className="text-xs text-blue-600 mb-2">
-                          <strong>Next Action:</strong> {transformedEntry.metadata.next_action}
-                        </p>
-                      )}
-
-                      <div className="flex items-center gap-1 text-xs text-gray-500">
-                        <User className="h-3 w-3" />
-                        <span>by {transformedEntry.user}</span>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })
-            ) : (
+            {isLoadingHistory ? (
               <div className="text-center py-8">
-                <History className="h-12 w-12 mx-auto mb-4 text-gray-400" />
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">No History Available</h3>
-                <p className="text-gray-600">No activity history found for this lead.</p>
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
+                <p className="text-gray-500">Loading history...</p>
+              </div>
+            ) : (leadHistory[selectedLeadForHistory?.id || 0] || []).length === 0 ? (
+              <div className="text-center py-8 text-gray-500">
+                No history available for this lead.
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {(leadHistory[selectedLeadForHistory?.id || 0] || []).map((entry) => {
+                  // Use the existing transformHistoryEntry if it's suitable, or adjust
+                  const mappedEntry = {
+                    id: entry.id,
+                    type: entry.type, // Already mapped by handleHistoryClick
+                    action: entry.title || entry.type, // Use title if available, else fallback to type
+                    user: entry.author?.username || 'Unknown User',
+                    timestamp: entry.timestamp,
+                    details: entry.description,
+                    icon: entry.type.toLowerCase().replace(' ', '_') // Simple mapping for icons
+                  };
+
+                  const getHistoryIcon = (type: string) => {
+                    switch (type) {
+                      case 'lead_created':
+                        return <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center"><Plus className="h-4 w-4 text-blue-600" /></div>;
+                      case 'note_added':
+                        return <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center"><MessageSquare className="h-4 w-4 text-blue-600" /></div>;
+                      case 'phone_call':
+                        return <div className="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center"><Phone className="h-4 w-4 text-purple-600" /></div>;
+                      case 'meeting_scheduled':
+                        return <div className="w-8 h-8 rounded-full bg-pink-100 flex items-center justify-center"><Calendar className="h-4 w-4 text-pink-600" /></div>;
+                      case 'lead_qualified':
+                        return <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center"><CheckCircle className="h-4 w-4 text-green-600" /></div>;
+                      case 'lead_disqualified':
+                        return <div className="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center"><UserX className="h-4 w-4 text-red-600" /></div>;
+                      case 'email_sent':
+                        return <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center"><Mail className="h-4 w-4 text-blue-600" /></div>;
+                      case 'lead_responded':
+                        return <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center"><MessageCircle className="h-4 w-4 text-green-600" /></div>;
+                      case 'status_change':
+                        return <div className="w-8 h-8 rounded-full bg-yellow-100 flex items-center justify-center"><RefreshCw className="h-4 w-4 text-yellow-600" /></div>;
+                      case 'score_updated':
+                        return <div className="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center"><TrendingUp className="h-4 w-4 text-orange-600" /></div>;
+                      case 'lead_assigned':
+                        return <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center"><User className="h-4 w-4 text-indigo-600" /></div>;
+                      case 'proposal_sent':
+                        return <div className="w-8 h-8 rounded-full bg-teal-100 flex items-center justify-center"><Briefcase className="h-4 w-4 text-teal-600" /></div>;
+                      case 'contract_signed':
+                        return <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center"><Handshake className="h-4 w-4 text-emerald-600" /></div>;
+                      case 'deal_won':
+                        return <div className="w-8 h-8 rounded-full bg-lime-100 flex items-center justify-center"><Award className="h-4 w-4 text-lime-600" /></div>;
+                      default:
+                        return <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center"><Activity className="h-4 w-4 text-gray-600" /></div>;
+                    }
+                  };
+
+                  return (
+                    <div key={entry.id} className="flex items-start gap-4 p-4 rounded-lg border border-gray-100 hover:bg-gray-50 transition-colors">
+                      <div className="flex-shrink-0 mt-1">
+                        {getHistoryIcon(mappedEntry.type)}
+                      </div>
+
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs px-2 py-1 bg-gray-100 rounded-full text-gray-600 uppercase font-medium">
+                              {mappedEntry.type}
+                            </span>
+                            <h4 className="text-sm font-semibold text-gray-900">
+                              {mappedEntry.action}
+                            </h4>
+                            {/* Add urgency badge if available and relevant, e.g., from note_added */}
+                            {entry.urgency && entry.urgency !== 'Medium' && (
+                               <Badge className={`text-xs px-1 py-0 ${getUrgencyBadgeStyle(entry.urgency)}`}>
+                                {entry.urgency}
+                              </Badge>
+                            )}
+                          </div>
+                          <span className="text-xs text-gray-500">
+                            {format(new Date(entry.timestamp), 'MM/dd/yyyy \'at\' HH:mm:ss')}
+                          </span>
+                        </div>
+
+                        <p className="text-sm text-gray-700 mb-2">
+                          {mappedEntry.details}
+                        </p>
+
+                        {/* Display next action if available, might come from note or other activity types */}
+                        {entry.next_action && (
+                          <p className="text-xs text-blue-600 mb-2">
+                            <strong>Next Action:</strong> {entry.next_action}
+                          </p>
+                        )}
+
+                        <div className="flex items-center gap-1 text-xs text-gray-500">
+                          <User className="h-3 w-3" />
+                          <span>by {mappedEntry.user}</span>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             )}
           </div>
