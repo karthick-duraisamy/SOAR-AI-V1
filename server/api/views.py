@@ -339,22 +339,25 @@ class LeadViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['post'])
     def qualify(self, request, pk=None):
-        lead = self.get_object()
-        old_status = lead.status
-        lead.status = 'qualified'
-        lead.save()
+        try:
+            lead = self.get_object()
+            old_status = lead.status
+            lead.status = 'qualified'
+            lead.save()
 
-        # Create history entry for status change
-        create_lead_history(
-            lead=lead,
-            history_type='status_change',
-            action=f'Status changed from {old_status} to {lead.status}',
-            details=self._get_status_change_details(old_status, lead.status, lead),
-            icon=self._get_status_icon(lead.status),
-            user=request.user if request.user.is_authenticated else None
-        )
+            # Create history entry for status change
+            create_lead_history(
+                lead=lead,
+                history_type='qualification',
+                action=f'Lead qualified',
+                details=self._get_status_change_details(old_status, lead.status, lead),
+                icon=self._get_status_icon(lead.status),
+                user=request.user if request.user.is_authenticated else None
+            )
 
-        return Response({'status': 'lead qualified'})
+            return Response({'status': 'lead qualified'})
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=True, methods=['post'])
     def disqualify(self, request, pk=None):
@@ -564,8 +567,11 @@ class LeadViewSet(viewsets.ModelViewSet):
             history_entries = lead.history_entries.all().order_by('timestamp')
             serializer = LeadHistorySerializer(history_entries, many=True)
             return Response(serializer.data)
+        except Lead.DoesNotExist:
+            return Response({'error': 'Lead not found'}, status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
-            # If LeadHistory table doesn't exist, return empty list
+            print(f"History fetch error: {str(e)}")
+            # Return empty list if there's any error
             return Response([])
 
 class OpportunityViewSet(viewsets.ModelViewSet):

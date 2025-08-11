@@ -170,7 +170,7 @@ const transformApiLeadToUILead = (apiLead: any) => {
     title: apiLead.contact?.position || 'Unknown Position',
     email: apiLead.contact?.email || 'unknown@email.com',
     phone: apiLead.contact?.phone || 'N/A',
-    website: apiLead.company?.website || `https://www.${(apiLead.company?.name || 'company').toLowerCase().replace(/\s+/g, '')}.com`,
+    website: apiLead.company?.website || `https://wwwwww. ${(apiLead.company?.name || 'company').toLowerCase().replace(/\s+/g, '')}.com`,
     industry: apiLead.company?.industry || 'Unknown',
     employees: apiLead.company?.size || 0,
     revenue: apiLead.company?.annual_revenue ? `$${Math.floor(apiLead.company.annual_revenue / 1000)}K` : '$0K',
@@ -383,6 +383,11 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
     tags: []
   });
 
+  // State for controlling the history modal visibility
+  const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
+  // State for isSavingNote, required for handleSaveNote
+  const [isSavingNote, setIsSavingNote] = useState(false);
+
   // Fetch leads from API
   const fetchLeads = async () => {
     try {
@@ -422,7 +427,7 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
           title: initialFilters.newLead.title || 'Decision Maker',
           email: initialFilters.newLead.email,
           phone: initialFilters.newLead.phone,
-          website: initialFilters.newLead.website || `https://www.${initialFilters.newLead.company.toLowerCase().replace(/\s+/g, '')}.com`,
+          website: initialFilters.newLead.website || `https://wwwwww.${initialFilters.newLead.company.toLowerCase().replace(/\s+/g, '')}.com`,
           industry: initialFilters.newLead.industry,
           employees: initialFilters.newLead.employees,
           revenue: initialFilters.newLead.revenue,
@@ -607,17 +612,23 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
   // Function to qualify a lead via API
   const handleQualifyLead = async (leadId: number) => {
     try {
-      await leadApi.qualifyLead(leadId);
+      await leadApi.qualifyLead(leadId, { reason: 'Lead meets all qualification criteria' });
 
-      // Fetch updated lead data to reflect status change and potential history
-      await fetchLeads();
+      // Update the local state
+      setLeads(prev => prev.map(l => 
+        l.id === leadId ? { ...l, status: 'qualified' } : l
+      ));
 
-      setSuccessMessage('Lead has been qualified successfully!');
-      setTimeout(() => setSuccessMessage(''), 5000);
-      toast.success('Lead qualified successfully!');
+      // Clear history for this lead to force refresh
+      setLeadHistory(prev => ({
+        ...prev,
+        [leadId]: []
+      }));
+
+      toast.success('Lead qualified successfully');
     } catch (error) {
       console.error('Error qualifying lead:', error);
-      toast.error('Failed to qualify lead. Please try again.');
+      toast.error('Failed to qualify lead');
     }
   };
 
@@ -635,12 +646,18 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
     try {
       await leadApi.disqualifyLead(selectedLeadForDisqualify.id, disqualifyReason);
 
-      // Fetch updated lead data
-      await fetchLeads();
+      // Update the local state
+      setLeads(prev => prev.map(l => 
+        l.id === selectedLeadForDisqualify.id ? { ...l, status: 'unqualified', notes: `${l.notes}\n\nDisqualified: ${disqualifyReason}` } : l
+      ));
 
-      setSuccessMessage('Lead has been disqualified successfully!');
-      setTimeout(() => setSuccessMessage(''), 5000);
-      toast.success('Lead disqualified successfully!');
+      // Clear history for this lead to force refresh
+      setLeadHistory(prev => ({
+        ...prev,
+        [selectedLeadForDisqualify.id]: []
+      }));
+
+      toast.success('Lead disqualified successfully');
 
       // Close dialog and reset state
       setShowDisqualifyDialog(false);
@@ -723,38 +740,42 @@ SOAR-AI Team`,
   };
 
   // Function to open dialog for viewing lead history
-  const handleShowHistory = (lead: any) => {
-    setSelectedLeadForHistory(lead);
-    setShowHistoryDialog(true);
-  };
-
-  // Handler for clicking the history button, fetches history if not already loaded
+  // This function is now correctly named and integrated with the modal state
   const handleHistoryClick = async (lead: Lead) => {
     setSelectedLeadForHistory(lead);
-    setShowHistoryDialog(true);
+    setIsHistoryModalOpen(true); // Use the state to control modal visibility
 
-    // Only fetch history if it's not already in the state for this lead
-    if (!leadHistory[lead.id]) {
-      setIsLoadingHistory(true);
-      try {
-        const history = await leadApi.getHistory(lead.id); // Assume getHistory API exists
-        setLeadHistory(prev => ({
-          ...prev,
-          [lead.id]: history.map((item: any) => ({ // Transform API response to internal format
-            id: item.id,
-            type: item.activity_type, // Map to internal type
-            title: item.title,
-            description: item.description,
-            timestamp: item.created_at,
-            author: item.created_by // Assuming created_by is an object { username: '...' }
-          }))
-        }));
-      } catch (error) {
-        console.error('Error fetching history:', error);
-        toast.error('Failed to load history for this lead.');
-      } finally {
-        setIsLoadingHistory(false);
-      }
+    // Always fetch fresh history data
+    setIsLoadingHistory(true);
+    try {
+      const history = await leadApi.getHistory(lead.id);
+      console.log('Fetched history:', history);
+
+      // Transform API response to internal format
+      const transformedHistory = history.map((item: any) => ({
+        id: item.id,
+        type: item.history_type, // Use the type from the API response
+        action: item.action,     // Use the action from the API response
+        user: item.user_name || 'System', // Use user_name if available, else fallback
+        timestamp: item.timestamp,
+        details: item.details,
+        icon: item.icon || 'plus' // Use icon from API, or 'plus' as default
+      }));
+
+      setLeadHistory(prev => ({
+        ...prev,
+        [lead.id]: transformedHistory
+      }));
+    } catch (error) {
+      console.error('Error fetching history:', error);
+      toast.error('Failed to load history for this lead.');
+      // Ensure that if an error occurs, the history for this lead is an empty array
+      setLeadHistory(prev => ({
+        ...prev,
+        [lead.id]: []
+      }));
+    } finally {
+      setIsLoadingHistory(false);
     }
   };
 
@@ -1954,7 +1975,7 @@ SOAR-AI Team`,
       </Dialog>
 
       {/* History Dialog */}
-      <Dialog open={showHistoryDialog} onOpenChange={setShowHistoryDialog}>
+      <Dialog open={isHistoryModalOpen} onOpenChange={setIsHistoryModalOpen}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
@@ -1983,11 +2004,11 @@ SOAR-AI Team`,
                   const mappedEntry = {
                     id: entry.id,
                     type: entry.type, // Already mapped by handleHistoryClick
-                    action: entry.title || entry.type, // Use title if available, else fallback to type
-                    user: entry.author?.username || 'Unknown User',
+                    action: entry.action,
+                    user: entry.user || 'Unknown User',
                     timestamp: entry.timestamp,
-                    details: entry.description,
-                    icon: entry.type.toLowerCase().replace(' ', '_') // Simple mapping for icons
+                    details: entry.details,
+                    icon: entry.icon // Use icon from transformed data
                   };
 
                   const getHistoryIcon = (type: string) => {
@@ -2078,7 +2099,7 @@ SOAR-AI Team`,
           <div className="flex justify-end pt-4 border-t">
             <Button 
               onClick={() => {
-                setShowHistoryDialog(false);
+                setIsHistoryModalOpen(false);
                 setSelectedLeadForHistory(null);
               }}
               className="bg-orange-500 hover:bg-orange-600 text-white"
