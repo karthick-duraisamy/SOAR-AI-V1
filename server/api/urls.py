@@ -4,7 +4,7 @@ from .views import (
     CompanyViewSet, ContactViewSet, LeadViewSet, OpportunityViewSet,
     ContractViewSet, ContractBreachViewSet, EmailCampaignViewSet,
     TravelOfferViewSet, SupportTicketViewSet, RevenueForecastViewSet,
-    ActivityLogViewSet, LeadNoteViewSet, CorporateSearchView
+    ActivityLogViewSet, LeadNoteViewSet
 )
 
 router = DefaultRouter()
