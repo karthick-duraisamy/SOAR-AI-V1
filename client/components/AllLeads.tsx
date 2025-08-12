@@ -131,6 +131,8 @@ export function AllLeads({ onNavigate }: AllLeadsProps) {
   const [selectedLeadHistory, setSelectedLeadHistory] = useState<HistoryEntry[]>([]);
   const [historyLoading, setHistoryLoading] = useState(false);
   const [selectedLeadName, setSelectedLeadName] = useState('');
+  const [showAssignAgentDialog, setShowAssignAgentDialog] = useState(false);
+  const [selectedAgent, setSelectedAgent] = useState('');
 
   // Initialize API hook
   const leadApi = useLeadApi();
@@ -270,6 +272,40 @@ export function AllLeads({ onNavigate }: AllLeadsProps) {
     } finally {
       setHistoryLoading(false);
     }
+  };
+
+  // Handle bulk actions
+  const handleStartCampaign = () => {
+    // Navigate to campaign creation with selected leads
+    const selectedLeadData = filteredLeads.filter(lead => selectedLeads.includes(lead.id));
+    onNavigate('marketing-campaign', { 
+      preSelectedLeads: selectedLeadData,
+      campaignType: 'bulk_email'
+    });
+    toast.success(`Campaign started for ${selectedLeads.length} lead${selectedLeads.length > 1 ? 's' : ''}`);
+  };
+
+  const handleAssignAgent = () => {
+    setShowAssignAgentDialog(true);
+  };
+
+  const handleConfirmAssignAgent = () => {
+    if (!selectedAgent) {
+      toast.error('Please select an agent');
+      return;
+    }
+    
+    // Here you would make API calls to assign the agent to selected leads
+    toast.success(`${selectedLeads.length} lead${selectedLeads.length > 1 ? 's' : ''} assigned to ${selectedAgent}`);
+    setShowAssignAgentDialog(false);
+    setSelectedAgent('');
+    handleClearSelection();
+  };
+
+  const handleClearSelection = () => {
+    setSelectedLeads([]);
+    setSelectAll(false);
+    toast.success('Selection cleared');
   };
 
   // Handle form submission for adding a new lead
@@ -514,6 +550,49 @@ export function AllLeads({ onNavigate }: AllLeadsProps) {
           </div>
         </CardContent>
       </Card>
+
+      {/* Bulk Actions Bar - Shows when leads are selected */}
+      {selectedLeads.length > 0 && (
+        <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="flex items-center justify-center w-8 h-8 bg-orange-500 rounded-full">
+                <span className="text-white font-medium text-sm">{selectedLeads.length}</span>
+              </div>
+              <span className="text-orange-800 font-medium">
+                {selectedLeads.length} lead{selectedLeads.length > 1 ? 's' : ''} selected
+              </span>
+            </div>
+            
+            <div className="flex items-center gap-3">
+              <Button 
+                className="bg-orange-600 hover:bg-orange-700 text-white"
+                onClick={() => handleStartCampaign()}
+              >
+                <Mail className="h-4 w-4 mr-2" />
+                Start Campaign
+              </Button>
+              
+              <Button 
+                variant="outline" 
+                className="text-gray-700 border-gray-300"
+                onClick={() => handleAssignAgent()}
+              >
+                <User className="h-4 w-4 mr-2" />
+                Assign Agent
+              </Button>
+              
+              <Button 
+                variant="outline" 
+                className="text-gray-700 border-gray-300"
+                onClick={() => handleClearSelection()}
+              >
+                Clear Selection
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Results Header */}
       <div className="flex items-center justify-between mb-4">
@@ -1101,6 +1180,55 @@ export function AllLeads({ onNavigate }: AllLeadsProps) {
             <DialogClose asChild>
               <Button variant="outline">Close</Button>
             </DialogClose>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Assign Agent Dialog */}
+      <Dialog open={showAssignAgentDialog} onOpenChange={setShowAssignAgentDialog}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Assign Agent</DialogTitle>
+            <DialogDescription>
+              Assign {selectedLeads.length} selected lead{selectedLeads.length > 1 ? 's' : ''} to an agent.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="py-4">
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="agent-select" className="text-sm font-medium text-gray-700">
+                  Select Agent
+                </Label>
+                <Select value={selectedAgent} onValueChange={setSelectedAgent}>
+                  <SelectTrigger className="mt-1">
+                    <SelectValue placeholder="Choose an agent..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="john-doe">John Doe</SelectItem>
+                    <SelectItem value="jane-smith">Jane Smith</SelectItem>
+                    <SelectItem value="mike-johnson">Mike Johnson</SelectItem>
+                    <SelectItem value="sarah-wilson">Sarah Wilson</SelectItem>
+                    <SelectItem value="david-brown">David Brown</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                <p className="text-sm text-blue-800">
+                  <strong>Selected Leads:</strong> {selectedLeads.length} lead{selectedLeads.length > 1 ? 's' : ''} will be assigned to the selected agent.
+                </p>
+              </div>
+            </div>
+          </div>
+          
+          <DialogFooter>
+            <DialogClose asChild>
+              <Button variant="outline">Cancel</Button>
+            </DialogClose>
+            <Button onClick={handleConfirmAssignAgent} className="bg-orange-600 hover:bg-orange-700 text-white">
+              Assign Agent
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
