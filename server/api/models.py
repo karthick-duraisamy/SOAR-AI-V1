@@ -491,9 +491,10 @@ class LeadHistory(models.Model):
         ('trophy', 'Trophy'),
         ('x', 'X'),
     ]
-
+    
     lead = models.ForeignKey(Lead, on_delete=models.CASCADE, related_name='history_entries')
-    history_type = models.CharField(max_length=25, choices=HISTORY_TYPES)
+    history_type = models.CharField(max_length=255)  # <- this must be here
+
     action = models.CharField(max_length=255)
     details = models.TextField()
     icon = models.CharField(max_length=20, choices=ICON_TYPES, default='plus')
