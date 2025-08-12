@@ -51,6 +51,16 @@ interface AllLeadsProps {
   onNavigate: (screen: string, filters?: any) => void;
 }
 
+interface HistoryEntry {
+  id: number;
+  history_type: string;
+  action: string;
+  details: string;
+  icon: string;
+  user_name: string;
+  timestamp: string;
+}
+
 interface Lead {
   id: number;
   company: { name: string; industry?: string; }; // Added industry to Lead interface
@@ -91,11 +101,36 @@ const engagementColors = {
   'Low': 'text-red-600'
 };
 
+const getHistoryIcon = (iconType: string) => {
+  const icons = {
+    'plus': Plus,
+    'mail': Mail,
+    'phone': Phone,
+    'message-circle': MessageSquare,
+    'message-square': MessageSquare,
+    'trending-up': BarChart3,
+    'user': User,
+    'check-circle': CheckCircle2,
+    'x-circle': AlertTriangle,
+    'calendar': Calendar,
+    'briefcase': Building2,
+    'file-text': MessageSquare,
+    'handshake': User,
+    'trophy': CheckCircle2,
+    'x': AlertTriangle
+  };
+  return icons[iconType] || MessageSquare;
+};
+
 export function AllLeads({ onNavigate }: AllLeadsProps) {
   const [selectedLeads, setSelectedLeads] = useState<number[]>([]);
   const [selectAll, setSelectAll] = useState(false);
   const [showNewLeadDialog, setShowNewLeadDialog] = useState(false);
   const [leads, setLeads] = useState<Lead[]>([]);
+  const [showHistoryDialog, setShowHistoryDialog] = useState(false);
+  const [selectedLeadHistory, setSelectedLeadHistory] = useState<HistoryEntry[]>([]);
+  const [historyLoading, setHistoryLoading] = useState(false);
+  const [selectedLeadName, setSelectedLeadName] = useState('');
 
   // Initialize API hook
   const leadApi = useLeadApi();
@@ -218,6 +253,23 @@ export function AllLeads({ onNavigate }: AllLeadsProps) {
       ...prev,
       [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : value
     }));
+  };
+
+  // Handle viewing lead history
+  const handleViewHistory = async (leadId: number, companyName: string) => {
+    setHistoryLoading(true);
+    setSelectedLeadName(companyName);
+    setShowHistoryDialog(true);
+    
+    try {
+      const history = await leadApi.getHistory(leadId);
+      setSelectedLeadHistory(history);
+    } catch (error) {
+      toast.error('Failed to fetch lead history');
+      setSelectedLeadHistory([]);
+    } finally {
+      setHistoryLoading(false);
+    }
   };
 
   // Handle form submission for adding a new lead
@@ -654,7 +706,12 @@ export function AllLeads({ onNavigate }: AllLeadsProps) {
                     <BarChart3 className="h-4 w-4 mr-1" />
                     Campaign
                   </Button>
-                  <Button size="sm" variant="outline" className="text-gray-700 border-gray-300">
+                  <Button 
+                    size="sm" 
+                    variant="outline" 
+                    className="text-gray-700 border-gray-300"
+                    onClick={() => handleViewHistory(lead.id, lead.company.name)}
+                  >
                     <History className="h-4 w-4 mr-1" />
                     History
                   </Button>
@@ -976,6 +1033,75 @@ export function AllLeads({ onNavigate }: AllLeadsProps) {
               <Button type="submit">Save Lead</Button>
             </DialogFooter>
           </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* History Dialog */}
+      <Dialog open={showHistoryDialog} onOpenChange={setShowHistoryDialog}>
+        <DialogContent className="sm:max-w-[600px] max-h-[80vh]">
+          <DialogHeader>
+            <DialogTitle>Lead History - {selectedLeadName}</DialogTitle>
+            <DialogDescription>
+              Complete timeline of all activities and changes for this lead.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="max-h-[400px] overflow-y-auto">
+            {historyLoading ? (
+              <div className="flex items-center justify-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600"></div>
+                <span className="ml-2 text-gray-600">Loading history...</span>
+              </div>
+            ) : selectedLeadHistory.length === 0 ? (
+              <div className="text-center py-8">
+                <History className="h-12 w-12 mx-auto mb-4 text-gray-400" />
+                <p className="text-gray-600">No history available for this lead.</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {selectedLeadHistory.map((entry) => {
+                  const IconComponent = getHistoryIcon(entry.icon);
+                  return (
+                    <div key={entry.id} className="flex items-start gap-4 p-4 border border-gray-200 rounded-lg">
+                      <div className="flex items-center justify-center w-10 h-10 bg-orange-100 rounded-full flex-shrink-0">
+                        <IconComponent className="h-5 w-5 text-orange-600" />
+                      </div>
+                      
+                      <div className="flex-1">
+                        <div className="flex items-center justify-between mb-2">
+                          <h4 className="font-semibold text-gray-900">{entry.action}</h4>
+                          <span className="text-sm text-gray-500">
+                            {new Date(entry.timestamp).toLocaleDateString('en-US', {
+                              month: 'short',
+                              day: 'numeric',
+                              year: 'numeric',
+                              hour: '2-digit',
+                              minute: '2-digit'
+                            })}
+                          </span>
+                        </div>
+                        
+                        <p className="text-gray-700 text-sm mb-2">{entry.details}</p>
+                        
+                        <div className="flex items-center gap-2">
+                          <Badge variant="outline" className="text-xs">
+                            {entry.history_type.replace('_', ' ')}
+                          </Badge>
+                          <span className="text-xs text-gray-500">by {entry.user_name}</span>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+          
+          <DialogFooter>
+            <DialogClose asChild>
+              <Button variant="outline">Close</Button>
+            </DialogClose>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
