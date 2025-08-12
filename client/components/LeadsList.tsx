@@ -334,7 +334,7 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
   const [showDisqualifyDialog, setShowDisqualifyDialog] = useState(false);
   const [selectedLeadForDisqualify, setSelectedLeadForDisqualify] = useState<any>(null);
   const [disqualifyReason, setDisqualifyReason] = useState('');
-  const [selectedLeads, setSelectedLeads] = useState([]);
+  const [selectedLeads, setSelectedLeads] = useState<number[]>([]);
   const [selectAll, setSelectAll] = useState(false);
   const [showContactDialog, setShowContactDialog] = useState(false);
   const [selectedLeadForContact, setSelectedLeadForContact] = useState<any>(null);
@@ -514,7 +514,7 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
     }));
   };
 
-  const handleSelectLead = (leadId, isChecked) => {
+  const handleSelectLead = (leadId: number, isChecked: boolean) => {
     if (isChecked) {
       setSelectedLeads(prev => [...prev, leadId]);
     } else {
@@ -523,7 +523,7 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
     }
   };
 
-  const handleSelectAll = (isChecked) => {
+  const handleSelectAll = (isChecked: boolean) => {
     if (isChecked) {
       setSelectedLeads(filteredLeads.map(lead => lead.id));
       setSelectAll(true);
@@ -1222,6 +1222,81 @@ SOAR-AI Team`,
         </CardContent>
       </Card>
 
+      {/* Bulk Actions Bar - Shows when leads are selected */}
+      {selectedLeads.length > 0 && (
+        <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-4 shadow-sm">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="flex items-center justify-center w-8 h-8 bg-orange-500 rounded-full">
+                <span className="text-white font-medium text-sm">{selectedLeads.length}</span>
+              </div>
+              <span className="text-orange-800 font-medium">
+                {selectedLeads.length} lead{selectedLeads.length > 1 ? 's' : ''} selected
+              </span>
+            </div>
+            
+            <div className="flex items-center gap-2">
+              <Button 
+                size="sm"
+                className="bg-orange-600 hover:bg-orange-700 text-white"
+                onClick={() => {
+                  if (selectedLeads.length === 0) {
+                    toast.error('Please select leads first');
+                    return;
+                  }
+                  
+                  // Navigate to campaign creation with selected leads
+                  const selectedLeadData = filteredLeads.filter(lead => selectedLeads.includes(lead.id));
+                  onNavigate('marketing-campaign', { 
+                    preSelectedLeads: selectedLeadData,
+                    campaignType: 'bulk_email'
+                  });
+                  toast.success(`Campaign started for ${selectedLeads.length} lead${selectedLeads.length > 1 ? 's' : ''}`);
+                  
+                  // Clear selection after action
+                  setSelectedLeads([]);
+                  setSelectAll(false);
+                }}
+              >
+                <Mail className="h-4 w-4 mr-2" />
+                Start Campaign
+              </Button>
+              
+              <Button 
+                size="sm"
+                variant="outline" 
+                className="text-gray-700 border-gray-300 hover:bg-gray-50"
+                onClick={() => {
+                  if (selectedLeads.length === 0) {
+                    toast.error('Please select leads first');
+                    return;
+                  }
+                  toast.success(`${selectedLeads.length} lead${selectedLeads.length > 1 ? 's' : ''} assigned to agent`);
+                  setSelectedLeads([]);
+                  setSelectAll(false);
+                }}
+              >
+                <User className="h-4 w-4 mr-2" />
+                Assign Agent
+              </Button>
+              
+              <Button 
+                size="sm"
+                variant="outline" 
+                className="text-gray-700 border-gray-300 hover:bg-gray-50"
+                onClick={() => {
+                  setSelectedLeads([]);
+                  setSelectAll(false);
+                  toast.success('Selection cleared');
+                }}
+              >
+                Clear Selection
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Leads Header */}
       <div className="flex items-center justify-between mb-4">
         <div>
@@ -1231,7 +1306,7 @@ SOAR-AI Team`,
         <div className="flex items-center gap-3">
           <Checkbox 
             checked={selectAll}
-            onCheckedChange={(e) => handleSelectAll(e.target.checked)}
+            onCheckedChange={(checked) => handleSelectAll(checked)}
             className="w-4 h-4 text-orange-500 rounded border-gray-300 focus:ring-orange-500"
           />
           <span className="text-sm font-medium text-gray-700">Select All</span>
