@@ -1,10 +1,13 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import { Progress } from './ui/progress';
 import { Alert, AlertDescription } from './ui/alert';
+import { Skeleton } from './ui/skeleton';
+import { useLeadApi } from '../hooks/api/useLeadApi';
+import { toast } from 'sonner';
 import { 
   Users, 
   UserCheck, 
@@ -40,105 +43,38 @@ interface LeadManagementProps {
   onNavigate: (screen: string, filters?: any) => void;
 }
 
-const leadStats = {
-  total: 1247,
-  qualified: 324,
-  unqualified: 156,
-  inProgress: 89,
-  contacted: 678,
-  responded: 234,
-  conversionRate: 26,
-  avgResponseTime: '2.3 hours',
-  emailOpenRate: 68,
-  emailClickRate: 23
-};
-
-const recentActivity = [
-  {
-    id: 1,
-    type: 'qualification',
-    lead: 'TechCorp Solutions',
-    action: 'Lead qualified - High potential',
-    time: '2 hours ago',
-    status: 'qualified',
-    value: '$450K potential'
-  },
-  {
-    id: 2,
-    type: 'email',
-    lead: 'Global Manufacturing Ltd',
-    action: 'Email campaign opened',
-    time: '4 hours ago',
-    status: 'in-progress',
-    value: 'Engagement spike'
-  },
-  {
-    id: 3,
-    type: 'response',
-    lead: 'Innovation Partners',
-    action: 'Responded to outreach',
-    time: '6 hours ago',
-    status: 'responded',
-    value: 'Meeting requested'
-  },
-  {
-    id: 4,
-    type: 'disqualification',
-    lead: 'Small Business Inc',
-    action: 'Lead disqualified - Budget constraints',
-    time: '1 day ago',
-    status: 'unqualified',
-    value: 'Low priority'
-  }
-];
-
-const topLeads = [
-  {
-    id: 1,
-    company: 'TechCorp Solutions',
-    contact: 'Sarah Johnson',
-    title: 'Procurement Director',
-    score: 92,
-    status: 'qualified',
-    value: '$450K',
-    lastContact: '2024-07-12',
-    nextAction: 'Schedule demo',
-    industry: 'Technology',
-    employees: 2500,
-    engagement: 'High'
-  },
-  {
-    id: 2,
-    company: 'Global Manufacturing Ltd',
-    contact: 'Michael Chen',
-    title: 'Travel Manager', 
-    score: 87,
-    status: 'qualified',
-    value: '$320K',
-    lastContact: '2024-07-11',
-    nextAction: 'Send proposal',
-    industry: 'Manufacturing',
-    employees: 5000,
-    engagement: 'High'
-  },
-  {
-    id: 3,
-    company: 'Innovation Partners',
-    contact: 'Lisa Wang',
-    title: 'Operations VP',
-    score: 78,
-    status: 'in-progress',
-    value: '$280K',
-    lastContact: '2024-07-10',
-    nextAction: 'Follow up call',
-    industry: 'Consulting',
-    employees: 800,
-    engagement: 'Medium'
-  }
-];
+// Removed static data: leadStats, recentActivity, topLeads
 
 export function LeadManagement({ onNavigate }: LeadManagementProps) {
   const [activeTab, setActiveTab] = useState('overview');
+  const { getLeadStats, getRecentActivity, getTopLeads } = useLeadApi();
+  const [leadStats, setLeadStats] = useState<any>(null);
+  const [recentActivity, setRecentActivity] = useState<any[]>([]);
+  const [topLeads, setTopLeads] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      setIsLoading(true);
+      try {
+        const stats = await getLeadStats();
+        setLeadStats(stats);
+
+        const activity = await getRecentActivity();
+        setRecentActivity(activity);
+
+        const leads = await getTopLeads();
+        setTopLeads(leads);
+      } catch (error) {
+        toast.error('Failed to fetch lead data. Please try again.');
+        console.error('Error fetching lead data:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [getLeadStats, getRecentActivity, getTopLeads]);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -179,6 +115,71 @@ export function LeadManagement({ onNavigate }: LeadManagementProps) {
     }
   };
 
+  // Helper to render skeleton loaders
+  const renderKeyMetricSkeleton = () => (
+    <Card>
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <Skeleton className="h-4 w-1/2" />
+        <Skeleton className="h-4 w-4" />
+      </CardHeader>
+      <CardContent>
+        <Skeleton className="h-6 w-1/3 mb-1" />
+        <Skeleton className="h-3 w-1/2" />
+      </CardContent>
+    </Card>
+  );
+
+  const renderActivitySkeleton = () => (
+    <div className="flex items-start gap-3 p-3 border border-gray-100 rounded-lg">
+      <Skeleton className="w-4 h-4 rounded-full mt-0.5" />
+      <div className="flex-1 space-y-2">
+        <div className="flex items-start justify-between gap-2">
+          <div className="space-y-2">
+            <Skeleton className="h-4 w-32" />
+            <Skeleton className="h-3 w-48" />
+          </div>
+          <div className="flex flex-col items-end gap-2">
+            <Skeleton className="h-5 w-20" />
+            <Skeleton className="h-3 w-16" />
+          </div>
+        </div>
+        <Skeleton className="h-5 w-24" />
+      </div>
+    </div>
+  );
+
+  const renderTopLeadSkeleton = () => (
+    <div className="flex items-center justify-between p-4 border rounded-lg">
+      <div className="flex items-center gap-4">
+        <Skeleton className="flex items-center justify-center w-10 h-10 rounded-lg" />
+        <div>
+          <div className="flex items-center gap-2">
+            <Skeleton className="h-4 w-24" />
+            <Skeleton className="h-5 w-16" />
+          </div>
+          <Skeleton className="h-3 w-32 mt-1" />
+          <div className="flex items-center gap-4 mt-1 text-xs text-muted-foreground">
+            <Skeleton className="h-3 w-16" />
+            <Skeleton className="h-3 w-24" />
+            <Skeleton className="h-3 w-20" />
+          </div>
+        </div>
+      </div>
+      <div className="flex items-center gap-4">
+        <div className="text-right">
+          <Skeleton className="h-4 w-20 mb-1" />
+          <Skeleton className="h-3 w-12" />
+        </div>
+        <div className="text-right">
+          <Skeleton className="h-3 w-24" />
+          <Skeleton className="h-3 w-16" />
+        </div>
+        <Skeleton className="h-8 w-8" />
+      </div>
+    </div>
+  );
+
+
   return (
     <div className="space-y-6 p-5">
       {/* Header */}
@@ -201,57 +202,68 @@ export function LeadManagement({ onNavigate }: LeadManagementProps) {
 
       {/* Key Metrics */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Leads</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{leadStats.total.toLocaleString()}</div>
-            <p className="text-xs text-muted-foreground">
-              <span className="text-green-500">+12%</span> from last month
-            </p>
-          </CardContent>
-        </Card>
+        {isLoading ? (
+          <>
+            {renderKeyMetricSkeleton()}
+            {renderKeyMetricSkeleton()}
+            {renderKeyMetricSkeleton()}
+            {renderKeyMetricSkeleton()}
+          </>
+        ) : (
+          <>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Total Leads</CardTitle>
+                <Users className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{leadStats?.total?.toLocaleString()}</div>
+                <p className="text-xs text-muted-foreground">
+                  <span className="text-green-500">+{leadStats?.totalChange}%</span> from last month
+                </p>
+              </CardContent>
+            </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Qualified Leads</CardTitle>
-            <UserCheck className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{leadStats.qualified}</div>
-            <p className="text-xs text-muted-foreground">
-              <span className="text-green-500">+18%</span> conversion rate
-            </p>
-          </CardContent>
-        </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Qualified Leads</CardTitle>
+                <UserCheck className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{leadStats?.qualified}</div>
+                <p className="text-xs text-muted-foreground">
+                  <span className="text-green-500">+{leadStats?.conversionRate}%</span> conversion rate
+                </p>
+              </CardContent>
+            </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Email Open Rate</CardTitle>
-            <Mail className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{leadStats.emailOpenRate}%</div>
-            <p className="text-xs text-muted-foreground">
-              <span className="text-green-500">+5%</span> from last campaign
-            </p>
-          </CardContent>
-        </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Email Open Rate</CardTitle>
+                <Mail className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{leadStats?.emailOpenRate}%</div>
+                <p className="text-xs text-muted-foreground">
+                  <span className="text-green-500">+{leadStats?.emailOpenRateChange}%</span> from last campaign
+                </p>
+              </CardContent>
+            </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Avg Response Time</CardTitle>
-            <Clock className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{leadStats.avgResponseTime}</div>
-            <p className="text-xs text-muted-foreground">
-              <span className="text-green-500">-30min</span> improvement
-            </p>
-          </CardContent>
-        </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Avg Response Time</CardTitle>
+                <Clock className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{leadStats?.avgResponseTime}</div>
+                <p className="text-xs text-muted-foreground">
+                  <span className="text-green-500">{leadStats?.avgResponseTimeChange}</span> improvement
+                </p>
+              </CardContent>
+            </Card>
+          </>
+        )}
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
@@ -297,33 +309,33 @@ export function LeadManagement({ onNavigate }: LeadManagementProps) {
                 <div className="space-y-3">
                   <div className="flex justify-between items-center">
                     <span className="text-sm">Total Leads</span>
-                    <span className="font-medium">{leadStats.total}</span>
+                    <span className="font-medium">{leadStats?.total?.toLocaleString()}</span>
                   </div>
-                  <Progress value={100} className="h-2" />
+                  <Progress value={leadStats ? (leadStats.contacted / leadStats.total) * 100 : 0} className="h-2" />
                 </div>
-                
+
                 <div className="space-y-3">
                   <div className="flex justify-between items-center">
                     <span className="text-sm">Contacted</span>
-                    <span className="font-medium">{leadStats.contacted}</span>
+                    <span className="font-medium">{leadStats?.contacted}</span>
                   </div>
-                  <Progress value={(leadStats.contacted / leadStats.total) * 100} className="h-2" />
+                  <Progress value={leadStats ? (leadStats.qualified / leadStats.total) * 100 : 0} className="h-2" />
                 </div>
-                
+
                 <div className="space-y-3">
                   <div className="flex justify-between items-center">
                     <span className="text-sm">Qualified</span>
-                    <span className="font-medium">{leadStats.qualified}</span>
+                    <span className="font-medium">{leadStats?.qualified}</span>
                   </div>
-                  <Progress value={(leadStats.qualified / leadStats.total) * 100} className="h-2" />
+                  <Progress value={leadStats ? (leadStats.responded / leadStats.total) * 100 : 0} className="h-2" />
                 </div>
-                
+
                 <div className="space-y-3">
                   <div className="flex justify-between items-center">
                     <span className="text-sm">Responded</span>
-                    <span className="font-medium">{leadStats.responded}</span>
+                    <span className="font-medium">{leadStats?.responded}</span>
                   </div>
-                  <Progress value={(leadStats.responded / leadStats.total) * 100} className="h-2" />
+                  <Progress value={leadStats ? (leadStats.conversionRate / 100) * 100 : 0} className="h-2" />
                 </div>
               </CardContent>
             </Card>
@@ -331,34 +343,70 @@ export function LeadManagement({ onNavigate }: LeadManagementProps) {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Activity className="h-5 w-5" />
+                  <Clock className="h-5 w-5" />
                   Recent Activity
                 </CardTitle>
                 <CardDescription>Latest lead interactions and status changes</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {recentActivity.map((activity) => {
-                    const Icon = getActivityIcon(activity.type);
-                    return (
-                      <div key={activity.id} className="flex items-start gap-3 p-3 border rounded-lg">
-                        <Icon className="h-4 w-4 mt-0.5 text-blue-600" />
-                        <div className="flex-1 min-w-0">
-                          <p className="font-medium text-sm">{activity.lead}</p>
-                          <p className="text-sm text-muted-foreground">{activity.action}</p>
-                          <div className="flex items-center gap-2 mt-1">
-                            <Badge variant={getStatusColor(activity.status)} className="text-xs">
-                              {activity.status}
-                            </Badge>
-                            <span className="text-xs text-muted-foreground">{activity.time}</span>
+                  {isLoading ? (
+                    <>
+                      {[...Array(4)].map((_, index) => renderActivitySkeleton())}
+                    </>
+                  ) : recentActivity.length === 0 ? (
+                    <div className="text-center py-8 text-gray-500">
+                      <Activity className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+                      <p>No recent activity found</p>
+                    </div>
+                  ) : (
+                    recentActivity.map((activity) => {
+                      const getActivityIcon = (type: string) => {
+                        switch (type) {
+                          case 'qualification': return <UserCheck className="h-4 w-4 text-green-500" />;
+                          case 'disqualification': return <UserX className="h-4 w-4 text-red-500" />;
+                          case 'email': return <Mail className="h-4 w-4 text-blue-500" />;
+                          case 'response': return <MessageSquare className="h-4 w-4 text-purple-500" />;
+                          default: return <CheckCircle className="h-4 w-4 text-gray-500" />;
+                        }
+                      };
+
+                      const getStatusBadge = (status: string) => {
+                        switch (status) {
+                          case 'qualified': return <Badge variant="default" className="bg-green-100 text-green-800 hover:bg-green-100">Qualified</Badge>;
+                          case 'unqualified': return <Badge variant="destructive">Unqualified</Badge>;
+                          case 'in-progress': return <Badge variant="secondary">In Progress</Badge>;
+                          case 'responded': return <Badge variant="outline">Responded</Badge>;
+                          default: return <Badge variant="outline">Unknown</Badge>;
+                        }
+                      };
+
+                      return (
+                        <div key={activity.id} className="flex items-start gap-3 p-3 border border-gray-100 rounded-lg hover:bg-gray-50 transition-colors">
+                          <div className="flex-shrink-0 mt-0.5">
+                            {getActivityIcon(activity.type)}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-start justify-between gap-2">
+                              <div>
+                                <h4 className="font-medium text-gray-900">{activity.lead}</h4>
+                                <p className="text-sm text-gray-600 mt-1">{activity.action}</p>
+                              </div>
+                              <div className="flex flex-col items-end gap-2">
+                                {getStatusBadge(activity.status)}
+                                <span className="text-xs text-gray-500">{activity.time}</span>
+                              </div>
+                            </div>
+                            <div className="mt-2">
+                              <span className="text-xs font-medium text-blue-600 bg-blue-50 px-2 py-1 rounded">
+                                {activity.value}
+                              </span>
+                            </div>
                           </div>
                         </div>
-                        <div className="text-xs font-medium text-green-500">
-                          {activity.value}
-                        </div>
-                      </div>
-                    );
-                  })}
+                      );
+                    })
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -383,46 +431,57 @@ export function LeadManagement({ onNavigate }: LeadManagementProps) {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {topLeads.map((lead) => (
-                  <div key={lead.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors">
-                    <div className="flex items-center gap-4">
-                      <div className="flex items-center justify-center w-10 h-10 bg-blue-100 rounded-lg">
-                        <Building2 className="h-5 w-5 text-blue-600" />
-                      </div>
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <h4 className="font-medium">{lead.company}</h4>
-                          <Badge variant={getStatusColor(lead.status)}>
-                            {lead.status}
-                          </Badge>
-                        </div>
-                        <p className="text-sm text-muted-foreground">
-                          {lead.contact} • {lead.title}
-                        </p>
-                        <div className="flex items-center gap-4 mt-1 text-xs text-muted-foreground">
-                          <span>{lead.industry}</span>
-                          <span>{lead.employees.toLocaleString()} employees</span>
-                          <span className={`font-medium ${getEngagementColor(lead.engagement)}`}>
-                            {lead.engagement} engagement
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-4">
-                      <div className="text-right">
-                        <div className="font-medium text-green-500">{lead.value}</div>
-                        <div className="text-sm text-muted-foreground">Score: {lead.score}</div>
-                      </div>
-                      <div className="text-right">
-                        <div className="text-sm font-medium">{lead.nextAction}</div>
-                        <div className="text-xs text-muted-foreground">Last: {lead.lastContact}</div>
-                      </div>
-                      <Button size="sm" variant="outline">
-                        <ArrowRight className="h-4 w-4" />
-                      </Button>
-                    </div>
+                {isLoading ? (
+                  <>
+                    {[...Array(3)].map((_, index) => renderTopLeadSkeleton())}
+                  </>
+                ) : topLeads.length === 0 ? (
+                  <div className="text-center py-8 text-gray-500">
+                    <Users className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+                    <p>No top leads found</p>
                   </div>
-                ))}
+                ) : (
+                  topLeads.map((lead) => (
+                    <div key={lead.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors">
+                      <div className="flex items-center gap-4">
+                        <div className="flex items-center justify-center w-10 h-10 bg-blue-100 rounded-lg">
+                          <Building2 className="h-5 w-5 text-blue-600" />
+                        </div>
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <h4 className="font-medium">{lead.company}</h4>
+                            <Badge variant={getStatusColor(lead.status)}>
+                              {lead.status}
+                            </Badge>
+                          </div>
+                          <p className="text-sm text-muted-foreground">
+                            {lead.contact} • {lead.title}
+                          </p>
+                          <div className="flex items-center gap-4 mt-1 text-xs text-muted-foreground">
+                            <span>{lead.industry}</span>
+                            <span>{lead.employees.toLocaleString()} employees</span>
+                            <span className={`font-medium ${getEngagementColor(lead.engagement)}`}>
+                              {lead.engagement} engagement
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-4">
+                        <div className="text-right">
+                          <div className="font-medium text-green-500">{lead.value}</div>
+                          <div className="text-sm text-muted-foreground">Score: {lead.score}</div>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-sm font-medium">{lead.nextAction}</div>
+                          <div className="text-xs text-muted-foreground">Last: {lead.lastContact}</div>
+                        </div>
+                        <Button size="sm" variant="outline">
+                          <ArrowRight className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  ))
+                )}
               </div>
             </CardContent>
           </Card>
@@ -467,7 +526,7 @@ export function LeadManagement({ onNavigate }: LeadManagementProps) {
           <Alert>
             <CheckCircle className="h-4 w-4" />
             <AlertDescription>
-              You have {leadStats.qualified} qualified leads. 
+              You have {leadStats?.qualified} qualified leads. 
               <Button variant="link" className="p-0 ml-1" onClick={() => onNavigate('qualified-leads')}>
                 View detailed qualified leads &rarr;
               </Button>
@@ -479,7 +538,7 @@ export function LeadManagement({ onNavigate }: LeadManagementProps) {
           <Alert>
             <UserX className="h-4 w-4" />
             <AlertDescription>
-              You have {leadStats.unqualified} unqualified leads that may need attention.
+              You have {leadStats?.unqualified} unqualified leads that may need attention.
               <Button variant="link" className="p-0 ml-1" onClick={() => onNavigate('unqualified-leads')}>
                 Review unqualified leads &rarr;
               </Button>
@@ -491,7 +550,7 @@ export function LeadManagement({ onNavigate }: LeadManagementProps) {
           <Alert>
             <Mail className="h-4 w-4" />
             <AlertDescription>
-              Email campaigns are running with {leadStats.emailOpenRate}% open rate.
+              Email campaigns are running with {leadStats?.emailOpenRate}% open rate.
               <Button variant="link" className="p-0 ml-1" onClick={() => onNavigate('email-campaigns')}>
                 Manage email campaigns &rarr;
               </Button>

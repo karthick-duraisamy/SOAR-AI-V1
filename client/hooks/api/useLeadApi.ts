@@ -329,6 +329,46 @@ export const useLeadApi = () => {
     }
   }, [setLoading, setError, setData]);
 
+  // Get lead statistics for dashboard
+  const getLeadStats = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const response: AxiosResponse<any> = await axios.get(
+        `${API_BASE_URL}/leads/stats/`
+      );
+      setData(response.data);
+      return response.data;
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.detail || error.message || 'Failed to fetch lead statistics';
+      setError(errorMessage);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  }, [setLoading, setError, setData]);
+
+  // Get recent activity
+  const getRecentActivity = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const response: AxiosResponse<any> = await axios.get(
+        `${API_BASE_URL}/leads/recent-activity/`
+      );
+      setData(response.data);
+      return response.data;
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.detail || error.message || 'Failed to fetch recent activity';
+      setError(errorMessage);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  }, [setLoading, setError, setData]);
+
 
   return {
     ...state,
@@ -343,5 +383,7 @@ export const useLeadApi = () => {
     getPipelineStats,
     addNote,
     getHistory,
+    getLeadStats,
+    getRecentActivity,
   };
 };

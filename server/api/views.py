@@ -999,3 +999,137 @@ class DashboardAPIView(viewsets.ViewSet):
         }
 
         return Response(overview_data)
+
+# Add the new endpoints
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from rest_framework import status
+from django.shortcuts import get_object_or_404
+from django.db.models import Count, Avg, Q
+from django.utils import timezone
+from datetime import datetime, timedelta
+from .models import Lead, Company, Contact, LeadNote, LeadHistory
+from .serializers import LeadSerializer, CompanySerializer, ContactSerializer
+import json
+
+@api_view(['GET'])
+def lead_pipeline_stats(request):
+    """Get lead pipeline statistics"""
+    try:
+        # Get count of leads by status
+        total_leads = Lead.objects.count()
+        qualified_leads = Lead.objects.filter(status='qualified').count()
+        unqualified_leads = Lead.objects.filter(status='unqualified').count()
+        new_leads = Lead.objects.filter(status='new').count()
+        contacted_leads = Lead.objects.filter(status='contacted').count()
+
+        # Calculate conversion rate
+        conversion_rate = (qualified_leads / total_leads * 100) if total_leads > 0 else 0
+
+        # Get average score
+        avg_score = Lead.objects.aggregate(avg_score=Avg('score'))['avg_score'] or 0
+
+        return Response({
+            'total_leads': total_leads,
+            'qualified_leads': qualified_leads,
+            'unqualified_leads': unqualified_leads,
+            'new_leads': new_leads,
+            'contacted_leads': contacted_leads,
+            'conversion_rate': round(conversion_rate, 2),
+            'average_score': round(avg_score, 2)
+        })
+    except Exception as e:
+        return Response(
+            {'error': str(e)},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+
+@api_view(['GET'])
+def lead_stats(request):
+    """Get comprehensive lead statistics for dashboard"""
+    try:
+        # Basic counts
+        total_leads = Lead.objects.count()
+        qualified_leads = Lead.objects.filter(status='qualified').count()
+        unqualified_leads = Lead.objects.filter(status='unqualified').count()
+        contacted_leads = Lead.objects.filter(status__in=['contacted', 'qualified', 'unqualified']).count()
+
+        # Calculate progress statuses
+        in_progress_leads = Lead.objects.filter(status__in=['new', 'contacted']).count()
+        responded_leads = Lead.objects.filter(status__in=['qualified', 'unqualified']).count()
+
+        # Calculate metrics
+        conversion_rate = (qualified_leads / total_leads * 100) if total_leads > 0 else 0
+
+        # Mock email metrics (you can replace with actual email tracking data)
+        email_open_rate = 68  # Replace with real data from email service
+        email_click_rate = 23  # Replace with real data from email service
+
+        # Calculate average response time (mock - replace with real calculation)
+        avg_response_time = "2.3 hours"  # You can calculate this from actual timestamps
+
+        return Response({
+            'total': total_leads,
+            'qualified': qualified_leads,
+            'unqualified': unqualified_leads,
+            'inProgress': in_progress_leads,
+            'contacted': contacted_leads,
+            'responded': responded_leads,
+            'conversionRate': round(conversion_rate, 1),
+            'avgResponseTime': avg_response_time,
+            'emailOpenRate': email_open_rate,
+            'emailClickRate': email_click_rate
+        })
+    except Exception as e:
+        return Response(
+            {'error': str(e)},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+
+@api_view(['GET'])
+def recent_activity(request):
+    """Get recent lead activity"""
+    try:
+        # Get recent history entries (if table exists)
+        recent_activities = []
+
+        try:
+            # Try to get from LeadHistory model
+            recent_history = LeadHistory.objects.select_related('lead').order_by('-timestamp')[:10]
+
+            for history in recent_history:
+                activity_type = 'qualification' if 'qualified' in history.action.lower() else \
+                              'disqualification' if 'disqualified' in history.action.lower() else \
+                              'email' if 'email' in history.action.lower() else \
+                              'response'
+
+                recent_activities.append({
+                    'id': history.id,
+                    'type': activity_type,
+                    'lead': f"{history.lead.company.name}",
+                    'action': history.action,
+                    'time': history.timestamp.strftime('%d %b %Y, %I:%M %p'),
+                    'status': history.lead.status,
+                    'value': f"Score: {history.lead.score}" if history.lead.score else "No score"
+                })
+        except:
+            # Fallback to recent leads if history table doesn't exist
+            recent_leads = Lead.objects.select_related('company').order_by('-updated_at')[:5]
+
+            for i, lead in enumerate(recent_leads):
+                recent_activities.append({
+                    'id': lead.id,
+                    'type': 'qualification' if lead.status == 'qualified' else 'response',
+                    'lead': lead.company.name,
+                    'action': f'Lead {lead.status} - Recent update',
+                    'time': lead.updated_at.strftime('%d %b %Y, %I:%M %p'),
+                    'status': lead.status,
+                    'value': f"${lead.estimated_value:,.0f} potential" if lead.estimated_value else "No value set"
+                })
+
+        return Response(recent_activities)
+    except Exception as e:
+        return Response(
+            {'error': str(e)},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
