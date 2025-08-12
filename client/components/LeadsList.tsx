@@ -393,7 +393,7 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
     try {
       setLoading(true);
       const apiResponse = await leadApi.getLeads(); // Assuming getLeads returns { results: [], count: N }
-      const apiLeads = apiResponse.results;
+      const apiLeads = apiResponse;
       console.log('Fetched leads:', apiLeads);
 
       // Transform leads - history_entries are not included here as they are fetched on demand
