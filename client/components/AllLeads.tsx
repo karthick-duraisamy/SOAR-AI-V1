@@ -219,6 +219,17 @@ export function AllLeads({ onNavigate }: AllLeadsProps) {
     return true;
   });
 
+  // Sync select all state with filtered leads
+  useEffect(() => {
+    if (selectedLeads.length === 0) {
+      setSelectAll(false);
+    } else if (filteredLeads.length > 0 && selectedLeads.length === filteredLeads.length) {
+      setSelectAll(true);
+    } else {
+      setSelectAll(false);
+    }
+  }, [selectedLeads, filteredLeads]);
+
   const handleSelectLead = (leadId: number, checked: boolean) => {
     if (checked) {
       setSelectedLeads(prev => [...prev, leadId]);
@@ -230,7 +241,8 @@ export function AllLeads({ onNavigate }: AllLeadsProps) {
 
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
-      setSelectedLeads(filteredLeads.map(lead => lead.id));
+      const allLeadIds = filteredLeads.map(lead => lead.id);
+      setSelectedLeads(allLeadIds);
       setSelectAll(true);
     } else {
       setSelectedLeads([]);
@@ -276,6 +288,11 @@ export function AllLeads({ onNavigate }: AllLeadsProps) {
 
   // Handle bulk actions
   const handleStartCampaign = () => {
+    if (selectedLeads.length === 0) {
+      toast.error('Please select leads first');
+      return;
+    }
+    
     // Navigate to campaign creation with selected leads
     const selectedLeadData = filteredLeads.filter(lead => selectedLeads.includes(lead.id));
     onNavigate('marketing-campaign', { 
@@ -283,23 +300,41 @@ export function AllLeads({ onNavigate }: AllLeadsProps) {
       campaignType: 'bulk_email'
     });
     toast.success(`Campaign started for ${selectedLeads.length} lead${selectedLeads.length > 1 ? 's' : ''}`);
+    
+    // Clear selection after action
+    setSelectedLeads([]);
+    setSelectAll(false);
   };
 
   const handleAssignAgent = () => {
+    if (selectedLeads.length === 0) {
+      toast.error('Please select leads first');
+      return;
+    }
     setShowAssignAgentDialog(true);
   };
 
-  const handleConfirmAssignAgent = () => {
+  const handleConfirmAssignAgent = async () => {
     if (!selectedAgent) {
       toast.error('Please select an agent');
       return;
     }
     
-    // Here you would make API calls to assign the agent to selected leads
-    toast.success(`${selectedLeads.length} lead${selectedLeads.length > 1 ? 's' : ''} assigned to ${selectedAgent}`);
-    setShowAssignAgentDialog(false);
-    setSelectedAgent('');
-    handleClearSelection();
+    try {
+      // Here you would make API calls to assign the agent to selected leads
+      // For now, we'll simulate the API call
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      toast.success(`${selectedLeads.length} lead${selectedLeads.length > 1 ? 's' : ''} assigned to ${selectedAgent}`);
+      setShowAssignAgentDialog(false);
+      setSelectedAgent('');
+      handleClearSelection();
+      
+      // Refresh leads to show updated assignments
+      await fetchLeads();
+    } catch (error) {
+      toast.error('Failed to assign agent');
+    }
   };
 
   const handleClearSelection = () => {
@@ -553,9 +588,9 @@ export function AllLeads({ onNavigate }: AllLeadsProps) {
 
       {/* Bulk Actions Bar - Shows when leads are selected */}
       {selectedLeads.length > 0 && (
-        <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-4">
+        <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-4 shadow-sm">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-3">
               <div className="flex items-center justify-center w-8 h-8 bg-orange-500 rounded-full">
                 <span className="text-white font-medium text-sm">{selectedLeads.length}</span>
               </div>
@@ -564,28 +599,31 @@ export function AllLeads({ onNavigate }: AllLeadsProps) {
               </span>
             </div>
             
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
               <Button 
+                size="sm"
                 className="bg-orange-600 hover:bg-orange-700 text-white"
-                onClick={() => handleStartCampaign()}
+                onClick={handleStartCampaign}
               >
                 <Mail className="h-4 w-4 mr-2" />
                 Start Campaign
               </Button>
               
               <Button 
+                size="sm"
                 variant="outline" 
-                className="text-gray-700 border-gray-300"
-                onClick={() => handleAssignAgent()}
+                className="text-gray-700 border-gray-300 hover:bg-gray-50"
+                onClick={handleAssignAgent}
               >
                 <User className="h-4 w-4 mr-2" />
                 Assign Agent
               </Button>
               
               <Button 
+                size="sm"
                 variant="outline" 
-                className="text-gray-700 border-gray-300"
-                onClick={() => handleClearSelection()}
+                className="text-gray-700 border-gray-300 hover:bg-gray-50"
+                onClick={handleClearSelection}
               >
                 Clear Selection
               </Button>
