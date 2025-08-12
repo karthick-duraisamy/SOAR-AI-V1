@@ -326,14 +326,14 @@ class LeadViewSet(viewsets.ModelViewSet):
         Optimized POST endpoint for searching leads with filters
         """
         filters = request.data
-        
+
         # Use select_related and prefetch_related for optimization
         queryset = self.queryset.select_related(
             'company', 'contact', 'assigned_to'
         ).prefetch_related(
             'lead_notes__created_by'
         )
-        
+
         search = filters.get('search', '')
         status = filters.get('status', '')
         industry = filters.get('industry', '')
@@ -373,7 +373,7 @@ class LeadViewSet(viewsets.ModelViewSet):
 
         # Order and limit for performance
         queryset = queryset.order_by('-created_at')[:100]  # Limit to 100 results for performance
-        
+
         # Use optimized serializer for better performance
         from .serializers import OptimizedLeadSerializer
         serializer = OptimizedLeadSerializer(queryset, many=True)
