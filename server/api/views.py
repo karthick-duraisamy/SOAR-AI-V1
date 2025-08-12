@@ -582,7 +582,7 @@ class LeadViewSet(viewsets.ModelViewSet):
                 try:
                     LeadHistory.objects.create(
                         lead=updated_instance,
-                        history_type='priority_change',
+                        history_type='score_update',
                         action=f'Priority changed to {updated_instance.priority}',
                         details=f'Lead priority updated from {old_priority} to {updated_instance.priority}.',
                         icon='trending-up',
