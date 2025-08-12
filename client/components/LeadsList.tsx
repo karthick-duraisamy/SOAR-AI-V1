@@ -853,69 +853,14 @@ SOAR-AI Team`,
     }
   }, [selectedLeads, filteredLeads]);
 
-  // Render placeholder cards while loading
-  const renderLoadingCards = () => (
-    <div className="space-y-4">
-      {[...Array(3)].map((_, index) => (
-        <Card key={index} className="bg-white border border-gray-200">
-          <CardContent className="p-6">
-            <div className="flex items-start justify-between mb-4">
-              <div className="flex items-center gap-4">
-                <Skeleton className="w-4 h-4" />
-                <Skeleton className="w-10 h-10 rounded-lg" />
-                <div>
-                  <div className="flex items-center gap-2 mb-1">
-                    <Skeleton className="h-6 w-48" />
-                    <Skeleton className="h-6 w-20 rounded-full" />
-                  </div>
-                  <Skeleton className="h-4 w-64 mb-2" />
-                  <div className="flex items-center gap-4">
-                    <Skeleton className="h-3 w-32" />
-                    <Skeleton className="h-3 w-28" />
-                    <Skeleton className="h-3 w-24" />
-                    <Skeleton className="h-3 w-16" />
-                  </div>
-                </div>
-              </div>
-              <div className="text-right">
-                <Skeleton className="h-4 w-16 mb-1" />
-                <Skeleton className="h-4 w-20 mb-1" />
-                <Skeleton className="h-6 w-24 rounded-full" />
-              </div>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-              <div className="space-y-2">
-                <Skeleton className="h-4 w-full" />
-                <Skeleton className="h-4 w-full" />
-                <Skeleton className="h-4 w-3/4" />
-                <Skeleton className="h-4 w-1/2" />
-              </div>
-              <div className="space-y-2">
-                <Skeleton className="h-4 w-full" />
-                <Skeleton className="h-4 w-full" />
-                <Skeleton className="h-4 w-2/3" />
-                <div className="flex gap-1">
-                  <Skeleton className="h-6 w-16 rounded-full" />
-                  <Skeleton className="h-6 w-20 rounded-full" />
-                </div>
-              </div>
-            </div>
-            <Skeleton className="h-16 w-full mb-4 rounded-lg" />
-            <div className="flex items-center justify-between">
-              <div className="flex gap-2">
-                <Skeleton className="h-8 w-20" />
-                <Skeleton className="h-8 w-24" />
-                <Skeleton className="h-8 w-28" />
-                <Skeleton className="h-8 w-20" />
-              </div>
-              <div className="flex gap-2">
-                <Skeleton className="h-8 w-24" />
-                <Skeleton className="h-8 w-20" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      ))}
+  // Render spinner loader while loading
+  const renderSpinnerLoader = () => (
+    <div className="flex items-center justify-center py-12">
+      <div className="text-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600 mx-auto mb-4"></div>
+        <p className="text-gray-600 text-lg font-medium">Loading leads...</p>
+        <p className="text-gray-500 text-sm mt-1">Please wait while we fetch your data</p>
+      </div>
     </div>
   );
 
@@ -1295,7 +1240,7 @@ SOAR-AI Team`,
 
       {/* Leads List */}
       {loading ? (
-        renderLoadingCards()
+        renderSpinnerLoader()
       ) : (
         <div className="space-y-4">
           {filteredLeads.map((lead) => (

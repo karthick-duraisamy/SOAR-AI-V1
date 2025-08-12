@@ -141,6 +141,40 @@ class LeadSerializer(serializers.ModelSerializer):
         from django.utils import timezone
         return (timezone.now() - obj.created_at).days
 
+class OptimizedLeadSerializer(serializers.ModelSerializer):
+    """Optimized serializer for list views with minimal data"""
+    company_name = serializers.CharField(source='company.name', read_only=True)
+    company_industry = serializers.CharField(source='company.industry', read_only=True)
+    contact_first_name = serializers.CharField(source='contact.first_name', read_only=True)
+    contact_last_name = serializers.CharField(source='contact.last_name', read_only=True)
+    contact_email = serializers.CharField(source='contact.email', read_only=True)
+    contact_phone = serializers.CharField(source='contact.phone', read_only=True)
+    contact_position = serializers.CharField(source='contact.position', read_only=True)
+    assigned_to_username = serializers.CharField(source='assigned_to.username', read_only=True)
+    latest_note = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Lead
+        fields = [
+            'id', 'status', 'source', 'priority', 'score', 'estimated_value',
+            'notes', 'next_action', 'next_action_date', 'created_at', 'updated_at',
+            'company_name', 'company_industry', 'contact_first_name', 'contact_last_name',
+            'contact_email', 'contact_phone', 'contact_position', 'assigned_to_username',
+            'latest_note'
+        ]
+
+    def get_latest_note(self, obj):
+        latest_note = obj.lead_notes.first()
+        if latest_note:
+            return {
+                'id': latest_note.id,
+                'note': latest_note.note,
+                'created_at': latest_note.created_at,
+                'created_by': latest_note.created_by.username if latest_note.created_by else None
+            }
+        return None
+
+
 class OpportunitySerializer(serializers.ModelSerializer):
     lead_info = LeadSerializer(source='lead', read_only=True)
     company_name = serializers.CharField(source='lead.company.name', read_only=True)

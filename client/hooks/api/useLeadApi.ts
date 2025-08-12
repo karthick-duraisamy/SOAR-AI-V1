@@ -76,26 +76,22 @@ export const useLeadApi = () => {
     setError(null);
 
     try {
-      const params = new URLSearchParams();
+      const requestBody = {
+        search: filters?.search || '',
+        status: filters?.status || '',
+        industry: filters?.industry || '',
+        score: filters?.score || '',
+        engagement: filters?.engagement || ''
+      };
 
-      if (filters?.search) {
-        params.append('search', filters.search);
-      }
-      if (filters?.status) {
-        params.append('status', filters.status);
-      }
-      if (filters?.industry) {
-        params.append('industry', filters.industry);
-      }
-      if (filters?.score) {
-        params.append('score', filters.score);
-      }
-      if (filters?.engagement) {
-        params.append('engagement', filters.engagement);
-      }
-
-      const response: AxiosResponse<Lead[]> = await axios.get(
-        `${API_BASE_URL}/leads/?${params.toString()}`
+      const response: AxiosResponse<Lead[]> = await axios.post(
+        `${API_BASE_URL}/leads/search/`,
+        requestBody,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
       );
 
       setData(response.data);

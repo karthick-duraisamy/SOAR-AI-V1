@@ -124,7 +124,7 @@ export function AllLeads({ onNavigate }: AllLeadsProps) {
   // Fetch leads from API
   const fetchLeads = async () => {
     try {
-      const data = await leadApi.getLeads();
+      const data = await leadApi.getLeads(filters);
       setLeads(data);
     } catch (err) {
       toast.error('Failed to fetch leads');
@@ -134,6 +134,15 @@ export function AllLeads({ onNavigate }: AllLeadsProps) {
   useEffect(() => {
     fetchLeads();
   }, []);
+
+  // Refetch when filters change
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      fetchLeads();
+    }, 300); // Debounce filter changes
+
+    return () => clearTimeout(timeoutId);
+  }, [filters]);
 
   // Filter states
   const [filters, setFilters] = useState({
@@ -285,10 +294,11 @@ export function AllLeads({ onNavigate }: AllLeadsProps) {
 
   if (leadApi.loading) {
     return (
-      <div className="flex items-center justify-center h-64">
+      <div className="flex items-center justify-center py-12">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600 mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Loading leads...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600 mx-auto mb-4"></div>
+          <p className="text-gray-600 text-lg font-medium">Loading leads...</p>
+          <p className="text-gray-500 text-sm mt-1">Please wait while we fetch your data</p>
         </div>
       </div>
     );

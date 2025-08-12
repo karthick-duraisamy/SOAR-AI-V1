@@ -320,6 +320,65 @@ class LeadViewSet(viewsets.ModelViewSet):
 
         return Response(stats)
 
+    @action(detail=False, methods=['post'])
+    def search(self, request):
+        """
+        Optimized POST endpoint for searching leads with filters
+        """
+        filters = request.data
+        
+        # Use select_related and prefetch_related for optimization
+        queryset = self.queryset.select_related(
+            'company', 'contact', 'assigned_to'
+        ).prefetch_related(
+            'lead_notes__created_by'
+        )
+        
+        search = filters.get('search', '')
+        status = filters.get('status', '')
+        industry = filters.get('industry', '')
+        score = filters.get('score', '')
+        engagement = filters.get('engagement', '')
+
+        if search:
+            queryset = queryset.filter(
+                Q(company__name__icontains=search) |
+                Q(contact__first_name__icontains=search) |
+                Q(contact__last_name__icontains=search) |
+                Q(contact__email__icontains=search)
+            )
+
+        if status and status != 'all':
+            queryset = queryset.filter(status=status)
+
+        if industry and industry != 'all':
+            queryset = queryset.filter(company__industry=industry)
+
+        if score and score != 'all':
+            if score == 'high':
+                queryset = queryset.filter(score__gte=80)
+            elif score == 'medium':
+                queryset = queryset.filter(score__gte=60, score__lt=80)
+            elif score == 'low':
+                queryset = queryset.filter(score__lt=60)
+
+        # Add engagement filter logic if needed
+        if engagement and engagement != 'all':
+            if engagement == 'High':
+                queryset = queryset.filter(score__gte=80)
+            elif engagement == 'Medium':
+                queryset = queryset.filter(score__gte=60, score__lt=80)
+            elif engagement == 'Low':
+                queryset = queryset.filter(score__lt=60)
+
+        # Order and limit for performance
+        queryset = queryset.order_by('-created_at')[:100]  # Limit to 100 results for performance
+        
+        # Use optimized serializer for better performance
+        from .serializers import OptimizedLeadSerializer
+        serializer = OptimizedLeadSerializer(queryset, many=True)
+        return Response(serializer.data)
+
     @action(detail=False, methods=['get'])
     def qualified_leads(self, request):
         leads = self.queryset.filter(status='qualified').order_by('-score', '-created_at')
