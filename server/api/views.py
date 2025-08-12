@@ -6,13 +6,13 @@ from django.utils import timezone
 from datetime import datetime, timedelta
 from .models import (
     Company, Contact, Lead, Opportunity, Contract, ContractBreach,
-    EmailCampaign, TravelOffer, SupportTicket, RevenueForecast, 
+    EmailCampaign, TravelOffer, SupportTicket, RevenueForecast,
     ActivityLog, AIConversation, LeadNote, LeadHistory
 )
 from .serializers import (
     CompanySerializer, ContactSerializer, LeadSerializer, OpportunitySerializer,
     ContractSerializer, ContractBreachSerializer, EmailCampaignSerializer,
-    TravelOfferSerializer, SupportTicketSerializer, RevenueForecastSerializer, 
+    TravelOfferSerializer, SupportTicketSerializer, RevenueForecastSerializer,
     ActivityLogSerializer, AIConversationSerializer, LeadNoteSerializer, LeadHistorySerializer
 )
 
@@ -66,7 +66,7 @@ class CompanyViewSet(viewsets.ModelViewSet):
 
         if query:
             companies = companies.filter(
-                Q(name__icontains=query) | 
+                Q(name__icontains=query) |
                 Q(location__icontains=query) |
                 Q(description__icontains=query)
             )
@@ -248,16 +248,45 @@ class LeadViewSet(viewsets.ModelViewSet):
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
+    def perform_create(self, serializer):
+        """Create lead and initial history entry"""
+        lead = serializer.save()
+
+        # Create initial history entry
+        try:
+            LeadHistory.objects.create(
+                lead=lead,
+                history_type='creation',
+                action='Lead created',
+                details=f'Lead created from {lead.source} source. Initial contact information collected for {lead.company.name}.',
+                icon='plus',
+                user=self.request.user if self.request.user.is_authenticated else None
+            )
+        except Exception as e:
+            print(f"Error creating initial lead history: {e}")
+
+
     def get_queryset(self):
         queryset = self.queryset
-
-        # Get query parameters
-        search = self.request.query_params.get('search', None)
         status = self.request.query_params.get('status', None)
         industry = self.request.query_params.get('industry', None)
         score = self.request.query_params.get('score', None)
+        search = self.request.query_params.get('search', None)
 
-        # Apply filters
+        if status and status != 'all':
+            queryset = queryset.filter(status=status)
+
+        if industry and industry != 'all':
+            queryset = queryset.filter(company__industry=industry)
+
+        if score and score != 'all':
+            if score == 'high':
+                queryset = queryset.filter(score__gte=70)
+            elif score == 'medium':
+                queryset = queryset.filter(score__gte=40, score__lt=70)
+            elif score == 'low':
+                queryset = queryset.filter(score__lt=40)
+
         if search:
             queryset = queryset.filter(
                 Q(company__name__icontains=search) |
@@ -265,20 +294,6 @@ class LeadViewSet(viewsets.ModelViewSet):
                 Q(contact__last_name__icontains=search) |
                 Q(contact__email__icontains=search)
             )
-
-        if status:
-            queryset = queryset.filter(status=status)
-
-        if industry:
-            queryset = queryset.filter(company__industry=industry)
-
-        if score:
-            if score == 'high':
-                queryset = queryset.filter(score__gte=80)
-            elif score == 'medium':
-                queryset = queryset.filter(score__gte=60, score__lt=80)
-            elif score == 'low':
-                queryset = queryset.filter(score__lt=60)
 
         return queryset.order_by('-created_at')
 
@@ -393,7 +408,8 @@ class LeadViewSet(viewsets.ModelViewSet):
             urgency = request.data.get('urgency', 'Medium')
             old_status = lead.status
             old_priority = lead.priority
-            
+            old_next_action = lead.next_action # Capture old next_action for potential history entry
+
             if not note_text.strip():
                 return Response({'error': 'Note text is required'}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -437,6 +453,18 @@ class LeadViewSet(viewsets.ModelViewSet):
                     user=request.user if request.user.is_authenticated else None
                 )
 
+            # If next action changed, create history for that too
+            if old_next_action != lead.next_action:
+                create_lead_history(
+                    lead=lead,
+                    history_type='next_action_update',
+                    action=f'Next action updated to "{lead.next_action[:30]}..."',
+                    details=f'Next action updated from "{old_next_action}" to "{lead.next_action}".',
+                    icon='calendar',
+                    user=request.user if request.user.is_authenticated else None
+                )
+
+
             # Return both the note data and updated lead information
             note_serializer = LeadNoteSerializer(note)
             lead_serializer = LeadSerializer(lead)
@@ -454,80 +482,69 @@ class LeadViewSet(viewsets.ModelViewSet):
         instance = self.get_object()
         old_status = instance.status
         old_score = instance.score
-        old_assigned_to = instance.assigned_to
         old_priority = instance.priority
         old_next_action = instance.next_action
 
         response = super().update(request, *args, **kwargs)
+        updated_instance = self.get_object()
 
-        if response.status_code == 200:
-            updated_instance = self.get_object()
-
+        # Track changes and create history entries
+        if instance:
             # Track status changes
             if old_status != updated_instance.status:
-                status_details = self._get_status_change_details(old_status, updated_instance.status, updated_instance)
-                create_lead_history(
-                    lead=updated_instance,
-                    history_type='status_change',
-                    action=f'Status changed from {old_status} to {updated_instance.status}',
-                    details=status_details,
-                    icon=self._get_status_icon(updated_instance.status),
-                    user=request.user if request.user.is_authenticated else None
-                )
+                try:
+                    LeadHistory.objects.create(
+                        lead=updated_instance,
+                        history_type='status_change',
+                        action=f'Status changed to {updated_instance.get_status_display()}',
+                        details=f'Lead status updated from {old_status} to {updated_instance.status}. Lead is now {updated_instance.get_status_display().lower()}.',
+                        icon=self.get_status_icon(updated_instance.status),
+                        user=request.user if request.user.is_authenticated else None
+                    )
+                except Exception as e:
+                    print(f"Error creating lead history: {e}")
 
             # Track score changes
             if old_score != updated_instance.score:
-                create_lead_history(
-                    lead=updated_instance,
-                    history_type='score_update',
-                    action=f'Lead score updated to {updated_instance.score}',
-                    details=f'Lead score updated from {old_score} to {updated_instance.score} based on engagement metrics and profile analysis.',
-                    icon='trending-up',
-                    user=request.user if request.user.is_authenticated else None
-                )
-
-            # Track assignment changes
-            if old_assigned_to != updated_instance.assigned_to:
-                if updated_instance.assigned_to:
-                    create_lead_history(
+                try:
+                    LeadHistory.objects.create(
                         lead=updated_instance,
-                        history_type='assignment',
-                        action=f'Lead assigned to {updated_instance.assigned_to.get_full_name()}',
-                        details=f'Lead assigned to {updated_instance.assigned_to.get_full_name()} for follow-up.',
-                        icon='user',
+                        history_type='score_update',
+                        action=f'Lead score updated to {updated_instance.score}',
+                        details=f'Lead score updated from {old_score} to {updated_instance.score} based on engagement metrics and profile analysis.',
+                        icon='trending-up',
                         user=request.user if request.user.is_authenticated else None
                     )
-                elif old_assigned_to: # If assigned_to was removed
-                     create_lead_history(
-                        lead=updated_instance,
-                        history_type='assignment',
-                        action=f'Lead unassigned from {old_assigned_to.get_full_name()}',
-                        details=f'Lead unassigned from {old_assigned_to.get_full_name()}.',
-                        icon='user-x',
-                        user=request.user if request.user.is_authenticated else None
-                    )
+                except Exception as e:
+                    print(f"Error creating lead history: {e}")
 
             # Track priority changes
             if old_priority != updated_instance.priority:
-                create_lead_history(
-                    lead=updated_instance,
-                    history_type='priority_change',
-                    action=f'Priority changed to {updated_instance.priority}',
-                    details=f'Lead priority updated from {old_priority} to {updated_instance.priority}.',
-                    icon='trending-up',
-                    user=request.user if request.user.is_authenticated else None
-                )
+                try:
+                    LeadHistory.objects.create(
+                        lead=updated_instance,
+                        history_type='priority_change',
+                        action=f'Priority changed to {updated_instance.priority}',
+                        details=f'Lead priority updated from {old_priority} to {updated_instance.priority}.',
+                        icon='trending-up',
+                        user=request.user if request.user.is_authenticated else None
+                    )
+                except Exception as e:
+                    print(f"Error creating lead history: {e}")
 
             # Track next action changes
             if old_next_action != updated_instance.next_action:
-                create_lead_history(
-                    lead=updated_instance,
-                    history_type='next_action_update',
-                    action=f'Next action updated to "{updated_instance.next_action[:30]}..."',
-                    details=f'Next action updated from "{old_next_action}" to "{updated_instance.next_action}".',
-                    icon='calendar',
-                    user=request.user if request.user.is_authenticated else None
-                )
+                try:
+                    LeadHistory.objects.create(
+                        lead=updated_instance,
+                        history_type='next_action_update',
+                        action=f'Next action updated to "{updated_instance.next_action[:30]}..."',
+                        details=f'Next action updated from "{old_next_action}" to "{updated_instance.next_action}".',
+                        icon='calendar',
+                        user=request.user if request.user.is_authenticated else None
+                    )
+                except Exception as e:
+                    print(f"Error creating lead history: {e}")
 
         return response
 
@@ -567,11 +584,9 @@ class LeadViewSet(viewsets.ModelViewSet):
             history_entries = lead.history_entries.all().order_by('timestamp')
             serializer = LeadHistorySerializer(history_entries, many=True)
             return Response(serializer.data)
-        except Lead.DoesNotExist:
-            return Response({'error': 'Lead not found'}, status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
-            print(f"History fetch error: {str(e)}")
-            # Return empty list if there's any error
+            print(f"History fetch error: {e}")
+            # If LeadHistory table doesn't exist, return empty list
             return Response([])
 
 class OpportunityViewSet(viewsets.ModelViewSet):
@@ -751,7 +766,7 @@ class SupportTicketViewSet(viewsets.ModelViewSet):
         total_tickets = self.queryset.count()
         open_tickets = self.queryset.filter(status__in=['open', 'in_progress']).count()
         high_priority = self.queryset.filter(
-            priority__in=['high', 'urgent'], 
+            priority__in=['high', 'urgent'],
             status__in=['open', 'in_progress']
         ).count()
 
@@ -903,7 +918,7 @@ class DashboardAPIView(viewsets.ViewSet):
                 'total': Opportunity.objects.count(),
                 'total_value': Opportunity.objects.aggregate(total=Sum('value'))['total'] or 0,
                 'weighted_value': sum(
-                    float(opp.value) * (opp.probability / 100) 
+                    float(opp.value) * (opp.probability / 100)
                     for opp in Opportunity.objects.all()
                 )
             },
