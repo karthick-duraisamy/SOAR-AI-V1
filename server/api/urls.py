@@ -22,7 +22,8 @@ router.register(r'lead-history', views.LeadHistoryViewSet)
 urlpatterns = [
     path('', include(router.urls)),
     path('auth/', include('rest_framework.urls')),
-    path('leads/pipeline_stats/', views.lead_pipeline_stats, name='lead_pipeline_stats'),
+    path('leads/pipeline-stats/', views.lead_pipeline_stats, name='lead_pipeline_stats'),
     path('leads/stats/', views.lead_stats, name='lead_stats'),
+    path('leads/stats', views.lead_stats, name='lead_stats_no_slash'),
     path('leads/recent-activity/', views.recent_activity, name='recent_activity'),
 ]
