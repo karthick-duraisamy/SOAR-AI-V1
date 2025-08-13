@@ -330,7 +330,7 @@ export const useLeadApi = () => {
   }, [setLoading, setError, setData]);
 
   // Get lead statistics for dashboard
-  const getLeadStats = useCallback(async (dateRange: string = 'last_month') => {
+  const getLeadStats = useCallback(async (dateRange: string = 'all_time') => {
     setLoading(true);
     setError(null);
 

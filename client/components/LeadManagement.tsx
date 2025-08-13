@@ -57,7 +57,7 @@ export function LeadManagement({ onNavigate }: LeadManagementProps) {
     const fetchData = async () => {
       setIsLoading(true);
       try {
-        const stats = await getLeadStats('last_month');
+        const stats = await getLeadStats('all_time');
         setLeadStats(stats);
 
         const activity = await getRecentActivity();

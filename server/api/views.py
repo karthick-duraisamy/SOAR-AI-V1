@@ -1123,10 +1123,13 @@ def lead_stats(request):
             data = request.data
         else:
             data = request.GET
-        date_range = data.get('dateRange', 'last_month')
+        date_range = data.get('dateRange', 'all_time')
 
         # Calculate date ranges based on the requested period
         now = timezone.now()
+        period_start = None
+        period_end = now
+
         if date_range == 'last_month':
             current_month_start = now.replace(day=1)
             last_month_start = (current_month_start - timedelta(days=1)).replace(day=1)
@@ -1134,46 +1137,59 @@ def lead_stats(request):
             period_start = last_month_start
             period_end = last_month_end
         elif date_range == 'last_week':
-            week_ago = now - timedelta(days=7)
-            period_start = week_ago
-            period_end = now
+            period_start = now - timedelta(days=7)
         elif date_range == 'last_30_days':
             period_start = now - timedelta(days=30)
-            period_end = now
-        else:
-            # Default to last month
-            current_month_start = now.replace(day=1)
-            last_month_start = (current_month_start - timedelta(days=1)).replace(day=1)
-            last_month_end = current_month_start - timedelta(days=1)
-            period_start = last_month_start
-            period_end = last_month_end
+        elif date_range == 'this_month':
+            period_start = now.replace(day=1)
+        elif date_range == 'this_year':
+            period_start = now.replace(month=1, day=1)
+        # If date_range is 'all_time' or any other value, don't filter by date
 
-        # Basic counts - total and within period
-        total_leads = Lead.objects.count()
-        period_leads = Lead.objects.filter(
-            created_at__gte=period_start,
-            created_at__lte=period_end
-        ).count()
+        # Basic counts - use date filter if specified
+        if period_start:
+            total_leads = Lead.objects.filter(
+                created_at__gte=period_start,
+                created_at__lte=period_end
+            ).count()
+            qualified_leads = Lead.objects.filter(
+                status='qualified',
+                created_at__gte=period_start,
+                created_at__lte=period_end
+            ).count()
+            unqualified_leads = Lead.objects.filter(
+                status='unqualified',
+                created_at__gte=period_start,
+                created_at__lte=period_end
+            ).count()
+            contacted_leads = Lead.objects.filter(
+                status__in=['contacted', 'qualified', 'unqualified'],
+                created_at__gte=period_start,
+                created_at__lte=period_end
+            ).count()
+        else:
+            # All time data
+            total_leads = Lead.objects.count()
+            qualified_leads = Lead.objects.filter(status='qualified').count()
+            unqualified_leads = Lead.objects.filter(status='unqualified').count()
+            contacted_leads = Lead.objects.filter(status__in=['contacted', 'qualified', 'unqualified']).count()
 
         # Calculate percentage change (comparing current period to previous period)
-        previous_period_start = period_start - (period_end - period_start)
-        previous_period_end = period_start
-        previous_period_leads = Lead.objects.filter(
-            created_at__gte=previous_period_start,
-            created_at__lte=previous_period_end
-        ).count()
-
         total_change = 0
-        if previous_period_leads > 0:
-            total_change = ((period_leads - previous_period_leads) / previous_period_leads) * 100
+        if period_start:
+            period_duration = period_end - period_start
+            previous_period_start = period_start - period_duration
+            previous_period_end = period_start
 
-        # Qualified leads
-        qualified_leads = Lead.objects.filter(status='qualified').count()
-        unqualified_leads = Lead.objects.filter(status='unqualified').count()
-        contacted_leads = Lead.objects.filter(status__in=['contacted', 'qualified', 'unqualified']).count()
+            previous_period_leads = Lead.objects.filter(
+                created_at__gte=previous_period_start,
+                created_at__lte=previous_period_end
+            ).count()
+
+            if previous_period_leads > 0:
+                total_change = ((total_leads - previous_period_leads) / previous_period_leads) * 100
 
         # Calculate progress statuses
-        in_progress_leads = Lead.objects.filter(status__in=['new', 'contacted']).count()
         responded_leads = Lead.objects.filter(status__in=['qualified', 'unqualified']).count()
 
         # Calculate conversion rate
@@ -1187,15 +1203,16 @@ def lead_stats(request):
             email_open_rate = (total_opened / total_sent * 100) if total_sent > 0 else 0
 
             # Calculate change from last campaign
-            last_campaign = email_campaigns.order_by('-created_at').first()
-            if last_campaign and last_campaign.emails_sent > 0:
-                last_campaign_rate = (last_campaign.emails_opened / last_campaign.emails_sent * 100)
-                email_open_rate_change = email_open_rate - last_campaign_rate
+            last_two_campaigns = email_campaigns.order_by('-created_at')[:2]
+            if len(last_two_campaigns) >= 2:
+                current_rate = (last_two_campaigns[0].emails_opened / last_two_campaigns[0].emails_sent * 100) if last_two_campaigns[0].emails_sent > 0 else 0
+                previous_rate = (last_two_campaigns[1].emails_opened / last_two_campaigns[1].emails_sent * 100) if last_two_campaigns[1].emails_sent > 0 else 0
+                email_open_rate_change = current_rate - previous_rate
             else:
                 email_open_rate_change = 0
         else:
-            email_open_rate = 68  # Default value
-            email_open_rate_change = 5.2  # Default change
+            email_open_rate = 0
+            email_open_rate_change = 0
 
         # Calculate average response time
         responded_leads_with_history = Lead.objects.filter(
@@ -1220,27 +1237,28 @@ def lead_stats(request):
             else:
                 avg_response_time = f"{avg_hours / 24:.1f} days"
 
-            # Calculate improvement (mock calculation)
-            avg_response_time_change = "-15% faster"
+            # Calculate improvement (comparing to previous period if available)
+            avg_response_time_change = "0% change"
+            if period_start:
+                previous_responded_leads = Lead.objects.filter(
+                    status__in=['qualified', 'unqualified'],
+                    created_at__gte=previous_period_start,
+                    created_at__lte=previous_period_end
+                ).exclude(created_at=None, updated_at=None)
+                
+                if previous_responded_leads.exists():
+                    prev_total_time = sum((lead.updated_at - lead.created_at).total_seconds() for lead in previous_responded_leads)
+                    prev_avg_seconds = prev_total_time / previous_responded_leads.count()
+                    
+                    if prev_avg_seconds > 0:
+                        change_percent = ((prev_avg_seconds - avg_seconds) / prev_avg_seconds) * 100
+                        if change_percent > 0:
+                            avg_response_time_change = f"{change_percent:.1f}% faster"
+                        else:
+                            avg_response_time_change = f"{abs(change_percent):.1f}% slower"
         else:
-            avg_response_time = "2.3 hours"
-            avg_response_time_change = "-15% faster"
-
-        # If no data exists, return mock data
-        if total_leads == 0:
-            return Response({
-                'totalLeads': 247,
-                'totalChange': 12.3,
-                'qualifiedLeads': 89,
-                'unqualified': 34,
-                'contacted': 156,
-                'responded': 123,
-                'conversionRate': 36.0,
-                'avgResponseTime': '2.3 hours',
-                'avgResponseTimeChange': '-15% faster',
-                'emailOpenRate': 68.5,
-                'emailOpenRateChange': 5.2
-            })
+            avg_response_time = "No data"
+            avg_response_time_change = "No data"
 
         return Response({
             'totalLeads': total_leads,
@@ -1252,8 +1270,8 @@ def lead_stats(request):
             'conversionRate': round(conversion_rate, 1),
             'avgResponseTime': avg_response_time,
             'avgResponseTimeChange': avg_response_time_change,
-            'emailOpenRate': round(email_open_rate, 1) if 'email_open_rate' in locals() else 68,
-            'emailOpenRateChange': round(email_open_rate_change, 1) if 'email_open_rate_change' in locals() else 5.2
+            'emailOpenRate': round(email_open_rate, 1),
+            'emailOpenRateChange': round(email_open_rate_change, 1)
         })
     except Exception as e:
         return Response(
@@ -1304,47 +1322,9 @@ def recent_activity(request):
                     'value': f"${lead.estimated_value:,.0f} potential" if lead.estimated_value else "No value set"
                 })
 
-        # If no activities found, return mock data
+        # If no activities found, return empty list
         if not recent_activities:
-            mock_activities = [
-                {
-                    'id': 1,
-                    'type': 'qualification',
-                    'lead': 'TechCorp Industries',
-                    'action': 'Lead qualified and moved to proposal stage',
-                    'time': '2 hours ago',
-                    'status': 'qualified',
-                    'value': '$250K potential'
-                },
-                {
-                    'id': 2,
-                    'type': 'email',
-                    'lead': 'Global Manufacturing',
-                    'action': 'Follow-up email sent to decision maker',
-                    'time': '4 hours ago',
-                    'status': 'contacted',
-                    'value': 'Score: 85'
-                },
-                {
-                    'id': 3,
-                    'type': 'response',
-                    'lead': 'MegaCorp Enterprises',
-                    'action': 'Prospect responded to initial outreach',
-                    'time': '1 day ago',
-                    'status': 'responded',
-                    'value': '$180K potential'
-                },
-                {
-                    'id': 4,
-                    'type': 'disqualification',
-                    'lead': 'SmallBiz Solutions',
-                    'action': 'Lead disqualified due to budget constraints',
-                    'time': '2 days ago',
-                    'status': 'unqualified',
-                    'value': 'No budget fit'
-                }
-            ]
-            return Response(mock_activities)
+            return Response([])
 
         return Response(recent_activities)
     except Exception as e:
@@ -1406,53 +1386,9 @@ def top_leads(request):
                 'lastContact': last_contact
             })
 
-        # If no leads found, return mock data
+        # If no leads found, return empty list
         if not leads_data:
-            mock_leads = [
-                {
-                    'id': 1,
-                    'company': 'TechCorp Industries',
-                    'contact': 'Sarah Johnson',
-                    'title': 'VP of Operations',
-                    'industry': 'Technology',
-                    'employees': 2500,
-                    'engagement': 'High',
-                    'status': 'qualified',
-                    'score': 92,
-                    'value': '$250K',
-                    'nextAction': 'Send proposal',
-                    'lastContact': '2 hours ago'
-                },
-                {
-                    'id': 2,
-                    'company': 'Global Manufacturing',
-                    'contact': 'Michael Chen',
-                    'title': 'Travel Manager',
-                    'industry': 'Manufacturing',
-                    'employees': 5000,
-                    'engagement': 'High',
-                    'status': 'contacted',
-                    'score': 88,
-                    'value': '$320K',
-                    'nextAction': 'Follow up call',
-                    'lastContact': '1 day ago'
-                },
-                {
-                    'id': 3,
-                    'company': 'MegaCorp Enterprises',
-                    'contact': 'Jennifer Smith',
-                    'title': 'Procurement Manager',
-                    'industry': 'Financial Services',
-                    'employees': 3200,
-                    'engagement': 'Medium',
-                    'status': 'qualified',
-                    'score': 75,
-                    'value': '$180K',
-                    'nextAction': 'Schedule demo',
-                    'lastContact': '3 days ago'
-                }
-            ]
-            return Response(mock_leads)
+            return Response([])
 
         return Response(leads_data)
     except Exception as e:
