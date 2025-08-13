@@ -607,25 +607,26 @@ export function Opportunities({ initialFilters, onNavigate }: OpportunitiesProps
     }
   };
 
-  const filteredOpportunities = opportunities.filter(opp => {
+  const filteredOpportunities = (opportunities || []).filter(opp => {
     if (filters.stage && filters.stage !== 'all' && opp.stage !== filters.stage) return false;
     if (filters.owner && filters.owner !== 'all' && opp.owner !== filters.owner) return false;
     if (filters.industry && filters.industry !== 'all' && opp.industry !== filters.industry) return false;
-    if (filters.search && !opp.company.toLowerCase().includes(filters.search.toLowerCase()) && 
-        !opp.contact.toLowerCase().includes(filters.search.toLowerCase())) return false;
+    if (filters.search && !opp.company?.toLowerCase().includes(filters.search.toLowerCase()) && 
+        !opp.contact?.toLowerCase().includes(filters.search.toLowerCase())) return false;
     return true;
   });
 
   // Calculate pipeline metrics
-  const totalValue = opportunities.reduce((sum, opp) => sum + opp.dealValue, 0);
-  const weightedValue = opportunities.reduce((sum, opp) => sum + (opp.dealValue * opp.probability / 100), 0);
-  const avgDealSize = totalValue / opportunities.length;
-  const winRate = (opportunities.filter(opp => opp.stage === 'closed-won').length / opportunities.length) * 100;
+  const safeOpportunities = opportunities || [];
+  const totalValue = safeOpportunities.reduce((sum, opp) => sum + (opp.value || opp.dealValue || 0), 0);
+  const weightedValue = safeOpportunities.reduce((sum, opp) => sum + ((opp.value || opp.dealValue || 0) * (opp.probability || 0) / 100), 0);
+  const avgDealSize = safeOpportunities.length > 0 ? totalValue / safeOpportunities.length : 0;
+  const winRate = safeOpportunities.length > 0 ? (safeOpportunities.filter(opp => opp.stage === 'closed-won').length / safeOpportunities.length) * 100 : 0;
 
   const stageMetrics = stages.map(stage => ({
     ...stage,
-    count: opportunities.filter(opp => opp.stage === stage.id).length,
-    value: opportunities.filter(opp => opp.stage === stage.id).reduce((sum, opp) => sum + opp.dealValue, 0)
+    count: safeOpportunities.filter(opp => opp.stage === stage.id).length,
+    value: safeOpportunities.filter(opp => opp.stage === stage.id).reduce((sum, opp) => sum + (opp.value || opp.dealValue || 0), 0)
   }));
 
   // Drag and Drop Handler
@@ -658,7 +659,7 @@ export function Opportunities({ initialFilters, onNavigate }: OpportunitiesProps
   }, [opportunities, stages, updateOpportunityStage]);
 
   const getOpportunitiesForStage = (stageId: string) => {
-    return filteredOpportunities.filter(opportunity => opportunity.stage === stageId);
+    return (filteredOpportunities || []).filter(opportunity => opportunity.stage === stageId);
   };
 
   return (
