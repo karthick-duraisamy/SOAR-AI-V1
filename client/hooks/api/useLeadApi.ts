@@ -428,10 +428,10 @@ export const useLeadApi = () => {
     updateLeadScore,
     getPipelineStats,
     addNote,
+    sendMessage,
     getHistory,
     getLeadStats,
     getRecentActivity,
-    sendMessage,
-    getTopLeads,
+    getTopLeads
   };
 };

@@ -24,7 +24,6 @@ urlpatterns = [
     path('auth/', include('rest_framework.urls')),
     path('leads/pipeline-stats/', views.lead_pipeline_stats, name='lead_pipeline_stats'),
     path('leads/stats/', views.lead_stats, name='lead_stats'),
-    path('leads/stats', views.lead_stats, name='lead_stats_no_slash'),
     path('leads/recent-activity/', views.recent_activity, name='recent_activity'),
     path('leads/top-leads/', views.top_leads, name='top_leads'),
 ]
