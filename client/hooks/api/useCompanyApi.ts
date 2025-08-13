@@ -2,7 +2,7 @@ import { useState, useCallback } from 'react';
 import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
 
 // const API_BASE_URL = '/api';
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+const API_BASE_URL = import.meta.env.VITE_API_URL;
 
 interface ApiState<T> {
   data: T | null;
