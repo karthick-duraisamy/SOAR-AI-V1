@@ -277,7 +277,7 @@ function PipelineColumn({ stage, opportunities, onDrop, onEdit, onSendProposal, 
           </div>
         </div>
       </div>
-      
+
       <div className={`${stage.color.replace('bg-', 'bg-').replace('-500', '-100')} border-2 border-t-0 rounded-b-lg min-h-[600px] p-3 space-y-3`}>
         {opportunities.map((opportunity) => (
           <OpportunityCard
@@ -289,7 +289,7 @@ function PipelineColumn({ stage, opportunities, onDrop, onEdit, onSendProposal, 
             onMoveToNegotiation={onMoveToNegotiation}
           />
         ))}
-        
+
         {opportunities.length === 0 && (
           <div className="flex flex-col items-center justify-center h-32 text-muted-foreground">
             <Target className="h-8 w-8 mb-2 opacity-50" />
@@ -633,7 +633,7 @@ export function Opportunities({ initialFilters, onNavigate }: OpportunitiesProps
     try {
       // Update via API
       await updateOpportunityStage(parseInt(opportunityId), { stage: newStage });
-      
+
       // Update local state
       setOpportunities(prevOpportunities =>
         prevOpportunities.map(opportunity =>
@@ -646,7 +646,7 @@ export function Opportunities({ initialFilters, onNavigate }: OpportunitiesProps
             : opportunity
         )
       );
-      
+
       const stageName = stages.find(s => s.id === newStage)?.label;
       const oppName = opportunities.find(o => o.id === parseInt(opportunityId))?.lead_info?.company?.name || 'Opportunity';
       setSuccessMessage(`${oppName} moved to ${stageName} stage`);
@@ -838,7 +838,7 @@ export function Opportunities({ initialFilters, onNavigate }: OpportunitiesProps
             const stageInfo = getStageInfo(opportunity.stage);
             const company = opportunity.lead_info?.company || { name: 'Unknown Company', industry: 'Unknown', location: 'Unknown' };
             const contact = opportunity.lead_info?.contact || { first_name: 'Unknown', last_name: 'Contact', email: '', phone: '', position: '' };
-            
+
             return (
               <Card key={opportunity.id} className="hover:shadow-md transition-shadow" style={{ boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)' }}>
                 <CardContent className="p-6">
@@ -984,7 +984,7 @@ export function Opportunities({ initialFilters, onNavigate }: OpportunitiesProps
               </CardContent>
             </Card>
           );
-        )})
+        })}
         </TabsContent>
 
         {/* Pipeline View - Drag & Drop Kanban Board */}
@@ -1305,7 +1305,7 @@ export function Opportunities({ initialFilters, onNavigate }: OpportunitiesProps
                 selectedOpportunity.activities.map((item, index) => {
                   const IconComponent = getHistoryIcon(item.icon);
                   const iconColor = getHistoryIconColor(item.type);
-                  
+
                   return (
                     <div key={item.id} className="flex gap-4 p-4 border rounded-lg hover:bg-gray-50 transition-colors">
                       <div className={`flex items-center justify-center w-10 h-10 rounded-full ${iconColor}`}>
