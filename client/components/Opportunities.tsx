@@ -902,7 +902,7 @@ export function Opportunities({ initialFilters, onNavigate }: OpportunitiesProps
                       <span className="font-medium">Industry:</span> {opportunity.industry}
                     </div>
                     <div className="text-sm">
-                      <span className="font-medium">Company Size:</span> {opportunity.employees.toLocaleString()} employees
+                      <span className="font-medium">Company Size:</span> {opportunity.employees} employees
                     </div>
                     <div className="text-sm">
                       <span className="font-medium">Owner:</span> {opportunity.owner}
@@ -983,8 +983,10 @@ export function Opportunities({ initialFilters, onNavigate }: OpportunitiesProps
                 </div>
               </CardContent>
             </Card>
-          );
-        })}
+          )
+        }
+              )
+)}
         </TabsContent>
 
         {/* Pipeline View - Drag & Drop Kanban Board */}
