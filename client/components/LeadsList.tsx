@@ -827,6 +827,59 @@ SOAR-AI Team`,
     }
   };
 
+  // Function to move qualified lead to opportunities
+  const handleMoveToOpportunity = async (lead: Lead) => {
+    try {
+      // Prepare opportunity data from lead
+      const opportunityData = {
+        leadId: lead.id,
+        company: lead.company,
+        contact: lead.contact,
+        title: lead.title,
+        email: lead.email,
+        phone: lead.phone,
+        industry: lead.industry,
+        employees: typeof lead.employees === 'number' ? lead.employees : parseInt(lead.employees as string) || 0,
+        revenue: lead.revenue,
+        location: lead.location,
+        source: lead.source,
+        travelBudget: lead.travelBudget,
+        decisionMaker: lead.decisionMaker,
+        tags: lead.tags || [lead.industry, 'Qualified Lead'],
+        notes: lead.notes,
+        stage: 'proposal',
+        probability: 65,
+        dealValue: parseInt(lead.travelBudget.replace(/[^0-9]/g, '')) * 1000 || 250000, // Convert from K to actual value
+        expectedCloseDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 30 days from now
+        createdDate: new Date().toISOString().split('T')[0],
+        lastActivity: new Date().toISOString().split('T')[0],
+        nextAction: 'Send initial proposal and schedule presentation',
+        owner: lead.assignedAgent || 'Current User'
+      };
+
+      // Remove the lead from the leads list locally
+      setLeads(prev => prev.filter(l => l.id !== lead.id));
+
+      // Show success message
+      setSuccessMessage(`${lead.company} has been successfully moved to opportunities!`);
+      setTimeout(() => setSuccessMessage(''), 5000);
+      
+      // Navigate to opportunities page with the new opportunity data
+      if (onNavigate) {
+        onNavigate('opportunities', { 
+          newOpportunity: opportunityData,
+          message: `${lead.company} has been converted to a sales opportunity`
+        });
+      }
+
+      toast.success(`${lead.company} moved to opportunities successfully!`);
+
+    } catch (error) {
+      console.error('Error moving lead to opportunity:', error);
+      toast.error('Failed to move lead to opportunities. Please try again.');
+    }
+  };
+
   // Filter leads based on current filter settings
   const filteredLeads = leads.filter(lead => {
     if (filters.status && filters.status !== 'all' && lead.status !== filters.status) return false;
@@ -1599,7 +1652,12 @@ SOAR-AI Team`,
                     </Button>
                   )}
                   {lead.status === 'qualified' && (
-                    <Button size="sm" variant="outline" className="text-green-700 border-green-200 bg-green-50">
+                    <Button 
+                      size="sm" 
+                      variant="outline" 
+                      className="text-green-700 border-green-200 bg-green-50 hover:bg-green-100"
+                      onClick={() => handleMoveToOpportunity(lead)}
+                    >
                       <TrendingUpIcon className="h-4 w-4 mr-1" />
                       Move to Opportunity
                     </Button>
