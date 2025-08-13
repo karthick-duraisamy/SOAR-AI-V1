@@ -336,49 +336,52 @@ class LeadViewSet(viewsets.ModelViewSet):
             'lead_notes__created_by'
         )
 
-        search = filters.get('search', '')
-        status = filters.get('status', '')
-        industry = filters.get('industry', '')
+        search_term = filters.get('search', '')
+        status_filter = filters.get('status', '')
+        industry_filter = filters.get('industry', '')
         score = filters.get('score', '')
         engagement = filters.get('engagement', '')
 
-        if search:
-            queryset = queryset.filter(
-                Q(company__name__icontains=search) |
-                Q(contact__first_name__icontains=search) |
-                Q(contact__last_name__icontains=search) |
-                Q(contact__email__icontains=search)
+        # Get all leads with proper eager loading, excluding those converted to opportunities
+        leads = Lead.objects.select_related('company', 'contact', 'assigned_to').filter(opportunity__isnull=True)
+
+        # Apply filters if provided
+        if status_filter and status_filter != 'all':
+            leads = leads.filter(status=status_filter)
+
+        if industry_filter and industry_filter != 'all':
+            leads = leads.filter(company__industry=industry_filter)
+
+        if search_term:
+            leads = leads.filter(
+                Q(company__name__icontains=search_term) |
+                Q(contact__first_name__icontains=search_term) |
+                Q(contact__last_name__icontains=search_term)
             )
-
-        if status and status != 'all':
-            queryset = queryset.filter(status=status)
-
-        if industry and industry != 'all':
-            queryset = queryset.filter(company__industry=industry)
 
         if score and score != 'all':
             if score == 'high':
-                queryset = queryset.filter(score__gte=80)
+                leads = leads.filter(score__gte=80)
             elif score == 'medium':
-                queryset = queryset.filter(score__gte=60, score__lt=80)
+                leads = leads.filter(score__gte=60, score__lt=80)
             elif score == 'low':
-                queryset = queryset.filter(score__lt=60)
+                leads = leads.filter(score__lt=60)
 
         # Add engagement filter logic if needed
         if engagement and engagement != 'all':
             if engagement == 'High':
-                queryset = queryset.filter(score__gte=80)
+                leads = leads.filter(score__gte=80)
             elif engagement == 'Medium':
-                queryset = queryset.filter(score__gte=60, score__lt=80)
+                leads = leads.filter(score__gte=60, score__lt=80)
             elif engagement == 'Low':
-                queryset = queryset.filter(score__lt=60)
+                leads = leads.filter(score__lt=60)
 
         # Order and limit for performance
-        queryset = queryset.order_by('-created_at')[:100]  # Limit to 100 results for performance
+        leads = leads.order_by('-created_at')[:100]  # Limit to 100 results for performance
 
         # Use optimized serializer for better performance
         from .serializers import OptimizedLeadSerializer
-        serializer = OptimizedLeadSerializer(queryset, many=True)
+        serializer = OptimizedLeadSerializer(leads, many=True)
         return Response(serializer.data)
 
     @action(detail=False, methods=['get'])
@@ -855,16 +858,16 @@ class OpportunityViewSet(viewsets.ModelViewSet):
         Search opportunities with filters
         """
         filters = request.data
-        
+
         queryset = self.queryset.select_related(
             'lead__company', 'lead__contact'
         )
-        
+
         search = filters.get('search', '')
         stage = filters.get('stage', '')
         owner = filters.get('owner', '')
         industry = filters.get('industry', '')
-        
+
         if search:
             queryset = queryset.filter(
                 Q(name__icontains=search) |
@@ -872,16 +875,16 @@ class OpportunityViewSet(viewsets.ModelViewSet):
                 Q(lead__contact__first_name__icontains=search) |
                 Q(lead__contact__last_name__icontains=search)
             )
-        
+
         if stage and stage != 'all':
             queryset = queryset.filter(stage=stage)
-            
+
         if industry and industry != 'all':
             queryset = queryset.filter(lead__company__industry=industry)
-            
+
         # Order by probability and value for better prioritization
         queryset = queryset.order_by('-probability', '-value')
-        
+
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
 
@@ -1367,11 +1370,11 @@ def lead_stats(request):
                     created_at__gte=previous_period_start,
                     created_at__lte=previous_period_end
                 ).exclude(created_at=None, updated_at=None)
-                
+
                 if previous_responded_leads.exists():
                     prev_total_time = sum((lead.updated_at - lead.created_at).total_seconds() for lead in previous_responded_leads)
                     prev_avg_seconds = prev_total_time / previous_responded_leads.count()
-                    
+
                     if prev_avg_seconds > 0:
                         change_percent = ((prev_avg_seconds - avg_seconds) / prev_avg_seconds) * 100
                         if change_percent > 0:
@@ -1518,4 +1521,3 @@ def top_leads(request):
             {'error': str(e)},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
-
