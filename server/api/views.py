@@ -655,42 +655,42 @@ class LeadViewSet(viewsets.ModelViewSet):
         """Move a qualified lead to opportunities"""
         try:
             lead = self.get_object()
-            
+
             # Check if lead is qualified
             if lead.status != 'qualified':
                 return Response(
-                    {'error': 'Only qualified leads can be moved to opportunities'}, 
+                    {'error': 'Only qualified leads can be moved to opportunities'},
                     status=status.HTTP_400_BAD_REQUEST
                 )
-            
+
             # Check if opportunity already exists for this lead
             if hasattr(lead, 'opportunity'):
                 return Response(
-                    {'error': 'This lead already has an associated opportunity'}, 
+                    {'error': 'This lead already has an associated opportunity'},
                     status=status.HTTP_400_BAD_REQUEST
                 )
-            
+
             # Get opportunity data from request
             opportunity_data = request.data.get('opportunity', {})
-            
+
             # Create the opportunity
             opportunity = Opportunity.objects.create(
                 lead=lead,
                 name=opportunity_data.get('name', f"{lead.company.name} - Corporate Travel Solution"),
                 stage=opportunity_data.get('stage', 'proposal'),
                 probability=opportunity_data.get('probability', 65),
-                estimated_close_date=opportunity_data.get('expectedCloseDate', 
+                estimated_close_date=opportunity_data.get('expectedCloseDate',
                     (timezone.now().date() + timedelta(days=30))),
                 value=opportunity_data.get('dealValue', lead.estimated_value or 250000),
                 description=opportunity_data.get('notes', f"Opportunity created from qualified lead. {lead.notes}"),
                 next_steps=opportunity_data.get('nextAction', 'Send initial proposal and schedule presentation')
             )
-            
+
             # Update lead status to indicate it's been converted
             old_status = lead.status
             lead.status = 'won'  # Mark as won since it moved to opportunity
             lead.save()
-            
+
             # Create history entry for the conversion
             create_lead_history(
                 lead=lead,
@@ -700,19 +700,19 @@ class LeadViewSet(viewsets.ModelViewSet):
                 icon='briefcase',
                 user=request.user if request.user.is_authenticated else None
             )
-            
+
             # Serialize the created opportunity
             opportunity_serializer = OpportunitySerializer(opportunity)
-            
+
             return Response({
                 'message': f'{lead.company.name} has been successfully moved to opportunities',
                 'opportunity': opportunity_serializer.data,
                 'lead_id': lead.id
             }, status=status.HTTP_201_CREATED)
-            
+
         except Exception as e:
             return Response(
-                {'error': f'Failed to move lead to opportunity: {str(e)}'}, 
+                {'error': f'Failed to move lead to opportunity: {str(e)}'},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
@@ -1125,7 +1125,7 @@ def lead_stats(request):
         # Parse the request body
         data = request.data
         date_range = data.get('dateRange', 'last_month')
-        
+
         # Calculate date ranges based on the requested period
         now = timezone.now()
         if date_range == 'last_month':
@@ -1186,7 +1186,7 @@ def lead_stats(request):
             total_sent = sum(campaign.emails_sent for campaign in email_campaigns)
             total_opened = sum(campaign.emails_opened for campaign in email_campaigns)
             email_open_rate = (total_opened / total_sent * 100) if total_sent > 0 else 0
-            
+
             # Calculate change from last campaign
             last_campaign = email_campaigns.order_by('-created_at').first()
             if last_campaign and last_campaign.emails_sent > 0:
@@ -1210,17 +1210,17 @@ def lead_stats(request):
                 time_diff = lead.updated_at - lead.created_at
                 total_response_time += time_diff.total_seconds()
                 count += 1
-            
+
             avg_seconds = total_response_time / count if count > 0 else 0
             avg_hours = avg_seconds / 3600
-            
+
             if avg_hours < 1:
                 avg_response_time = f"{int(avg_seconds / 60)} minutes"
             elif avg_hours < 24:
                 avg_response_time = f"{avg_hours:.1f} hours"
             else:
                 avg_response_time = f"{avg_hours / 24:.1f} days"
-                
+
             # Calculate improvement (mock calculation)
             avg_response_time_change = "-15% faster"
         else:
