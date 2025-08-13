@@ -355,6 +355,8 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
   });
   const [expandedNotes, setExpandedNotes] = useState<{[key: number]: boolean}>({});
   const [showHistoryDialog, setShowHistoryDialog] = useState(false);
+   const [showAddCompanyDialog, setShowAddCompanyDialog] = useState(false);
+  
   const [selectedLeadForHistory, setSelectedLeadForHistory] = useState<any>(null);
   const [leadHistory, setLeadHistory] = useState<{ [key: number]: HistoryEntry[] }>({}); // Stores history entries fetched from API
   const [isLoadingHistory, setIsLoadingHistory] = useState(false); // Loading state for history fetch
@@ -392,6 +394,32 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
     technologyIntegration: '', // Comma-separated tech integrations
     currentAirlines: '', // Comma-separated current airlines used
     notes: '' // Additional notes
+  });
+  const [newCompany, setNewCompany] = useState({
+    name: '',
+    type: '',
+    industry: '',
+    location: '',
+    website: '',
+    phone: '',
+    email: '',
+    established: '',
+    employees: '',
+    revenue: '',
+    travelBudget: '',
+    annualTravelVolume: '',
+    travelFrequency: '',
+    preferredClass: '',
+    companySize: '',
+    creditRating: '',
+    paymentTerms: '',
+    sustainabilityFocus: '',
+    riskLevel: '',
+    expansionPlans: '',
+    specialties: '',
+    technologyIntegration: '',
+    currentAirlines: '',
+    notes: ''
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -699,6 +727,102 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
     }
   };
 
+
+  const handleAddCompany = async () => {
+    setIsSubmitting(true);
+    setSuccessMessage('');
+
+    try {
+      // Map frontend fields to Django model fields - include ALL form sections
+      const companyData = {
+        // Basic Info
+        name: newCompany.name,
+        company_type: newCompany.type,
+        industry: newCompany.industry,
+        location: newCompany.location,
+        email: newCompany.email,
+        phone: newCompany.phone,
+        website: newCompany.website || '',
+
+        // Business Details
+        employee_count: newCompany.employees ? parseInt(newCompany.employees) : null,
+        annual_revenue: newCompany.revenue ? parseFloat(newCompany.revenue) * 1000000 : null, // Convert millions to actual amount
+        year_established: newCompany.established ? parseInt(newCompany.established) : null,
+        size: newCompany.companySize,
+        credit_rating: newCompany.creditRating,
+        payment_terms: newCompany.paymentTerms,
+
+        // Travel Profile
+        travel_budget: newCompany.travelBudget ? parseFloat(newCompany.travelBudget) * 1000000 : null, // Convert millions to actual amount
+        annual_travel_volume: newCompany.annualTravelVolume,
+        travel_frequency: newCompany.travelFrequency,
+        preferred_class: newCompany.preferredClass,
+        sustainability_focus: newCompany.sustainabilityFocus,
+        risk_level: newCompany.riskLevel,
+        current_airlines: newCompany.currentAirlines,
+
+        // Additional Info
+        expansion_plans: newCompany.expansionPlans,
+        specialties: newCompany.specialties,
+        technology_integration: newCompany.technologyIntegration,
+        description: newCompany.notes || ''
+      };
+
+      console.log('Sending company data:', companyData);
+
+      const savedCompany = await companyApi.createCompany(companyData);
+
+      // Reset form
+      setNewCompany({
+        name: '',
+        type: '',
+        industry: '',
+        location: '',
+        website: '',
+        phone: '',
+        email: '',
+        established: '',
+        employees: '',
+        revenue: '',
+        travelBudget: '',
+        annualTravelVolume: '',
+        travelFrequency: '',
+        preferredClass: '',
+        companySize: '',
+        creditRating: '',
+        paymentTerms: '',
+        sustainabilityFocus: '',
+        riskLevel: '',
+        expansionPlans: '',
+        specialties: '',
+        technologyIntegration: '',
+        currentAirlines: '',
+        notes: ''
+      });
+
+      setShowAddCompanyDialog(false);
+      setSuccessMessage(`${newCompany.name} has been successfully added to the corporate database.`);
+
+      // Refresh the companies list to show the new company
+      try {
+        const companies = await companyApi.searchCompanies(searchParams);
+        const transformedCompanies = companies.map(transformCompanyData);
+        setFilteredCorporates(transformedCompanies);
+      } catch (refreshError) {
+        console.error('Error refreshing companies list:', refreshError);
+      }
+
+      setTimeout(() => setSuccessMessage(''), 5000);
+
+    } catch (error) {
+      console.error('Error saving company:', error);
+      const errorMessage = error.response?.data?.message || error.message || 'Failed to save company';
+      setSuccessMessage(`Error: ${errorMessage}`);
+      setTimeout(() => setSuccessMessage(''), 5000);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
   // Function to qualify a lead via API
   const handleQualifyLead = async (leadId: number) => {
     try {
@@ -1065,9 +1189,9 @@ SOAR-AI Team`,
             <Mail className="h-4 w-4 mr-2" />
             Email Campaign
           </Button>
-          <Button className="bg-orange-500 hover:bg-orange-600 text-white" onClick={() => setShowNewCompanyDialog(true)}> {/* Changed to showNewCompanyDialog */}
+          <Button className="bg-orange-500 hover:bg-orange-600 text-white" onClick={() =>setShowAddCompanyDialog(true)}> {/* Changed to showNewCompanyDialog */}
             <Plus className="h-4 w-4 mr-2" />
-            Add New Company {/* Changed button text */}
+            Add New Lead {/* Changed button text */}
           </Button>
         </div>
       </div>
@@ -2150,6 +2274,423 @@ SOAR-AI Team`,
               className="bg-orange-500 hover:bg-orange-600 text-white"
             >
               Submit
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+
+      {/* Add Company Dialog */}
+      <Dialog open={showAddCompanyDialog} onOpenChange={setShowAddCompanyDialog}>
+        <DialogContent className="max-w-[87rem] w-[95vw] max-h-[85vh] overflow-y-auto">
+          <DialogHeader className="pb-[24px] pt-[0px] pr-[0px] pl-[0px] m-[0px]">
+            <DialogTitle className="flex items-center gap-3 text-xl">
+              <Plus className="h-6 w-6 text-orange-500" />
+              Add New Company
+            </DialogTitle>
+            <DialogDescription className="text-base mt-2" style={{'color':'#717182'}}>
+              Add a new company to the corporate database for potential partnership opportunities
+            </DialogDescription>
+          </DialogHeader>
+
+          <Tabs defaultValue="basic" className="w-full">
+            <TabsList className="grid w-full grid-cols-4 mb-6 bg-gray-50/50 p-1 rounded-xl border border-gray-200/50">
+              <TabsTrigger 
+                value="basic"
+                className="rounded-lg px-5 py-3 data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:border-b-2 data-[state=active]:border-orange-500 data-[state=active]:border-b-orange-500 font-medium text-gray-600 data-[state=active]:text-gray-900 hover:text-gray-900 transition-all duration-200 text-[14px]"
+              >
+                Basic Info
+              </TabsTrigger>
+              <TabsTrigger 
+                value="business"
+                className="rounded-lg px-5 py-3 data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:border-b-2 data-[state=active]:border-orange-500 data-[state=active]:border-b-orange-500 font-medium text-gray-600 data-[state=active]:text-gray-900 hover:text-gray-900 transition-all duration-200 text-[14px]"
+              >
+                Business Details
+              </TabsTrigger>
+              <TabsTrigger 
+                value="travel"
+                className="rounded-lg px-5 py-3 data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:border-b-2 data-[state=active]:border-orange-500 data-[state=active]:border-b-orange-500 font-medium text-gray-600 data-[state=active]:text-gray-900 hover:text-gray-900 transition-all duration-200 text-[14px]"
+              >
+                Travel Profile
+              </TabsTrigger>
+              <TabsTrigger 
+                value="additional"
+                className="rounded-lg px-5 py-3 data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:border-b-2 data-[state=active]:border-orange-500 data-[state=active]:border-b-orange-500 font-medium text-gray-600 data-[state=active]:text-gray-900 hover:text-gray-900 transition-all duration-200 text-[14px]"
+              >
+                Additional Info
+              </TabsTrigger>
+            </TabsList>
+
+            <ScrollArea className="max-h-[55vh] pr-4">
+              <TabsContent value="basic" className="space-y-6 mt-0">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <Label htmlFor="company-name" className="text-sm font-medium">Company Name *</Label>
+                    <Input
+                      id="company-name"
+                      placeholder="Enter company name"
+                      value={newCompany.name}
+                      onChange={(e) => setNewCompany({...newCompany, name: e.target.value})}
+                      className="h-10"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="company-type" className="text-sm font-medium">Company Type *</Label>
+                    <Select value={newCompany.type} onValueChange={(value) => setNewCompany({...newCompany, type: value})}>
+                      <SelectTrigger className="h-10">
+                        <SelectValue placeholder="Select company type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="corporation">Corporation</SelectItem>
+                        <SelectItem value="llc">LLC</SelectItem>
+                        <SelectItem value="partnership">Partnership</SelectItem>
+                        <SelectItem value="nonprofit">Non-Profit</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <Label htmlFor="industry" className="text-sm font-medium">Industry *</Label>
+                    <Select value={newCompany.industry} onValueChange={(value) => setNewCompany({...newCompany, industry: value})}>
+                      <SelectTrigger className="h-10">
+                        <SelectValue placeholder="Select industry" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="technology">Technology</SelectItem>
+                        <SelectItem value="finance">Finance & Banking</SelectItem>
+                        <SelectItem value="manufacturing">Manufacturing</SelectItem>
+                        <SelectItem value="healthcare">Healthcare</SelectItem>
+                        <SelectItem value="energy">Energy & Utilities</SelectItem>
+                        <SelectItem value="consulting">Consulting</SelectItem>
+                        <SelectItem value="retail">Retail</SelectItem>
+                        <SelectItem value="telecommunications">Telecommunications</SelectItem>
+                        <SelectItem value="transportation">Transportation</SelectItem>
+                        <SelectItem value="education">Education</SelectItem>
+                        <SelectItem value="government">Government</SelectItem>
+                        <SelectItem value="other">Other</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="location" className="text-sm font-medium">Location *</Label>
+                    <Input
+                      id="location"
+                      placeholder="City, Country"
+                      value={newCompany.location}
+                      onChange={(e) => setNewCompany({...newCompany, location: e.target.value})}
+                      className="h-10"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <Label htmlFor="email" className="text-sm font-medium">Email *</Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      placeholder="contact@company.com"
+                      value={newCompany.email}
+                      onChange={(e) => setNewCompany({...newCompany, email: e.target.value})}
+                      className="h-10"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="phone" className="text-sm font-medium">Phone</Label>
+                    <Input
+                      id="phone"
+                      placeholder="+1 (555) 123-4567"
+                      value={newCompany.phone}
+                      onChange={(e) => setNewCompany({...newCompany, phone: e.target.value})}
+                      className="h-10"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="website" className="text-sm font-medium">Website</Label>
+                  <Input
+                    id="website"
+                    placeholder="www.company.com"
+                    value={newCompany.website}
+                    onChange={(e) => setNewCompany({...newCompany, website: e.target.value})}
+                    className="h-10"
+                  />
+                </div>
+              </TabsContent>
+
+              <TabsContent value="business" className="space-y-6 mt-0">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <Label htmlFor="employees" className="text-sm font-medium">Number of Employees *</Label>
+                    <Input
+                      id="employees"
+                      type="number"
+                      placeholder="1000"
+                      value={newCompany.employees}
+                      onChange={(e) => setNewCompany({...newCompany, employees: e.target.value})}
+                      className="h-10"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="revenue" className="text-sm font-medium">Annual Revenue (Millions)</Label>
+                    <Input
+                      id="revenue"
+                      type="number"
+                      placeholder="50"
+                      value={newCompany.revenue}
+                      onChange={(e) => setNewCompany({...newCompany, revenue: e.target.value})}
+                      className="h-10"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <Label htmlFor="established" className="text-sm font-medium">Year Established</Label>
+                    <Input
+                      id="established"
+                      type="number"
+                      placeholder="2010"
+                      value={newCompany.established}
+                      onChange={(e) => setNewCompany({...newCompany, established: e.target.value})}
+                      className="h-10"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="company-size" className="text-sm font-medium">Company Size Category</Label>
+                    <Select value={newCompany.companySize} onValueChange={(value) => setNewCompany({...newCompany, companySize: value})}>
+                      <SelectTrigger className="h-10">
+                        <SelectValue placeholder="Select size category" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="startup">Starp (1-50)</SelectItem>
+                        <SelectItem value="small">Small (51-200)</SelectItem>
+                        <SelectItem value="medium">Medium (201-1000)</SelectItem>
+                        <SelectItem value="large">Large (1001-5000)</SelectItem>
+                        <SelectItem value="enterprise">Enterprise (5000+)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <Label htmlFor="credit-rating" className="text-sm font-medium">Credit Rating</Label>
+                    <Select value={newCompany.creditRating} onValueChange={(value) => setNewCompany({...newCompany, creditRating: value})}>
+                      <SelectTrigger className="h-10">
+                        <SelectValue placeholder="Select credit rating" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="AAA">AAA</SelectItem>
+                        <SelectItem value="AA">AA</SelectItem>
+                        <SelectItem value="A">A</SelectItem>
+                        <SelectItem value="BBB">BBB</SelectItem>
+                        <SelectItem value="BB">BB</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="payment-terms" className="text-sm font-medium">Payment Terms</Label>
+                    <Select value={newCompany.paymentTerms} onValueChange={(value) => setNewCompany({...newCompany, paymentTerms: value})}>
+                      <SelectTrigger className="h-10">
+                        <SelectValue placeholder="Select payment terms" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Net 15">Net 15</SelectItem>
+                        <SelectItem value="Net 30">Net 30</SelectItem>
+                        <SelectItem value="Net 45">Net 45</SelectItem>
+                        <SelectItem value="Net 60">Net 60</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </TabsContent>
+
+              <TabsContent value="travel" className="space-y-6 mt-0">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <Label htmlFor="travel-budget" className="text-sm font-medium">Annual Travel Budget *</Label>
+                    <Input
+                      id="travel-budget"
+                      placeholder="e.g., 2.5M"
+                      value={newCompany.travelBudget}
+                      onChange={(e) => setNewCompany({...newCompany, travelBudget: e.target.value})}
+                      className="h-10"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="annual-travel-volume" className="text-sm font-medium">Annual Travel Volume</Label>
+                    <Input
+                      id="annual-travel-volume"
+                      placeholder="e.g., 5,000 trips"
+                      value={newCompany.annualTravelVolume}
+                      onChange={(e) => setNewCompany({...newCompany, annualTravelVolume: e.target.value})}
+                      className="h-10"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <Label htmlFor="travel-frequency" className="text-sm font-medium">Travel Frequency</Label>
+                    <Select value={newCompany.travelFrequency} onValueChange={(value) => setNewCompany({...newCompany, travelFrequency: value})}>
+                      <SelectTrigger className="h-10">
+                        <SelectValue placeholder="Select frequency" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Daily">Daily</SelectItem>
+                        <SelectItem value="Weekly">Weekly</SelectItem>
+                        <SelectItem value="Monthly">Monthly</SelectItem>
+                        <SelectItem value="Quarterly">Quarterly</SelectItem>
+                        <SelectItem value="Bi-weekly">Bi-weekly</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="preferred-class" className="text-sm font-medium">Preferred Travel Class</Label>
+                    <Select value={newCompany.preferredClass} onValueChange={(value) => setNewCompany({...newCompany, preferredClass: value})}>
+                      <SelectTrigger className="h-10">
+                        <SelectValue placeholder="Select class preference" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Economy">Economy</SelectItem>
+                        <SelectItem value="Economy Plus">Economy Plus</SelectItem>
+                        <SelectItem value="Business">Business</SelectItem>
+                        <SelectItem value="First">First Class</SelectItem>
+                        <SelectItem value="Business/First">Business/First</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <Label htmlFor="sustainability-focus" className="text-sm font-medium">Sustainability Focus</Label>
+                    <Select value={newCompany.sustainabilityFocus} onValueChange={(value) => setNewCompany({...newCompany, sustainabilityFocus: value})}>
+                      <SelectTrigger className="h-10">
+                        <SelectValue placeholder="Select sustainability level" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Very High">Very High</SelectItem>
+                        <SelectItem value="High">High</SelectItem>
+                        <SelectItem value="Medium">Medium</SelectItem>
+                        <SelectItem value="Low">Low</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="risk-level" className="text-sm font-medium">Risk Level</Label>
+                    <Select value={newCompany.riskLevel} onValueChange={(value) => setNewCompany({...newCompany, riskLevel: value})}>
+                      <SelectTrigger className="h-10">
+                        <SelectValue placeholder="Select risk level" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Very Low">Very Low</SelectItem>
+                        <SelectItem value="Low">Low</SelectItem>
+                        <SelectItem value="Medium">Medium</SelectItem>
+                        <SelectItem value="High">High</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="current-airlines" className="text-sm font-medium">Current Airlines (comma-separated)</Label>
+                  <Input
+                    id="current-airlines"
+                    placeholder="e.g., United, Delta, American"
+                    value={newCompany.currentAirlines}
+                    onChange={(e) => setNewCompany({...newCompany, currentAirlines: e.target.value})}
+                    className="h-10"
+                  />
+                </div>
+              </TabsContent>
+
+              <TabsContent value="additional" className="space-y-6 mt-0">
+                <div className="space-y-2">
+                  <Label htmlFor="expansion-plans" className="text-sm font-medium">Expansion Plans</Label>
+                  <Select value={newCompany.expansionPlans} onValueChange={(value) => setNewCompany({...newCompany, expansionPlans: value})}>
+                    <SelectTrigger className="h-10">
+                      <SelectValue placeholder="Select expansion plans" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Aggressive">Aggressive</SelectItem>
+                      <SelectItem value="Moderate">Moderate</SelectItem>
+                      <SelectItem value="Conservative">Conservative</SelectItem>
+                      <SelectItem value="Rapid">Rapid</SelectItem>
+                      <SelectItem value="Stable">Stable</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="specialties" className="text-sm font-medium">Specialties (comma-separated)</Label>
+                  <Textarea
+                    id="specialties"
+                    placeholder="Enterprise Software, Cloud Solutions, AI/ML Services"
+                    value={newCompany.specialties}
+                    onChange={(e) => setNewCompany({...newCompany, specialties: e.target.value})}
+                    className="min-h-[80px] resize-none"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="technology-integration" className="text-sm font-medium">Technology Integration (comma-separated)</Label>
+                  <Textarea
+                    id="technology-integration"
+                    placeholder="API, Mobile App, Expense Management"
+                    value={newCompany.technologyIntegration}
+                    onChange={(e) => setNewCompany({...newCompany, technologyIntegration: e.target.value})}
+                    className="min-h-[80px] resize-none"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="notes" className="text-sm font-medium">Additional Notes</Label>
+                  <Textarea
+                    id="notes"
+                    placeholder="Any additional information about the company..."
+                    value={newCompany.notes}
+                    onChange={(e) => setNewCompany({...newCompany, notes: e.target.value})}
+                    className="min-h-[120px] resize-none"
+                  />
+                </div>
+              </TabsContent>
+            </ScrollArea>
+          </Tabs>
+
+          <DialogFooter className="pt-6 border-t border-gray-300 gap-3">
+            <Button variant="outline" className="border-gray-300 text-gray-700 hover:bg-gray-50" onClick={() => setShowAddCompanyDialog(false)}>
+              Cancel
+            </Button>
+            <Button 
+              onClick={handleAddCompany} 
+              disabled={!isFormValid() || isSubmitting}
+              className="bg-orange-500 hover:bg-orange-600 text-white"
+            >
+              {isSubmitting ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                  Saving...
+                </>
+              ) : (
+                <>
+                  <Save className="h-4 w-4 mr-2" />
+                  Add Company
+                </>
+              )}
             </Button>
           </DialogFooter>
         </DialogContent>
