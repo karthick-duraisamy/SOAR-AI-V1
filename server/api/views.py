@@ -1113,13 +1113,16 @@ def lead_pipeline_stats(request):
         )
 
 @csrf_exempt
-@api_view(['POST'])
+@api_view(['GET', 'POST'])
 @permission_classes([AllowAny])
 def lead_stats(request):
     """Get comprehensive lead statistics for dashboard"""
     try:
-        # Parse the request body
-        data = request.data
+        # Parse the request body for POST or query params for GET
+        if request.method == 'POST':
+            data = request.data
+        else:
+            data = request.GET
         date_range = data.get('dateRange', 'last_month')
 
         # Calculate date ranges based on the requested period
@@ -1243,7 +1246,7 @@ def lead_stats(request):
         )
 
 @csrf_exempt
-@api_view(['GET'])
+@api_view(['GET', 'POST'])
 @permission_classes([AllowAny])
 def recent_activity(request):
     """Get recent lead activity"""
@@ -1292,7 +1295,9 @@ def recent_activity(request):
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
 
-@api_view(['GET'])
+@csrf_exempt
+@api_view(['GET', 'POST'])
+@permission_classes([AllowAny])
 def top_leads(request):
     """Get top qualified leads for dashboard"""
     try:
@@ -1350,60 +1355,3 @@ def top_leads(request):
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
 
-@api_view(['POST'])
-def top_leads(request):
-    """Get top qualified leads for dashboard"""
-    try:
-        # Get top qualified leads ordered by score and estimated value
-        top_qualified_leads = Lead.objects.filter(
-            status__in=['qualified', 'contacted']
-        ).select_related('company', 'contact').order_by('-score', '-estimated_value')[:5]
-
-        leads_data = []
-        for lead in top_qualified_leads:
-            # Calculate engagement level based on score
-            if lead.score >= 80:
-                engagement = 'High'
-            elif lead.score >= 60:
-                engagement = 'Medium'
-            else:
-                engagement = 'Low'
-
-            # Determine next action based on status and priority
-            if lead.status == 'qualified':
-                next_action = 'Send proposal'
-            elif lead.status == 'contacted':
-                next_action = 'Follow up call'
-            else:
-                next_action = 'Contact prospect'
-
-            # Format last contact time
-            time_since_update = timezone.now() - lead.updated_at
-            if time_since_update.days > 0:
-                last_contact = f"{time_since_update.days} days ago"
-            elif time_since_update.seconds > 3600:
-                last_contact = f"{time_since_update.seconds // 3600} hours ago"
-            else:
-                last_contact = f"{time_since_update.seconds // 60} minutes ago"
-
-            leads_data.append({
-                'id': lead.id,
-                'company': lead.company.name,
-                'contact': f"{lead.contact.first_name} {lead.contact.last_name}",
-                'title': lead.contact.position or 'Contact',
-                'industry': lead.company.industry,
-                'employees': lead.company.employee_count or 100,
-                'engagement': engagement,
-                'status': lead.status,
-                'score': lead.score,
-                'value': f"${int(lead.estimated_value/1000)}K" if lead.estimated_value else "TBD",
-                'nextAction': next_action,
-                'lastContact': last_contact
-            })
-
-        return Response(leads_data)
-    except Exception as e:
-        return Response(
-            {'error': str(e)},
-            status=status.HTTP_500_INTERNAL_SERVER_ERROR
-        )
