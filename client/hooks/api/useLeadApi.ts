@@ -335,11 +335,9 @@ export const useLeadApi = () => {
     setError(null);
 
     try {
-      const response: AxiosResponse<any> = await axios.get(
+      const response: AxiosResponse<any> = await axios.post(
         `${API_BASE_URL}/leads/stats/`,
-        {
-          params: { dateRange },
-        }
+        { dateRange }
       );
       setData(response.data);
       return response.data;
