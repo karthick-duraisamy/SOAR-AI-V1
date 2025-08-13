@@ -336,7 +336,7 @@ export const useLeadApi = () => {
 
     try {
       const response: AxiosResponse<any> = await axios.post(
-        `${API_BASE_URL}/api/leads/stats/`,
+        `${API_BASE_URL}/leads/stats/`,
         { dateRange },
         {
           headers: {
@@ -362,7 +362,7 @@ export const useLeadApi = () => {
 
     try {
       const response: AxiosResponse<any> = await axios.get(
-        `${API_BASE_URL}/api/leads/recent-activity/`
+        `${API_BASE_URL}/leads/recent-activity/`
       );
       setData(response.data);
       return response.data;
