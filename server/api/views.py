@@ -1,6 +1,8 @@
 from rest_framework import viewsets, status
-from rest_framework.decorators import action
+from rest_framework.decorators import action, api_view, permission_classes
+from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
+from django.views.decorators.csrf import csrf_exempt
 from django.db.models import Q, Sum, Count, Avg
 from django.utils import timezone
 from datetime import datetime, timedelta
@@ -1044,7 +1046,13 @@ def lead_pipeline_stats(request):
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
 
+from django.views.decorators.csrf import csrf_exempt
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import AllowAny
+
+@csrf_exempt
 @api_view(['POST'])
+@permission_classes([AllowAny])
 def lead_stats(request):
     """Get comprehensive lead statistics for dashboard"""
     try:
