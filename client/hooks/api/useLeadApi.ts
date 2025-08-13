@@ -421,6 +421,32 @@ export const useLeadApi = () => {
     }
   }, [setLoading, setError, setData]);
 
+  // Move lead to opportunity
+  const moveToOpportunity = useCallback(async (leadId: number, opportunityData: any) => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const response: AxiosResponse<any> = await axios.post(
+        `${API_BASE_URL}/leads/${leadId}/move_to_opportunity/`,
+        { opportunity: opportunityData },
+        {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+      setData(response.data);
+      return response.data;
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.detail || error.message || 'Failed to move lead to opportunity';
+      setError(errorMessage);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  }, [setLoading, setError, setData]);
+
 
   return {
     ...state,
@@ -438,6 +464,7 @@ export const useLeadApi = () => {
     getHistory,
     getLeadStats,
     getRecentActivity,
-    getTopLeads
+    getTopLeads,
+    moveToOpportunity
   };
 };

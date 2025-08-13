@@ -559,24 +559,46 @@ export function Opportunities({ initialFilters, onNavigate }: OpportunitiesProps
   useEffect(() => {
     if (initialFilters?.newOpportunity) {
       const newOpportunity = {
-        id: Math.max(...opportunities.map(o => o.id)) + 1,
-        ...initialFilters.newOpportunity,
-        createdDate: new Date().toISOString().split('T')[0],
+        id: initialFilters.newOpportunity.id || Math.max(...opportunities.map(o => o.id), 0) + 1,
+        leadId: initialFilters.newOpportunity.leadId || null,
+        company: initialFilters.newOpportunity.company || 'Unknown Company',
+        contact: initialFilters.newOpportunity.contact || 'Unknown Contact',
+        title: initialFilters.newOpportunity.title || 'Contact',
+        email: initialFilters.newOpportunity.email || 'unknown@email.com',
+        phone: initialFilters.newOpportunity.phone || 'N/A',
+        industry: initialFilters.newOpportunity.industry || 'Unknown',
+        employees: initialFilters.newOpportunity.employees || 0,
+        revenue: initialFilters.newOpportunity.revenue || '$0',
+        location: initialFilters.newOpportunity.location || 'Unknown Location',
+        source: initialFilters.newOpportunity.source || 'Lead Conversion',
+        travelBudget: initialFilters.newOpportunity.travelBudget || '$0K',
+        decisionMaker: initialFilters.newOpportunity.decisionMaker || true,
+        tags: initialFilters.newOpportunity.tags || ['Lead Conversion', 'High-Priority'],
+        notes: initialFilters.newOpportunity.description || initialFilters.newOpportunity.notes || 'Converted from qualified lead',
+        stage: initialFilters.newOpportunity.stage || 'proposal',
+        probability: initialFilters.newOpportunity.probability || 65,
+        dealValue: initialFilters.newOpportunity.value || initialFilters.newOpportunity.dealValue || 250000,
+        expectedCloseDate: initialFilters.newOpportunity.estimated_close_date || initialFilters.newOpportunity.expectedCloseDate || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        createdDate: initialFilters.newOpportunity.created_at ? new Date(initialFilters.newOpportunity.created_at).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
         lastActivity: new Date().toISOString().split('T')[0],
-        owner: 'Current User',
+        nextAction: initialFilters.newOpportunity.next_steps || 'Send initial proposal and schedule presentation',
+        owner: initialFilters.newOpportunity.owner || 'Current User',
         activities: [
           {
             id: 1,
             type: 'conversion',
             action: 'Converted from qualified lead',
             date: new Date().toISOString().split('T')[0],
-            description: 'Lead successfully converted to sales opportunity'
+            description: 'Lead successfully converted to sales opportunity',
+            user: 'Current User',
+            timestamp: new Date().toISOString(),
+            icon: 'trending-up'
           }
         ]
       };
 
       setOpportunities(prev => [newOpportunity, ...prev]);
-      setSuccessMessage(initialFilters.message || `${initialFilters.newOpportunity.company} has been converted to an opportunity`);
+      setSuccessMessage(initialFilters.message || `${newOpportunity.company} has been converted to an opportunity`);
       setTimeout(() => setSuccessMessage(''), 5000);
     }
   }, [initialFilters]);

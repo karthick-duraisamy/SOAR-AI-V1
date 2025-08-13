@@ -650,6 +650,72 @@ class LeadViewSet(viewsets.ModelViewSet):
             # If LeadHistory table doesn't exist, return empty list
             return Response([])
 
+    @action(detail=True, methods=['post'])
+    def move_to_opportunity(self, request, pk=None):
+        """Move a qualified lead to opportunities"""
+        try:
+            lead = self.get_object()
+            
+            # Check if lead is qualified
+            if lead.status != 'qualified':
+                return Response(
+                    {'error': 'Only qualified leads can be moved to opportunities'}, 
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            
+            # Check if opportunity already exists for this lead
+            if hasattr(lead, 'opportunity'):
+                return Response(
+                    {'error': 'This lead already has an associated opportunity'}, 
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            
+            # Get opportunity data from request
+            opportunity_data = request.data.get('opportunity', {})
+            
+            # Create the opportunity
+            opportunity = Opportunity.objects.create(
+                lead=lead,
+                name=opportunity_data.get('name', f"{lead.company.name} - Corporate Travel Solution"),
+                stage=opportunity_data.get('stage', 'proposal'),
+                probability=opportunity_data.get('probability', 65),
+                estimated_close_date=opportunity_data.get('expectedCloseDate', 
+                    (timezone.now().date() + timedelta(days=30))),
+                value=opportunity_data.get('dealValue', lead.estimated_value or 250000),
+                description=opportunity_data.get('notes', f"Opportunity created from qualified lead. {lead.notes}"),
+                next_steps=opportunity_data.get('nextAction', 'Send initial proposal and schedule presentation')
+            )
+            
+            # Update lead status to indicate it's been converted
+            old_status = lead.status
+            lead.status = 'won'  # Mark as won since it moved to opportunity
+            lead.save()
+            
+            # Create history entry for the conversion
+            create_lead_history(
+                lead=lead,
+                history_type='opportunity_created',
+                action='Lead converted to opportunity',
+                details=f'Lead successfully converted to sales opportunity: {opportunity.name}. Deal value: ${opportunity.value:,.0f}',
+                icon='briefcase',
+                user=request.user if request.user.is_authenticated else None
+            )
+            
+            # Serialize the created opportunity
+            opportunity_serializer = OpportunitySerializer(opportunity)
+            
+            return Response({
+                'message': f'{lead.company.name} has been successfully moved to opportunities',
+                'opportunity': opportunity_serializer.data,
+                'lead_id': lead.id
+            }, status=status.HTTP_201_CREATED)
+            
+        except Exception as e:
+            return Response(
+                {'error': f'Failed to move lead to opportunity: {str(e)}'}, 
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
 class OpportunityViewSet(viewsets.ModelViewSet):
     queryset = Opportunity.objects.all()
     serializer_class = OpportunitySerializer

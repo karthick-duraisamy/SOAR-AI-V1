@@ -879,43 +879,47 @@ SOAR-AI Team`,
     try {
       // Prepare opportunity data from lead
       const opportunityData = {
-        leadId: lead.id,
-        company: lead.company,
-        contact: lead.contact,
-        title: lead.title,
-        email: lead.email,
-        phone: lead.phone,
-        industry: lead.industry,
-        employees: typeof lead.employees === 'number' ? lead.employees : parseInt(lead.employees as string) || 0,
-        revenue: lead.revenue,
-        location: lead.location,
-        source: lead.source,
-        travelBudget: lead.travelBudget,
-        decisionMaker: lead.decisionMaker,
-        tags: lead.tags || [lead.industry, 'Qualified Lead'],
-        notes: lead.notes,
+        name: `${lead.company} - Corporate Travel Solution`,
         stage: 'proposal',
         probability: 65,
         dealValue: parseInt(lead.travelBudget.replace(/[^0-9]/g, '')) * 1000 || 250000, // Convert from K to actual value
         expectedCloseDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 30 days from now
-        createdDate: new Date().toISOString().split('T')[0],
-        lastActivity: new Date().toISOString().split('T')[0],
-        nextAction: 'Send initial proposal and schedule presentation',
-        owner: lead.assignedAgent || 'Current User'
+        notes: `Opportunity created from qualified lead. ${lead.notes}`,
+        nextAction: 'Send initial proposal and schedule presentation'
       };
+
+      // Call the API to move the lead to opportunity
+      const response = await leadApi.moveToOpportunity(lead.id, opportunityData);
 
       // Remove the lead from the leads list locally
       setLeads(prev => prev.filter(l => l.id !== lead.id));
 
       // Show success message
-      setSuccessMessage(`${lead.company} has been successfully moved to opportunities!`);
+      setSuccessMessage(response.message || `${lead.company} has been successfully moved to opportunities!`);
       setTimeout(() => setSuccessMessage(''), 5000);
       
       // Navigate to opportunities page with the new opportunity data
       if (onNavigate) {
         onNavigate('opportunities', { 
-          newOpportunity: opportunityData,
-          message: `${lead.company} has been converted to a sales opportunity`
+          newOpportunity: {
+            ...response.opportunity,
+            leadId: response.lead_id,
+            company: lead.company,
+            contact: lead.contact,
+            title: lead.title,
+            email: lead.email,
+            phone: lead.phone,
+            industry: lead.industry,
+            employees: typeof lead.employees === 'number' ? lead.employees : parseInt(lead.employees as string) || 0,
+            revenue: lead.revenue,
+            location: lead.location,
+            source: lead.source,
+            travelBudget: lead.travelBudget,
+            decisionMaker: lead.decisionMaker,
+            tags: lead.tags || [lead.industry, 'Qualified Lead'],
+            owner: lead.assignedAgent || 'Current User'
+          },
+          message: response.message || `${lead.company} has been converted to a sales opportunity`
         });
       }
 
