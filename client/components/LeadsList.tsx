@@ -1050,16 +1050,18 @@ SOAR-AI Team`,
   // Function to move qualified lead to opportunities
   const handleMoveToOpportunity = async (lead: Lead) => {
     try {
-      // Prepare opportunity data from lead - match Django backend expected format
+      // Prepare opportunity data from lead - match Django Opportunity model fields exactly
       const opportunityData = {
         name: `${lead.company} - Corporate Travel Solution`,
         stage: 'proposal',
         probability: 65,
-        value: parseInt(lead.travelBudget.replace(/[^0-9]/g, '')) * 1000 || 250000, // Use 'value' not 'dealValue'
-        estimated_close_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // Use correct field name
-        description: `Opportunity created from qualified lead. ${lead.notes}`, // Use 'description' not 'notes'
-        next_steps: 'Send initial proposal and schedule presentation' // Use 'next_steps' not 'nextAction'
+        estimated_close_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        value: parseInt(lead.travelBudget.replace(/[^0-9]/g, '')) * 1000 || 250000,
+        description: `Opportunity created from qualified lead. ${lead.notes}`,
+        next_steps: 'Send initial proposal and schedule presentation'
       };
+
+      console.log('Moving lead to opportunity with data:', { opportunity: opportunityData });
 
       // Call the API to move the lead to opportunity
       const response = await leadApi.moveToOpportunity(lead.id, opportunityData);

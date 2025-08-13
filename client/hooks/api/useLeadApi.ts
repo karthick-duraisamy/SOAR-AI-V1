@@ -405,14 +405,23 @@ export const useLeadApi = () => {
     setError(null);
 
     try {
+      console.log('API call - moveToOpportunity:', { leadId, data: { opportunity: opportunityData } });
+      
       const response: AxiosResponse<any> = await baseApi.post(
         `/leads/${leadId}/move_to_opportunity/`,
-        { opportunity: opportunityData },
+        { opportunity: opportunityData }
       );
+      
+      console.log('API response - moveToOpportunity:', response.data);
       setData(response.data);
       return response.data;
     } catch (error: any) {
-      const errorMessage = error.response?.data?.detail || error.message || 'Failed to move lead to opportunity';
+      console.error('API error - moveToOpportunity:', error.response?.data);
+      const errorMessage = error.response?.data?.error || 
+                          error.response?.data?.detail || 
+                          error.response?.data?.message ||
+                          error.message || 
+                          'Failed to move lead to opportunity';
       setError(errorMessage);
       throw error;
     } finally {
