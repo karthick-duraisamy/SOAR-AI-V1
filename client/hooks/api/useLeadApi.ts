@@ -151,10 +151,10 @@ export const useLeadApi = () => {
       console.error('Lead creation error:', error);
       console.error('Error response:', error.response?.data);
 
-      const errorMessage = error.response?.data?.error || 
-                          error.response?.data?.detail || 
+      const errorMessage = error.response?.data?.error ||
+                          error.response?.data?.detail ||
                           error.response?.data?.message ||
-                          error.message || 
+                          error.message ||
                           'Failed to create lead';
       setError(errorMessage);
       throw error;
@@ -298,9 +298,9 @@ export const useLeadApi = () => {
       setData(response.data);
       return response.data;
     } catch (error: any) {
-      const errorMessage = error.response?.data?.error || 
-                          error.response?.data?.detail || 
-                          error.message || 
+      const errorMessage = error.response?.data?.error ||
+                          error.response?.data?.detail ||
+                          error.message ||
                           'Failed to add note';
       setError(errorMessage);
       throw error;
@@ -336,7 +336,7 @@ export const useLeadApi = () => {
 
     try {
       const response: AxiosResponse<any> = await axios.post(
-        `${API_BASE_URL}/leads/stats/`,
+        `${API_BASE_URL}/api/leads/stats/`,
         { dateRange },
         {
           headers: {
@@ -362,7 +362,7 @@ export const useLeadApi = () => {
 
     try {
       const response: AxiosResponse<any> = await axios.get(
-        `${API_BASE_URL}/leads/recent-activity/`
+        `${API_BASE_URL}/api/leads/recent-activity/`
       );
       setData(response.data);
       return response.data;

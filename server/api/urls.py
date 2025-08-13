@@ -1,6 +1,6 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from . import views  # Import views module
+from . import views
 
 router = DefaultRouter()
 router.register(r'companies', views.CompanyViewSet)
@@ -14,16 +14,16 @@ router.register(r'travel-offers', views.TravelOfferViewSet)
 router.register(r'support-tickets', views.SupportTicketViewSet)
 router.register(r'revenue-forecasts', views.RevenueForecastViewSet)
 router.register(r'activity-logs', views.ActivityLogViewSet)
+router.register(r'lead-notes', views.LeadNoteViewSet)
+router.register(r'lead-history', views.LeadHistoryViewSet)
 router.register(r'ai-conversations', views.AIConversationViewSet)
 router.register(r'dashboard', views.DashboardAPIView, basename='dashboard')
-router.register(r'lead-notes', views.LeadNoteViewSet, basename='lead-note')
-router.register(r'lead-history', views.LeadHistoryViewSet)
 
 urlpatterns = [
     path('', include(router.urls)),
-    path('auth/', include('rest_framework.urls')),
-    path('leads/pipeline-stats/', views.lead_pipeline_stats, name='lead_pipeline_stats'),
+    # Custom lead dashboard endpoints
     path('leads/stats/', views.lead_stats, name='lead_stats'),
     path('leads/recent-activity/', views.recent_activity, name='recent_activity'),
     path('leads/top-leads/', views.top_leads, name='top_leads'),
+    path('leads/pipeline-stats/', views.lead_pipeline_stats, name='lead_pipeline_stats'),
 ]
