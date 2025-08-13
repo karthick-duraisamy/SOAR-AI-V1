@@ -330,7 +330,7 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
   const leadApi = useLeadApi();
   const [successMessage, setSuccessMessage] = useState('');
   const [selectedLead, setSelectedLead] = useState<any>(null); // State for the lead selected in other dialogs
-  const [showNewLeadDialog, setShowNewLeadDialog] = useState(false);
+  const [showNewCompanyDialog, setShowNewCompanyDialog] = useState(false); // Changed from showNewLeadDialog
   const [showDisqualifyDialog, setShowDisqualifyDialog] = useState(false);
   const [selectedLeadForDisqualify, setSelectedLeadForDisqualify] = useState<any>(null);
   const [disqualifyReason, setDisqualifyReason] = useState('');
@@ -364,35 +364,28 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
     search: ''
   });
 
-  const [newLeadForm, setNewLeadForm] = useState({
-    company: '',
-    contact: '',
-    title: '',
-    email: '',
-    phone: '',
-    website: '',
+  const [newCompanyForm, setNewCompanyForm] = useState({ // Changed from newLeadForm
+    name: '',
     industry: '',
+    location: '',
     employees: '',
     revenue: '',
-    location: '',
-    source: '',
-    status: 'new',
+    website: '',
+    phone: '',
+    email: '',
     travelBudget: '',
-    decisionMaker: false,
-    notes: '',
-    tags: []
+    companyType: '', // Added for company
+    description: '', // Added for company
+    establishedYear: '', // Added for company
+    specialties: [] as string[], // Added for company
+    operatingRegions: [] as string[] // Added for company
   });
-
-  // State for controlling the history modal visibility
-  const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
-  // State for isSavingNote, required for handleSaveNote
-  const [isSavingNote, setIsSavingNote] = useState(false);
 
   // Fetch leads from API
   const fetchLeads = async () => {
     try {
       setLoading(true);
-      
+
       // Apply current filters when fetching
       const filterParams = {
         search: filters.search || '',
@@ -405,7 +398,7 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
       console.log('Fetching leads with filters:', filterParams);
       const apiResponse = await leadApi.getLeads(filterParams);
       console.log('Raw API response:', apiResponse);
-      
+
       // Handle different response formats
       let apiLeads = [];
       if (Array.isArray(apiResponse)) {
@@ -426,7 +419,7 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
         console.log('Transforming lead:', apiLead);
         return transformApiLeadToUILead(apiLead);
       });
-      
+
       console.log('Final transformed leads:', transformedLeads);
       setLeads(transformedLeads);
 
@@ -583,76 +576,80 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
   // Function to create a new lead via API
   const handleCreateNewLead = async () => {
     try {
-      if (!newLeadForm.company || !newLeadForm.contact || !newLeadForm.email || !newLeadForm.industry) {
-        toast.error('Please fill in all required fields (Company, Contact, Email, and Industry)');
+      if (!newCompanyForm.name || !newCompanyForm.email || !newCompanyForm.industry) { // Adjusted to use newCompanyForm fields
+        toast.error('Please fill in all required fields (Company Name, Email, and Industry)');
         return;
       }
 
       const leadData = {
         company: {
-          name: newLeadForm.company,
-          industry: newLeadForm.industry,
-          location: newLeadForm.location || '',
-          size: newLeadForm.employees ? 'medium' : 'startup', // Simplified size mapping
-          annual_revenue: newLeadForm.revenue ? parseFloat(newLeadForm.revenue.replace(/[^0-9.]/g, '')) : null,
-          travel_budget: newLeadForm.travelBudget ? parseFloat(newLeadForm.travelBudget.replace(/[^0-9.]/g, '')) : null,
-          website: newLeadForm.website || null
+          name: newCompanyForm.name,
+          industry: newCompanyForm.industry,
+          location: newCompanyForm.location || '',
+          size: newCompanyForm.employees ? 'medium' : 'startup', // Simplified size mapping
+          annual_revenue: newCompanyForm.revenue ? parseFloat(newCompanyForm.revenue.replace(/[^0-9.]/g, '')) : null,
+          travel_budget: newCompanyForm.travelBudget ? parseFloat(newCompanyForm.travelBudget.replace(/[^0-9.]/g, '')) : null,
+          website: newCompanyForm.website || null,
+          company_type: newCompanyForm.companyType || null, // Added company type
+          description: newCompanyForm.description || null, // Added description
+          established_year: newCompanyForm.establishedYear ? parseInt(newCompanyForm.establishedYear) : null, // Added established year
+          specialties: newCompanyForm.specialties, // Added specialties
+          operating_regions: newCompanyForm.operatingRegions // Added operating regions
         },
         contact: {
-          first_name: newLeadForm.contact.split(' ')[0] || newLeadForm.contact,
-          last_name: newLeadForm.contact.split(' ').slice(1).join(' ') || '',
-          email: newLeadForm.email,
-          phone: newLeadForm.phone || '',
-          position: newLeadForm.title || '',
-          is_decision_maker: newLeadForm.decisionMaker || false
+          first_name: newCompanyForm.name.split(' ')[0] || newCompanyForm.name, // Use company name as a fallback for contact first name
+          last_name: newCompanyForm.name.split(' ').slice(1).join(' ') || '',
+          email: newCompanyForm.email,
+          phone: newCompanyForm.phone || '',
+          position: 'N/A', // Placeholder as this is for company
+          is_decision_maker: false // Default to false for company
         },
-        status: newLeadForm.status || 'new',
-        source: newLeadForm.source || 'website',
+        status: 'new', // Default status for a new company
+        source: 'Direct', // Default source for a new company
         priority: 'medium', // Default priority/urgency
         score: 50, // Default score
-        estimated_value: newLeadForm.travelBudget ? parseFloat(newLeadForm.travelBudget.replace(/[^0-9.]/g, '')) : null,
-        notes: newLeadForm.notes || '',
-        next_action: 'Initial contact',
+        estimated_value: newCompanyForm.travelBudget ? parseFloat(newCompanyForm.travelBudget.replace(/[^0-9.]/g, '')) : null,
+        notes: newCompanyForm.description || '', // Use description as initial notes
+        next_action: 'Initial outreach',
         next_action_date: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
       };
 
-      console.log('Creating lead with data:', leadData);
+      console.log('Creating company with data:', leadData);
 
-      const createdLead = await leadApi.createLead(leadData);
+      // Assuming createLead API can also handle company creation or a new endpoint exists
+      const createdLead = await leadApi.createLead(leadData); // This might need to be a new API call like createCompany
 
-      console.log('Lead created successfully:', createdLead);
+      console.log('Company created successfully:', createdLead);
 
-      await fetchLeads(); // Refresh leads list to show the new lead
+      await fetchLeads(); // Refresh leads list to show the new company
 
-      setShowNewLeadDialog(false);
-      setSuccessMessage(`New lead "${newLeadForm.company}" has been created successfully!`);
+      setShowNewCompanyDialog(false); // Changed from setShowNewLeadDialog
+      setSuccessMessage(`New company "${newCompanyForm.name}" has been created successfully!`);
       setTimeout(() => setSuccessMessage(''), 5000);
 
       // Reset form
-      setNewLeadForm({
-        company: '',
-        contact: '',
-        title: '',
-        email: '',
-        phone: '',
-        website: '',
+      setNewCompanyForm({ // Resetting newCompanyForm
+        name: '',
         industry: '',
+        location: '',
         employees: '',
         revenue: '',
-        location: '',
-        source: '',
-        status: 'new',
+        website: '',
+        phone: '',
+        email: '',
         travelBudget: '',
-        decisionMaker: false,
-        notes: '',
-        tags: []
+        companyType: '',
+        description: '',
+        establishedYear: '',
+        specialties: [],
+        operatingRegions: []
       });
 
-      toast.success('Lead added successfully!');
+      toast.success('Company added successfully!');
 
     } catch (error) {
-      console.error('Error creating lead:', error);
-      toast.error('Failed to create lead. Please try again.');
+      console.error('Error creating company:', error);
+      toast.error('Failed to create company. Please try again.');
     }
   };
 
@@ -897,7 +894,7 @@ SOAR-AI Team`,
       // Show success message
       setSuccessMessage(response.message || `${lead.company} has been successfully moved to opportunities!`);
       setTimeout(() => setSuccessMessage(''), 5000);
-      
+
       // Navigate to opportunities page with the new opportunity data
       if (onNavigate) {
         onNavigate('opportunities', { 
@@ -1019,9 +1016,9 @@ SOAR-AI Team`,
             <Mail className="h-4 w-4 mr-2" />
             Email Campaign
           </Button>
-          <Button className="bg-orange-500 hover:bg-orange-600 text-white" onClick={() => setShowNewLeadDialog(true)}>
+          <Button className="bg-orange-500 hover:bg-orange-600 text-white" onClick={() => setShowNewCompanyDialog(true)}> {/* Changed to showNewCompanyDialog */}
             <Plus className="h-4 w-4 mr-2" />
-            Add New Lead
+            Add New Company {/* Changed button text */}
           </Button>
         </div>
       </div>
@@ -1325,7 +1322,7 @@ SOAR-AI Team`,
         </div>
       </div>
 
-    
+
       {/* Bulk Actions Bar - Shows when leads are selected */}
       {selectedLeads.length > 0 && (
         <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-4 shadow-sm">
@@ -1338,7 +1335,7 @@ SOAR-AI Team`,
                 {selectedLeads.length} lead{selectedLeads.length > 1 ? 's' : ''} selected
               </span>
             </div>
-            
+
             <div className="flex items-center gap-2">
               <Button 
                 size="sm"
@@ -1348,7 +1345,7 @@ SOAR-AI Team`,
                     toast.error('Please select leads first');
                     return;
                   }
-                  
+
                   // Navigate to campaign creation with selected leads
                   const selectedLeadData = filteredLeads.filter(lead => selectedLeads.includes(lead.id));
                   onNavigate('marketing-campaign', { 
@@ -1356,7 +1353,7 @@ SOAR-AI Team`,
                     campaignType: 'bulk_email'
                   });
                   toast.success(`Campaign started for ${selectedLeads.length} lead${selectedLeads.length > 1 ? 's' : ''}`);
-                  
+
                   // Clear selection after action
                   setSelectedLeads([]);
                   setSelectAll(false);
@@ -1365,7 +1362,7 @@ SOAR-AI Team`,
                 <Mail className="h-4 w-4 mr-2" />
                 Start Campaign
               </Button>
-              
+
               <Button 
                 size="sm"
                 variant="outline" 
@@ -1383,7 +1380,7 @@ SOAR-AI Team`,
                 <User className="h-4 w-4 mr-2" />
                 Assign Agent
               </Button>
-              
+
               <Button 
                 size="sm"
                 variant="outline" 
@@ -1749,63 +1746,26 @@ SOAR-AI Team`,
         </div>
       )}
 
-      {/* Add New Lead Dialog */}
-      <Dialog open={showNewLeadDialog} onOpenChange={setShowNewLeadDialog}>
+      {/* Add New Company Dialog */} {/* Changed dialog title and description */}
+      <Dialog open={showNewCompanyDialog} onOpenChange={setShowNewCompanyDialog}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Add New Lead</DialogTitle>
-            <DialogDescription>Create a new lead with comprehensive company and contact information</DialogDescription>
+            <DialogTitle>Add New Company</DialogTitle> {/* Changed title */}
+            <DialogDescription>Create a new company with comprehensive information</DialogDescription> {/* Changed description */}
           </DialogHeader>
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-[5px]">
                 <Label>Company Name *</Label>
                 <Input
-                  value={newLeadForm.company}
-                  onChange={(e) => setNewLeadForm({...newLeadForm, company: e.target.value})}
+                  value={newCompanyForm.name} // Changed from newLeadForm.company
+                  onChange={(e) => setNewCompanyForm({...newCompanyForm, name: e.target.value})} // Changed from newLeadForm
                   placeholder="Enter company name"
                 />
               </div>
               <div className="space-y-[5px]">
-                <Label>Contact Person *</Label>
-                <Input
-                  value={newLeadForm.contact}
-                  onChange={(e) => setNewLeadForm({...newLeadForm, contact: e.target.value})}
-                  placeholder="Enter contact name"
-                />
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-[5px]">
-                <Label>Job Title</Label>
-                <Input
-                  value={newLeadForm.title}
-                  onChange={(e) => setNewLeadForm({...newLeadForm, title: e.target.value})}
-                  placeholder="e.g., Procurement Director"
-                />
-              </div>
-              <div className="space-y-[5px]">
-                <Label>Email Address *</Label>
-                <Input
-                  type="email"
-                  value={newLeadForm.email}
-                  onChange={(e) => setNewLeadForm({...newLeadForm, email: e.target.value})}
-                  placeholder="contact@company.com"
-                />
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label>Phone Number</Label>
-                <Input
-                  value={newLeadForm.phone}
-                  onChange={(e) => setNewLeadForm({...newLeadForm, phone: e.target.value})}
-                  placeholder="+1 (555) 123-4567"
-                />
-              </div>
-              <div>
                 <Label>Industry *</Label>
-                <Select value={newLeadForm.industry} onValueChange={(value) => setNewLeadForm({...newLeadForm, industry: value})}>
+                <Select value={newCompanyForm.industry} onValueChange={(value) => setNewCompanyForm({...newCompanyForm, industry: value})}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select industry" />
                   </SelectTrigger>
@@ -1825,114 +1785,139 @@ SOAR-AI Team`,
               </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-[5px]">
+                <Label>Website</Label>
+                <Input
+                  value={newCompanyForm.website} // Changed from newLeadForm.website
+                  onChange={(e) => setNewCompanyForm({...newCompanyForm, website: e.target.value})} // Changed from newLeadForm
+                  placeholder="https://example.com"
+                />
+              </div>
+              <div className="space-y-[5px]">
+                <Label>Company Type</Label>
+                <Select value={newCompanyForm.companyType} onValueChange={(value) => setNewCompanyForm({...newCompanyForm, companyType: value})}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select company type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Startup">Startup</SelectItem>
+                    <SelectItem value="SME">SME</SelectItem>
+                    <SelectItem value="Enterprise">Enterprise</SelectItem>
+                    <SelectItem value="Government">Government</SelectItem>
+                    <SelectItem value="Non-profit">Non-profit</SelectItem>
+                    <SelectItem value="Other">Other</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label>Location</Label>
+                <Input
+                  value={newCompanyForm.location} // Changed from newLeadForm.location
+                  onChange={(e) => setNewCompanyForm({...newCompanyForm, location: e.target.value})} // Changed from newLeadForm
+                  placeholder="City, State/Country"
+                />
+              </div>
               <div>
                 <Label>Company Size (Employees)</Label>
                 <Input
                   type="number"
-                  value={newLeadForm.employees}
-                  onChange={(e) => setNewLeadForm({...newLeadForm, employees: e.target.value})}
+                  value={newCompanyForm.employees} // Changed from newLeadForm.employees
+                  onChange={(e) => setNewCompanyForm({...newCompanyForm, employees: e.target.value})} // Changed from newLeadForm
                   placeholder="Number of employees"
                 />
               </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label>Annual Revenue</Label>
                 <Input
-                  value={newLeadForm.revenue}
-                  onChange={(e) => setNewLeadForm({...newLeadForm, revenue: e.target.value})}
+                  value={newCompanyForm.revenue} // Changed from newLeadForm.revenue
+                  onChange={(e) => setNewCompanyForm({...newCompanyForm, revenue: e.target.value})} // Changed from newLeadForm
                   placeholder="e.g., $50M, $2.5B"
+                />
+              </div>
+              <div>
+                <Label>Estimated Travel Budget</Label>
+                <Input
+                  value={newCompanyForm.travelBudget} // Changed from newLeadForm.travelBudget
+                  onChange={(e) => setNewCompanyForm({...newCompanyForm, travelBudget: e.target.value})} // Changed from newLeadForm
+                  placeholder="e.g., $250K, $1.2M"
                 />
               </div>
             </div>
             <div className="grid grid-cols-3 gap-4">
               <div>
-                <Label>Location</Label>
+                <Label>Established Year</Label>
                 <Input
-                  value={newLeadForm.location}
-                  onChange={(e) => setNewLeadForm({...newLeadForm, location: e.target.value})}
-                  placeholder="City, State/Country"
+                  type="number"
+                  value={newCompanyForm.establishedYear} // Changed from newLeadForm.establishedYear
+                  onChange={(e) => setNewCompanyForm({...newCompanyForm, establishedYear: e.target.value})} // Changed from newLeadForm
+                  placeholder="e.g., 1998"
                 />
               </div>
               <div>
-                <Label>Lead Source *</Label>
-                <Select value={newLeadForm.source} onValueChange={(value) => setNewLeadForm({...newLeadForm, source: value})}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="How did we find this lead?" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="LinkedIn">LinkedIn</SelectItem>
-                    <SelectItem value="Website">Website</SelectItem>
-                    <SelectItem value="Referral">Referral</SelectItem>
-                    <SelectItem value="Trade Show">Trade Show</SelectItem>
-                    <SelectItem value="Cold Email">Cold Email</SelectItem>
-                    <SelectItem value="Cold Call">Cold Call</SelectItem>
-                    <SelectItem value="Marketing Campaign">Marketing Campaign</SelectItem>
-                    <SelectItem value="Partner">Partner</SelectItem>
-                    <SelectItem value="Other">Other</SelectItem>
-                  </SelectContent>
-                </Select>
+                <Label>Phone Number</Label>
+                <Input
+                  value={newCompanyForm.phone} // Changed from newLeadForm.phone
+                  onChange={(e) => setNewCompanyForm({...newCompanyForm, phone: e.target.value})} // Changed from newLeadForm
+                  placeholder="+1 (555) 123-4567"
+                />
               </div>
               <div>
-                <Label>Initial Status *</Label>
-                <Select value={newLeadForm.status} onValueChange={(value) => setNewLeadForm({...newLeadForm, status: value})}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select initial status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="new">New</SelectItem>
-                    <SelectItem value="contacted">Contacted</SelectItem>
-                    <SelectItem value="in-progress">In Progress</SelectItem>
-                    <SelectItem value="responded">Responded</SelectItem>
-                    <SelectItem value="qualified">Qualified</SelectItem>
-                    <SelectItem value="unqualified">Unqualified</SelectItem>
-                  </SelectContent>
-                </Select>
+                <Label>Email Address *</Label>
+                <Input
+                  type="email"
+                  value={newCompanyForm.email} // Changed from newLeadForm.email
+                  onChange={(e) => setNewCompanyForm({...newCompanyForm, email: e.target.value})} // Changed from newLeadForm
+                  placeholder="company@example.com"
+                />
               </div>
             </div>
             <div>
-              <Label>Estimated Travel Budget</Label>
+              <Label>Specialties</Label>
               <Input
-                value={newLeadForm.travelBudget}
-                onChange={(e) => setNewLeadForm({...newLeadForm, travelBudget: e.target.value})}
-                placeholder="e.g., $250K, $1.2M"
+                value={newCompanyForm.specialties.join(', ')}
+                onChange={(e) => setNewCompanyForm({...newCompanyForm, specialties: e.target.value.split(',').map(s => s.trim()).filter(s => s)})}
+                placeholder="e.g., Cloud Computing, AI, Data Analytics"
               />
-            </div>
-            <div className="flex items-center space-x-2">
-              <input
-                type="checkbox"
-                id="decisionMaker"
-                checked={newLeadForm.decisionMaker}
-                onChange={(e) => setNewLeadForm({...newLeadForm, decisionMaker: e.target.checked})}
-                className="rounded"
-              />
-              <Label htmlFor="decisionMaker">Contact is a decision maker</Label>
             </div>
             <div>
-              <Label>Initial Notes</Label>
+              <Label>Operating Regions</Label>
+              <Input
+                value={newCompanyForm.operatingRegions.join(', ')}
+                onChange={(e) => setNewCompanyForm({...newCompanyForm, operatingRegions: e.target.value.split(',').map(s => s.trim()).filter(s => s)})}
+                placeholder="e.g., North America, Europe, APAC"
+              />
+            </div>
+            <div>
+              <Label>Description</Label>
               <Textarea
-                value={newLeadForm.notes}
-                onChange={(e) => setNewLeadForm({...newLeadForm, notes: e.target.value})}
-                placeholder="Any additional information about this lead..."
+                value={newCompanyForm.description} // Changed from newLeadForm.notes
+                onChange={(e) => setNewCompanyForm({...newCompanyForm, description: e.target.value})} // Changed from newLeadForm
+                placeholder="Brief description of the company..."
                 rows={4}
               />
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowNewLeadDialog(false)}>
+            <Button variant="outline" onClick={() => setShowNewCompanyDialog(false)}> {/* Changed from setShowNewLeadDialog */}
               Cancel
             </Button>
             <Button 
               onClick={handleCreateNewLead}
-              disabled={!newLeadForm.company || !newLeadForm.contact || !newLeadForm.email || !newLeadForm.industry || !newLeadForm.source}
+              disabled={!newCompanyForm.name || !newCompanyForm.email || !newCompanyForm.industry} // Adjusted validation for new company form
               className="bg-orange-500 hover:bg-orange-600 text-white"
             >
               <Plus className="h-4 w-4 mr-2" />
-              Create Lead
+              Create Company {/* Changed button text */}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* Contact Lead Dialog */}
+      {/* Contact Lead Dialog - Remains the same, contact is part of the lead/company info */}
       <Dialog open={showContactDialog} onOpenChange={setShowContactDialog}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
