@@ -330,13 +330,19 @@ export const useLeadApi = () => {
   }, [setLoading, setError, setData]);
 
   // Get lead statistics for dashboard
-  const getLeadStats = useCallback(async () => {
+  const getLeadStats = useCallback(async (dateRange: string = 'last_month') => {
     setLoading(true);
     setError(null);
 
     try {
-      const response: AxiosResponse<any> = await axios.get(
-        `${API_BASE_URL}/leads/stats/`
+      const response: AxiosResponse<any> = await axios.post(
+        `${API_BASE_URL}/leads/stats/`,
+        { dateRange },
+        {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
       );
       setData(response.data);
       return response.data;

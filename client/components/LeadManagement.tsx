@@ -57,7 +57,7 @@ export function LeadManagement({ onNavigate }: LeadManagementProps) {
     const fetchData = async () => {
       setIsLoading(true);
       try {
-        const stats = await getLeadStats();
+        const stats = await getLeadStats('last_month');
         setLeadStats(stats);
 
         const activity = await getRecentActivity();
@@ -217,7 +217,7 @@ export function LeadManagement({ onNavigate }: LeadManagementProps) {
                 <Users className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{leadStats?.total?.toLocaleString()}</div>
+                <div className="text-2xl font-bold">{leadStats?.totalLeads?.toLocaleString()}</div>
                 <p className="text-xs text-muted-foreground">
                   <span className="text-green-500">+{leadStats?.totalChange}%</span> from last month
                 </p>
@@ -230,7 +230,7 @@ export function LeadManagement({ onNavigate }: LeadManagementProps) {
                 <UserCheck className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{leadStats?.qualified}</div>
+                <div className="text-2xl font-bold">{leadStats?.qualifiedLeads}</div>
                 <p className="text-xs text-muted-foreground">
                   <span className="text-green-500">+{leadStats?.conversionRate}%</span> conversion rate
                 </p>
@@ -309,9 +309,9 @@ export function LeadManagement({ onNavigate }: LeadManagementProps) {
                 <div className="space-y-3">
                   <div className="flex justify-between items-center">
                     <span className="text-sm">Total Leads</span>
-                    <span className="font-medium">{leadStats?.total?.toLocaleString()}</span>
+                    <span className="font-medium">{leadStats?.totalLeads?.toLocaleString()}</span>
                   </div>
-                  <Progress value={leadStats ? (leadStats.contacted / leadStats.total) * 100 : 0} className="h-2" />
+                  <Progress value={leadStats ? (leadStats.contacted / leadStats.totalLeads) * 100 : 0} className="h-2" />
                 </div>
 
                 <div className="space-y-3">
@@ -319,15 +319,15 @@ export function LeadManagement({ onNavigate }: LeadManagementProps) {
                     <span className="text-sm">Contacted</span>
                     <span className="font-medium">{leadStats?.contacted}</span>
                   </div>
-                  <Progress value={leadStats ? (leadStats.qualified / leadStats.total) * 100 : 0} className="h-2" />
+                  <Progress value={leadStats ? (leadStats.qualifiedLeads / leadStats.totalLeads) * 100 : 0} className="h-2" />
                 </div>
 
                 <div className="space-y-3">
                   <div className="flex justify-between items-center">
                     <span className="text-sm">Qualified</span>
-                    <span className="font-medium">{leadStats?.qualified}</span>
+                    <span className="font-medium">{leadStats?.qualifiedLeads}</span>
                   </div>
-                  <Progress value={leadStats ? (leadStats.responded / leadStats.total) * 100 : 0} className="h-2" />
+                  <Progress value={leadStats ? (leadStats.responded / leadStats.totalLeads) * 100 : 0} className="h-2" />
                 </div>
 
                 <div className="space-y-3">
@@ -526,7 +526,7 @@ export function LeadManagement({ onNavigate }: LeadManagementProps) {
           <Alert>
             <CheckCircle className="h-4 w-4" />
             <AlertDescription>
-              You have {leadStats?.qualified} qualified leads. 
+              You have {leadStats?.qualifiedLeads} qualified leads. 
               <Button variant="link" className="p-0 ml-1" onClick={() => onNavigate('qualified-leads')}>
                 View detailed qualified leads &rarr;
               </Button>

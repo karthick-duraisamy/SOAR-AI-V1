@@ -1044,27 +1044,55 @@ def lead_pipeline_stats(request):
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
 
-@api_view(['GET'])
+@api_view(['POST'])
 def lead_stats(request):
     """Get comprehensive lead statistics for dashboard"""
     try:
-        # Current period (this month)
-        current_month_start = timezone.now().replace(day=1)
-        last_month_start = (current_month_start - timedelta(days=1)).replace(day=1)
-        last_month_end = current_month_start - timedelta(days=1)
+        # Parse the request body
+        data = request.data
+        date_range = data.get('dateRange', 'last_month')
+        
+        # Calculate date ranges based on the requested period
+        now = timezone.now()
+        if date_range == 'last_month':
+            current_month_start = now.replace(day=1)
+            last_month_start = (current_month_start - timedelta(days=1)).replace(day=1)
+            last_month_end = current_month_start - timedelta(days=1)
+            period_start = last_month_start
+            period_end = last_month_end
+        elif date_range == 'last_week':
+            week_ago = now - timedelta(days=7)
+            period_start = week_ago
+            period_end = now
+        elif date_range == 'last_30_days':
+            period_start = now - timedelta(days=30)
+            period_end = now
+        else:
+            # Default to last month
+            current_month_start = now.replace(day=1)
+            last_month_start = (current_month_start - timedelta(days=1)).replace(day=1)
+            last_month_end = current_month_start - timedelta(days=1)
+            period_start = last_month_start
+            period_end = last_month_end
 
-        # Basic counts - current month
+        # Basic counts - total and within period
         total_leads = Lead.objects.count()
-        total_leads_this_month = Lead.objects.filter(created_at__gte=current_month_start).count()
-        total_leads_last_month = Lead.objects.filter(
-            created_at__gte=last_month_start, 
-            created_at__lte=last_month_end
+        period_leads = Lead.objects.filter(
+            created_at__gte=period_start,
+            created_at__lte=period_end
         ).count()
 
-        # Calculate percentage change for total leads
+        # Calculate percentage change (comparing current period to previous period)
+        previous_period_start = period_start - (period_end - period_start)
+        previous_period_end = period_start
+        previous_period_leads = Lead.objects.filter(
+            created_at__gte=previous_period_start,
+            created_at__lte=previous_period_end
+        ).count()
+
         total_change = 0
-        if total_leads_last_month > 0:
-            total_change = ((total_leads_this_month - total_leads_last_month) / total_leads_last_month) * 100
+        if previous_period_leads > 0:
+            total_change = ((period_leads - previous_period_leads) / previous_period_leads) * 100
 
         # Qualified leads
         qualified_leads = Lead.objects.filter(status='qualified').count()
@@ -1078,7 +1106,7 @@ def lead_stats(request):
         # Calculate conversion rate
         conversion_rate = (qualified_leads / total_leads * 100) if total_leads > 0 else 0
 
-        # Email metrics calculation (you can replace with actual email tracking data)
+        # Email metrics calculation
         email_campaigns = EmailCampaign.objects.filter(status__in=['active', 'completed'])
         if email_campaigns.exists():
             total_sent = sum(campaign.emails_sent for campaign in email_campaigns)
@@ -1126,9 +1154,9 @@ def lead_stats(request):
             avg_response_time_change = "-15% faster"
 
         return Response({
-            'total': total_leads,
+            'totalLeads': total_leads,
             'totalChange': round(total_change, 1),
-            'qualified': qualified_leads,
+            'qualifiedLeads': qualified_leads,
             'unqualified': unqualified_leads,
             'contacted': contacted_leads,
             'responded': responded_leads,
