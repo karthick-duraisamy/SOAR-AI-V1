@@ -356,7 +356,6 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
   const [selectedLeadForHistory, setSelectedLeadForHistory] = useState<any>(null);
   const [leadHistory, setLeadHistory] = useState<{ [key: number]: HistoryEntry[] }>({}); // Stores history entries fetched from API
   const [isLoadingHistory, setIsLoadingHistory] = useState(false); // Loading state for history fetch
-  const [isSavingNote, setIsSavingNote] = useState(false); // Loading state for saving notes
   const [filters, setFilters] = useState({
     status: initialFilters?.status || 'all',
     industry: 'all',
@@ -788,7 +787,7 @@ SOAR-AI Team`,
   // This function is now correctly named and integrated with the modal state
   const handleHistoryClick = async (lead: Lead) => {
     setSelectedLeadForHistory(lead);
-    setShowHistoryDialog(true); // Use the state to control modal visibility
+    setIsHistoryModalOpen(true); // Use the state to control modal visibility
 
     // Always fetch fresh history data
     setIsLoadingHistory(true);
@@ -2090,7 +2089,7 @@ SOAR-AI Team`,
       </Dialog>
 
       {/* History Dialog */}
-      <Dialog open={showHistoryDialog} onOpenChange={setShowHistoryDialog}>
+      <Dialog open={isHistoryModalOpen} onOpenChange={setIsHistoryModalOpen}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
@@ -2214,7 +2213,7 @@ SOAR-AI Team`,
           <div className="flex justify-end pt-4 border-t">
             <Button 
               onClick={() => {
-                setShowHistoryDialog(false);
+                setIsHistoryModalOpen(false);
                 setSelectedLeadForHistory(null);
               }}
               className="bg-orange-500 hover:bg-orange-600 text-white"
