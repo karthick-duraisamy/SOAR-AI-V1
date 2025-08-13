@@ -162,7 +162,7 @@ class CompanyViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(companies, many=True)
         return Response(serializer.data)
 
-    @action(detail=False, methods=['get'])
+    @action(detail=False, methods=['get','post'])
     def stats(self, request):
         stats = {
             'total_companies': self.queryset.filter(is_active=True).count(),
