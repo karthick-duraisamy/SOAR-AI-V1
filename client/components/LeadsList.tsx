@@ -392,8 +392,18 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
   const fetchLeads = async () => {
     try {
       setLoading(true);
-      const apiResponse = await leadApi.getLeads(); // Assuming getLeads returns { results: [], count: N }
-      const apiLeads = apiResponse;
+      
+      // Apply current filters when fetching
+      const filterParams = {
+        search: filters.search,
+        status: filters.status !== 'all' ? filters.status : '',
+        industry: filters.industry !== 'all' ? filters.industry : '',
+        score: filters.score !== 'all' ? filters.score : '',
+        engagement: filters.engagement !== 'all' ? filters.engagement : ''
+      };
+
+      const apiResponse = await leadApi.getLeads(filterParams);
+      const apiLeads = Array.isArray(apiResponse) ? apiResponse : [];
       console.log('Fetched leads:', apiLeads);
 
       // Transform leads - history_entries are not included here as they are fetched on demand
@@ -402,7 +412,9 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
 
     } catch (error) {
       console.error('Error fetching leads:', error);
-      toast.error('Failed to fetch leads');
+      toast.error('Failed to fetch leads from server');
+      // Set empty array on error to avoid showing static data
+      setLeads([]);
     } finally {
       setLoading(false);
     }
@@ -468,6 +480,17 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
       }
     }
   }, [initialFilters]); // Dependency array includes initialFilters
+
+  // Refetch data when filters change (with debouncing)
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      if (!loading) { // Don't refetch if already loading
+        fetchLeads();
+      }
+    }, 300); // 300ms debounce
+
+    return () => clearTimeout(timeoutId);
+  }, [filters.search, filters.status, filters.industry, filters.score, filters.engagement]);
 
   const getStatusBadgeStyle = (status: string) => {
     switch (status) {

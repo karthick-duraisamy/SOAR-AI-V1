@@ -369,6 +369,32 @@ export const useLeadApi = () => {
     }
   }, [setLoading, setError, setData]);
 
+  // Send message to lead
+  const sendMessage = useCallback(async (leadId: number, messageData: any) => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const response: AxiosResponse<any> = await axios.post(
+        `${API_BASE_URL}/leads/${leadId}/send_message/`,
+        messageData,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+      setData(response.data);
+      return response.data;
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.detail || error.message || 'Failed to send message';
+      setError(errorMessage);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  }, [setLoading, setError, setData]);
+
 
   return {
     ...state,
@@ -385,5 +411,6 @@ export const useLeadApi = () => {
     getHistory,
     getLeadStats,
     getRecentActivity,
+    sendMessage,
   };
 };
