@@ -422,6 +422,7 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
     notes: ''
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSavingNote, setIsSavingNote] = useState(false);
 
   const isFormValid = () => {
     return newCompanyForm.name.trim() !== '' && 
@@ -1049,15 +1050,15 @@ SOAR-AI Team`,
   // Function to move qualified lead to opportunities
   const handleMoveToOpportunity = async (lead: Lead) => {
     try {
-      // Prepare opportunity data from lead
+      // Prepare opportunity data from lead - match Django backend expected format
       const opportunityData = {
         name: `${lead.company} - Corporate Travel Solution`,
         stage: 'proposal',
         probability: 65,
-        dealValue: parseInt(lead.travelBudget.replace(/[^0-9]/g, '')) * 1000 || 250000, // Convert from K to actual value
-        expectedCloseDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 30 days from now
-        notes: `Opportunity created from qualified lead. ${lead.notes}`,
-        nextAction: 'Send initial proposal and schedule presentation'
+        value: parseInt(lead.travelBudget.replace(/[^0-9]/g, '')) * 1000 || 250000, // Use 'value' not 'dealValue'
+        estimated_close_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // Use correct field name
+        description: `Opportunity created from qualified lead. ${lead.notes}`, // Use 'description' not 'notes'
+        next_steps: 'Send initial proposal and schedule presentation' // Use 'next_steps' not 'nextAction'
       };
 
       // Call the API to move the lead to opportunity
