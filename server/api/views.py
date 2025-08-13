@@ -1080,7 +1080,7 @@ from .models import Lead, Company, Contact, LeadNote, LeadHistory
 from .serializers import LeadSerializer, CompanySerializer, ContactSerializer
 import json
 
-@api_view(['GET'])
+@api_view(['POST'])
 def lead_pipeline_stats(request):
     """Get lead pipeline statistics"""
     try:
@@ -1246,7 +1246,7 @@ def lead_stats(request):
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
 
-@api_view(['GET'])
+@api_view(['POST'])
 def recent_activity(request):
     """Get recent lead activity"""
     try:
@@ -1294,7 +1294,7 @@ def recent_activity(request):
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
 
-@api_view(['GET'])
+@api_view(['POST'])
 def top_leads(request):
     """Get top qualified leads for dashboard"""
     try:
