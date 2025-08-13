@@ -63,10 +63,12 @@ import {
   Eye,
   Handshake, // Added for contract_signed
   Award,    // Added for deal_won
+  Save // Added for Save button in dialog
 } from 'lucide-react';
 import { toast } from "sonner";
 import { format } from 'date-fns';
 import { ScrollArea } from './ui/scroll-area';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs'; // Added Tabs components
 
 interface LeadsListProps {
   initialFilters?: any;
@@ -364,22 +366,42 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
     search: ''
   });
 
-  const [newCompanyForm, setNewCompanyForm] = useState({ // Changed from newLeadForm
+  // New company form state
+  const [newCompanyForm, setNewCompanyForm] = useState({
     name: '',
+    type: '', // Added type for company
     industry: '',
     location: '',
-    employees: '',
-    revenue: '',
     website: '',
     phone: '',
     email: '',
-    travelBudget: '',
-    companyType: '', // Added for company
-    description: '', // Added for company
-    establishedYear: '', // Added for company
-    specialties: [] as string[], // Added for company
-    operatingRegions: [] as string[] // Added for company
+    established: '', // Year established
+    employees: '', // Number of employees
+    revenue: '', // Annual revenue in millions
+    travelBudget: '', // Annual travel budget
+    annualTravelVolume: '', // Annual travel volume (e.g., number of trips)
+    travelFrequency: '', // How often they travel
+    preferredClass: '', // Preferred travel class
+    companySize: '', // Category like startup, small, medium, etc.
+    creditRating: '',
+    paymentTerms: '',
+    sustainabilityFocus: '',
+    riskLevel: '',
+    expansionPlans: '',
+    specialties: '', // Comma-separated specialties
+    technologyIntegration: '', // Comma-separated tech integrations
+    currentAirlines: '', // Comma-separated current airlines used
+    notes: '' // Additional notes
   });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const isFormValid = () => {
+    return newCompanyForm.name.trim() !== '' && 
+           newCompanyForm.industry !== '' && 
+           newCompanyForm.companySize !== '' && 
+           newCompanyForm.location.trim() !== '' &&
+           newCompanyForm.email.trim() !== '';
+  };
 
   // Fetch leads from API
   const fetchLeads = async () => {
@@ -575,81 +597,105 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
 
   // Function to create a new lead via API
   const handleCreateNewLead = async () => {
+    setIsSubmitting(true); // Set submitting state
     try {
-      if (!newCompanyForm.name || !newCompanyForm.email || !newCompanyForm.industry) { // Adjusted to use newCompanyForm fields
-        toast.error('Please fill in all required fields (Company Name, Email, and Industry)');
+      // Basic validation for required fields
+      if (!newCompanyForm.name.trim() || !newCompanyForm.email.trim() || !newCompanyForm.industry || !newCompanyForm.companySize || !newCompanyForm.location.trim()) {
+        toast.error('Please fill in all required fields (Company Name, Email, Industry, Company Size, and Location)');
+        setIsSubmitting(false); // Reset submitting state
         return;
       }
 
       const leadData = {
         company: {
           name: newCompanyForm.name,
+          company_type: newCompanyForm.type || null, // Use company type
           industry: newCompanyForm.industry,
-          location: newCompanyForm.location || '',
-          size: newCompanyForm.employees ? 'medium' : 'startup', // Simplified size mapping
-          annual_revenue: newCompanyForm.revenue ? parseFloat(newCompanyForm.revenue.replace(/[^0-9.]/g, '')) : null,
-          travel_budget: newCompanyForm.travelBudget ? parseFloat(newCompanyForm.travelBudget.replace(/[^0-9.]/g, '')) : null,
+          location: newCompanyForm.location,
           website: newCompanyForm.website || null,
-          company_type: newCompanyForm.companyType || null, // Added company type
-          description: newCompanyForm.description || null, // Added description
-          established_year: newCompanyForm.establishedYear ? parseInt(newCompanyForm.establishedYear) : null, // Added established year
-          specialties: newCompanyForm.specialties, // Added specialties
-          operating_regions: newCompanyForm.operatingRegions // Added operating regions
+          employees: newCompanyForm.employees ? parseInt(newCompanyForm.employees) : null, // Parse employees to number
+          annual_revenue: newCompanyForm.revenue ? parseFloat(newCompanyForm.revenue) * 1000000 : null, // Convert millions to actual value
+          established_year: newCompanyForm.established ? parseInt(newCompanyForm.established) : null, // Parse year to number
+          company_size: newCompanyForm.companySize,
+          credit_rating: newCompanyForm.creditRating || null,
+          payment_terms: newCompanyForm.paymentTerms || null,
+          travel_budget: newCompanyForm.travelBudget ? parseFloat(newCompanyForm.travelBudget.replace(/[^0-9.]/g, '')) * 1000 : null, // Parse budget, assume K
+          annual_travel_volume: newCompanyForm.annualTravelVolume || null,
+          travel_frequency: newCompanyForm.travelFrequency || null,
+          preferred_class: newCompanyForm.preferredClass || null,
+          sustainability_focus: newCompanyForm.sustainabilityFocus || null,
+          risk_level: newCompanyForm.riskLevel || null,
+          expansion_plans: newCompanyForm.expansionPlans || null,
+          specialties: newCompanyForm.specialties ? newCompanyForm.specialties.split(',').map(s => s.trim()).filter(Boolean) : [],
+          technology_integration: newCompanyForm.technologyIntegration ? newCompanyForm.technologyIntegration.split(',').map(t => t.trim()).filter(Boolean) : [],
+          current_airlines: newCompanyForm.currentAirlines ? newCompanyForm.currentAirlines.split(',').map(a => a.trim()).filter(Boolean) : [],
         },
         contact: {
-          first_name: newCompanyForm.name.split(' ')[0] || newCompanyForm.name, // Use company name as a fallback for contact first name
-          last_name: newCompanyForm.name.split(' ').slice(1).join(' ') || '',
+          // For company leads, contact info might be generic or from the primary contact
+          first_name: newCompanyForm.name.split(' ')[0] || 'Primary', // Fallback if name is a single word
+          last_name: newCompanyForm.name.split(' ').slice(1).join(' ') || 'Contact',
           email: newCompanyForm.email,
-          phone: newCompanyForm.phone || '',
-          position: 'N/A', // Placeholder as this is for company
-          is_decision_maker: false // Default to false for company
+          phone: newCompanyForm.phone || null,
+          position: 'N/A', // Position is not relevant for a company lead directly
+          is_decision_maker: null // Unknown for a company lead
         },
-        status: 'new', // Default status for a new company
-        source: 'Direct', // Default source for a new company
+        status: 'new', // Default status for a new lead
+        source: 'Direct Entry', // Source from manual entry
         priority: 'medium', // Default priority/urgency
         score: 50, // Default score
-        estimated_value: newCompanyForm.travelBudget ? parseFloat(newCompanyForm.travelBudget.replace(/[^0-9.]/g, '')) : null,
-        notes: newCompanyForm.description || '', // Use description as initial notes
-        next_action: 'Initial outreach',
-        next_action_date: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+        estimated_value: newCompanyForm.travelBudget ? parseFloat(newCompanyForm.travelBudget.replace(/[^0-9.]/g, '')) * 1000 : null,
+        notes: newCompanyForm.notes || '',
+        next_action: 'Initial outreach and qualification',
+        next_action_date: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString().split('T')[0] // Default next action in 2 days
       };
 
-      console.log('Creating company with data:', leadData);
+      console.log('Creating lead with data:', leadData);
 
-      // Assuming createLead API can also handle company creation or a new endpoint exists
-      const createdLead = await leadApi.createLead(leadData); // This might need to be a new API call like createCompany
+      const createdLead = await leadApi.createLead(leadData);
 
-      console.log('Company created successfully:', createdLead);
+      console.log('Lead created successfully:', createdLead);
 
-      await fetchLeads(); // Refresh leads list to show the new company
+      await fetchLeads(); // Refresh leads list to show the new lead
 
-      setShowNewCompanyDialog(false); // Changed from setShowNewLeadDialog
-      setSuccessMessage(`New company "${newCompanyForm.name}" has been created successfully!`);
+      setShowNewCompanyDialog(false); // Close the dialog
+      setSuccessMessage(`New lead "${newCompanyForm.name}" has been created successfully!`);
       setTimeout(() => setSuccessMessage(''), 5000);
 
       // Reset form
-      setNewCompanyForm({ // Resetting newCompanyForm
+      setNewCompanyForm({
         name: '',
+        type: '',
         industry: '',
         location: '',
-        employees: '',
-        revenue: '',
         website: '',
         phone: '',
         email: '',
+        established: '',
+        employees: '',
+        revenue: '',
         travelBudget: '',
-        companyType: '',
-        description: '',
-        establishedYear: '',
-        specialties: [],
-        operatingRegions: []
+        annualTravelVolume: '',
+        travelFrequency: '',
+        preferredClass: '',
+        companySize: '',
+        creditRating: '',
+        paymentTerms: '',
+        sustainabilityFocus: '',
+        riskLevel: '',
+        expansionPlans: '',
+        specialties: '',
+        technologyIntegration: '',
+        currentAirlines: '',
+        notes: ''
       });
 
-      toast.success('Company added successfully!');
+      toast.success('Lead created successfully!');
 
     } catch (error) {
-      console.error('Error creating company:', error);
-      toast.error('Failed to create company. Please try again.');
+      console.error('Error creating lead:', error);
+      toast.error('Failed to create lead. Please try again.');
+    } finally {
+      setIsSubmitting(false); // Reset submitting state
     }
   };
 
@@ -803,7 +849,10 @@ SOAR-AI Team`,
         user: item.user_name || 'System', // Use user_name if available, else fallback
         timestamp: item.timestamp,
         details: item.details,
-        icon: item.icon || 'plus' // Use icon from API, or 'plus' as default
+        icon: item.icon || 'plus', // Use icon from API, or 'plus' as default
+        // Include urgency and next_action if they exist in the API response for specific history types
+        urgency: item.urgency,
+        next_action: item.next_action
       }));
 
       setLeadHistory(prev => ({
@@ -1745,8 +1794,8 @@ SOAR-AI Team`,
         ))}
         </div>
       )}
-      
- 
+
+
 
       {/* Contact Lead Dialog - Remains the same, contact is part of the lead/company info */}
       <Dialog open={showContactDialog} onOpenChange={setShowContactDialog}>
@@ -1953,7 +2002,9 @@ SOAR-AI Team`,
                     user: entry.user || 'Unknown User',
                     timestamp: entry.timestamp,
                     details: entry.details,
-                    icon: entry.icon // Use icon from transformed data
+                    icon: entry.icon, // Use icon from transformed data
+                    urgency: entry.urgency, // Propagate urgency
+                    next_action: entry.next_action // Propagate next_action
                   };
 
                   const getHistoryIcon = (type: string) => {

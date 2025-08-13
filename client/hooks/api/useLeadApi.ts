@@ -442,6 +442,43 @@ export const useLeadApi = () => {
     }
   }, [setLoading, setError, setData]);
 
+  // Create lead from company data
+  const createLeadFromCompany = useCallback(async (companyData: any) => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      console.log('Creating lead from company data:', companyData);
+
+      const response: AxiosResponse<any> = await axios.post(
+        `${API_BASE_URL}/leads/create_lead_from_company/`,
+        companyData,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+
+      console.log('Lead creation from company response:', response.data);
+      setData(response.data);
+      return response.data;
+    } catch (error: any) {
+      console.error('Lead from company creation error:', error);
+      console.error('Error response:', error.response?.data);
+
+      const errorMessage = error.response?.data?.error ||
+                          error.response?.data?.detail ||
+                          error.response?.data?.message ||
+                          error.message ||
+                          'Failed to create lead from company';
+      setError(errorMessage);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  }, [setLoading, setError, setData]);
+
 
   return {
     ...state,
@@ -460,6 +497,7 @@ export const useLeadApi = () => {
     getLeadStats,
     getRecentActivity,
     getTopLeads,
-    moveToOpportunity
+    moveToOpportunity,
+    createLeadFromCompany
   };
 };
