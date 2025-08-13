@@ -787,7 +787,7 @@ SOAR-AI Team`,
   // This function is now correctly named and integrated with the modal state
   const handleHistoryClick = async (lead: Lead) => {
     setSelectedLeadForHistory(lead);
-    setIsHistoryModalOpen(true); // Use the state to control modal visibility
+    setShowHistoryDialog(true); // Use the state to control modal visibility
 
     // Always fetch fresh history data
     setIsLoadingHistory(true);
@@ -1920,7 +1920,7 @@ SOAR-AI Team`,
       </Dialog>
 
       {/* History Dialog */}
-      <Dialog open={isHistoryModalOpen} onOpenChange={setIsHistoryModalOpen}>
+      <Dialog open={showHistoryDialog} onOpenChange={setShowHistoryDialog}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
@@ -2044,7 +2044,7 @@ SOAR-AI Team`,
           <div className="flex justify-end pt-4 border-t">
             <Button 
               onClick={() => {
-                setIsHistoryModalOpen(false);
+                setShowHistoryDialog(false);
                 setSelectedLeadForHistory(null);
               }}
               className="bg-orange-500 hover:bg-orange-600 text-white"
