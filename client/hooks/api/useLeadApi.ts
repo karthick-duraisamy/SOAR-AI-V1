@@ -51,6 +51,14 @@ interface LeadFilters {
   engagement?: string;
 }
 
+// Define a base API service for common functionalities
+const baseApi = axios.create({
+  baseURL: API_BASE_URL,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
+
 export const useLeadApi = () => {
   const [state, setState] = useState<ApiState<any>>({
     data: null,
@@ -84,14 +92,9 @@ export const useLeadApi = () => {
         engagement: filters?.engagement || ''
       };
 
-      const response: AxiosResponse<Lead[]> = await axios.post(
-        `${API_BASE_URL}/leads/search/`,
+      const response: AxiosResponse<Lead[]> = await baseApi.post(
+        `/leads/search/`,
         requestBody,
-        {
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        }
       );
 
       setData(response.data);
@@ -111,8 +114,8 @@ export const useLeadApi = () => {
     setError(null);
 
     try {
-      const response: AxiosResponse<Lead> = await axios.get(
-        `${API_BASE_URL}/leads/${id}/`
+      const response: AxiosResponse<Lead> = await baseApi.get(
+        `/leads/${id}/`
       );
 
       setData(response.data);
@@ -134,14 +137,9 @@ export const useLeadApi = () => {
     try {
       console.log('Creating lead with data:', leadData);
 
-      const response: AxiosResponse<Lead> = await axios.post(
-        `${API_BASE_URL}/leads/`,
+      const response: AxiosResponse<Lead> = await baseApi.post(
+        `/leads/`,
         leadData,
-        {
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        }
       );
 
       console.log('Lead creation response:', response.data);
@@ -169,14 +167,9 @@ export const useLeadApi = () => {
     setError(null);
 
     try {
-      const response: AxiosResponse<Lead> = await axios.put(
-        `${API_BASE_URL}/leads/${id}/`,
+      const response: AxiosResponse<Lead> = await baseApi.put(
+        `/leads/${id}/`,
         leadData,
-        {
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        }
       );
 
       setData(response.data);
@@ -196,7 +189,7 @@ export const useLeadApi = () => {
     setError(null);
 
     try {
-      await axios.delete(`${API_BASE_URL}/leads/${id}/`);
+      await baseApi.delete(`/leads/${id}/`);
       setData(null);
       return true;
     } catch (error: any) {
@@ -214,7 +207,7 @@ export const useLeadApi = () => {
     setError(null);
 
     try {
-      const response = await axios.post(`${API_BASE_URL}/leads/${id}/qualify/`, data);
+      const response = await baseApi.post(`/leads/${id}/qualify/`, data);
       return response.data;
     } catch (error: any) {
       const errorMessage = error.response?.data?.detail || error.message || 'Failed to qualify lead';
@@ -231,7 +224,7 @@ export const useLeadApi = () => {
     setError(null);
 
     try {
-      const response = await axios.post(`${API_BASE_URL}/leads/${id}/disqualify/`, data);
+      const response = await baseApi.post(`/leads/${id}/disqualify/`, data);
       return response.data;
     } catch (error: any) {
       const errorMessage = error.response?.data?.detail || error.message || 'Failed to disqualify lead';
@@ -248,7 +241,7 @@ export const useLeadApi = () => {
     setError(null);
 
     try {
-      const response = await axios.post(`${API_BASE_URL}/leads/${id}/update_score/`, {
+      const response = await baseApi.post(`/leads/${id}/update_score/`, {
         score
       });
       return response.data;
@@ -267,7 +260,7 @@ export const useLeadApi = () => {
     setError(null);
 
     try {
-      const response = await axios.get(`${API_BASE_URL}/leads/pipeline_stats/`);
+      const response = await baseApi.get(`/leads/pipeline_stats/`);
       setData(response.data);
       return response.data;
     } catch (error: any) {
@@ -285,14 +278,9 @@ export const useLeadApi = () => {
     setError(null);
 
     try {
-      const response: AxiosResponse<any> = await axios.post(
-        `${API_BASE_URL}/leads/${leadId}/add_note/`,
+      const response: AxiosResponse<any> = await baseApi.post(
+        `/leads/${leadId}/add_note/`,
         noteData,
-        {
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        }
       );
 
       setData(response.data);
@@ -315,8 +303,8 @@ export const useLeadApi = () => {
     setError(null);
 
     try {
-      const response: AxiosResponse<any> = await axios.get(
-        `${API_BASE_URL}/leads/${leadId}/history/`
+      const response: AxiosResponse<any> = await baseApi.get(
+        `/leads/${leadId}/history/`
       );
       setData(response.data);
       return response.data;
@@ -335,8 +323,8 @@ export const useLeadApi = () => {
     setError(null);
 
     try {
-      const response: AxiosResponse<any> = await axios.post(
-        `${API_BASE_URL}/leads/stats/`,
+      const response: AxiosResponse<any> = await baseApi.post(
+        `/leads/stats/`,
         { dateRange }
       );
       setData(response.data);
@@ -356,8 +344,8 @@ export const useLeadApi = () => {
     setError(null);
 
     try {
-      const response: AxiosResponse<any> = await axios.get(
-        `${API_BASE_URL}/leads/recent-activity/`
+      const response: AxiosResponse<any> = await baseApi.get(
+        `/leads/recent-activity/`
       );
       setData(response.data);
       return response.data;
@@ -376,14 +364,9 @@ export const useLeadApi = () => {
     setError(null);
 
     try {
-      const response: AxiosResponse<any> = await axios.post(
-        `${API_BASE_URL}/leads/${leadId}/send_message/`,
+      const response: AxiosResponse<any> = await baseApi.post(
+        `/leads/${leadId}/send_message/`,
         messageData,
-        {
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        }
       );
       setData(response.data);
       return response.data;
@@ -402,8 +385,8 @@ export const useLeadApi = () => {
     setError(null);
 
     try {
-      const response: AxiosResponse<any> = await axios.get(
-        `${API_BASE_URL}/leads/top-leads/`
+      const response: AxiosResponse<any> = await baseApi.get(
+        `/leads/top-leads/`
       );
       setData(response.data);
       return response.data;
@@ -422,14 +405,9 @@ export const useLeadApi = () => {
     setError(null);
 
     try {
-      const response: AxiosResponse<any> = await axios.post(
-        `${API_BASE_URL}/leads/${leadId}/move_to_opportunity/`,
+      const response: AxiosResponse<any> = await baseApi.post(
+        `/leads/${leadId}/move_to_opportunity/`,
         { opportunity: opportunityData },
-        {
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        }
       );
       setData(response.data);
       return response.data;
@@ -444,40 +422,47 @@ export const useLeadApi = () => {
 
   // Create lead from company data
   const createLeadFromCompany = useCallback(async (companyData: any) => {
-    setLoading(true);
-    setError(null);
-
     try {
-      console.log('Creating lead from company data:', companyData);
-
-      const response: AxiosResponse<any> = await axios.post(
-        `${API_BASE_URL}/leads/create_lead_from_company/`,
-        companyData,
-        {
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        }
-      );
-
-      console.log('Lead creation from company response:', response.data);
-      setData(response.data);
+      const response = await baseApi.post('/leads/create_lead_from_company/', companyData);
       return response.data;
-    } catch (error: any) {
-      console.error('Lead from company creation error:', error);
-      console.error('Error response:', error.response?.data);
-
-      const errorMessage = error.response?.data?.error ||
-                          error.response?.data?.detail ||
-                          error.response?.data?.message ||
-                          error.message ||
-                          'Failed to create lead from company';
-      setError(errorMessage);
+    } catch (error) {
+      console.error('Error creating lead from company:', error);
       throw error;
-    } finally {
-      setLoading(false);
     }
-  }, [setLoading, setError, setData]);
+  }, [baseApi]);
+
+  // Get opportunities
+  const getOpportunities = useCallback(async (filters: any = {}) => {
+    try {
+      const response = await baseApi.post('/opportunities/search/', filters);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching opportunities:', error);
+      throw error;
+    }
+  }, [baseApi]);
+
+  // Get opportunity pipeline metrics
+  const getOpportunityPipeline = useCallback(async () => {
+    try {
+      const response = await baseApi.get('/opportunities/pipeline_value/');
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching opportunity pipeline:', error);
+      throw error;
+    }
+  }, [baseApi]);
+
+  // Update opportunity stage
+  const updateOpportunityStage = useCallback(async (opportunityId: number, stageData: any) => {
+    try {
+      const response = await baseApi.patch(`/opportunities/${opportunityId}/`, stageData);
+      return response.data;
+    } catch (error) {
+      console.error('Error updating opportunity stage:', error);
+      throw error;
+    }
+  }, [baseApi]);
 
 
   return {
@@ -498,6 +483,9 @@ export const useLeadApi = () => {
     getRecentActivity,
     getTopLeads,
     moveToOpportunity,
-    createLeadFromCompany
+    createLeadFromCompany,
+    getOpportunities,
+    getOpportunityPipeline,
+    updateOpportunityStage
   };
 };

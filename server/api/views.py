@@ -849,6 +849,42 @@ class OpportunityViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(opportunities, many=True)
         return Response(serializer.data)
 
+    @action(detail=False, methods=['post'])
+    def search(self, request):
+        """
+        Search opportunities with filters
+        """
+        filters = request.data
+        
+        queryset = self.queryset.select_related(
+            'lead__company', 'lead__contact'
+        )
+        
+        search = filters.get('search', '')
+        stage = filters.get('stage', '')
+        owner = filters.get('owner', '')
+        industry = filters.get('industry', '')
+        
+        if search:
+            queryset = queryset.filter(
+                Q(name__icontains=search) |
+                Q(lead__company__name__icontains=search) |
+                Q(lead__contact__first_name__icontains=search) |
+                Q(lead__contact__last_name__icontains=search)
+            )
+        
+        if stage and stage != 'all':
+            queryset = queryset.filter(stage=stage)
+            
+        if industry and industry != 'all':
+            queryset = queryset.filter(lead__company__industry=industry)
+            
+        # Order by probability and value for better prioritization
+        queryset = queryset.order_by('-probability', '-value')
+        
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
+
 class ContractViewSet(viewsets.ModelViewSet):
     queryset = Contract.objects.all()
     serializer_class = ContractSerializer

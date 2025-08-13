@@ -13,6 +13,8 @@ import { Alert, AlertDescription } from './ui/alert';
 import { Progress } from './ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import { ScrollArea } from './ui/scroll-area';
+import { useLeadApi } from '../hooks/api/useLeadApi';
+import { toast } from 'sonner';
 import { 
   TrendingUp,
   TrendingDown,
@@ -55,238 +57,33 @@ interface OpportunitiesProps {
   onNavigate: (screen: string, filters?: any) => void;
 }
 
-const opportunitiesData = [
-  {
-    id: 1,
-    leadId: 1,
-    company: 'TechCorp Solutions',
-    contact: 'Sarah Johnson',
-    title: 'Procurement Director',
-    email: 'sarah.johnson@techcorp.com',
-    phone: '+1 (555) 123-4567',
-    industry: 'Technology',
-    employees: 2500,
-    revenue: '$150M',
-    location: 'San Francisco, CA',
-    source: 'LinkedIn',
-    travelBudget: '$450K',
-    decisionMaker: true,
-    tags: ['Enterprise', 'High-Value', 'Decision Maker'],
-    notes: 'Converted from qualified lead. Strong interest in enterprise solutions',
-    stage: 'proposal',
-    probability: 85,
-    dealValue: 450000,
-    expectedCloseDate: '2024-08-15',
-    createdDate: '2024-07-12',
-    lastActivity: '2024-07-14',
-    nextAction: 'Follow up on proposal review',
-    owner: 'John Smith',
-    activities: [
-      {
-        id: 1,
-        type: 'meeting',
-        action: 'Discovery meeting completed',
-        date: '2024-07-12',
-        description: 'Conducted needs assessment and solution presentation',
-        user: 'John Smith',
-        timestamp: '2024-07-12 14:30:00',
-        icon: 'calendar'
-      },
-      {
-        id: 2,
-        type: 'proposal',
-        action: 'Proposal sent',
-        date: '2024-07-14',
-        description: 'Comprehensive travel solution proposal with ROI analysis',
-        user: 'Sarah Wilson',
-        timestamp: '2024-07-14 09:15:00',
-        icon: 'file'
-      }
-    ]
-  },
-  {
-    id: 2,
-    leadId: 2,
-    company: 'Global Manufacturing Ltd',
-    contact: 'Michael Chen',
-    title: 'Travel Manager',
-    email: 'mchen@globalmanuf.com',
-    phone: '+1 (555) 234-5678',
-    industry: 'Manufacturing',
-    employees: 5000,
-    revenue: '$500M',
-    location: 'Chicago, IL',
-    source: 'Website',
-    travelBudget: '$320K',
-    decisionMaker: false,
-    tags: ['Manufacturing', 'Cost-Focused', 'Multi-Location'],
-    notes: 'Focused on cost optimization across multiple manufacturing sites',
-    stage: 'negotiation',
-    probability: 75,
-    dealValue: 320000,
-    expectedCloseDate: '2024-08-30',
-    createdDate: '2024-07-05',
-    lastActivity: '2024-07-13',
-    nextAction: 'Contract terms discussion',
-    owner: 'Alice Brown',
-    activities: [
-      {
-        id: 1,
-        type: 'demo',
-        action: 'Product demo delivered',
-        date: '2024-07-08',
-        description: 'Demonstrated cost tracking and reporting features',
-        user: 'Alice Brown',
-        timestamp: '2024-07-08 10:00:00',
-        icon: 'presentation'
-      },
-      {
-        id: 2,
-        type: 'negotiation',
-        action: 'Contract negotiation started',
-        date: '2024-07-13',
-        description: 'Discussing terms and pricing for multi-site implementation',
-        user: 'Alice Brown',
-        timestamp: '2024-07-13 15:45:00',
-        icon: 'handshake'
-      }
-    ]
-  },
-  {
-    id: 3,
-    leadId: 5,
-    company: 'MegaCorp Enterprises',
-    contact: 'Jennifer Smith',
-    title: 'Procurement Manager',
-    email: 'jsmith@megacorp.com',
-    phone: '+1 (555) 567-8901',
-    industry: 'Financial Services',
-    employees: 12000,
-    revenue: '$2.5B',
-    location: 'Boston, MA',
-    source: 'Trade Show',
-    travelBudget: '$1.2M',
-    decisionMaker: true,
-    tags: ['Enterprise', 'Pilot Ready', 'High-Value'],
-    notes: 'Enterprise client ready for pilot program implementation',
-    stage: 'closed-won',
-    probability: 100,
-    dealValue: 1200000,
-    expectedCloseDate: '2024-07-20',
-    createdDate: '2024-06-15',
-    lastActivity: '2024-07-16',
-    nextAction: 'Pilot implementation planning',
-    owner: 'David Kim',
-    activities: [
-      {
-        id: 1,
-        type: 'proposal',
-        action: 'Proposal approved',
-        date: '2024-07-10',
-        description: 'Board approved pilot program for 500 employees',
-        user: 'David Kim',
-        timestamp: '2024-07-10 11:30:00',
-        icon: 'check'
-      },
-      {
-        id: 2,
-        type: 'contract',
-        action: 'Contract signed',
-        date: '2024-07-16',
-        description: 'Pilot contract executed, implementation to begin',
-        user: 'David Kim',
-        timestamp: '2024-07-16 16:00:00',
-        icon: 'handshake'
-      }
-    ]
-  },
-  {
-    id: 4,
-    leadId: null,
-    company: 'FinanceFlow Corp',
-    contact: 'Robert Martinez',
-    title: 'VP Operations',
-    email: 'rmartinez@financeflow.com',
-    phone: '+1 (555) 789-0123',
-    industry: 'Financial Services',
-    employees: 3500,
-    revenue: '$800M',
-    location: 'Miami, FL',
-    source: 'Referral',
-    travelBudget: '$280K',
-    decisionMaker: true,
-    tags: ['Financial Services', 'Referral', 'Mid-Market'],
-    notes: 'Referred by existing client. Looking for integrated travel solution',
-    stage: 'proposal',
-    probability: 60,
-    dealValue: 280000,
-    expectedCloseDate: '2024-09-15',
-    createdDate: '2024-07-10',
-    lastActivity: '2024-07-12',
-    nextAction: 'Schedule requirements gathering session',
-    owner: 'Sarah Wilson',
-    activities: [
-      {
-        id: 1,
-        type: 'call',
-        action: 'Initial discovery call',
-        date: '2024-07-10',
-        description: 'Discussed current travel program and pain points',
-        user: 'Sarah Wilson',
-        timestamp: '2024-07-10 13:00:00',
-        icon: 'phone'
-      }
-    ]
-  },
-  {
-    id: 5,
-    leadId: null,
-    company: 'RetailChain Plus',
-    contact: 'Linda Garcia',
-    title: 'Travel Coordinator',
-    email: 'lgarcia@retailchainplus.com',
-    phone: '+1 (555) 890-1234',
-    industry: 'Retail',
-    employees: 8000,
-    revenue: '$1.2B',
-    location: 'Dallas, TX',
-    source: 'Cold Outreach',
-    travelBudget: '$400K',
-    decisionMaker: false,
-    tags: ['Retail', 'Multi-Location', 'Chain Store'],
-    notes: 'Large retail chain with extensive travel needs for store visits',
-    stage: 'proposal',
-    probability: 45,
-    dealValue: 400000,
-    expectedCloseDate: '2024-10-30',
-    createdDate: '2024-07-08',
-    lastActivity: '2024-07-11',
-    nextAction: 'Identify decision makers',
-    owner: 'Tom Wilson',
-    activities: [
-      {
-        id: 1,
-        type: 'email',
-        action: 'Introduction email sent',
-        date: '2024-07-08',
-        description: 'Sent initial outreach email with company overview',
-        user: 'Tom Wilson',
-        timestamp: '2024-07-08 09:30:00',
-        icon: 'mail'
-      },
-      {
-        id: 2,
-        type: 'call',
-        action: 'Qualification call scheduled',
-        date: '2024-07-11',
-        description: 'Scheduled call to understand needs and decision process',
-        user: 'Tom Wilson',
-        timestamp: '2024-07-11 14:15:00',
-        icon: 'phone'
-      }
-    ]
-  }
-];
+// Define opportunity interface
+interface Opportunity {
+  id: number;
+  leadId?: number;
+  name: string;
+  stage: string;
+  probability: number;
+  value: number;
+  estimated_close_date: string;
+  description?: string;
+  next_steps?: string;
+  lead_info?: {
+    company: {
+      name: string;
+      industry: string;
+      location: string;
+      employee_count?: number;
+    };
+    contact: {
+      first_name: string;
+      last_name: string;
+      email: string;
+      phone?: string;
+      position?: string;
+    };
+  };
+}
 
 const stages = [
   { id: 'proposal', label: 'Proposal', color: 'bg-orange-500', headerColor: 'bg-orange-50', probability: 65 },
@@ -321,11 +118,14 @@ function OpportunityCard({ opportunity, onEdit, onSendProposal, onViewHistory, o
     switch (stageId) {
       case 'proposal': return 'outline';
       case 'negotiation': return 'secondary';
-      case 'closed-won': return 'default';
-      case 'closed-lost': return 'destructive';
+      case 'closed_won': return 'default';
+      case 'closed_lost': return 'destructive';
       default: return 'outline';
     }
   };
+
+  const company = opportunity.lead_info?.company || { name: 'Unknown Company' };
+  const contact = opportunity.lead_info?.contact || { first_name: 'Unknown', last_name: 'Contact' };
 
   return (
     <div
@@ -342,8 +142,8 @@ function OpportunityCard({ opportunity, onEdit, onSendProposal, onViewHistory, o
             <Building2 className="h-5 w-5 text-blue-600" />
           </div>
           <div>
-            <h4 className="font-semibold text-base">{opportunity.company}</h4>
-            <p className="text-sm text-muted-foreground">{opportunity.contact}</p>
+            <h4 className="font-semibold text-base">{company.name}</h4>
+            <p className="text-sm text-muted-foreground">{contact.first_name} {contact.last_name}</p>
           </div>
         </div>
         <Badge variant={getStageColor(opportunity.stage)} className="text-xs">
@@ -355,50 +155,36 @@ function OpportunityCard({ opportunity, onEdit, onSendProposal, onViewHistory, o
       <div className="mb-3">
         <div className="flex items-center gap-2 mb-1">
           <DollarSign className="h-4 w-4 text-muted-foreground" />
-          <span className="font-semibold text-lg">${(opportunity.dealValue / 1000).toFixed(0)}K</span>
+          <span className="font-semibold text-lg">${(opportunity.value / 1000).toFixed(0)}K</span>
         </div>
         <div className="flex items-center gap-2">
           <Calendar className="h-4 w-4 text-muted-foreground" />
-          <span className="text-sm text-muted-foreground">Close: {opportunity.expectedCloseDate}</span>
+          <span className="text-sm text-muted-foreground">Close: {new Date(opportunity.estimated_close_date).toLocaleDateString()}</span>
         </div>
       </div>
 
-      {/* Tags */}
-      {opportunity.tags && opportunity.tags.length > 0 && (
-        <div className="flex flex-wrap gap-1 mb-3">
-          {opportunity.tags.slice(0, 2).map((tag: string) => (
-            <span key={tag} className="px-2 py-1 bg-gray-100 text-xs rounded">
-              {tag}
-            </span>
-          ))}
-          {opportunity.tags.length > 2 && (
-            <span className="px-2 py-1 bg-gray-100 text-xs rounded">
-              +{opportunity.tags.length - 2}
-            </span>
-          )}
+      {/* Next Steps */}
+      {opportunity.next_steps && (
+        <div className="mb-3 p-2 bg-blue-50 border border-blue-200 rounded">
+          <div className="flex items-start gap-2">
+            <Target className="h-3 w-3 text-blue-600 mt-0.5 flex-shrink-0" />
+            <p className="text-xs text-blue-800 line-clamp-2">
+              {opportunity.next_steps}
+            </p>
+          </div>
         </div>
       )}
-
-      {/* Next Action */}
-      <div className="mb-3 p-2 bg-blue-50 border border-blue-200 rounded">
-        <div className="flex items-start gap-2">
-          <Target className="h-3 w-3 text-blue-600 mt-0.5 flex-shrink-0" />
-          <p className="text-xs text-blue-800 line-clamp-2">
-            {opportunity.nextAction}
-          </p>
-        </div>
-      </div>
 
       {/* Footer */}
       <div className="flex items-center justify-between pt-2 border-t border-gray-100">
         <div className="flex items-center gap-2">
           <User className="h-3 w-3 text-muted-foreground" />
-          <span className="text-xs text-muted-foreground">{opportunity.owner}</span>
+          <span className="text-xs text-muted-foreground">Current User</span>
         </div>
         <div className="flex items-center gap-1">
           <Clock className="h-3 w-3 text-muted-foreground" />
           <span className="text-xs text-muted-foreground">
-            {opportunity.lastActivity}
+            {new Date(opportunity.updated_at || opportunity.created_at).toLocaleDateString()}
           </span>
         </div>
       </div>
@@ -516,13 +302,15 @@ function PipelineColumn({ stage, opportunities, onDrop, onEdit, onSendProposal, 
 }
 
 export function Opportunities({ initialFilters, onNavigate }: OpportunitiesProps) {
-  const [opportunities, setOpportunities] = useState(opportunitiesData);
+  const { getOpportunities, getOpportunityPipeline, updateOpportunityStage } = useLeadApi();
+  const [opportunities, setOpportunities] = useState<Opportunity[]>([]);
   const [successMessage, setSuccessMessage] = useState('');
-  const [selectedOpportunity, setSelectedOpportunity] = useState(null);
+  const [selectedOpportunity, setSelectedOpportunity] = useState<any>(null);
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [showActivityDialog, setShowActivityDialog] = useState(false);
   const [showHistoryDialog, setShowHistoryDialog] = useState(false);
   const [currentView, setCurrentView] = useState('list');
+  const [isLoading, setIsLoading] = useState(true);
   const [filters, setFilters] = useState({
     stage: 'all',
     owner: 'all',
@@ -555,53 +343,59 @@ export function Opportunities({ initialFilters, onNavigate }: OpportunitiesProps
     deliveryMethod: 'email'
   });
 
+  // Fetch opportunities data on component mount
+  useEffect(() => {
+    const fetchOpportunities = async () => {
+      setIsLoading(true);
+      try {
+        const data = await getOpportunities(filters);
+        setOpportunities(data);
+      } catch (error) {
+        console.error('Error fetching opportunities:', error);
+        toast.error('Failed to fetch opportunities. Please try again.');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchOpportunities();
+  }, [getOpportunities, filters]);
+
   // Handle new opportunity from leads
   useEffect(() => {
     if (initialFilters?.newOpportunity) {
       const newOpportunity = {
         id: initialFilters.newOpportunity.id || Math.max(...opportunities.map(o => o.id), 0) + 1,
         leadId: initialFilters.newOpportunity.leadId || null,
-        company: initialFilters.newOpportunity.company || 'Unknown Company',
-        contact: initialFilters.newOpportunity.contact || 'Unknown Contact',
-        title: initialFilters.newOpportunity.title || 'Contact',
-        email: initialFilters.newOpportunity.email || 'unknown@email.com',
-        phone: initialFilters.newOpportunity.phone || 'N/A',
-        industry: initialFilters.newOpportunity.industry || 'Unknown',
-        employees: initialFilters.newOpportunity.employees || 0,
-        revenue: initialFilters.newOpportunity.revenue || '$0',
-        location: initialFilters.newOpportunity.location || 'Unknown Location',
-        source: initialFilters.newOpportunity.source || 'Lead Conversion',
-        travelBudget: initialFilters.newOpportunity.travelBudget || '$0K',
-        decisionMaker: initialFilters.newOpportunity.decisionMaker || true,
-        tags: initialFilters.newOpportunity.tags || ['Lead Conversion', 'High-Priority'],
-        notes: initialFilters.newOpportunity.description || initialFilters.newOpportunity.notes || 'Converted from qualified lead',
+        name: `${initialFilters.newOpportunity.company || 'Unknown Company'} - Corporate Travel Solution`,
         stage: initialFilters.newOpportunity.stage || 'proposal',
         probability: initialFilters.newOpportunity.probability || 65,
-        dealValue: initialFilters.newOpportunity.value || initialFilters.newOpportunity.dealValue || 250000,
-        expectedCloseDate: initialFilters.newOpportunity.estimated_close_date || initialFilters.newOpportunity.expectedCloseDate || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-        createdDate: initialFilters.newOpportunity.created_at ? new Date(initialFilters.newOpportunity.created_at).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
-        lastActivity: new Date().toISOString().split('T')[0],
-        nextAction: initialFilters.newOpportunity.next_steps || 'Send initial proposal and schedule presentation',
-        owner: initialFilters.newOpportunity.owner || 'Current User',
-        activities: [
-          {
-            id: 1,
-            type: 'conversion',
-            action: 'Converted from qualified lead',
-            date: new Date().toISOString().split('T')[0],
-            description: 'Lead successfully converted to sales opportunity',
-            user: 'Current User',
-            timestamp: new Date().toISOString(),
-            icon: 'trending-up'
+        value: initialFilters.newOpportunity.value || initialFilters.newOpportunity.dealValue || 250000,
+        estimated_close_date: initialFilters.newOpportunity.estimated_close_date || initialFilters.newOpportunity.expectedCloseDate || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        description: initialFilters.newOpportunity.description || initialFilters.newOpportunity.notes || 'Converted from qualified lead',
+        next_steps: initialFilters.newOpportunity.next_steps || 'Send initial proposal and schedule presentation',
+        lead_info: {
+          company: {
+            name: initialFilters.newOpportunity.company || 'Unknown Company',
+            industry: initialFilters.newOpportunity.industry || 'Unknown',
+            location: initialFilters.newOpportunity.location || 'Unknown Location',
+            employee_count: initialFilters.newOpportunity.employees || 0
+          },
+          contact: {
+            first_name: initialFilters.newOpportunity.contact?.split(' ')[0] || 'Unknown',
+            last_name: initialFilters.newOpportunity.contact?.split(' ').slice(1).join(' ') || 'Contact',
+            email: initialFilters.newOpportunity.email || 'unknown@email.com',
+            phone: initialFilters.newOpportunity.phone || 'N/A',
+            position: initialFilters.newOpportunity.title || 'Contact'
           }
-        ]
+        }
       };
 
       setOpportunities(prev => [newOpportunity, ...prev]);
-      setSuccessMessage(initialFilters.message || `${newOpportunity.company} has been converted to an opportunity`);
+      setSuccessMessage(initialFilters.message || `${newOpportunity.lead_info.company.name} has been converted to an opportunity`);
       setTimeout(() => setSuccessMessage(''), 5000);
     }
-  }, [initialFilters]);
+  }, [initialFilters, opportunities]);
 
   const getStageInfo = (stageId: string) => {
     return stages.find(s => s.id === stageId) || stages[0];
@@ -835,37 +629,33 @@ export function Opportunities({ initialFilters, onNavigate }: OpportunitiesProps
   }));
 
   // Drag and Drop Handler
-  const handleDrop = useCallback((opportunityId: string, newStage: string) => {
-    setOpportunities(prevOpportunities =>
-      prevOpportunities.map(opportunity =>
-        opportunity.id === parseInt(opportunityId)
-          ? { 
-              ...opportunity, 
-              stage: newStage,
-              lastActivity: new Date().toISOString().split('T')[0],
-              activities: [
-                ...opportunity.activities,
-                {
-                  id: opportunity.activities.length + 1,
-                  type: 'stage_change',
-                  action: `Moved to ${stages.find(s => s.id === newStage)?.label} stage`,
-                  date: new Date().toISOString().split('T')[0],
-                  description: `Opportunity moved to ${stages.find(s => s.id === newStage)?.label} stage via drag & drop`,
-                  user: 'Current User',
-                  timestamp: new Date().toISOString().split('T')[0] + ' ' + new Date().toTimeString().split(' ')[0],
-                  icon: 'arrowright'
-                }
-              ]
-            }
-          : opportunity
-      )
-    );
-    
-    const stageName = stages.find(s => s.id === newStage)?.label;
-    const oppName = opportunities.find(o => o.id === parseInt(opportunityId))?.company;
-    setSuccessMessage(`${oppName} moved to ${stageName} stage`);
-    setTimeout(() => setSuccessMessage(''), 5000);
-  }, [opportunities, stages]);
+  const handleDrop = useCallback(async (opportunityId: string, newStage: string) => {
+    try {
+      // Update via API
+      await updateOpportunityStage(parseInt(opportunityId), { stage: newStage });
+      
+      // Update local state
+      setOpportunities(prevOpportunities =>
+        prevOpportunities.map(opportunity =>
+          opportunity.id === parseInt(opportunityId)
+            ? { 
+                ...opportunity, 
+                stage: newStage,
+                updated_at: new Date().toISOString()
+              }
+            : opportunity
+        )
+      );
+      
+      const stageName = stages.find(s => s.id === newStage)?.label;
+      const oppName = opportunities.find(o => o.id === parseInt(opportunityId))?.lead_info?.company?.name || 'Opportunity';
+      setSuccessMessage(`${oppName} moved to ${stageName} stage`);
+      setTimeout(() => setSuccessMessage(''), 5000);
+    } catch (error) {
+      console.error('Error updating opportunity stage:', error);
+      toast.error('Failed to update opportunity stage. Please try again.');
+    }
+  }, [opportunities, stages, updateOpportunityStage]);
 
   const getOpportunitiesForStage = (stageId: string) => {
     return filteredOpportunities.filter(opportunity => opportunity.stage === stageId);
@@ -1012,59 +802,91 @@ export function Opportunities({ initialFilters, onNavigate }: OpportunitiesProps
 
         {/* Opportunities List */}
         <TabsContent value="list" className="space-y-4">
-        {filteredOpportunities.map((opportunity) => {
-          const stageInfo = getStageInfo(opportunity.stage);
-          
-          return (
-            <Card key={opportunity.id} className="hover:shadow-md transition-shadow" style={{ boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)' }}>
+        {isLoading ? (
+          // Loading skeleton
+          Array.from({ length: 3 }).map((_, index) => (
+            <Card key={index} className="animate-pulse">
               <CardContent className="p-6">
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex items-center gap-4">
-                    <div className="flex items-center justify-center w-12 h-12 bg-blue-100 rounded-lg">
-                      <Building2 className="h-6 w-6 text-blue-600" />
-                    </div>
+                    <div className="w-12 h-12 bg-gray-200 rounded-lg"></div>
                     <div>
-                      <div className="flex items-center gap-2 mb-1">
-                        <h3 className="font-semibold text-lg">{opportunity.company}</h3>
-                        <Badge variant={getStageColor(opportunity.stage)}>
-                          {stageInfo.label}
-                        </Badge>
-                        {opportunity.decisionMaker && (
-                          <Badge variant="outline" className="text-xs">
-                            <Star className="h-3 w-3 mr-1" />
-                            Decision Maker
-                          </Badge>
-                        )}
-                      </div>
-                      <p className="font-medium">{opportunity.contact} • {opportunity.title}</p>
-                      <div className="flex items-center gap-4 text-sm text-muted-foreground mt-1">
-                        <span className="flex items-center gap-1">
-                          <Mail className="h-3 w-3" />
-                          {opportunity.email}
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <Phone className="h-3 w-3" />
-                          {opportunity.phone}
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <Globe className="h-3 w-3" />
-                          {opportunity.location}
-                        </span>
-                      </div>
+                      <div className="h-5 bg-gray-200 rounded w-40 mb-2"></div>
+                      <div className="h-4 bg-gray-200 rounded w-32 mb-2"></div>
+                      <div className="h-3 bg-gray-200 rounded w-48"></div>
                     </div>
                   </div>
-                  <div className="text-right space-y-2">
-                    <div className="text-lg font-bold text-green-600">
-                      ${(opportunity.dealValue / 1000).toFixed(0)}K
-                    </div>
-                    <div className="text-sm text-muted-foreground">
-                      {opportunity.probability}% probability
-                    </div>
-                    <div className="text-xs text-muted-foreground">
-                      Close: {new Date(opportunity.expectedCloseDate).toLocaleDateString()}
-                    </div>
+                  <div className="text-right">
+                    <div className="h-6 bg-gray-200 rounded w-20 mb-2"></div>
+                    <div className="h-4 bg-gray-200 rounded w-16 mb-2"></div>
+                    <div className="h-3 bg-gray-200 rounded w-24"></div>
                   </div>
                 </div>
+              </CardContent>
+            </Card>
+          ))
+        ) : filteredOpportunities.length === 0 ? (
+          <Card>
+            <CardContent className="p-12 text-center">
+              <Target className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+              <h3 className="text-lg font-medium mb-2">No Opportunities Found</h3>
+              <p className="text-gray-600">No opportunities match your current filters.</p>
+            </CardContent>
+          </Card>
+        ) : (
+          filteredOpportunities.map((opportunity) => {
+            const stageInfo = getStageInfo(opportunity.stage);
+            const company = opportunity.lead_info?.company || { name: 'Unknown Company', industry: 'Unknown', location: 'Unknown' };
+            const contact = opportunity.lead_info?.contact || { first_name: 'Unknown', last_name: 'Contact', email: '', phone: '', position: '' };
+            
+            return (
+              <Card key={opportunity.id} className="hover:shadow-md transition-shadow" style={{ boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)' }}>
+                <CardContent className="p-6">
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="flex items-center gap-4">
+                      <div className="flex items-center justify-center w-12 h-12 bg-blue-100 rounded-lg">
+                        <Building2 className="h-6 w-6 text-blue-600" />
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2 mb-1">
+                          <h3 className="font-semibold text-lg">{company.name}</h3>
+                          <Badge variant={getStageColor(opportunity.stage)}>
+                            {stageInfo.label}
+                          </Badge>
+                        </div>
+                        <p className="font-medium">{contact.first_name} {contact.last_name} • {contact.position}</p>
+                        <div className="flex items-center gap-4 text-sm text-muted-foreground mt-1">
+                          {contact.email && (
+                            <span className="flex items-center gap-1">
+                              <Mail className="h-3 w-3" />
+                              {contact.email}
+                            </span>
+                          )}
+                          {contact.phone && (
+                            <span className="flex items-center gap-1">
+                              <Phone className="h-3 w-3" />
+                              {contact.phone}
+                            </span>
+                          )}
+                          <span className="flex items-center gap-1">
+                            <Globe className="h-3 w-3" />
+                            {company.location}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="text-right space-y-2">
+                      <div className="text-lg font-bold text-green-600">
+                        ${(opportunity.value / 1000).toFixed(0)}K
+                      </div>
+                      <div className="text-sm text-muted-foreground">
+                        {opportunity.probability}% probability
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        Close: {new Date(opportunity.estimated_close_date).toLocaleDateString()}
+                      </div>
+                    </div>
+                  </div>
 
                 <div className="mb-4">
                   <div className="flex items-center justify-between mb-2">
