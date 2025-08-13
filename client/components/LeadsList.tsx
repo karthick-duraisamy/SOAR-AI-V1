@@ -1074,30 +1074,30 @@ SOAR-AI Team`,
       setTimeout(() => setSuccessMessage(''), 5000);
 
       // Navigate to opportunities page with the new opportunity data
-      if (onNavigate) {
-        onNavigate('opportunities', { 
-          newOpportunity: {
-            ...response.opportunity,
-            leadId: response.lead_id,
-            company: lead.company,
-            contact: lead.contact,
-            title: lead.title,
-            email: lead.email,
-            phone: lead.phone,
-            industry: lead.industry,
-            employees: typeof lead.employees === 'number' ? lead.employees : parseInt(lead.employees as string) || 0,
-            revenue: lead.revenue,
-            location: lead.location,
-            source: lead.source,
-            travelBudget: lead.travelBudget,
-            decisionMaker: lead.decisionMaker,
-            tags: lead.tags || [lead.industry, 'Qualified Lead'],
-            owner: lead.assignedAgent || 'Current User'
-          },
-          message: response.message || `${lead.company} has been converted to a sales opportunity`
-        });
-      }
-
+      // if (onNavigate) {
+      //   onNavigate('opportunities', { 
+      //     newOpportunity: {
+      //       ...response.opportunity,
+      //       leadId: response.lead_id,
+      //       company: lead.company,
+      //       contact: lead.contact,
+      //       title: lead.title,
+      //       email: lead.email,
+      //       phone: lead.phone,
+      //       industry: lead.industry,
+      //       employees: typeof lead.employees === 'number' ? lead.employees : parseInt(lead.employees as string) || 0,
+      //       revenue: lead.revenue,
+      //       location: lead.location,
+      //       source: lead.source,
+      //       travelBudget: lead.travelBudget,
+      //       decisionMaker: lead.decisionMaker,
+      //       tags: lead.tags || [lead.industry, 'Qualified Lead'],
+      //       owner: lead.assignedAgent || 'Current User'
+      //     },
+      //     message: response.message || `${lead.company} has been converted to a sales opportunity`
+      //   });
+      // }
+      await fetchLeads();
       toast.success(`${lead.company} moved to opportunities successfully!`);
 
     } catch (error) {
