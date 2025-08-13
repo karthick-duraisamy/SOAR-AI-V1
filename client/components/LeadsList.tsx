@@ -395,23 +395,44 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
       
       // Apply current filters when fetching
       const filterParams = {
-        search: filters.search,
+        search: filters.search || '',
         status: filters.status !== 'all' ? filters.status : '',
         industry: filters.industry !== 'all' ? filters.industry : '',
         score: filters.score !== 'all' ? filters.score : '',
         engagement: filters.engagement !== 'all' ? filters.engagement : ''
       };
 
+      console.log('Fetching leads with filters:', filterParams);
       const apiResponse = await leadApi.getLeads(filterParams);
-      const apiLeads = Array.isArray(apiResponse) ? apiResponse : [];
-      console.log('Fetched leads:', apiLeads);
+      console.log('Raw API response:', apiResponse);
+      
+      // Handle different response formats
+      let apiLeads = [];
+      if (Array.isArray(apiResponse)) {
+        apiLeads = apiResponse;
+      } else if (apiResponse && Array.isArray(apiResponse.results)) {
+        apiLeads = apiResponse.results;
+      } else if (apiResponse && apiResponse.data && Array.isArray(apiResponse.data)) {
+        apiLeads = apiResponse.data;
+      } else {
+        console.warn('Unexpected API response format:', apiResponse);
+        apiLeads = [];
+      }
+
+      console.log('Processed leads array:', apiLeads);
 
       // Transform leads - history_entries are not included here as they are fetched on demand
-      const transformedLeads = apiLeads.map((apiLead: any) => transformApiLeadToUILead(apiLead));
+      const transformedLeads = apiLeads.map((apiLead: any) => {
+        console.log('Transforming lead:', apiLead);
+        return transformApiLeadToUILead(apiLead);
+      });
+      
+      console.log('Final transformed leads:', transformedLeads);
       setLeads(transformedLeads);
 
     } catch (error) {
       console.error('Error fetching leads:', error);
+      console.error('Error details:', error.response?.data);
       toast.error('Failed to fetch leads from server');
       // Set empty array on error to avoid showing static data
       setLeads([]);
@@ -421,8 +442,11 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
   };
 
   useEffect(() => {
+    // Always fetch leads on component mount
     fetchLeads();
+  }, []); // Empty dependency array for initial mount
 
+  useEffect(() => {
     if (initialFilters) {
       setFilters(prev => ({
         ...prev,
@@ -479,7 +503,7 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
         setTimeout(() => setSuccessMessage(''), 5000);
       }
     }
-  }, [initialFilters]); // Dependency array includes initialFilters
+  }, [initialFilters, leads]); // Dependency array includes initialFilters and leads for newLead logic
 
   // Refetch data when filters change (with debouncing)
   useEffect(() => {
