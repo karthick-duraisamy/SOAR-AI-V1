@@ -395,6 +395,26 @@ export const useLeadApi = () => {
     }
   }, [setLoading, setError, setData]);
 
+  // Get top leads
+  const getTopLeads = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const response: AxiosResponse<any> = await axios.get(
+        `${API_BASE_URL}/leads/top-leads/`
+      );
+      setData(response.data);
+      return response.data;
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.detail || error.message || 'Failed to fetch top leads';
+      setError(errorMessage);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  }, [setLoading, setError, setData]);
+
 
   return {
     ...state,
@@ -412,5 +432,6 @@ export const useLeadApi = () => {
     getLeadStats,
     getRecentActivity,
     sendMessage,
+    getTopLeads,
   };
 };
