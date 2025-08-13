@@ -679,11 +679,11 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
 
       console.log('Creating lead with data:', leadData);
 
-      const createdLead = await leadApi.createLead(leadData);
+      // const createdLead = await leadApi.createLead(leadData);
 
-      console.log('Lead created successfully:', createdLead);
+      // console.log('Lead created successfully:', createdLead);
 
-      await fetchLeads(); // Refresh leads list to show the new lead
+      // await fetchLeads(); // Refresh leads list to show the new lead
 
       setShowNewCompanyDialog(false); // Close the dialog
       setSuccessMessage(`New lead "${newCompanyForm.name}" has been created successfully!`);
@@ -770,7 +770,7 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
 
       console.log('Sending company data:', companyData);
 
-      const savedCompany = await companyApi.createCompany(companyData);
+      // const savedCompany = await companyApi.createCompany(companyData);
 
       // Reset form
       setNewCompany({
@@ -805,9 +805,11 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
 
       // Refresh the companies list to show the new company
       try {
-        const companies = await companyApi.searchCompanies(searchParams);
-        const transformedCompanies = companies.map(transformCompanyData);
-        setFilteredCorporates(transformedCompanies);
+        const createdLead = await leadApi.createLead(companyData);
+
+        console.log('Lead created successfully:', createdLead);
+
+        await fetchLeads(); 
       } catch (refreshError) {
         console.error('Error refreshing companies list:', refreshError);
       }
@@ -2688,7 +2690,7 @@ SOAR-AI Team`,
               ) : (
                 <>
                   <Save className="h-4 w-4 mr-2" />
-                  Add Company
+                  Add Lead
                 </>
               )}
             </Button>

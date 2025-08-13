@@ -984,7 +984,7 @@ export function Opportunities({ initialFilters, onNavigate }: OpportunitiesProps
               </CardContent>
             </Card>
           );
-        })}
+        )})
         </TabsContent>
 
         {/* Pipeline View - Drag & Drop Kanban Board */}
