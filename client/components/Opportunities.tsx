@@ -923,7 +923,7 @@ export function Opportunities({ initialFilters, onNavigate }: OpportunitiesProps
                       <span className="font-medium">Next Action:</span> {opportunity.nextAction}
                     </div>
                     <div className="flex flex-wrap gap-1">
-                      {opportunity.tags.map((tag, index) => (
+                      {opportunity?.tags && opportunity?.tags.map((tag, index) => (
                         <Badge key={index} variant="outline" className="text-xs">
                           {tag}
                         </Badge>
