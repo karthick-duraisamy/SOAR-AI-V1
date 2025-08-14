@@ -1238,7 +1238,7 @@ def lead_pipeline_stats(request):
         )
 
 @csrf_exempt
-@api_view(['GET', 'POST'])
+@api_view(['POST'])
 @permission_classes([AllowAny])
 def lead_stats(request):
     """Get comprehensive lead statistics for dashboard"""
@@ -1405,7 +1405,7 @@ def lead_stats(request):
         )
 
 @csrf_exempt
-@api_view(['GET', 'POST'])
+@api_view(['GET'])
 @permission_classes([AllowAny])
 def recent_activity(request):
     """Get recent lead activity"""
@@ -1459,7 +1459,7 @@ def recent_activity(request):
         )
 
 @csrf_exempt
-@api_view(['GET', 'POST'])
+@api_view(['GET'])
 @permission_classes([AllowAny])
 def top_leads(request):
     """Get top qualified leads for dashboard"""

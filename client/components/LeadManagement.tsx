@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
@@ -36,14 +37,13 @@ import {
   Brain,
   Globe,
   Building2,
-  DollarSign
+  DollarSign,
+  ExternalLink
 } from 'lucide-react';
 
 interface LeadManagementProps {
   onNavigate: (screen: string, filters?: any) => void;
 }
-
-// Removed static data: leadStats, recentActivity, topLeads
 
 export function LeadManagement({ onNavigate }: LeadManagementProps) {
   const [activeTab, setActiveTab] = useState('overview');
@@ -57,12 +57,15 @@ export function LeadManagement({ onNavigate }: LeadManagementProps) {
     const fetchData = async () => {
       setIsLoading(true);
       try {
+        // Fetch lead statistics
         const stats = await getLeadStats('all_time');
         setLeadStats(stats);
 
+        // Fetch recent activity
         const activity = await getRecentActivity();
         setRecentActivity(activity);
 
+        // Fetch top qualified leads
         const leads = await getTopLeads();
         setTopLeads(leads);
       } catch (error) {
@@ -79,20 +82,10 @@ export function LeadManagement({ onNavigate }: LeadManagementProps) {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'qualified': return 'default';
-      case 'in-progress': return 'secondary';
+      case 'contacted': return 'secondary';
       case 'responded': return 'outline';
       case 'unqualified': return 'destructive';
       default: return 'outline';
-    }
-  };
-
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'qualified': return CheckCircle;
-      case 'in-progress': return Clock;
-      case 'responded': return MessageSquare;
-      case 'unqualified': return UserX;
-      default: return Users;
     }
   };
 
@@ -117,20 +110,20 @@ export function LeadManagement({ onNavigate }: LeadManagementProps) {
 
   // Helper to render skeleton loaders
   const renderKeyMetricSkeleton = () => (
-    <Card>
+    <Card className="bg-white border border-gray-100 shadow-sm">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <Skeleton className="h-4 w-1/2" />
         <Skeleton className="h-4 w-4" />
       </CardHeader>
       <CardContent>
-        <Skeleton className="h-6 w-1/3 mb-1" />
+        <Skeleton className="h-8 w-1/3 mb-1" />
         <Skeleton className="h-3 w-1/2" />
       </CardContent>
     </Card>
   );
 
   const renderActivitySkeleton = () => (
-    <div className="flex items-start gap-3 p-3 border border-gray-100 rounded-lg">
+    <div className="flex items-start gap-3 p-3 border border-gray-100 rounded-lg bg-white">
       <Skeleton className="w-4 h-4 rounded-full mt-0.5" />
       <div className="flex-1 space-y-2">
         <div className="flex items-start justify-between gap-2">
@@ -149,7 +142,7 @@ export function LeadManagement({ onNavigate }: LeadManagementProps) {
   );
 
   const renderTopLeadSkeleton = () => (
-    <div className="flex items-center justify-between p-4 border rounded-lg">
+    <div className="flex items-center justify-between p-4 border rounded-lg bg-white border-gray-100">
       <div className="flex items-center gap-4">
         <Skeleton className="flex items-center justify-center w-10 h-10 rounded-lg" />
         <div>
@@ -179,29 +172,28 @@ export function LeadManagement({ onNavigate }: LeadManagementProps) {
     </div>
   );
 
-
   return (
-    <div className="space-y-6 p-5">
-      {/* Header */}
-      <div className="flex items-center justify-between">
+    <div className="min-h-screen bg-gray-50/30 p-6">
+      {/* Header Section */}
+      <div className="flex items-center justify-between mb-6">
         <div>
-          <h2 className="text-2xl font-bold">Lead Management</h2>
-          <p className="text-muted-foreground">Manage qualified and unqualified leads with automated email campaigns</p>
+          <h1 className="text-2xl font-bold text-gray-900">Lead Management</h1>
+          <p className="text-gray-600 mt-1">Manage qualified and unqualified leads with automated email campaigns</p>
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={() => onNavigate('email-campaigns')}>
+        <div className="flex gap-3">
+          <Button variant="outline" className="bg-white border-gray-200 hover:bg-gray-50" onClick={() => onNavigate('email-campaigns')}>
             <Mail className="h-4 w-4 mr-2" />
             Email Campaigns
           </Button>
-          <Button onClick={() => onNavigate('leads-list')}>
+          <Button className="bg-[#FD9646] hover:bg-[#FD9646]/90 text-white" onClick={() => onNavigate('leads-list')}>
             <Users className="h-4 w-4 mr-2" />
             View All Leads
           </Button>
         </div>
       </div>
 
-      {/* Key Metrics */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* Key Metrics Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         {isLoading ? (
           <>
             {renderKeyMetricSkeleton()}
@@ -211,54 +203,70 @@ export function LeadManagement({ onNavigate }: LeadManagementProps) {
           </>
         ) : (
           <>
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Total Leads</CardTitle>
-                <Users className="h-4 w-4 text-muted-foreground" />
+            <Card className="bg-white border border-gray-100 shadow-sm hover:shadow-md transition-shadow duration-300">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+                <div>
+                  <CardTitle className="text-sm font-medium text-gray-600">Total Leads</CardTitle>
+                  <div className="text-3xl font-bold text-gray-900 mt-2">{leadStats?.totalLeads?.toLocaleString() || '0'}</div>
+                </div>
+                <div className="h-12 w-12 bg-blue-50 rounded-lg flex items-center justify-center">
+                  <Users className="h-6 w-6 text-blue-600" />
+                </div>
               </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{leadStats?.totalLeads?.toLocaleString()}</div>
-                <p className="text-xs text-muted-foreground">
-                  <span className="text-green-500">+{leadStats?.totalChange}%</span> from last month
+              <CardContent className="pt-0">
+                <p className="text-sm text-gray-500">
+                  <span className="text-green-500 font-medium">+{leadStats?.totalChange || 0}%</span> from last month
                 </p>
               </CardContent>
             </Card>
 
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Qualified Leads</CardTitle>
-                <UserCheck className="h-4 w-4 text-muted-foreground" />
+            <Card className="bg-white border border-gray-100 shadow-sm hover:shadow-md transition-shadow duration-300">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+                <div>
+                  <CardTitle className="text-sm font-medium text-gray-600">Qualified Leads</CardTitle>
+                  <div className="text-3xl font-bold text-gray-900 mt-2">{leadStats?.qualifiedLeads || '0'}</div>
+                </div>
+                <div className="h-12 w-12 bg-green-50 rounded-lg flex items-center justify-center">
+                  <UserCheck className="h-6 w-6 text-green-600" />
+                </div>
               </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{leadStats?.qualifiedLeads}</div>
-                <p className="text-xs text-muted-foreground">
-                  <span className="text-green-500">+{leadStats?.conversionRate}%</span> conversion rate
+              <CardContent className="pt-0">
+                <p className="text-sm text-gray-500">
+                  <span className="text-green-500 font-medium">+{leadStats?.conversionRate || 0}%</span> conversion rate
                 </p>
               </CardContent>
             </Card>
 
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Email Open Rate</CardTitle>
-                <Mail className="h-4 w-4 text-muted-foreground" />
+            <Card className="bg-white border border-gray-100 shadow-sm hover:shadow-md transition-shadow duration-300">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+                <div>
+                  <CardTitle className="text-sm font-medium text-gray-600">Email Open Rate</CardTitle>
+                  <div className="text-3xl font-bold text-gray-900 mt-2">{leadStats?.emailOpenRate || '0'}%</div>
+                </div>
+                <div className="h-12 w-12 bg-purple-50 rounded-lg flex items-center justify-center">
+                  <Mail className="h-6 w-6 text-purple-600" />
+                </div>
               </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{leadStats?.emailOpenRate}%</div>
-                <p className="text-xs text-muted-foreground">
-                  <span className="text-green-500">+{leadStats?.emailOpenRateChange}%</span> from last campaign
+              <CardContent className="pt-0">
+                <p className="text-sm text-gray-500">
+                  <span className="text-green-500 font-medium">+{leadStats?.emailOpenRateChange || 0}%</span> from last campaign
                 </p>
               </CardContent>
             </Card>
 
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Avg Response Time</CardTitle>
-                <Clock className="h-4 w-4 text-muted-foreground" />
+            <Card className="bg-white border border-gray-100 shadow-sm hover:shadow-md transition-shadow duration-300">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+                <div>
+                  <CardTitle className="text-sm font-medium text-gray-600">Avg Response Time</CardTitle>
+                  <div className="text-3xl font-bold text-gray-900 mt-2">{leadStats?.avgResponseTime || '0'}</div>
+                </div>
+                <div className="h-12 w-12 bg-orange-50 rounded-lg flex items-center justify-center">
+                  <Clock className="h-6 w-6 text-orange-600" />
+                </div>
               </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{leadStats?.avgResponseTime}</div>
-                <p className="text-xs text-muted-foreground">
-                  <span className="text-green-500">{leadStats?.avgResponseTimeChange}</span> improvement
+              <CardContent className="pt-0">
+                <p className="text-sm text-gray-500">
+                  <span className="text-green-500 font-medium">{leadStats?.avgResponseTimeChange || 'No change'}</span> improvement
                 </p>
               </CardContent>
             </Card>
@@ -266,93 +274,124 @@ export function LeadManagement({ onNavigate }: LeadManagementProps) {
         )}
       </div>
 
+      {/* Tabs Navigation */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-4 mb-6 bg-gray-50/50 p-1 rounded-xl border border-gray-200/50">
+        <TabsList className="grid w-full grid-cols-4 mb-8 bg-white border border-gray-200 p-1 rounded-lg">
           <TabsTrigger 
             value="overview"
-            className="rounded-lg px-6 py-3 data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:border-b-2 data-[state=active]:border-[#FD9646] data-[state=active]:border-b-[#FD9646] font-medium text-gray-600 data-[state=active]:text-gray-900 hover:text-gray-900 transition-all duration-200"
+            className="rounded-md px-4 py-2 data-[state=active]:bg-gray-100 data-[state=active]:text-gray-900 font-medium text-gray-600 hover:text-gray-900 transition-all duration-200"
           >
             Overview
           </TabsTrigger>
           <TabsTrigger 
             value="qualified"
-            className="rounded-lg px-6 py-3 data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:border-b-2 data-[state=active]:border-[#FD9646] data-[state=active]:border-b-[#FD9646] font-medium text-gray-600 data-[state=active]:text-gray-900 hover:text-gray-900 transition-all duration-200"
+            className="rounded-md px-4 py-2 data-[state=active]:bg-gray-100 data-[state=active]:text-gray-900 font-medium text-gray-600 hover:text-gray-900 transition-all duration-200"
           >
             Qualified Leads
           </TabsTrigger>
           <TabsTrigger 
             value="unqualified"
-            className="rounded-lg px-6 py-3 data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:border-b-2 data-[state=active]:border-[#FD9646] data-[state=active]:border-b-[#FD9646] font-medium text-gray-600 data-[state=active]:text-gray-900 hover:text-gray-900 transition-all duration-200"
+            className="rounded-md px-4 py-2 data-[state=active]:bg-gray-100 data-[state=active]:text-gray-900 font-medium text-gray-600 hover:text-gray-900 transition-all duration-200"
           >
             Unqualified Leads
           </TabsTrigger>
           <TabsTrigger 
             value="campaigns"
-            className="rounded-lg px-6 py-3 data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:border-b-2 data-[state=active]:border-[#FD9646] data-[state=active]:border-b-[#FD9646] font-medium text-gray-600 data-[state=active]:text-gray-900 hover:text-gray-900 transition-all duration-200"
+            className="rounded-md px-4 py-2 data-[state=active]:bg-gray-100 data-[state=active]:text-gray-900 font-medium text-gray-600 hover:text-gray-900 transition-all duration-200"
           >
             Email Campaigns
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="overview" className="space-y-6">
-          {/* Lead Pipeline Overview */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Target className="h-5 w-5" />
-                  Lead Pipeline
-                </CardTitle>
-                <CardDescription>Current lead distribution and conversion funnel</CardDescription>
+        <TabsContent value="overview" className="space-y-8">
+          {/* Lead Pipeline and Recent Activity */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            {/* Lead Pipeline Card */}
+            <Card className="bg-white border border-gray-100 shadow-sm">
+              <CardHeader className="pb-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle className="flex items-center gap-2 text-lg font-semibold">
+                      <Target className="h-5 w-5 text-gray-700" />
+                      Lead Pipeline
+                    </CardTitle>
+                    <CardDescription className="text-gray-500 mt-1">Current lead distribution and conversion funnel</CardDescription>
+                  </div>
+                </div>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-3">
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm">Total Leads</span>
-                    <span className="font-medium">{leadStats?.totalLeads?.toLocaleString()}</span>
+              <CardContent className="space-y-6">
+                {isLoading ? (
+                  <div className="space-y-4">
+                    <Skeleton className="h-4 w-full" />
+                    <Skeleton className="h-4 w-full" />
+                    <Skeleton className="h-4 w-full" />
+                    <Skeleton className="h-4 w-full" />
                   </div>
-                  <Progress value={leadStats ? (leadStats.contacted / leadStats.totalLeads) * 100 : 0} className="h-2" />
-                </div>
+                ) : (
+                  <>
+                    <div className="space-y-3">
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm font-medium text-gray-700">Total Leads</span>
+                        <span className="font-bold text-lg text-gray-900">{leadStats?.totalLeads?.toLocaleString() || 0}</span>
+                      </div>
+                      <Progress value={100} className="h-3 bg-gray-100" />
+                    </div>
 
-                <div className="space-y-3">
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm">Contacted</span>
-                    <span className="font-medium">{leadStats?.contacted}</span>
-                  </div>
-                  <Progress value={leadStats ? (leadStats.qualifiedLeads / leadStats.totalLeads) * 100 : 0} className="h-2" />
-                </div>
+                    <div className="space-y-3">
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm font-medium text-gray-700">Contacted</span>
+                        <span className="font-bold text-lg text-gray-900">{leadStats?.contacted || 0}</span>
+                      </div>
+                      <Progress 
+                        value={leadStats ? (leadStats.contacted / leadStats.totalLeads) * 100 : 0} 
+                        className="h-3 bg-gray-100"
+                      />
+                    </div>
 
-                <div className="space-y-3">
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm">Qualified</span>
-                    <span className="font-medium">{leadStats?.qualifiedLeads}</span>
-                  </div>
-                  <Progress value={leadStats ? (leadStats.responded / leadStats.totalLeads) * 100 : 0} className="h-2" />
-                </div>
+                    <div className="space-y-3">
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm font-medium text-gray-700">Qualified</span>
+                        <span className="font-bold text-lg text-gray-900">{leadStats?.qualifiedLeads || 0}</span>
+                      </div>
+                      <Progress 
+                        value={leadStats ? (leadStats.qualifiedLeads / leadStats.totalLeads) * 100 : 0} 
+                        className="h-3 bg-gray-100"
+                      />
+                    </div>
 
-                <div className="space-y-3">
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm">Responded</span>
-                    <span className="font-medium">{leadStats?.responded}</span>
-                  </div>
-                  <Progress value={leadStats ? (leadStats.conversionRate / 100) * 100 : 0} className="h-2" />
-                </div>
+                    <div className="space-y-3">
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm font-medium text-gray-700">Responded</span>
+                        <span className="font-bold text-lg text-gray-900">{leadStats?.responded || 0}</span>
+                      </div>
+                      <Progress 
+                        value={leadStats ? (leadStats.responded / leadStats.totalLeads) * 100 : 0} 
+                        className="h-3 bg-gray-100"
+                      />
+                    </div>
+                  </>
+                )}
               </CardContent>
             </Card>
 
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Clock className="h-5 w-5" />
+            {/* Recent Activity Card */}
+            <Card className="bg-white border border-gray-100 shadow-sm">
+              <CardHeader className="pb-4">
+                <CardTitle className="flex items-center gap-2 text-lg font-semibold">
+                  <Activity className="h-5 w-5 text-gray-700" />
                   Recent Activity
                 </CardTitle>
-                <CardDescription>Latest lead interactions and status changes</CardDescription>
+                <CardDescription className="text-gray-500 mt-1">Latest lead interactions and status changes</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
                   {isLoading ? (
                     <>
-                      {[...Array(4)].map((_, index) => renderActivitySkeleton())}
+                      {[...Array(4)].map((_, index) => (
+                        <div key={index}>
+                          {renderActivitySkeleton()}
+                        </div>
+                      ))}
                     </>
                   ) : recentActivity.length === 0 ? (
                     <div className="text-center py-8 text-gray-500">
@@ -360,7 +399,7 @@ export function LeadManagement({ onNavigate }: LeadManagementProps) {
                       <p>No recent activity found</p>
                     </div>
                   ) : (
-                    recentActivity.map((activity) => {
+                    recentActivity.map((activity, index) => {
                       const getActivityIcon = (type: string) => {
                         switch (type) {
                           case 'qualification': return <UserCheck className="h-4 w-4 text-green-500" />;
@@ -373,16 +412,16 @@ export function LeadManagement({ onNavigate }: LeadManagementProps) {
 
                       const getStatusBadge = (status: string) => {
                         switch (status) {
-                          case 'qualified': return <Badge variant="default" className="bg-green-100 text-green-800 hover:bg-green-100">Qualified</Badge>;
-                          case 'unqualified': return <Badge variant="destructive">Unqualified</Badge>;
-                          case 'in-progress': return <Badge variant="secondary">In Progress</Badge>;
-                          case 'responded': return <Badge variant="outline">Responded</Badge>;
-                          default: return <Badge variant="outline">Unknown</Badge>;
+                          case 'qualified': return <Badge className="bg-green-100 text-green-800 hover:bg-green-100 border-0">Qualified</Badge>;
+                          case 'unqualified': return <Badge variant="destructive" className="bg-red-100 text-red-800 hover:bg-red-100">Unqualified</Badge>;
+                          case 'contacted': return <Badge variant="secondary" className="bg-blue-100 text-blue-800 hover:bg-blue-100">Contacted</Badge>;
+                          case 'responded': return <Badge variant="outline" className="border-gray-300">Responded</Badge>;
+                          default: return <Badge variant="outline" className="border-gray-300">Unknown</Badge>;
                         }
                       };
 
                       return (
-                        <div key={activity.id} className="flex items-start gap-3 p-3 border border-gray-100 rounded-lg hover:bg-gray-50 transition-colors">
+                        <div key={index} className="flex items-start gap-3 p-3 border border-gray-100 rounded-lg hover:bg-gray-50 transition-colors">
                           <div className="flex-shrink-0 mt-0.5">
                             {getActivityIcon(activity.type)}
                           </div>
@@ -412,18 +451,18 @@ export function LeadManagement({ onNavigate }: LeadManagementProps) {
             </Card>
           </div>
 
-          {/* Top Qualified Leads */}
-          <Card>
-            <CardHeader>
+          {/* Top Qualified Leads Section */}
+          <Card className="bg-white border border-gray-100 shadow-sm">
+            <CardHeader className="pb-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <CardTitle className="flex items-center gap-2">
-                    <Star className="h-5 w-5" />
+                  <CardTitle className="flex items-center gap-2 text-lg font-semibold">
+                    <Star className="h-5 w-5 text-gray-700" />
                     Top Qualified Leads
                   </CardTitle>
-                  <CardDescription>High-priority leads requiring immediate attention</CardDescription>
+                  <CardDescription className="text-gray-500 mt-1">High-priority leads requiring immediate attention</CardDescription>
                 </div>
-                <Button variant="outline" onClick={() => onNavigate('qualified-leads')}>
+                <Button variant="outline" className="bg-white border-gray-200 hover:bg-gray-50" onClick={() => onNavigate('qualified-leads')}>
                   <Eye className="h-4 w-4 mr-2" />
                   View All
                 </Button>
@@ -433,33 +472,37 @@ export function LeadManagement({ onNavigate }: LeadManagementProps) {
               <div className="space-y-4">
                 {isLoading ? (
                   <>
-                    {[...Array(3)].map((_, index) => renderTopLeadSkeleton())}
+                    {[...Array(3)].map((_, index) => (
+                      <div key={index}>
+                        {renderTopLeadSkeleton()}
+                      </div>
+                    ))}
                   </>
                 ) : topLeads.length === 0 ? (
                   <div className="text-center py-8 text-gray-500">
                     <Users className="h-12 w-12 mx-auto mb-4 text-gray-300" />
-                    <p>No top leads found</p>
+                    <p>No qualified leads found</p>
                   </div>
                 ) : (
                   topLeads.map((lead) => (
-                    <div key={lead.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors">
+                    <div key={lead.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors border-gray-100">
                       <div className="flex items-center gap-4">
                         <div className="flex items-center justify-center w-10 h-10 bg-blue-100 rounded-lg">
                           <Building2 className="h-5 w-5 text-blue-600" />
                         </div>
                         <div>
                           <div className="flex items-center gap-2">
-                            <h4 className="font-medium">{lead.company}</h4>
-                            <Badge variant={getStatusColor(lead.status)}>
+                            <h4 className="font-medium text-gray-900">{lead.company}</h4>
+                            <Badge variant={getStatusColor(lead.status)} className="text-xs">
                               {lead.status}
                             </Badge>
                           </div>
-                          <p className="text-sm text-muted-foreground">
+                          <p className="text-sm text-gray-600">
                             {lead.contact} • {lead.title}
                           </p>
-                          <div className="flex items-center gap-4 mt-1 text-xs text-muted-foreground">
+                          <div className="flex items-center gap-4 mt-1 text-xs text-gray-500">
                             <span>{lead.industry}</span>
-                            <span>{lead.employees.toLocaleString()} employees</span>
+                            <span>{lead.employees?.toLocaleString()} employees</span>
                             <span className={`font-medium ${getEngagementColor(lead.engagement)}`}>
                               {lead.engagement} engagement
                             </span>
@@ -468,14 +511,14 @@ export function LeadManagement({ onNavigate }: LeadManagementProps) {
                       </div>
                       <div className="flex items-center gap-4">
                         <div className="text-right">
-                          <div className="font-medium text-green-500">{lead.value}</div>
-                          <div className="text-sm text-muted-foreground">Score: {lead.score}</div>
+                          <div className="font-medium text-green-600">{lead.value}</div>
+                          <div className="text-sm text-gray-500">Score: {lead.score}</div>
                         </div>
                         <div className="text-right">
-                          <div className="text-sm font-medium">{lead.nextAction}</div>
-                          <div className="text-xs text-muted-foreground">Last: {lead.lastContact}</div>
+                          <div className="text-sm font-medium text-gray-700">{lead.nextAction}</div>
+                          <div className="text-xs text-gray-500">Last: {lead.lastContact}</div>
                         </div>
-                        <Button size="sm" variant="outline">
+                        <Button size="sm" variant="outline" className="hover:bg-gray-50">
                           <ArrowRight className="h-4 w-4" />
                         </Button>
                       </div>
@@ -486,48 +529,48 @@ export function LeadManagement({ onNavigate }: LeadManagementProps) {
             </CardContent>
           </Card>
 
-          {/* Quick Actions */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => onNavigate('qualified-leads')}>
+          {/* Quick Actions Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <Card className="cursor-pointer hover:shadow-lg transition-all duration-300 bg-green-50 border-green-200" onClick={() => onNavigate('qualified-leads')}>
               <CardContent className="p-6 text-center">
-                <UserCheck className="h-8 w-8 mx-auto mb-2 text-green-500" />
-                <h3 className="font-medium">Qualified Leads</h3>
-                <p className="text-sm text-muted-foreground mt-1">Manage high-potential prospects</p>
+                <UserCheck className="h-8 w-8 mx-auto mb-3 text-green-600" />
+                <h3 className="font-semibold text-gray-900">Qualified Leads</h3>
+                <p className="text-sm text-gray-600 mt-2">Manage high-potential prospects</p>
               </CardContent>
             </Card>
 
-            <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => onNavigate('unqualified-leads')}>
+            <Card className="cursor-pointer hover:shadow-lg transition-all duration-300 bg-red-50 border-red-200" onClick={() => onNavigate('unqualified-leads')}>
               <CardContent className="p-6 text-center">
-                <UserX className="h-8 w-8 mx-auto mb-2 text-red-600" />
-                <h3 className="font-medium">Unqualified Leads</h3>
-                <p className="text-sm text-muted-foreground mt-1">Review and nurture prospects</p>
+                <UserX className="h-8 w-8 mx-auto mb-3 text-red-600" />
+                <h3 className="font-semibold text-gray-900">Unqualified Leads</h3>
+                <p className="text-sm text-gray-600 mt-2">Review and nurture prospects</p>
               </CardContent>
             </Card>
 
-            <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => onNavigate('email-campaigns')}>
+            <Card className="cursor-pointer hover:shadow-lg transition-all duration-300 bg-blue-50 border-blue-200" onClick={() => onNavigate('email-campaigns')}>
               <CardContent className="p-6 text-center">
-                <Mail className="h-8 w-8 mx-auto mb-2 text-blue-600" />
-                <h3 className="font-medium">Email Campaigns</h3>
-                <p className="text-sm text-muted-foreground mt-1">Automated outreach and follow-ups</p>
+                <Mail className="h-8 w-8 mx-auto mb-3 text-blue-600" />
+                <h3 className="font-semibold text-gray-900">Email Campaigns</h3>
+                <p className="text-sm text-gray-600 mt-2">Automated outreach and follow-ups</p>
               </CardContent>
             </Card>
 
-            <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => onNavigate('leads-list')}>
+            <Card className="cursor-pointer hover:shadow-lg transition-all duration-300 bg-purple-50 border-purple-200" onClick={() => onNavigate('leads-list')}>
               <CardContent className="p-6 text-center">
-                <BarChart3 className="h-8 w-8 mx-auto mb-2 text-purple-600" />
-                <h3 className="font-medium">Lead Analytics</h3>
-                <p className="text-sm text-muted-foreground mt-1">Performance and conversion metrics</p>
+                <BarChart3 className="h-8 w-8 mx-auto mb-3 text-purple-600" />
+                <h3 className="font-semibold text-gray-900">Lead Analytics</h3>
+                <p className="text-sm text-gray-600 mt-2">Performance and conversion metrics</p>
               </CardContent>
             </Card>
           </div>
         </TabsContent>
 
         <TabsContent value="qualified">
-          <Alert>
-            <CheckCircle className="h-4 w-4" />
-            <AlertDescription>
-              You have {leadStats?.qualifiedLeads} qualified leads. 
-              <Button variant="link" className="p-0 ml-1" onClick={() => onNavigate('qualified-leads')}>
+          <Alert className="bg-green-50 border-green-200">
+            <CheckCircle className="h-4 w-4 text-green-600" />
+            <AlertDescription className="text-green-800">
+              You have {leadStats?.qualifiedLeads || 0} qualified leads. 
+              <Button variant="link" className="p-0 ml-1 text-green-700 hover:text-green-800" onClick={() => onNavigate('qualified-leads')}>
                 View detailed qualified leads &rarr;
               </Button>
             </AlertDescription>
@@ -535,11 +578,11 @@ export function LeadManagement({ onNavigate }: LeadManagementProps) {
         </TabsContent>
 
         <TabsContent value="unqualified">
-          <Alert>
-            <UserX className="h-4 w-4" />
-            <AlertDescription>
-              You have {leadStats?.unqualified} unqualified leads that may need attention.
-              <Button variant="link" className="p-0 ml-1" onClick={() => onNavigate('unqualified-leads')}>
+          <Alert className="bg-red-50 border-red-200">
+            <UserX className="h-4 w-4 text-red-600" />
+            <AlertDescription className="text-red-800">
+              You have {leadStats?.unqualified || 0} unqualified leads that may need attention.
+              <Button variant="link" className="p-0 ml-1 text-red-700 hover:text-red-800" onClick={() => onNavigate('unqualified-leads')}>
                 Review unqualified leads &rarr;
               </Button>
             </AlertDescription>
@@ -547,11 +590,11 @@ export function LeadManagement({ onNavigate }: LeadManagementProps) {
         </TabsContent>
 
         <TabsContent value="campaigns">
-          <Alert>
-            <Mail className="h-4 w-4" />
-            <AlertDescription>
-              Email campaigns are running with {leadStats?.emailOpenRate}% open rate.
-              <Button variant="link" className="p-0 ml-1" onClick={() => onNavigate('email-campaigns')}>
+          <Alert className="bg-blue-50 border-blue-200">
+            <Mail className="h-4 w-4 text-blue-600" />
+            <AlertDescription className="text-blue-800">
+              Email campaigns are running with {leadStats?.emailOpenRate || 0}% open rate.
+              <Button variant="link" className="p-0 ml-1 text-blue-700 hover:text-blue-800" onClick={() => onNavigate('email-campaigns')}>
                 Manage email campaigns &rarr;
               </Button>
             </AlertDescription>
