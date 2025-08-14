@@ -356,7 +356,7 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
   const [expandedNotes, setExpandedNotes] = useState<{[key: number]: boolean}>({});
   const [showHistoryDialog, setShowHistoryDialog] = useState(false);
    const [showAddCompanyDialog, setShowAddCompanyDialog] = useState(false);
-  
+
   const [selectedLeadForHistory, setSelectedLeadForHistory] = useState<any>(null);
   const [leadHistory, setLeadHistory] = useState<{ [key: number]: HistoryEntry[] }>({}); // Stores history entries fetched from API
   const [isLoadingHistory, setIsLoadingHistory] = useState(false); // Loading state for history fetch
@@ -367,6 +367,10 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
     engagement: 'all',
     search: ''
   });
+
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const leadsPerPage = 10; // Number of leads to display per page
 
   // New company form state
   const [newCompanyForm, setNewCompanyForm] = useState({
@@ -436,6 +440,7 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
   const fetchLeads = async () => {
     try {
       setLoading(true);
+      setCurrentPage(1); // Reset to first page on new fetch
 
       // Apply current filters when fetching
       const filterParams = {
@@ -1121,6 +1126,12 @@ SOAR-AI Team`,
     return true;
   });
 
+  // Calculate pagination details
+  const totalPages = Math.ceil(filteredLeads.length / leadsPerPage);
+  const startIndex = (currentPage - 1) * leadsPerPage;
+  const endIndex = startIndex + leadsPerPage;
+  const currentLeads = filteredLeads.slice(startIndex, endIndex);
+
   // Effect to update selectAll checkbox state based on filtered leads selection
   useEffect(() => {
     if (selectedLeads.length === 0) {
@@ -1582,7 +1593,7 @@ SOAR-AI Team`,
           {loading ?(<><h2 className="text-lg font-semibold text-gray-900">Search Leads</h2>
                     <p className="text-sm text-gray-600">Loading...</p></>):(<><h2 className="text-lg font-semibold text-gray-900">Showing Leads ({filteredLeads.length} results)</h2>
                        <p className="text-sm text-gray-600">Comprehensive lead management with status tracking and AI suggestions</p></>)}
-          
+
         </div>
          {loading ?'':<div className="flex items-center gap-3">
              <Checkbox 
@@ -1592,7 +1603,7 @@ SOAR-AI Team`,
              />
              <span className="text-sm font-medium text-gray-700">Select All</span>
            </div>}
-        
+
       </div>
 
       {/* Leads List */}
@@ -1600,7 +1611,7 @@ SOAR-AI Team`,
         renderSpinnerLoader()
       ) : (
         <div className="space-y-4">
-          {filteredLeads.map((lead) => (
+          {currentLeads.map((lead) => (
           <Card key={lead.id} className="bg-white border border-gray-200 hover:shadow-md transition-shadow">
             <CardContent className="p-6">
               {/* Lead Header Row */}
@@ -1927,7 +1938,101 @@ SOAR-AI Team`,
         </div>
       )}
 
+        {/* Pagination Controls */}
+        {!loading && filteredLeads.length > 0 && (
+          <div className="flex items-center justify-between mt-6 pt-4 border-t border-gray-200">
+            <div className="flex items-center gap-2 text-sm text-gray-600">
+              <span>
+                Showing {startIndex + 1}-{Math.min(endIndex, filteredLeads.length)} of {filteredLeads.length} results
+              </span>
+            </div>
 
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                disabled={currentPage <= 1}
+                className="text-gray-600 border-gray-300"
+              >
+                <ChevronDown className="h-4 w-4 rotate-90" />
+                Previous
+              </Button>
+
+              <div className="flex items-center gap-1">
+                {/* Show page numbers */}
+                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                  let pageNum;
+                  if (totalPages <= 5) {
+                    pageNum = i + 1;
+                  } else if (currentPage <= 3) {
+                    pageNum = i + 1;
+                  } else if (currentPage >= totalPages - 2) {
+                    pageNum = totalPages - 4 + i;
+                  } else {
+                    pageNum = currentPage - 2 + i;
+                  }
+
+                  return (
+                    <Button
+                      key={pageNum}
+                      variant={currentPage === pageNum ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setCurrentPage(pageNum)}
+                      className={currentPage === pageNum 
+                        ? "bg-orange-500 hover:bg-orange-600 text-white" 
+                        : "text-gray-600 border-gray-300"
+                      }
+                    >
+                      {pageNum}
+                    </Button>
+                  );
+                })}
+
+                {totalPages > 5 && currentPage < totalPages - 2 && (
+                  <>
+                    <span className="text-gray-400 px-1">...</span>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setCurrentPage(totalPages)}
+                      className="text-gray-600 border-gray-300"
+                    >
+                      {totalPages}
+                    </Button>
+                  </>
+                )}
+              </div>
+
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                disabled={currentPage >= totalPages}
+                className="text-gray-600 border-gray-300"
+              >
+                Next
+                <ChevronDown className="h-4 w-4 -rotate-90" />
+              </Button>
+            </div>
+          </div>
+        )}
+
+      {/* No Results State */}
+      {!loading && filteredLeads.length === 0 && (
+        <div className="text-center py-12">
+          <Users className="h-12 w-12 mx-auto mb-4 text-gray-400" />
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">No leads found</h3>
+          <p className="text-gray-600 mb-4">Try adjusting your filters or search criteria.</p>
+          <Button 
+            variant="outline" 
+            onClick={() => setFilters({ status: 'all', industry: 'all', score: 'all', engagement: 'all', search: '' })}
+            className="text-gray-600 border-gray-300"
+          >
+            Clear All Filters
+          </Button>
+        </div>
+      )}
 
       {/* Contact Lead Dialog - Remains the same, contact is part of the lead/company info */}
       <Dialog open={showContactDialog} onOpenChange={setShowContactDialog}>
