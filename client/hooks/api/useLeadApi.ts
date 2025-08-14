@@ -407,12 +407,12 @@ export const useLeadApi = () => {
 
     try {
       console.log('API call - moveToOpportunity:', { leadId, data: { opportunity: opportunityData } });
-      
+
       const response: AxiosResponse<any> = await baseApi.post(
         `/leads/${leadId}/move_to_opportunity/`,
         { opportunity: opportunityData }
       );
-      
+
       console.log('API response - moveToOpportunity:', response.data);
       setData(response.data);
       return response.data;
@@ -439,7 +439,7 @@ export const useLeadApi = () => {
       console.error('Error creating lead from company:', error);
       throw error;
     }
-  }, [baseApi]);
+  }, []);
 
   // Get opportunities
   const getOpportunities = useCallback(async (filters: any = {}) => {
@@ -450,7 +450,7 @@ export const useLeadApi = () => {
       console.error('Error fetching opportunities:', error);
       throw error;
     }
-  }, [baseApi]);
+  }, []);
 
   // Get opportunity pipeline metrics
   const getOpportunityPipeline = useCallback(async () => {
@@ -461,7 +461,7 @@ export const useLeadApi = () => {
       console.error('Error fetching opportunity pipeline:', error);
       throw error;
     }
-  }, [baseApi]);
+  }, []);
 
   // Update opportunity stage
   const updateOpportunityStage = useCallback(async (opportunityId: number, stageData: any) => {
@@ -472,8 +472,7 @@ export const useLeadApi = () => {
       console.error('Error updating opportunity stage:', error);
       throw error;
     }
-  }, [baseApi]);
-
+  }, []);
 
   return {
     ...state,
@@ -497,252 +496,5 @@ export const useLeadApi = () => {
     getOpportunities,
     getOpportunityPipeline,
     updateOpportunityStage
-  };
-};
-import { useState, useCallback } from 'react';
-import axios, { AxiosResponse } from 'axios';
-
-const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
-
-interface ApiState<T> {
-  data: T | null;
-  loading: boolean;
-  error: string | null;
-}
-
-interface Lead {
-  id: number;
-  company_name: string;
-  contact_name: string;
-  email: string;
-  phone?: string;
-  status: 'new' | 'contacted' | 'qualified' | 'unqualified' | 'converted';
-  priority: 'low' | 'medium' | 'high';
-  source: string;
-  notes?: string;
-  created_at: string;
-  updated_at: string;
-  company?: any;
-}
-
-interface LeadStats {
-  total_leads: number;
-  qualified_leads: number;
-  email_open_rate: number;
-  avg_response_time: number;
-}
-
-export const useLeadApi = () => {
-  const [state, setState] = useState<ApiState<any>>({
-    data: null,
-    loading: false,
-    error: null,
-  });
-
-  const setLoading = useCallback((loading: boolean) => {
-    setState(prev => ({ ...prev, loading }));
-  }, []);
-
-  const setError = useCallback((error: string | null) => {
-    setState(prev => ({ ...prev, error }));
-  }, []);
-
-  const setData = useCallback((data: any) => {
-    setState(prev => ({ ...prev, data }));
-  }, []);
-
-  // Get all leads
-  const getLeads = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-
-    try {
-      const response: AxiosResponse<Lead[]> = await axios.get(
-        `${API_BASE_URL}/leads/`
-      );
-
-      setData(response.data);
-      return response.data;
-    } catch (error: any) {
-      const errorMessage = error.response?.data?.message || error.message || 'Failed to fetch leads';
-      setError(errorMessage);
-      throw error;
-    } finally {
-      setLoading(false);
-    }
-  }, [setLoading, setError, setData]);
-
-  // Get lead by ID
-  const getLeadById = useCallback(async (id: number) => {
-    setLoading(true);
-    setError(null);
-
-    try {
-      const response: AxiosResponse<Lead> = await axios.get(
-        `${API_BASE_URL}/leads/${id}/`
-      );
-
-      setData(response.data);
-      return response.data;
-    } catch (error: any) {
-      const errorMessage = error.response?.data?.message || error.message || 'Failed to fetch lead';
-      setError(errorMessage);
-      throw error;
-    } finally {
-      setLoading(false);
-    }
-  }, [setLoading, setError, setData]);
-
-  // Create new lead
-  const createLead = useCallback(async (leadData: Partial<Lead>) => {
-    setLoading(true);
-    setError(null);
-
-    try {
-      const response: AxiosResponse<Lead> = await axios.post(
-        `${API_BASE_URL}/leads/`,
-        leadData,
-        {
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        }
-      );
-
-      setData(response.data);
-      return response.data;
-    } catch (error: any) {
-      const errorMessage = error.response?.data?.message || error.message || 'Failed to create lead';
-      setError(errorMessage);
-      throw error;
-    } finally {
-      setLoading(false);
-    }
-  }, [setLoading, setError, setData]);
-
-  // Update lead
-  const updateLead = useCallback(async (id: number, leadData: Partial<Lead>) => {
-    setLoading(true);
-    setError(null);
-
-    try {
-      const response: AxiosResponse<Lead> = await axios.put(
-        `${API_BASE_URL}/leads/${id}/`,
-        leadData,
-        {
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        }
-      );
-
-      setData(response.data);
-      return response.data;
-    } catch (error: any) {
-      const errorMessage = error.response?.data?.message || error.message || 'Failed to update lead';
-      setError(errorMessage);
-      throw error;
-    } finally {
-      setLoading(false);
-    }
-  }, [setLoading, setError, setData]);
-
-  // Delete lead
-  const deleteLead = useCallback(async (id: number) => {
-    setLoading(true);
-    setError(null);
-
-    try {
-      await axios.delete(`${API_BASE_URL}/leads/${id}/`);
-      setData(null);
-      return true;
-    } catch (error: any) {
-      const errorMessage = error.response?.data?.message || error.message || 'Failed to delete lead';
-      setError(errorMessage);
-      throw error;
-    } finally {
-      setLoading(false);
-    }
-  }, [setLoading, setError, setData]);
-
-  // Get lead statistics
-  const getLeadStats = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-
-    try {
-      const response: AxiosResponse<LeadStats> = await axios.get(
-        `${API_BASE_URL}/leads/stats/`
-      );
-
-      setData(response.data);
-      return response.data;
-    } catch (error: any) {
-      const errorMessage = error.response?.data?.message || error.message || 'Failed to fetch lead statistics';
-      setError(errorMessage);
-      throw error;
-    } finally {
-      setLoading(false);
-    }
-  }, [setLoading, setError, setData]);
-
-  // Add note to lead
-  const addLeadNote = useCallback(async (leadId: number, note: string) => {
-    setLoading(true);
-    setError(null);
-
-    try {
-      const response: AxiosResponse<any> = await axios.post(
-        `${API_BASE_URL}/leads/${leadId}/notes/`,
-        { note },
-        {
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        }
-      );
-
-      setData(response.data);
-      return response.data;
-    } catch (error: any) {
-      const errorMessage = error.response?.data?.message || error.message || 'Failed to add note';
-      setError(errorMessage);
-      throw error;
-    } finally {
-      setLoading(false);
-    }
-  }, [setLoading, setError, setData]);
-
-  // Get lead history
-  const getLeadHistory = useCallback(async (leadId: number) => {
-    setLoading(true);
-    setError(null);
-
-    try {
-      const response: AxiosResponse<any[]> = await axios.get(
-        `${API_BASE_URL}/leads/${leadId}/history/`
-      );
-
-      setData(response.data);
-      return response.data;
-    } catch (error: any) {
-      const errorMessage = error.response?.data?.message || error.message || 'Failed to fetch lead history';
-      setError(errorMessage);
-      throw error;
-    } finally {
-      setLoading(false);
-    }
-  }, [setLoading, setError, setData]);
-
-  return {
-    ...state,
-    getLeads,
-    getLeadById,
-    createLead,
-    updateLead,
-    deleteLead,
-    getLeadStats,
-    addLeadNote,
-    getLeadHistory,
   };
 };
