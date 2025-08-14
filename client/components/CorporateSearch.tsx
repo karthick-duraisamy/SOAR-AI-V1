@@ -67,7 +67,12 @@ import {
   Plus,
   Save,
   AlertCircle as AlertCircleIcon,
-  CheckCircle
+  CheckCircle,
+  ChevronLeft,
+  ChevronRight,
+  ArrowUpDown,
+  ArrowUp,
+  ArrowDown
 } from 'lucide-react';
 
 // Import useDebounce hook
@@ -283,12 +288,21 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
   const companyApi = useCompanyApi();
 
   const [filteredCorporates, setFilteredCorporates] = useState([]);
+  const [displayedCorporates, setDisplayedCorporates] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
   const [showCorporateProfile, setShowCorporateProfile] = useState(false);
   const [showAddCompanyDialog, setShowAddCompanyDialog] = useState(false);
   const [error, setError] = useState('');
+  
+  // Sort, Filter, and Pagination states
+  const [sortBy, setSortBy] = useState('name');
+  const [sortOrder, setSortOrder] = useState('asc');
+  const [nameFilter, setNameFilter] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(5);
+  const [totalPages, setTotalPages] = useState(0);
 
   // Advanced filter states
   const [advancedFilters, setAdvancedFilters] = useState({
@@ -347,6 +361,7 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
       const transformedCompanies = companies.map(transformCompanyData);
       console.log(companies,'companies')
       setFilteredCorporates(transformedCompanies);
+      applyFiltersAndSort(transformedCompanies);
     } catch (error) {
       console.error('Error loading companies:', error);
       setError('Failed to load companies. Please try again.');
@@ -366,6 +381,7 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
         const companies = await companyApi.searchCompanies({});
         const transformedCompanies = companies.map(transformCompanyData);
         setFilteredCorporates(transformedCompanies);
+        applyFiltersAndSort(transformedCompanies);
         console.log(companies,'companies')
       } catch (error) {
         console.error('Error loading companies:', error);
@@ -400,6 +416,7 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
       const companies = await companyApi.searchCompanies(mergedFilters);
       const transformedCompanies = companies.map(transformCompanyData);
       setFilteredCorporates(transformedCompanies);
+      applyFiltersAndSort(transformedCompanies);
     } catch (error) {
       console.error('Error searching companies:', error);
       setError('Search failed. Please try again.');
@@ -412,6 +429,92 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
   const handleViewProfile = (corporate) => {
     setSelectedCorporate(corporate);
     setShowCorporateProfile(true);
+  };
+
+  // Sort and filter logic
+  const applyFiltersAndSort = useCallback((companies) => {
+    let filtered = [...companies];
+    
+    // Apply name filter
+    if (nameFilter.trim()) {
+      filtered = filtered.filter(company =>
+        company.name.toLowerCase().includes(nameFilter.toLowerCase())
+      );
+    }
+    
+    // Apply sorting
+    filtered.sort((a, b) => {
+      let comparison = 0;
+      
+      switch (sortBy) {
+        case 'name':
+          comparison = a.name.localeCompare(b.name);
+          break;
+        case 'aiScore':
+          comparison = a.aiScore - b.aiScore;
+          break;
+        case 'rating':
+          comparison = parseFloat(a.rating) - parseFloat(b.rating);
+          break;
+        case 'employees':
+          comparison = a.employees - b.employees;
+          break;
+        case 'revenue':
+          comparison = a.revenue - b.revenue;
+          break;
+        case 'established':
+          comparison = a.established - b.established;
+          break;
+        default:
+          comparison = 0;
+      }
+      
+      return sortOrder === 'asc' ? comparison : -comparison;
+    });
+    
+    // Calculate pagination
+    const totalItems = filtered.length;
+    const calculatedTotalPages = Math.ceil(totalItems / itemsPerPage);
+    setTotalPages(calculatedTotalPages);
+    
+    // Reset to page 1 if current page exceeds total pages
+    const validCurrentPage = currentPage > calculatedTotalPages ? 1 : currentPage;
+    if (validCurrentPage !== currentPage) {
+      setCurrentPage(validCurrentPage);
+    }
+    
+    // Apply pagination
+    const startIndex = (validCurrentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    const paginatedCompanies = filtered.slice(startIndex, endIndex);
+    
+    setDisplayedCorporates(paginatedCompanies);
+  }, [nameFilter, sortBy, sortOrder, currentPage, itemsPerPage]);
+
+  // Effect to reapply filters when dependencies change
+  useEffect(() => {
+    if (filteredCorporates.length > 0) {
+      applyFiltersAndSort(filteredCorporates);
+    }
+  }, [filteredCorporates, applyFiltersAndSort]);
+
+  const handleSortChange = (newSortBy) => {
+    if (newSortBy === sortBy) {
+      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortBy(newSortBy);
+      setSortOrder('asc');
+    }
+    setCurrentPage(1); // Reset to first page when sorting changes
+  };
+
+  const handleNameFilterChange = (value) => {
+    setNameFilter(value);
+    setCurrentPage(1); // Reset to first page when filter changes
+  };
+
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
   };
 
   const handleClearFilters = () => {
@@ -439,6 +542,12 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
       techRequirements: [],
       sustainabilityLevel: ''
     });
+
+    // Reset sort and filter states
+    setNameFilter('');
+    setSortBy('name');
+    setSortOrder('asc');
+    setCurrentPage(1);
 
     // Reload companies with no filters
     loadCompanies({});
@@ -584,6 +693,7 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
         const companies = await companyApi.searchCompanies(searchParams);
         const transformedCompanies = companies.map(transformCompanyData);
         setFilteredCorporates(transformedCompanies);
+        applyFiltersAndSort(transformedCompanies);
       } catch (refreshError) {
         console.error('Error refreshing companies list:', refreshError);
       }
@@ -793,12 +903,58 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
         </Alert>
       )}
 
-      {/* Results Header */}
-      <div className="mb-4">
-        <h2 className="text-lg font-semibold text-gray-900">Search Results</h2>
-        <p className="text-sm text-gray-600">
-          {isLoading ? 'Loading...' : `${filteredCorporates.length} corporate prospects found matching your criteria`}
-        </p>
+      {/* Results Header with Sort and Filter Controls */}
+      <div className="mb-6">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h2 className="text-lg font-semibold text-gray-900">Search Results</h2>
+            <p className="text-sm text-gray-600">
+              {isLoading ? 'Loading...' : `${filteredCorporates.length} total prospects found • Showing ${displayedCorporates.length} results`}
+            </p>
+          </div>
+          
+          {/* Sort and Filter Controls */}
+          {!isLoading && filteredCorporates.length > 0 && (
+            <div className="flex items-center gap-4">
+              {/* Name Filter */}
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Input
+                  placeholder="Filter by company name..."
+                  value={nameFilter}
+                  onChange={(e) => handleNameFilterChange(e.target.value)}
+                  className="pl-10 w-64 h-9"
+                />
+                {nameFilter && (
+                  <button
+                    onClick={() => handleNameFilterChange('')}
+                    className="absolute right-2 top-1/2 transform -translate-y-1/2"
+                  >
+                    <X className="h-4 w-4 text-gray-400 hover:text-gray-600" />
+                  </button>
+                )}
+              </div>
+
+              {/* Sort Dropdown */}
+              <Select value={sortBy} onValueChange={handleSortChange}>
+                <SelectTrigger className="w-48 h-9">
+                  <div className="flex items-center gap-2">
+                    {sortOrder === 'asc' ? <ArrowUp className="h-4 w-4" /> : <ArrowDown className="h-4 w-4" />}
+                    <SelectValue />
+                  </div>
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="name">Company Name</SelectItem>
+                  <SelectItem value="aiScore">AI Score</SelectItem>
+                  <SelectItem value="rating">Rating</SelectItem>
+                  <SelectItem value="employees">Employee Count</SelectItem>
+                  <SelectItem value="revenue">Revenue</SelectItem>
+                  <SelectItem value="established">Year Established</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Loading State */}
@@ -822,10 +978,24 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
         </div>
       )}
 
+      {/* No Filtered Results State */}
+      {!isLoading && filteredCorporates.length > 0 && displayedCorporates.length === 0 && (nameFilter.trim() !== '') && (
+        <div className="text-center py-12">
+          <Search className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-gray-900 mb-2">No matches found</h3>
+          <p className="text-gray-600 mb-4">No companies match your filter "{nameFilter}". Try a different search term.</p>
+          <Button onClick={() => setNameFilter('')} variant="outline" className="border-gray-300">
+            <X className="h-4 w-4 mr-2" />
+            Clear Filter
+          </Button>
+        </div>
+      )}
+
       {/* Results List */}
-      {!isLoading && filteredCorporates.length > 0 && (
-        <div className="space-y-4">
-          {filteredCorporates.map((corporate) => (
+      {!isLoading && displayedCorporates.length > 0 && (
+        <>
+          <div className="space-y-4">
+            {displayedCorporates.map((corporate) => (
           <Card key={corporate.id} className="bg-white border border-gray-200">
             <CardContent className="p-6">
               <div className="flex items-start gap-4">
@@ -958,8 +1128,118 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
               </div>
             </CardContent>
           </Card>
-          ))}
-        </div>
+            ))}
+          </div>
+
+          {/* Pagination Controls */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between mt-8 pt-6 border-t border-gray-200">
+              <div className="flex items-center gap-2 text-sm text-gray-600">
+                <span>
+                  Showing {((currentPage - 1) * itemsPerPage) + 1} to {Math.min(currentPage * itemsPerPage, filteredCorporates.length)} of {filteredCorporates.length} results
+                </span>
+              </div>
+
+              <div className="flex items-center gap-2">
+                {/* Previous Page Button */}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handlePageChange(currentPage - 1)}
+                  disabled={currentPage === 1}
+                  className="border-gray-300"
+                >
+                  <ChevronLeft className="h-4 w-4 mr-1" />
+                  Previous
+                </Button>
+
+                {/* Page Numbers */}
+                <div className="flex items-center gap-1">
+                  {(() => {
+                    const pages = [];
+                    const maxVisiblePages = 5;
+                    let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+                    let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+
+                    // Adjust start page if we're near the end
+                    if (endPage - startPage + 1 < maxVisiblePages) {
+                      startPage = Math.max(1, endPage - maxVisiblePages + 1);
+                    }
+
+                    // Add first page and ellipsis if needed
+                    if (startPage > 1) {
+                      pages.push(
+                        <Button
+                          key={1}
+                          variant={1 === currentPage ? "default" : "outline"}
+                          size="sm"
+                          onClick={() => handlePageChange(1)}
+                          className={`w-9 h-9 p-0 ${1 === currentPage ? 'bg-orange-500 hover:bg-orange-600 text-white' : 'border-gray-300'}`}
+                        >
+                          1
+                        </Button>
+                      );
+                      if (startPage > 2) {
+                        pages.push(
+                          <span key="ellipsis1" className="px-2 text-gray-500">...</span>
+                        );
+                      }
+                    }
+
+                    // Add visible page numbers
+                    for (let i = startPage; i <= endPage; i++) {
+                      pages.push(
+                        <Button
+                          key={i}
+                          variant={i === currentPage ? "default" : "outline"}
+                          size="sm"
+                          onClick={() => handlePageChange(i)}
+                          className={`w-9 h-9 p-0 ${i === currentPage ? 'bg-orange-500 hover:bg-orange-600 text-white' : 'border-gray-300'}`}
+                        >
+                          {i}
+                        </Button>
+                      );
+                    }
+
+                    // Add ellipsis and last page if needed
+                    if (endPage < totalPages) {
+                      if (endPage < totalPages - 1) {
+                        pages.push(
+                          <span key="ellipsis2" className="px-2 text-gray-500">...</span>
+                        );
+                      }
+                      pages.push(
+                        <Button
+                          key={totalPages}
+                          variant={totalPages === currentPage ? "default" : "outline"}
+                          size="sm"
+                          onClick={() => handlePageChange(totalPages)}
+                          className={`w-9 h-9 p-0 ${totalPages === currentPage ? 'bg-orange-500 hover:bg-orange-600 text-white' : 'border-gray-300'}`}
+                        >
+                          {totalPages}
+                        </Button>
+                      );
+                    }
+
+                    return pages;
+                  })()}
+                </div>
+
+                {/* Next Page Button */}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handlePageChange(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                  className="border-gray-300"
+                >
+                  Next
+                  <ChevronRight className="h-4 w-4 ml-1" />
+                </Button>
+              </div>
+            </div>
+          )}
+        </>
       )}
 
       {/* Advanced Filters Dialog */}
