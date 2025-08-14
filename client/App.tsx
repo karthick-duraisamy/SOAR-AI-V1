@@ -35,7 +35,7 @@ import { AIAssistant } from "./components/AIAssistant";
 import { Dashboard } from "./components/Dashboard";
 import { CorporateSearch } from "./components/CorporateSearch";
 import { LeadManagement } from "./components/LeadManagement";
-import { LeadsList } from './components/LeadsList';
+import LeadsList from './components/LeadsList';
 import { AllLeads } from './components/AllLeads';
 import { EmailCampaigns } from "./components/EmailCampaigns";
 import { Opportunities } from "./components/Opportunities";
