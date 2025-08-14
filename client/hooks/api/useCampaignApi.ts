@@ -199,3 +199,100 @@ export const useCampaignApi = () => {
     getCampaignAnalytics,
   };
 };
+import { useState, useCallback } from 'react';
+import axios, { AxiosResponse } from 'axios';
+
+const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
+
+interface ApiState<T> {
+  data: T | null;
+  loading: boolean;
+  error: string | null;
+}
+
+interface Campaign {
+  id: number;
+  name: string;
+  subject: string;
+  content: string;
+  status: 'draft' | 'active' | 'paused' | 'completed';
+  sent_count: number;
+  open_rate: number;
+  click_rate: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export const useCampaignApi = () => {
+  const [state, setState] = useState<ApiState<any>>({
+    data: null,
+    loading: false,
+    error: null,
+  });
+
+  const setLoading = useCallback((loading: boolean) => {
+    setState(prev => ({ ...prev, loading }));
+  }, []);
+
+  const setError = useCallback((error: string | null) => {
+    setState(prev => ({ ...prev, error }));
+  }, []);
+
+  const setData = useCallback((data: any) => {
+    setState(prev => ({ ...prev, data }));
+  }, []);
+
+  // Get all campaigns
+  const getCampaigns = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const response: AxiosResponse<Campaign[]> = await axios.get(
+        `${API_BASE_URL}/campaigns/`
+      );
+
+      setData(response.data);
+      return response.data;
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.message || error.message || 'Failed to fetch campaigns';
+      setError(errorMessage);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  }, [setLoading, setError, setData]);
+
+  // Create new campaign
+  const createCampaign = useCallback(async (campaignData: Partial<Campaign>) => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const response: AxiosResponse<Campaign> = await axios.post(
+        `${API_BASE_URL}/campaigns/`,
+        campaignData,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+
+      setData(response.data);
+      return response.data;
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.message || error.message || 'Failed to create campaign';
+      setError(errorMessage);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  }, [setLoading, setError, setData]);
+
+  return {
+    ...state,
+    getCampaigns,
+    createCampaign,
+  };
+};
