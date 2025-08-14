@@ -17,12 +17,12 @@ import { Alert, AlertDescription } from './ui/alert';
 import { CorporateProfile } from './CorporateProfile';
 import { useCompanyApi } from '../hooks/api/useCompanyApi';
 
-import {
-  Search,
-  Filter,
-  Star,
-  MapPin,
-  Users,
+import { 
+  Search, 
+  Filter, 
+  Star, 
+  MapPin, 
+  Users, 
   Calendar,
   TrendingUp,
   Award,
@@ -96,7 +96,7 @@ const transformCompanyData = (company) => {
     travelBudget: company.travel_budget ? `${(company.travel_budget / 1000000).toFixed(1)}M` : "1.0M",
     annualTravelVolume: company.annual_travel_volume || `${Math.floor(Math.random() * 5000) + 1000} trips`,
     contracts: Math.floor(Math.random() * 20) + 1,
-    revenue: company.revenue || Math.floor(Math.random() * 50000000) + 10000000,
+    revenue: company.annual_revenue || Math.floor(Math.random() * 50000000) + 10000000,
     phone: company.phone || "+1 (555) " + Math.floor(Math.random() * 900 + 100) + "-" + Math.floor(Math.random() * 9000 + 1000),
     email: company.email || `contact@${company.name.toLowerCase().replace(/[^a-z0-9]/g, '')}.com`,
     website: company.website || `www.${company.name.toLowerCase().replace(/[^a-z0-9]/g, '')}.com`,
@@ -271,24 +271,18 @@ interface CorporateSearchProps {
 }
 
 export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchProps) {
-  const [searchResults, setSearchResults] = useState<any[]>([]);
-  const [filteredResults, setFilteredResults] = useState<any[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [selectedCompany, setSelectedCompany] = useState<any>(null);
-  const [showCompanyModal, setShowCompanyModal] = useState(false);
-  const [leadCreationData, setLeadCreationData] = useState<any>({});
-  const [showLeadDialog, setShowLeadDialog] = useState(false);
+  const [searchParams, setSearchParams] = useState({
+    industry: '',
+    location: '',
+    travelBudget: '',
+    companySize: '',
+    travelFrequency: '',
+    globalSearch: '',
+    ...initialFilters
+  });
 
-  // Filter and Sort states
-  const [nameFilter, setNameFilter] = useState('');
-  const [sortBy, setSortBy] = useState('name');
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
-
-  // Pagination states
-  const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage] = useState(5); // Changed from 10 to 5 to match original intent
-
-  const debouncedNameFilter = useDebounce(nameFilter, 300);
+  // Debounce search parameters
+  const debouncedSearchParams = useDebounce(searchParams, 500); // 500ms debounce delay
 
   // Initialize company API hook
   const companyApi = useCompanyApi();
@@ -301,13 +295,13 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
   const [showCorporateProfile, setShowCorporateProfile] = useState(false);
   const [showAddCompanyDialog, setShowAddCompanyDialog] = useState(false);
   const [error, setError] = useState('');
-
+  
   // Sort, Filter, and Pagination states
-  const [sortByState, setSortByState] = useState('name'); // Renamed to avoid conflict
-  const [sortOrderState, setSortOrderState] = useState('asc'); // Renamed to avoid conflict
-  const [nameFilterState, setNameFilterState] = useState(''); // Renamed to avoid conflict
-  const [currentPageState, setCurrentPageState] = useState(1); // Renamed to avoid conflict
-  const [itemsPerPageState] = useState(5); // Renamed to avoid conflict
+  const [sortBy, setSortBy] = useState('name');
+  const [sortOrder, setSortOrder] = useState('asc');
+  const [nameFilter, setNameFilter] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(5);
   const [totalPages, setTotalPages] = useState(0);
 
   // Advanced filter states
@@ -377,95 +371,60 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
     }
   }, []); // Remove companyApi dependency to prevent recreation
 
-  // Initial search to load some companies
+  // Load companies on component mount - use a separate effect with direct API call
   useEffect(() => {
-    handleSearch();
-  }, []);
+    const initialLoad = async () => {
+      setIsLoading(true);
+      setError('');
 
-  const [filters, setFilters] = useState({
-    industry: '',
-    location: '',
-    travelBudget: '',
-    companySize: '',
-    globalSearch: ''
-  });
+      try {
+        const companies = await companyApi.searchCompanies({});
+        const transformedCompanies = companies.map(transformCompanyData);
+        setFilteredCorporates(transformedCompanies);
+        applyFiltersAndSort(transformedCompanies);
+        console.log(companies,'companies')
+      } catch (error) {
+        console.error('Error loading companies:', error);
+        setError('Failed to load companies. Please try again.');
+        setFilteredCorporates([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
-  // Apply filters and sorting
-  useEffect(() => {
-    let filtered = [...searchResults];
+    initialLoad();
+  }, []); // Only run once on mount
 
-    // Apply name filter
-    if (debouncedNameFilter) {
-      filtered = filtered.filter(company =>
-        company.name.toLowerCase().includes(debouncedNameFilter.toLowerCase())
-      );
+  // Optimize handleSearch to prevent duplicate calls
+  const handleSearch = useCallback(async () => {
+    // Prevent multiple simultaneous searches
+    if (isSearching) {
+      return;
     }
 
-    // Apply sorting
-    filtered.sort((a, b) => {
-      let aValue, bValue;
-
-      switch (sortBy) {
-        case 'name':
-          aValue = a.name.toLowerCase();
-          bValue = b.name.toLowerCase();
-          break;
-        case 'industry':
-          aValue = a.industry || '';
-          bValue = b.industry || '';
-          break;
-        case 'location':
-          aValue = a.location || '';
-          bValue = b.location || '';
-          break;
-        case 'employees':
-          aValue = a.employees || 0;
-          bValue = b.employees || 0;
-          break;
-        case 'revenue':
-          aValue = a.revenue || 0;
-          bValue = b.revenue || 0;
-          break;
-        case 'budget':
-          aValue = parseInt(a.travelBudget?.replace(/[M$]/g, '')) || 0; // Parse budget to number
-          bValue = parseInt(b.travelBudget?.replace(/[M$]/g, '')) || 0; // Parse budget to number
-          break;
-        default:
-          aValue = a.name.toLowerCase();
-          bValue = b.name.toLowerCase();
-      }
-
-      if (sortOrder === 'asc') {
-        return aValue > bValue ? 1 : aValue < bValue ? -1 : 0;
-      } else {
-        return aValue < bValue ? 1 : aValue > bValue ? -1 : 0;
-      }
-    });
-
-    setFilteredResults(filtered);
-    setCurrentPage(1); // Reset to first page when filters change
-  }, [searchResults, debouncedNameFilter, sortBy, sortOrder]);
-
-  // Calculate pagination
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-  const currentResults = filteredResults.slice(startIndex, endIndex);
-  const totalPagesCalculated = Math.ceil(filteredResults.length / itemsPerPage);
-
-  const handleSearch = useCallback(async () => {
-    setIsLoading(true);
+    setIsSearching(true);
     setError('');
+
     try {
-      const companies = await companyApi.searchCompanies(filters);
-      setSearchResults(companies.map(transformCompanyData));
+      // Merge basic search params with advanced filters
+      const mergedFilters = {
+        ...searchParams, // Use searchParams directly instead of debouncedSearchParams
+        ...advancedFilters
+      };
+
+      // Call the API directly instead of through loadCompanies to avoid dependency issues
+      const companies = await companyApi.searchCompanies(mergedFilters);
+      const transformedCompanies = companies.map(transformCompanyData);
+      setFilteredCorporates(transformedCompanies);
+      applyFiltersAndSort(transformedCompanies);
     } catch (error) {
       console.error('Error searching companies:', error);
-      setError('Failed to fetch companies. Please try again.');
-      setSearchResults([]);
+      setError('Search failed. Please try again.');
+      setFilteredCorporates([]);
     } finally {
-      setIsLoading(false);
+      setIsSearching(false);
     }
-  }, [filters, companyApi]);
+  }, [isSearching, searchParams, advancedFilters]); // Use searchParams instead of debouncedSearchParams
 
   const handleViewProfile = (corporate) => {
     setSelectedCorporate(corporate);
@@ -475,19 +434,19 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
   // Sort and filter logic
   const applyFiltersAndSort = useCallback((companies) => {
     let filtered = [...companies];
-
+    
     // Apply name filter
-    if (nameFilterState.trim()) {
+    if (nameFilter.trim()) {
       filtered = filtered.filter(company =>
-        company.name.toLowerCase().includes(nameFilterState.toLowerCase())
+        company.name.toLowerCase().includes(nameFilter.toLowerCase())
       );
     }
-
+    
     // Apply sorting
     filtered.sort((a, b) => {
       let comparison = 0;
-
-      switch (sortByState) {
+      
+      switch (sortBy) {
         case 'name':
           comparison = a.name.localeCompare(b.name);
           break;
@@ -509,28 +468,28 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
         default:
           comparison = 0;
       }
-
-      return sortOrderState === 'asc' ? comparison : -comparison;
+      
+      return sortOrder === 'asc' ? comparison : -comparison;
     });
-
+    
     // Calculate pagination
     const totalItems = filtered.length;
-    const calculatedTotalPages = Math.ceil(totalItems / itemsPerPageState);
+    const calculatedTotalPages = Math.ceil(totalItems / itemsPerPage);
     setTotalPages(calculatedTotalPages);
-
+    
     // Reset to page 1 if current page exceeds total pages
-    const validCurrentPage = currentPageState > calculatedTotalPages ? 1 : currentPageState;
-    if (validCurrentPage !== currentPageState) {
-      setCurrentPageState(validCurrentPage);
+    const validCurrentPage = currentPage > calculatedTotalPages ? 1 : currentPage;
+    if (validCurrentPage !== currentPage) {
+      setCurrentPage(validCurrentPage);
     }
-
+    
     // Apply pagination
-    const startIndex = (validCurrentPage - 1) * itemsPerPageState;
-    const endIndex = startIndex + itemsPerPageState;
+    const startIndex = (validCurrentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
     const paginatedCompanies = filtered.slice(startIndex, endIndex);
-
+    
     setDisplayedCorporates(paginatedCompanies);
-  }, [nameFilterState, sortByState, sortOrderState, currentPageState, itemsPerPageState]);
+  }, [nameFilter, sortBy, sortOrder, currentPage, itemsPerPage]);
 
   // Effect to reapply filters when dependencies change
   useEffect(() => {
@@ -540,31 +499,32 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
   }, [filteredCorporates, applyFiltersAndSort]);
 
   const handleSortChange = (newSortBy) => {
-    if (newSortBy === sortByState) {
-      setSortOrderState(sortOrderState === 'asc' ? 'desc' : 'asc');
+    if (newSortBy === sortBy) {
+      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
     } else {
-      setSortByState(newSortBy);
-      setSortOrderState('asc');
+      setSortBy(newSortBy);
+      setSortOrder('asc');
     }
-    setCurrentPageState(1); // Reset to first page when sorting changes
+    setCurrentPage(1); // Reset to first page when sorting changes
   };
 
   const handleNameFilterChange = (value) => {
-    setNameFilterState(value);
-    setCurrentPageState(1); // Reset to first page when filter changes
+    setNameFilter(value);
+    setCurrentPage(1); // Reset to first page when filter changes
   };
 
   const handlePageChange = (page) => {
-    setCurrentPageState(page);
+    setCurrentPage(page);
   };
 
   const handleClearFilters = () => {
     // Reset search parameters
-    setFilters({
+    setSearchParams({
       industry: '',
       location: '',
       travelBudget: '',
       companySize: '',
+      travelFrequency: '',
       globalSearch: ''
     });
 
@@ -584,10 +544,10 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
     });
 
     // Reset sort and filter states
-    setNameFilterState('');
-    setSortByState('name');
-    setSortOrderState('asc');
-    setCurrentPageState(1);
+    setNameFilter('');
+    setSortBy('name');
+    setSortOrder('asc');
+    setCurrentPage(1);
 
     // Reload companies with no filters
     loadCompanies({});
@@ -599,7 +559,7 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
       const leadData = {
         company: {
           name: corporate.name,
-          industry: corporate.industry === 'Technology & Software' ? 'technology' :
+          industry: corporate.industry === 'Technology & Software' ? 'technology' : 
                    corporate.industry === 'Finance & Banking' ? 'finance' :
                    corporate.industry === 'Business Services' ? 'consulting' : 'other',
           location: corporate.location,
@@ -636,7 +596,7 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
 
       // Navigate to leads if onNavigate is available
       if (onNavigate) {
-        onNavigate('leads-list', {
+        onNavigate('leads-list', { 
           message: `${corporate.name} has been successfully moved to leads management`
         });
       }
@@ -668,7 +628,7 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
         email: newCompany.email,
         phone: newCompany.phone,
         website: newCompany.website || '',
-
+        
         // Business Details
         employee_count: newCompany.employees ? parseInt(newCompany.employees) : null,
         annual_revenue: newCompany.revenue ? parseFloat(newCompany.revenue) * 1000000 : null, // Convert millions to actual amount
@@ -676,7 +636,7 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
         size: newCompany.companySize,
         credit_rating: newCompany.creditRating,
         payment_terms: newCompany.paymentTerms,
-
+        
         // Travel Profile
         travel_budget: newCompany.travelBudget ? parseFloat(newCompany.travelBudget) * 1000000 : null, // Convert millions to actual amount
         annual_travel_volume: newCompany.annualTravelVolume,
@@ -685,7 +645,7 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
         sustainability_focus: newCompany.sustainabilityFocus,
         risk_level: newCompany.riskLevel,
         current_airlines: newCompany.currentAirlines,
-
+        
         // Additional Info
         expansion_plans: newCompany.expansionPlans,
         specialties: newCompany.specialties,
@@ -730,7 +690,7 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
 
       // Refresh the companies list to show the new company
       try {
-        const companies = await companyApi.searchCompanies(filters);
+        const companies = await companyApi.searchCompanies(searchParams);
         const transformedCompanies = companies.map(transformCompanyData);
         setFilteredCorporates(transformedCompanies);
         applyFiltersAndSort(transformedCompanies);
@@ -751,9 +711,9 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
   };
 
   const isFormValid = () => {
-    return newCompany.name.trim() !== '' &&
-           newCompany.industry !== '' &&
-           newCompany.companySize !== '' &&
+    return newCompany.name.trim() !== '' && 
+           newCompany.industry !== '' && 
+           newCompany.companySize !== '' && 
            newCompany.location.trim() !== '' &&
            newCompany.email.trim() !== '';
   };
@@ -761,7 +721,7 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
   // Show specific components based on state
   if (showCorporateProfile && selectedCorporate) {
     return (
-      <CorporateProfile
+      <CorporateProfile 
         corporateData={selectedCorporate}
         onBack={handleBackToSearch}
       />
@@ -798,7 +758,7 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
       {/* Filters Section */}
       <div className="bg-white rounded-lg border border-gray-200 p-6 mb-6">
         {/* Global Search Row */}
-        {/* <div className="mb-6">
+        <div className="mb-6">
           <Label className="text-sm font-medium text-gray-900 mb-2 block">Global Search</Label>
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
@@ -809,19 +769,19 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
               className="pl-10 h-10 bg-white border-gray-300"
             />
           </div>
-        </div> */}
+        </div>
 
         {/* Top Row - 3 columns */}
         <div className="grid grid-cols-3 gap-6 mb-6">
           <div className="space-y-2">
             <Label className="text-sm font-medium text-gray-900">Industry Sector</Label>
-            <Select value={filters.industry} onValueChange={(value) => setFilters({...filters, industry: value})}>
+            <Select value={searchParams.industry} onValueChange={(value) => setSearchParams({...searchParams, industry: value})}>
               <SelectTrigger className="h-10 bg-white border-gray-300 text-gray-500">
                 <SelectValue placeholder="Select industry" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="technology">Technology</SelectItem>
-                <SelectItem value="financial">Financial Services</SelectItem>
+                <SelectItem value="financial services">Financial Services</SelectItem>
                 <SelectItem value="manufacturing">Manufacturing</SelectItem>
                 <SelectItem value="healthcare">Healthcare</SelectItem>
                 <SelectItem value="energy">Energy</SelectItem>
@@ -831,7 +791,7 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
 
           <div className="space-y-2">
             <Label className="text-sm font-medium text-gray-900">Geographic Focus</Label>
-            <Select value={filters.location} onValueChange={(value) => setFilters({...filters, location: value})}>
+            <Select value={searchParams.location} onValueChange={(value) => setSearchParams({...searchParams, location: value})}>
               <SelectTrigger className="h-10 bg-white border-gray-300 text-gray-500">
                 <SelectValue placeholder="Select location" />
               </SelectTrigger>
@@ -846,7 +806,7 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
 
           <div className="space-y-2">
             <Label className="text-sm font-medium text-gray-900">Annual Travel Budget</Label>
-            <Select value={filters.travelBudget} onValueChange={(value) => setFilters({...filters, travelBudget: value})}>
+            <Select value={searchParams.travelBudget} onValueChange={(value) => setSearchParams({...searchParams, travelBudget: value})}>
               <SelectTrigger className="h-10 bg-white border-gray-300 text-gray-500">
                 <SelectValue placeholder="Select budget range" />
               </SelectTrigger>
@@ -865,7 +825,7 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
         <div className="grid grid-cols-3 gap-6 mb-6">
           <div className="space-y-2">
             <Label className="text-sm font-medium text-gray-900">Company Size</Label>
-            <Select value={filters.companySize} onValueChange={(value) => setFilters({...filters, companySize: value})}>
+            <Select value={searchParams.companySize} onValueChange={(value) => setSearchParams({...searchParams, companySize: value})}>
               <SelectTrigger className="h-10 bg-white border-gray-300 text-gray-500">
                 <SelectValue placeholder="Select company size" />
               </SelectTrigger>
@@ -881,7 +841,7 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
 
           <div className="space-y-2">
             <Label className="text-sm font-medium text-gray-900">Travel Frequency</Label>
-            <Select value={filters.travelFrequency} onValueChange={(value) => setFilters({...filters, travelFrequency: value})}>
+            <Select value={searchParams.travelFrequency} onValueChange={(value) => setSearchParams({...searchParams, travelFrequency: value})}>
               <SelectTrigger className="h-10 bg-white border-gray-300 text-gray-500">
                 <SelectValue placeholder="Select frequency" />
               </SelectTrigger>
@@ -897,13 +857,13 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
 
         {/* Action Buttons */}
         <div className="flex space-x-3 items-center">
-          <Button
-            onClick={handleSearch}
-            disabled={isLoading}
+          <Button 
+            onClick={handleSearch} 
+            disabled={isSearching} 
             className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-2 rounded-md flex items-center gap-2"
           >
             <Search className="h-4 w-4" />
-            {isLoading ? (
+            {isSearching ? (
               <>
                 <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
                 AI Processing...
@@ -913,8 +873,8 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
             )}
           </Button>
 
-          <Button
-            variant="outline"
+          <Button 
+            variant="outline" 
             onClick={() => setShowAdvancedFilters(true)}
             className="border-gray-300 text-gray-700 hover:bg-gray-50 px-4 py-2 rounded-md flex items-center gap-2"
           >
@@ -922,8 +882,8 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
             Advanced Filters
           </Button>
 
-          <Button
-            variant="outline"
+          <Button 
+            variant="outline" 
             onClick={handleClearFilters}
             className="border-gray-300 text-gray-700 hover:bg-gray-50 px-4 py-2 rounded-md flex items-center gap-2"
           >
@@ -949,12 +909,12 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
           <div>
             <h2 className="text-lg font-semibold text-gray-900">Search Results</h2>
             <p className="text-sm text-gray-600">
-              {isLoading ? 'Loading...' : `${filteredResults.length} total prospects found • Showing ${currentResults.length} results`}
+              {isLoading ? 'Loading...' : `${filteredCorporates.length} total prospects found • Showing ${displayedCorporates.length} results`}
             </p>
           </div>
-
+          
           {/* Sort and Filter Controls */}
-          {!isLoading && filteredResults.length > 0 && (
+          {!isLoading && filteredCorporates.length > 0 && (
             <div className="flex items-center gap-4">
               {/* Name Filter */}
               <div className="relative">
@@ -962,12 +922,12 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
                 <Input
                   placeholder="Filter by company name..."
                   value={nameFilter}
-                  onChange={(e) => setNameFilter(e.target.value)}
+                  onChange={(e) => handleNameFilterChange(e.target.value)}
                   className="pl-10 w-64 h-9"
                 />
                 {nameFilter && (
                   <button
-                    onClick={() => setNameFilter('')}
+                    onClick={() => handleNameFilterChange('')}
                     className="absolute right-2 top-1/2 transform -translate-y-1/2"
                   >
                     <X className="h-4 w-4 text-gray-400 hover:text-gray-600" />
@@ -976,7 +936,7 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
               </div>
 
               {/* Sort Dropdown */}
-              {/* <Select value={sortBy} onValueChange={handleSortChange}>
+              <Select value={sortBy} onValueChange={handleSortChange}>
                 <SelectTrigger className="w-48 h-9">
                   <div className="flex items-center gap-2">
                     {sortOrder === 'asc' ? <ArrowUp className="h-4 w-4" /> : <ArrowDown className="h-4 w-4" />}
@@ -991,7 +951,7 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
                   <SelectItem value="revenue">Revenue</SelectItem>
                   <SelectItem value="established">Year Established</SelectItem>
                 </SelectContent>
-              </Select> */}
+              </Select>
             </div>
           )}
         </div>
@@ -1006,7 +966,7 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
       )}
 
       {/* No Results State */}
-      {!isLoading && searchResults.length === 0 && !error && (
+      {!isLoading && filteredCorporates.length === 0 && !error && (
         <div className="text-center py-12">
           <Building2 className="h-12 w-12 text-gray-400 mx-auto mb-4" />
           <h3 className="text-lg font-medium text-gray-900 mb-2">No companies found</h3>
@@ -1019,7 +979,7 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
       )}
 
       {/* No Filtered Results State */}
-      {!isLoading && searchResults.length > 0 && filteredResults.length === 0 && (nameFilter.trim() !== '') && (
+      {!isLoading && filteredCorporates.length > 0 && displayedCorporates.length === 0 && (nameFilter.trim() !== '') && (
         <div className="text-center py-12">
           <Search className="h-12 w-12 text-gray-400 mx-auto mb-4" />
           <h3 className="text-lg font-medium text-gray-900 mb-2">No matches found</h3>
@@ -1032,10 +992,10 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
       )}
 
       {/* Results List */}
-      {!isLoading && currentResults.length > 0 && (
+      {!isLoading && displayedCorporates.length > 0 && (
         <>
           <div className="space-y-4">
-            {currentResults.map((corporate) => (
+            {displayedCorporates.map((corporate) => (
           <Card key={corporate.id} className="bg-white border border-gray-200">
             <CardContent className="p-6">
               <div className="flex items-start gap-4">
@@ -1081,7 +1041,7 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
                         <Star className="h-4 w-4 text-yellow-500 fill-current" />
                         <span className="font-medium text-sm">{corporate.rating}</span>
                       </div>
-                      <div className="text-sm text-gray-600">{corporate.travelBudget} budget</div>
+                      <div className="text-sm text-gray-600">${corporate.travelBudget} budget</div>
                     </div>
                   </div>
 
@@ -1138,9 +1098,9 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
 
                   {/* Action buttons */}
                   <div className="flex gap-3">
-                    <Button
-                      variant="outline"
-                      size="sm"
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
                       onClick={() => handleViewProfile(corporate)}
                       className="border-gray-300"
                     >
@@ -1148,9 +1108,9 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
                       View Full Profile
                     </Button>
 
-                    <Button
+                    <Button 
                       variant="outline"
-                      size="sm"
+                      size="sm" 
                       onClick={() => handleMoveAsLead(corporate)}
                       disabled={movedAsLeadIds.has(corporate.id)}
                       className="border-gray-300 cls-addcomapany"
@@ -1172,11 +1132,11 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
           </div>
 
           {/* Pagination Controls */}
-          {totalPagesCalculated > 1 && (
+          {totalPages > 1 && (
             <div className="flex items-center justify-between mt-8 pt-6 border-t border-gray-200">
               <div className="flex items-center gap-2 text-sm text-gray-600">
                 <span>
-                  Showing {((currentPage - 1) * itemsPerPage) + 1} to {Math.min(currentPage * itemsPerPage, filteredResults.length)} of {filteredResults.length} results
+                  Showing {((currentPage - 1) * itemsPerPage) + 1} to {Math.min(currentPage * itemsPerPage, filteredCorporates.length)} of {filteredCorporates.length} results
                 </span>
               </div>
 
@@ -1185,7 +1145,7 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => setCurrentPage(currentPage - 1)}
+                  onClick={() => handlePageChange(currentPage - 1)}
                   disabled={currentPage === 1}
                   className="border-gray-300"
                 >
@@ -1199,7 +1159,7 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
                     const pages = [];
                     const maxVisiblePages = 5;
                     let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
-                    let endPage = Math.min(totalPagesCalculated, startPage + maxVisiblePages - 1);
+                    let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
 
                     // Adjust start page if we're near the end
                     if (endPage - startPage + 1 < maxVisiblePages) {
@@ -1213,7 +1173,7 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
                           key={1}
                           variant={1 === currentPage ? "default" : "outline"}
                           size="sm"
-                          onClick={() => setCurrentPage(1)}
+                          onClick={() => handlePageChange(1)}
                           className={`w-9 h-9 p-0 ${1 === currentPage ? 'bg-orange-500 hover:bg-orange-600 text-white' : 'border-gray-300'}`}
                         >
                           1
@@ -1233,7 +1193,7 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
                           key={i}
                           variant={i === currentPage ? "default" : "outline"}
                           size="sm"
-                          onClick={() => setCurrentPage(i)}
+                          onClick={() => handlePageChange(i)}
                           className={`w-9 h-9 p-0 ${i === currentPage ? 'bg-orange-500 hover:bg-orange-600 text-white' : 'border-gray-300'}`}
                         >
                           {i}
@@ -1242,21 +1202,21 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
                     }
 
                     // Add ellipsis and last page if needed
-                    if (endPage < totalPagesCalculated) {
-                      if (endPage < totalPagesCalculated - 1) {
+                    if (endPage < totalPages) {
+                      if (endPage < totalPages - 1) {
                         pages.push(
                           <span key="ellipsis2" className="px-2 text-gray-500">...</span>
                         );
                       }
                       pages.push(
                         <Button
-                          key={totalPagesCalculated}
-                          variant={totalPagesCalculated === currentPage ? "default" : "outline"}
+                          key={totalPages}
+                          variant={totalPages === currentPage ? "default" : "outline"}
                           size="sm"
-                          onClick={() => setCurrentPage(totalPagesCalculated)}
-                          className={`w-9 h-9 p-0 ${totalPagesCalculated === currentPage ? 'bg-orange-500 hover:bg-orange-600 text-white' : 'border-gray-300'}`}
+                          onClick={() => handlePageChange(totalPages)}
+                          className={`w-9 h-9 p-0 ${totalPages === currentPage ? 'bg-orange-500 hover:bg-orange-600 text-white' : 'border-gray-300'}`}
                         >
-                          {totalPagesCalculated}
+                          {totalPages}
                         </Button>
                       );
                     }
@@ -1269,8 +1229,8 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => setCurrentPage(currentPage + 1)}
-                  disabled={currentPage === totalPagesCalculated}
+                  onClick={() => handlePageChange(currentPage + 1)}
+                  disabled={currentPage === totalPages}
                   className="border-gray-300"
                 >
                   Next
@@ -1311,8 +1271,8 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
                     <div className="space-y-3">
                       {["Technology", "Finance", "Manufacturing", "Healthcare", "Energy", "Consulting"].map((industry) => (
                         <div key={industry} className="flex items-center space-x-3">
-                          <Checkbox
-                            id={industry.toLowerCase()}
+                          <Checkbox 
+                            id={industry.toLowerCase()} 
                             checked={advancedFilters.industries.includes(industry.toLowerCase())}
                             onCheckedChange={(checked) => {
                               if (checked) {
@@ -1349,12 +1309,12 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
 
                 <div className="space-y-2">
                   <Label className="text-sm font-medium">Employee Count Range</Label>
-                  <Slider
-                    value={advancedFilters.employeeRange}
+                  <Slider 
+                    value={advancedFilters.employeeRange} 
                     onValueChange={(value) => setAdvancedFilters(prev => ({ ...prev, employeeRange: value }))}
-                    max={10000}
-                    step={100}
-                    className="w-full"
+                    max={10000} 
+                    step={100} 
+                    className="w-full" 
                   />
                   <div className="flex justify-between text-sm text-gray-500">
                     <span>{advancedFilters.employeeRange[0]}</span>
@@ -1367,8 +1327,8 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
                     <Label className="text-sm font-medium">Travel Frequency</Label>
-                    <Select
-                      value={advancedFilters.travelFrequency}
+                    <Select 
+                      value={advancedFilters.travelFrequency} 
                       onValueChange={(value) => setAdvancedFilters(prev => ({ ...prev, travelFrequency: value }))}
                     >
                       <SelectTrigger>
@@ -1385,8 +1345,8 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
 
                   <div className="space-y-2">
                     <Label className="text-sm font-medium">Preferred Class</Label>
-                    <Select
-                      value={advancedFilters.preferredClass}
+                    <Select 
+                      value={advancedFilters.preferredClass} 
                       onValueChange={(value) => setAdvancedFilters(prev => ({ ...prev, preferredClass: value }))}
                     >
                       <SelectTrigger>
@@ -1416,8 +1376,8 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
                     <Label className="text-sm font-medium">Annual Revenue Range</Label>
-                    <Select
-                      value={advancedFilters.revenueRange}
+                    <Select 
+                      value={advancedFilters.revenueRange} 
                       onValueChange={(value) => setAdvancedFilters(prev => ({ ...prev, revenueRange: value }))}
                     >
                       <SelectTrigger>
@@ -1475,8 +1435,8 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
 
                   <div className="space-y-2">
                     <Label className="text-sm font-medium">Sustainability Focus</Label>
-                    <Select
-                      value={advancedFilters.sustainabilityLevel}
+                    <Select 
+                      value={advancedFilters.sustainabilityLevel} 
                       onValueChange={(value) => setAdvancedFilters(prev => ({ ...prev, sustainabilityLevel: value }))}
                     >
                       <SelectTrigger>
@@ -1496,8 +1456,8 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
           </div>
 
           <DialogFooter className="pt-6 border-t border-gray-300 gap-3">
-            <Button
-              variant="ghost"
+            <Button 
+              variant="ghost" 
               className="text-gray-500 hover:text-gray-700 cls-addcomapany"
               onClick={() => {
                 setAdvancedFilters({
@@ -1520,11 +1480,11 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
             <Button variant="outline" className="cls-cancel text-gray-500 hover:text-gray-700" onClick={() => setShowAdvancedFilters(false)}>
               Cancel
             </Button>
-            <Button
+            <Button 
               onClick={() => {
                 setShowAdvancedFilters(false);
                 handleSearch();
-              }}
+              }} 
               className="bg-orange-500 hover:bg-orange-600 text-white"
             >
               Apply Filters
@@ -1548,25 +1508,25 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
 
           <Tabs defaultValue="basic" className="w-full">
             <TabsList className="grid w-full grid-cols-4 mb-6 bg-gray-50/50 p-1 rounded-xl border border-gray-200/50">
-              <TabsTrigger
+              <TabsTrigger 
                 value="basic"
                 className="rounded-lg px-5 py-3 data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:border-b-2 data-[state=active]:border-orange-500 data-[state=active]:border-b-orange-500 font-medium text-gray-600 data-[state=active]:text-gray-900 hover:text-gray-900 transition-all duration-200 text-[14px]"
               >
                 Basic Info
               </TabsTrigger>
-              <TabsTrigger
+              <TabsTrigger 
                 value="business"
                 className="rounded-lg px-5 py-3 data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:border-b-2 data-[state=active]:border-orange-500 data-[state=active]:border-b-orange-500 font-medium text-gray-600 data-[state=active]:text-gray-900 hover:text-gray-900 transition-all duration-200 text-[14px]"
               >
                 Business Details
               </TabsTrigger>
-              <TabsTrigger
+              <TabsTrigger 
                 value="travel"
                 className="rounded-lg px-5 py-3 data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:border-b-2 data-[state=active]:border-orange-500 data-[state=active]:border-b-orange-500 font-medium text-gray-600 data-[state=active]:text-gray-900 hover:text-gray-900 transition-all duration-200 text-[14px]"
               >
                 Travel Profile
               </TabsTrigger>
-              <TabsTrigger
+              <TabsTrigger 
                 value="additional"
                 className="rounded-lg px-5 py-3 data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:border-b-2 data-[state=active]:border-orange-500 data-[state=active]:border-b-orange-500 font-medium text-gray-600 data-[state=active]:text-gray-900 hover:text-gray-900 transition-all duration-200 text-[14px]"
               >
@@ -1928,8 +1888,8 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
             <Button variant="outline" className="border-gray-300 text-gray-700 hover:bg-gray-50" onClick={() => setShowAddCompanyDialog(false)}>
               Cancel
             </Button>
-            <Button
-              onClick={handleAddCompany}
+            <Button 
+              onClick={handleAddCompany} 
               disabled={!isFormValid() || isSubmitting}
               className="bg-orange-500 hover:bg-orange-600 text-white"
             >

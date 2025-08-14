@@ -407,12 +407,12 @@ export const useLeadApi = () => {
 
     try {
       console.log('API call - moveToOpportunity:', { leadId, data: { opportunity: opportunityData } });
-
+      
       const response: AxiosResponse<any> = await baseApi.post(
         `/leads/${leadId}/move_to_opportunity/`,
         { opportunity: opportunityData }
       );
-
+      
       console.log('API response - moveToOpportunity:', response.data);
       setData(response.data);
       return response.data;
@@ -439,7 +439,7 @@ export const useLeadApi = () => {
       console.error('Error creating lead from company:', error);
       throw error;
     }
-  }, []);
+  }, [baseApi]);
 
   // Get opportunities
   const getOpportunities = useCallback(async (filters: any = {}) => {
@@ -450,7 +450,7 @@ export const useLeadApi = () => {
       console.error('Error fetching opportunities:', error);
       throw error;
     }
-  }, []);
+  }, [baseApi]);
 
   // Get opportunity pipeline metrics
   const getOpportunityPipeline = useCallback(async () => {
@@ -461,7 +461,7 @@ export const useLeadApi = () => {
       console.error('Error fetching opportunity pipeline:', error);
       throw error;
     }
-  }, []);
+  }, [baseApi]);
 
   // Update opportunity stage
   const updateOpportunityStage = useCallback(async (opportunityId: number, stageData: any) => {
@@ -472,7 +472,8 @@ export const useLeadApi = () => {
       console.error('Error updating opportunity stage:', error);
       throw error;
     }
-  }, []);
+  }, [baseApi]);
+
 
   return {
     ...state,
