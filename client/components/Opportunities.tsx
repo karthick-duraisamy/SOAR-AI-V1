@@ -499,9 +499,10 @@ export function Opportunities({ initialFilters, onNavigate }: OpportunitiesProps
       setIsLoading(true);
       try {
         const data = await getOpportunities(filters);
-        setOpportunities(data);
+        setOpportunities(Array.isArray(data) ? data : []);
       } catch (error) {
         console.error('Error fetching opportunities:', error);
+        setOpportunities([]);
         toast.error('Failed to fetch opportunities. Please try again.');
       } finally {
         setIsLoading(false);
@@ -552,24 +553,34 @@ export function Opportunities({ initialFilters, onNavigate }: OpportunitiesProps
   }, [initialFilters, opportunities]);
 
   // Calculate pipeline metrics
-  const safeOpportunities = opportunities || [];
-  const totalValue = safeOpportunities.reduce((sum, opp) => sum + (opp.value || 0), 0);
-  const weightedValue = safeOpportunities.reduce((sum, opp) => sum + ((opp.value || 0) * (opp.probability || 0) / 100), 0);
+  const safeOpportunities = Array.isArray(opportunities) ? opportunities : [];
+  const totalValue = safeOpportunities.reduce((sum, opp) => sum + (opp?.value || 0), 0);
+  const weightedValue = safeOpportunities.reduce((sum, opp) => sum + ((opp?.value || 0) * (opp?.probability || 0) / 100), 0);
   const avgDealSize = safeOpportunities.length > 0 ? totalValue / safeOpportunities.length : 0;
-  const winRate = safeOpportunities.length > 0 ? (safeOpportunities.filter(opp => opp.stage === 'closed_won').length / safeOpportunities.length) * 100 : 0;
+  const winRate = safeOpportunities.length > 0 ? (safeOpportunities.filter(opp => opp?.stage === 'closed_won').length / safeOpportunities.length) * 100 : 0;
 
   const stageMetrics = stages.map(stage => ({
     ...stage,
-    count: safeOpportunities.filter(opp => opp.stage === stage.id).length,
-    value: safeOpportunities.filter(opp => opp.stage === stage.id).reduce((sum, opp) => sum + (opp.value || 0), 0)
+    count: safeOpportunities.filter(opp => opp?.stage === stage.id).length,
+    value: safeOpportunities.filter(opp => opp?.stage === stage.id).reduce((sum, opp) => sum + (opp?.value || 0), 0)
   }));
 
   // Filtered opportunities
   const filteredOpportunities = safeOpportunities.filter(opp => {
+    if (!opp) return false;
     if (filters.stage && filters.stage !== 'all' && opp.stage !== filters.stage) return false;
-    if (filters.search && !opp.lead_info?.company?.name?.toLowerCase().includes(filters.search.toLowerCase()) && 
-        !opp.lead_info?.contact?.first_name?.toLowerCase().includes(filters.search.toLowerCase()) &&
-        !opp.lead_info?.contact?.last_name?.toLowerCase().includes(filters.search.toLowerCase())) return false;
+    if (filters.search) {
+      const searchLower = filters.search.toLowerCase();
+      const companyName = opp.lead_info?.company?.name?.toLowerCase() || '';
+      const firstName = opp.lead_info?.contact?.first_name?.toLowerCase() || '';
+      const lastName = opp.lead_info?.contact?.last_name?.toLowerCase() || '';
+      
+      if (!companyName.includes(searchLower) && 
+          !firstName.includes(searchLower) &&
+          !lastName.includes(searchLower)) {
+        return false;
+      }
+    }
     return true;
   });
 
@@ -701,6 +712,11 @@ export function Opportunities({ initialFilters, onNavigate }: OpportunitiesProps
 
   // Drag and Drop Handler
   const handleDrop = useCallback(async (opportunityId: string, newStage: string) => {
+    if (!opportunityId || !newStage) {
+      toast.error('Invalid opportunity or stage data');
+      return;
+    }
+
     try {
       // Update via API
       await updateOpportunityStage(parseInt(opportunityId), { stage: newStage });
@@ -712,21 +728,30 @@ export function Opportunities({ initialFilters, onNavigate }: OpportunitiesProps
             ? { 
                 ...opportunity, 
                 stage: newStage,
+                probability: stages.find(s => s.id === newStage)?.probability || opportunity.probability,
                 updated_at: new Date().toISOString()
               }
             : opportunity
         )
       );
 
-      const stageName = stages.find(s => s.id === newStage)?.label;
+      const stageName = stages.find(s => s.id === newStage)?.label || newStage;
       const oppName = opportunities.find(o => o.id === parseInt(opportunityId))?.lead_info?.company?.name || 'Opportunity';
       setSuccessMessage(`${oppName} moved to ${stageName} stage`);
       setTimeout(() => setSuccessMessage(''), 5000);
     } catch (error) {
       console.error('Error updating opportunity stage:', error);
       toast.error('Failed to update opportunity stage. Please try again.');
+      
+      // Refresh opportunities to revert any optimistic updates
+      try {
+        const data = await getOpportunities(filters);
+        setOpportunities(Array.isArray(data) ? data : []);
+      } catch (refreshError) {
+        console.error('Error refreshing opportunities:', refreshError);
+      }
     }
-  }, [opportunities, stages, updateOpportunityStage]);
+  }, [opportunities, stages, updateOpportunityStage, getOpportunities, filters]);
 
   const getOpportunitiesForStage = (stageId: string) => {
     return filteredOpportunities.filter(opportunity => opportunity.stage === stageId);

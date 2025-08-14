@@ -447,22 +447,27 @@ export const useLeadApi = () => {
     setError(null);
 
     try {
-      const response: AxiosResponse<any[]> = await axios.post(
-        `${API_BASE_URL}/opportunities/search/`,
-        filters,
-        {
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        }
+      const requestBody = {
+        search: filters?.search || '',
+        stage: filters?.stage || '',
+        ...filters
+      };
+
+      const response: AxiosResponse<any[]> = await baseApi.post(
+        `/opportunities/search/`,
+        requestBody
       );
 
       setData(response.data);
       return response.data;
     } catch (error: any) {
-      const errorMessage = error.response?.data?.message || error.message || 'Failed to fetch opportunities';
+      console.error('Error fetching opportunities:', error);
+      const errorMessage = error.response?.data?.detail || 
+                          error.response?.data?.message || 
+                          error.message || 
+                          'Failed to fetch opportunities';
       setError(errorMessage);
-      throw error;
+      return []; // Return empty array instead of throwing to prevent crashes
     } finally {
       setLoading(false);
     }
@@ -474,20 +479,19 @@ export const useLeadApi = () => {
     setError(null);
 
     try {
-      const response: AxiosResponse<any> = await axios.put(
-        `${API_BASE_URL}/opportunities/${id}/`,
-        stageData,
-        {
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        }
+      const response: AxiosResponse<any> = await baseApi.put(
+        `/opportunities/${id}/`,
+        stageData
       );
 
       setData(response.data);
       return response.data;
     } catch (error: any) {
-      const errorMessage = error.response?.data?.message || error.message || 'Failed to update opportunity stage';
+      console.error('Error updating opportunity stage:', error);
+      const errorMessage = error.response?.data?.detail || 
+                          error.response?.data?.message || 
+                          error.message || 
+                          'Failed to update opportunity stage';
       setError(errorMessage);
       throw error;
     } finally {
@@ -501,14 +505,18 @@ export const useLeadApi = () => {
     setError(null);
 
     try {
-      const response: AxiosResponse<any> = await axios.get(
-        `${API_BASE_URL}/opportunities/pipeline_value/`
+      const response: AxiosResponse<any> = await baseApi.get(
+        `/opportunities/pipeline_value/`
       );
 
       setData(response.data);
       return response.data;
     } catch (error: any) {
-      const errorMessage = error.response?.data?.message || error.message || 'Failed to fetch pipeline data';
+      console.error('Error fetching pipeline data:', error);
+      const errorMessage = error.response?.data?.detail || 
+                          error.response?.data?.message || 
+                          error.message || 
+                          'Failed to fetch pipeline data';
       setError(errorMessage);
       throw error;
     } finally {
