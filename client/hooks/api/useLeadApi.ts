@@ -407,21 +407,21 @@ export const useLeadApi = () => {
 
     try {
       console.log('API call - moveToOpportunity:', { leadId, data: { opportunity: opportunityData } });
-      
+
       const response: AxiosResponse<any> = await baseApi.post(
         `/leads/${leadId}/move_to_opportunity/`,
         { opportunity: opportunityData }
       );
-      
+
       console.log('API response - moveToOpportunity:', response.data);
       setData(response.data);
       return response.data;
     } catch (error: any) {
       console.error('API error - moveToOpportunity:', error.response?.data);
-      const errorMessage = error.response?.data?.error || 
-                          error.response?.data?.detail || 
+      const errorMessage = error.response?.data?.error ||
+                          error.response?.data?.detail ||
                           error.response?.data?.message ||
-                          error.message || 
+                          error.message ||
                           'Failed to move lead to opportunity';
       setError(errorMessage);
       throw error;
@@ -443,37 +443,78 @@ export const useLeadApi = () => {
 
   // Get opportunities
   const getOpportunities = useCallback(async (filters: any = {}) => {
-    try {
-      const response = await baseApi.post('/opportunities/search/', filters);
-      return response.data;
-    } catch (error) {
-      console.error('Error fetching opportunities:', error);
-      throw error;
-    }
-  }, [baseApi]);
+    setLoading(true);
+    setError(null);
 
-  // Get opportunity pipeline metrics
-  const getOpportunityPipeline = useCallback(async () => {
     try {
-      const response = await baseApi.get('/opportunities/pipeline_value/');
+      const response: AxiosResponse<any[]> = await axios.post(
+        `${API_BASE_URL}/opportunities/search/`,
+        filters,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+
+      setData(response.data);
       return response.data;
-    } catch (error) {
-      console.error('Error fetching opportunity pipeline:', error);
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.message || error.message || 'Failed to fetch opportunities';
+      setError(errorMessage);
       throw error;
+    } finally {
+      setLoading(false);
     }
-  }, [baseApi]);
+  }, [setLoading, setError, setData]);
 
   // Update opportunity stage
-  const updateOpportunityStage = useCallback(async (opportunityId: number, stageData: any) => {
-    try {
-      const response = await baseApi.patch(`/opportunities/${opportunityId}/`, stageData);
-      return response.data;
-    } catch (error) {
-      console.error('Error updating opportunity stage:', error);
-      throw error;
-    }
-  }, [baseApi]);
+  const updateOpportunityStage = useCallback(async (id: number, stageData: any) => {
+    setLoading(true);
+    setError(null);
 
+    try {
+      const response: AxiosResponse<any> = await axios.put(
+        `${API_BASE_URL}/opportunities/${id}/`,
+        stageData,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+
+      setData(response.data);
+      return response.data;
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.message || error.message || 'Failed to update opportunity stage';
+      setError(errorMessage);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  }, [setLoading, setError, setData]);
+
+  // Get opportunity pipeline data
+  const getOpportunityPipeline = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const response: AxiosResponse<any> = await axios.get(
+        `${API_BASE_URL}/opportunities/pipeline_value/`
+      );
+
+      setData(response.data);
+      return response.data;
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.message || error.message || 'Failed to fetch pipeline data';
+      setError(errorMessage);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  }, [setLoading, setError, setData]);
 
   return {
     ...state,
@@ -495,7 +536,7 @@ export const useLeadApi = () => {
     moveToOpportunity,
     createLeadFromCompany,
     getOpportunities,
-    getOpportunityPipeline,
-    updateOpportunityStage
+    updateOpportunityStage,
+    getOpportunityPipeline
   };
 };

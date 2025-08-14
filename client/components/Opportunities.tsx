@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback } from 'react';
 import { DndProvider, useDrag, useDrop } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
@@ -49,7 +50,8 @@ import {
   ArrowRight,
   History,
   MessageCircle,
-  User
+  User,
+  ExternalLink
 } from 'lucide-react';
 
 interface OpportunitiesProps {
@@ -57,7 +59,7 @@ interface OpportunitiesProps {
   onNavigate: (screen: string, filters?: any) => void;
 }
 
-// Define opportunity interface
+// Define opportunity interface based on your Django model
 interface Opportunity {
   id: number;
   leadId?: number;
@@ -66,16 +68,22 @@ interface Opportunity {
   probability: number;
   value: number;
   estimated_close_date: string;
+  actual_close_date?: string;
   description?: string;
   next_steps?: string;
+  created_at: string;
+  updated_at: string;
   lead_info?: {
     company: {
+      id: number;
       name: string;
       industry: string;
       location: string;
       employee_count?: number;
+      size?: string;
     };
     contact: {
+      id: number;
       first_name: string;
       last_name: string;
       email: string;
@@ -86,26 +94,37 @@ interface Opportunity {
 }
 
 const stages = [
+  { id: 'discovery', label: 'Discovery', color: 'bg-blue-500', headerColor: 'bg-blue-50', probability: 25 },
   { id: 'proposal', label: 'Proposal', color: 'bg-orange-500', headerColor: 'bg-orange-50', probability: 65 },
   { id: 'negotiation', label: 'Negotiation', color: 'bg-purple-500', headerColor: 'bg-purple-50', probability: 80 },
-  { id: 'closed-won', label: 'Closed Won', color: 'bg-green-500', headerColor: 'bg-green-50', probability: 100 },
-  { id: 'closed-lost', label: 'Closed Lost', color: 'bg-red-500', headerColor: 'bg-red-50', probability: 0 }
+  { id: 'closed_won', label: 'Closed Won', color: 'bg-green-500', headerColor: 'bg-green-50', probability: 100 },
+  { id: 'closed_lost', label: 'Closed Lost', color: 'bg-red-500', headerColor: 'bg-red-50', probability: 0 }
 ];
 
 const ItemTypes = {
   OPPORTUNITY: 'opportunity'
 };
 
-// Opportunity Card Component for Pipeline View
+// Opportunity Card Component matching the design in the image
 interface OpportunityCardProps {
-  opportunity: any;
-  onEdit: (opportunity: any) => void;
-  onSendProposal: (opportunity: any) => void;
-  onViewHistory: (opportunity: any) => void;
-  onMoveToNegotiation: (opportunity: any) => void;
+  opportunity: Opportunity;
+  onEdit: (opportunity: Opportunity) => void;
+  onAddActivity: (opportunity: Opportunity) => void;
+  onViewHistory: (opportunity: Opportunity) => void;
+  onSendProposal?: (opportunity: Opportunity) => void;
+  onMoveToNegotiation?: (opportunity: Opportunity) => void;
+  onCloseDeal?: (opportunity: Opportunity) => void;
 }
 
-function OpportunityCard({ opportunity, onEdit, onSendProposal, onViewHistory, onMoveToNegotiation }: OpportunityCardProps) {
+function OpportunityCard({ 
+  opportunity, 
+  onEdit, 
+  onAddActivity, 
+  onViewHistory, 
+  onSendProposal,
+  onMoveToNegotiation,
+  onCloseDeal 
+}: OpportunityCardProps) {
   const [{ isDragging }, drag] = useDrag(() => ({
     type: ItemTypes.OPPORTUNITY,
     item: { id: opportunity.id, stage: opportunity.stage },
@@ -114,83 +133,150 @@ function OpportunityCard({ opportunity, onEdit, onSendProposal, onViewHistory, o
     }),
   }));
 
-  const getStageColor = (stageId: string) => {
-    switch (stageId) {
-      case 'proposal': return 'outline';
-      case 'negotiation': return 'secondary';
-      case 'closed_won': return 'default';
-      case 'closed_lost': return 'destructive';
-      default: return 'outline';
+  const company = opportunity.lead_info?.company || { name: 'Unknown Company', industry: 'Unknown', location: 'Unknown', employee_count: 0 };
+  const contact = opportunity.lead_info?.contact || { first_name: 'Unknown', last_name: 'Contact', email: '', phone: '', position: '' };
+
+  const getBadgeColor = (stage: string) => {
+    switch (stage) {
+      case 'discovery': return 'bg-blue-100 text-blue-800';
+      case 'proposal': return 'bg-orange-100 text-orange-800';
+      case 'negotiation': return 'bg-purple-100 text-purple-800';
+      case 'closed_won': return 'bg-green-100 text-green-800';
+      case 'closed_lost': return 'bg-red-100 text-red-800';
+      default: return 'bg-gray-100 text-gray-800';
     }
   };
 
-  const company = opportunity.lead_info?.company || { name: 'Unknown Company' };
-  const contact = opportunity.lead_info?.contact || { first_name: 'Unknown', last_name: 'Contact' };
+  const formatCurrency = (amount: number) => {
+    if (amount >= 1000000) {
+      return `$${(amount / 1000000).toFixed(1)}M`;
+    } else if (amount >= 1000) {
+      return `$${(amount / 1000).toFixed(0)}K`;
+    } else {
+      return `$${amount.toFixed(0)}`;
+    }
+  };
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      month: '2-digit',
+      day: '2-digit',
+      year: 'numeric'
+    });
+  };
 
   return (
     <div
       ref={drag}
-      className={`p-4 bg-white border rounded-lg shadow-sm cursor-pointer hover:shadow-md transition-all duration-200 ${
-        isDragging ? 'opacity-50 rotate-2 scale-105' : ''
+      className={`bg-white border border-gray-200 rounded-lg p-4 mb-3 cursor-pointer hover:shadow-md transition-all duration-200 ${
+        isDragging ? 'opacity-50 rotate-1 scale-105' : ''
       }`}
-      style={{ boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)' }}
     >
-      {/* Header */}
+      {/* Header with Company and Contact Info */}
       <div className="flex items-start justify-between mb-3">
-        <div className="flex items-center gap-3">
-          <div className="flex items-center justify-center w-10 h-10 bg-blue-100 rounded-lg">
+        <div className="flex items-center gap-3 flex-1">
+          <div className="flex items-center justify-center w-10 h-10 bg-blue-100 rounded-lg flex-shrink-0">
             <Building2 className="h-5 w-5 text-blue-600" />
           </div>
-          <div>
-            <h4 className="font-semibold text-base">{company.name}</h4>
-            <p className="text-sm text-muted-foreground">{contact.first_name} {contact.last_name}</p>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 mb-1">
+              <h4 className="font-semibold text-base text-gray-900 truncate">{company.name}</h4>
+              <Badge className={`text-xs px-2 py-1 ${getBadgeColor(opportunity.stage)}`}>
+                {stages.find(s => s.id === opportunity.stage)?.label || opportunity.stage}
+              </Badge>
+            </div>
+            <div className="flex items-center gap-1 text-sm text-gray-600">
+              <span>{contact.first_name} {contact.last_name}</span>
+              {contact.position && (
+                <>
+                  <span>•</span>
+                  <span>{contact.position}</span>
+                </>
+              )}
+            </div>
           </div>
         </div>
-        <Badge variant={getStageColor(opportunity.stage)} className="text-xs">
-          {opportunity.probability}%
+        <div className="text-right flex-shrink-0">
+          <div className="text-lg font-bold text-green-600">
+            {formatCurrency(opportunity.value)}
+          </div>
+          <div className="text-sm text-gray-500">
+            {opportunity.probability}% probability
+          </div>
+        </div>
+      </div>
+
+      {/* Probability Bar */}
+      <div className="mb-3">
+        <div className="flex items-center justify-between mb-1">
+          <span className="text-sm font-medium text-gray-700">Probability: {opportunity.probability}%</span>
+        </div>
+        <Progress value={opportunity.probability} className="h-2" />
+      </div>
+
+      {/* Details Grid */}
+      <div className="grid grid-cols-2 gap-3 mb-3 text-sm">
+        <div>
+          <span className="text-gray-500">Industry:</span>
+          <span className="ml-1 text-gray-900">{company.industry}</span>
+        </div>
+        <div>
+          <span className="text-gray-500">Created:</span>
+          <span className="ml-1 text-gray-900">{formatDate(opportunity.created_at)}</span>
+        </div>
+        <div>
+          <span className="text-gray-500">Company Size:</span>
+          <span className="ml-1 text-gray-900">{company.employee_count || 'Unknown'} employees</span>
+        </div>
+        <div>
+          <span className="text-gray-500">Last Activity:</span>
+          <span className="ml-1 text-gray-900">{formatDate(opportunity.updated_at)}</span>
+        </div>
+      </div>
+
+      {/* Contact Information */}
+      <div className="flex items-center gap-4 mb-3 text-sm text-gray-600">
+        {contact.email && (
+          <div className="flex items-center gap-1">
+            <Mail className="h-3 w-3" />
+            <span className="truncate max-w-[120px]">{contact.email}</span>
+          </div>
+        )}
+        {contact.phone && (
+          <div className="flex items-center gap-1">
+            <Phone className="h-3 w-3" />
+            <span>{contact.phone}</span>
+          </div>
+        )}
+        <div className="flex items-center gap-1">
+          <Globe className="h-3 w-3" />
+          <span>{company.location}</span>
+        </div>
+      </div>
+
+      {/* Close Date */}
+      <div className="mb-3 p-2 bg-gray-50 rounded text-sm">
+        <span className="text-gray-500">Next Action:</span>
+        <span className="ml-1 text-gray-900">
+          {opportunity.next_steps || 'Follow up on proposal review and feedback'}
+        </span>
+      </div>
+
+      {/* Tags/Badges */}
+      <div className="flex flex-wrap gap-1 mb-3">
+        <Badge variant="outline" className="text-xs">
+          {company.industry}
+        </Badge>
+        <Badge variant="outline" className="text-xs">
+          {company.size || 'Enterprise'}
+        </Badge>
+        <Badge variant="outline" className="text-xs">
+          Decision Maker
         </Badge>
       </div>
 
-      {/* Deal Value */}
-      <div className="mb-3">
-        <div className="flex items-center gap-2 mb-1">
-          <DollarSign className="h-4 w-4 text-muted-foreground" />
-          <span className="font-semibold text-lg">${(opportunity.value / 1000).toFixed(0)}K</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <Calendar className="h-4 w-4 text-muted-foreground" />
-          <span className="text-sm text-muted-foreground">Close: {new Date(opportunity.estimated_close_date).toLocaleDateString()}</span>
-        </div>
-      </div>
-
-      {/* Next Steps */}
-      {opportunity.next_steps && (
-        <div className="mb-3 p-2 bg-blue-50 border border-blue-200 rounded">
-          <div className="flex items-start gap-2">
-            <Target className="h-3 w-3 text-blue-600 mt-0.5 flex-shrink-0" />
-            <p className="text-xs text-blue-800 line-clamp-2">
-              {opportunity.next_steps}
-            </p>
-          </div>
-        </div>
-      )}
-
-      {/* Footer */}
-      <div className="flex items-center justify-between pt-2 border-t border-gray-100">
-        <div className="flex items-center gap-2">
-          <User className="h-3 w-3 text-muted-foreground" />
-          <span className="text-xs text-muted-foreground">Current User</span>
-        </div>
-        <div className="flex items-center gap-1">
-          <Clock className="h-3 w-3 text-muted-foreground" />
-          <span className="text-xs text-muted-foreground">
-            {new Date(opportunity.updated_at || opportunity.created_at).toLocaleDateString()}
-          </span>
-        </div>
-      </div>
-
       {/* Action Buttons */}
-      <div className="flex gap-1 mt-3">
+      <div className="flex gap-1">
         <Button 
           variant="ghost" 
           size="sm" 
@@ -209,23 +295,65 @@ function OpportunityCard({ opportunity, onEdit, onSendProposal, onViewHistory, o
           className="h-7 px-2 text-xs"
           onClick={(e) => {
             e.stopPropagation();
+            onAddActivity(opportunity);
+          }}
+        >
+          <Plus className="h-3 w-3 mr-1" />
+          Add Activity
+        </Button>
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          className="h-7 px-2 text-xs"
+          onClick={(e) => {
+            e.stopPropagation();
             onViewHistory(opportunity);
           }}
         >
           <History className="h-3 w-3 mr-1" />
           History
         </Button>
-        {opportunity.stage === 'proposal' && (
+        
+        {/* Stage-specific Action Buttons */}
+        {opportunity.stage === 'proposal' && onSendProposal && (
           <Button 
             size="sm" 
-            className="h-7 px-2 text-xs"
+            className="h-7 px-2 text-xs bg-blue-600 hover:bg-blue-700"
+            onClick={(e) => {
+              e.stopPropagation();
+              onSendProposal(opportunity);
+            }}
+          >
+            <FileText className="h-3 w-3 mr-1" />
+            Send Proposal
+          </Button>
+        )}
+
+        {opportunity.stage === 'proposal' && onMoveToNegotiation && (
+          <Button 
+            size="sm" 
+            className="h-7 px-2 text-xs bg-orange-600 hover:bg-orange-700"
             onClick={(e) => {
               e.stopPropagation();
               onMoveToNegotiation(opportunity);
             }}
           >
             <ArrowRight className="h-3 w-3 mr-1" />
-            Negotiate
+            Move to Negotiation
+          </Button>
+        )}
+
+        {opportunity.stage === 'negotiation' && onCloseDeal && (
+          <Button 
+            size="sm" 
+            className="h-7 px-2 text-xs bg-green-600 hover:bg-green-700"
+            onClick={(e) => {
+              e.stopPropagation();
+              onCloseDeal(opportunity);
+            }}
+          >
+            <Handshake className="h-3 w-3 mr-1" />
+            Close Deal
           </Button>
         )}
       </div>
@@ -236,15 +364,27 @@ function OpportunityCard({ opportunity, onEdit, onSendProposal, onViewHistory, o
 // Pipeline Column Component
 interface PipelineColumnProps {
   stage: any;
-  opportunities: any[];
+  opportunities: Opportunity[];
   onDrop: (opportunityId: string, newStage: string) => void;
-  onEdit: (opportunity: any) => void;
-  onSendProposal: (opportunity: any) => void;
-  onViewHistory: (opportunity: any) => void;
-  onMoveToNegotiation: (opportunity: any) => void;
+  onEdit: (opportunity: Opportunity) => void;
+  onAddActivity: (opportunity: Opportunity) => void;
+  onViewHistory: (opportunity: Opportunity) => void;
+  onSendProposal?: (opportunity: Opportunity) => void;
+  onMoveToNegotiation?: (opportunity: Opportunity) => void;
+  onCloseDeal?: (opportunity: Opportunity) => void;
 }
 
-function PipelineColumn({ stage, opportunities, onDrop, onEdit, onSendProposal, onViewHistory, onMoveToNegotiation }: PipelineColumnProps) {
+function PipelineColumn({ 
+  stage, 
+  opportunities, 
+  onDrop, 
+  onEdit, 
+  onAddActivity, 
+  onViewHistory,
+  onSendProposal,
+  onMoveToNegotiation,
+  onCloseDeal
+}: PipelineColumnProps) {
   const [{ isOver }, drop] = useDrop(() => ({
     accept: ItemTypes.OPPORTUNITY,
     drop: (item: { id: string; stage: string }) => {
@@ -257,84 +397,94 @@ function PipelineColumn({ stage, opportunities, onDrop, onEdit, onSendProposal, 
     }),
   }));
 
-  const totalValue = opportunities.reduce((sum, opp) => sum + opp.dealValue, 0);
+  const totalValue = opportunities.reduce((sum, opp) => sum + opp.value, 0);
+  const formatCurrency = (amount: number) => {
+    if (amount >= 1000000) {
+      return `$${(amount / 1000000).toFixed(1)}M`;
+    } else if (amount >= 1000) {
+      return `$${(amount / 1000).toFixed(0)}K`;
+    } else {
+      return `$${amount.toFixed(0)}`;
+    }
+  };
 
   return (
     <div
       ref={drop}
-      className={`flex-1 min-w-0 ${isOver ? 'ring-2 ring-blue-400 ring-opacity-50' : ''}`}
+      className={`flex-1 min-w-80 ${isOver ? 'ring-2 ring-blue-400 ring-opacity-50' : ''}`}
     >
-      <div className={`${stage.headerColor} border-b-2 ${stage.color.split(' ')[1]} p-3 rounded-t-lg`}>
+      <div className={`${stage.headerColor} border-b-2 border-${stage.color.split('-')[1]}-500 p-3 rounded-t-lg`}>
         <div className="flex items-center justify-between">
-          <h3 className="font-medium text-sm">{stage.label}</h3>
+          <h3 className="font-medium text-sm text-gray-900">{stage.label}</h3>
           <div className="flex items-center gap-2">
             <Badge variant="outline" className="text-xs">
               {opportunities.length}
             </Badge>
-            <span className="text-xs text-muted-foreground">
-              ${(totalValue / 1000).toFixed(0)}K
+            <span className="text-xs text-muted-foreground font-medium">
+              {formatCurrency(totalValue)}
             </span>
           </div>
         </div>
       </div>
 
-      <div className={`${stage.color.replace('bg-', 'bg-').replace('-500', '-100')} border-2 border-t-0 rounded-b-lg min-h-[600px] p-3 space-y-3`}>
-        {opportunities.map((opportunity) => (
-          <OpportunityCard
-            key={opportunity.id}
-            opportunity={opportunity}
-            onEdit={onEdit}
-            onSendProposal={onSendProposal}
-            onViewHistory={onViewHistory}
-            onMoveToNegotiation={onMoveToNegotiation}
-          />
-        ))}
+      <ScrollArea className={`${stage.color.replace('bg-', 'bg-').replace('-500', '-50')} border-2 border-t-0 border-${stage.color.split('-')[1]}-200 rounded-b-lg min-h-[600px] p-3`}>
+        <div className="space-y-3">
+          {opportunities.map((opportunity) => (
+            <OpportunityCard
+              key={opportunity.id}
+              opportunity={opportunity}
+              onEdit={onEdit}
+              onAddActivity={onAddActivity}
+              onViewHistory={onViewHistory}
+              onSendProposal={onSendProposal}
+              onMoveToNegotiation={onMoveToNegotiation}
+              onCloseDeal={onCloseDeal}
+            />
+          ))}
 
-        {opportunities.length === 0 && (
-          <div className="flex flex-col items-center justify-center h-32 text-muted-foreground">
-            <Target className="h-8 w-8 mb-2 opacity-50" />
-            <p className="text-sm">No opportunities</p>
-          </div>
-        )}
-      </div>
+          {opportunities.length === 0 && (
+            <div className="flex flex-col items-center justify-center h-32 text-muted-foreground">
+              <Target className="h-8 w-8 mb-2 opacity-50" />
+              <p className="text-sm">No opportunities</p>
+            </div>
+          )}
+        </div>
+      </ScrollArea>
     </div>
   );
 }
 
 export function Opportunities({ initialFilters, onNavigate }: OpportunitiesProps) {
-  const { getOpportunities, getOpportunityPipeline, updateOpportunityStage } = useLeadApi();
+  const { getOpportunities, updateOpportunityStage } = useLeadApi();
   const [opportunities, setOpportunities] = useState<Opportunity[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [successMessage, setSuccessMessage] = useState('');
-  const [selectedOpportunity, setSelectedOpportunity] = useState<any>(null);
+  const [selectedOpportunity, setSelectedOpportunity] = useState<Opportunity | null>(null);
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [showActivityDialog, setShowActivityDialog] = useState(false);
   const [showHistoryDialog, setShowHistoryDialog] = useState(false);
+  const [showProposalDialog, setShowProposalDialog] = useState(false);
   const [currentView, setCurrentView] = useState('list');
-  const [isLoading, setIsLoading] = useState(true);
   const [filters, setFilters] = useState({
     stage: 'all',
-    owner: 'all',
-    industry: 'all',
     search: ''
   });
 
   const [editForm, setEditForm] = useState({
-    stage: 'proposal',
+    stage: '',
     probability: '',
-    dealValue: '',
-    expectedCloseDate: '',
-    nextAction: '',
-    notes: ''
+    value: '',
+    estimated_close_date: '',
+    next_steps: '',
+    description: ''
   });
 
   const [activityForm, setActivityForm] = useState({
     type: 'call',
-    action: '',
     description: '',
     date: new Date().toISOString().split('T')[0]
   });
 
-  const [showProposalDialog, setShowProposalDialog] = useState(false);
   const [proposalForm, setProposalForm] = useState({
     title: '',
     description: '',
@@ -343,7 +493,7 @@ export function Opportunities({ initialFilters, onNavigate }: OpportunitiesProps
     deliveryMethod: 'email'
   });
 
-  // Fetch opportunities data on component mount
+  // Fetch opportunities data on component mount and when filters change
   useEffect(() => {
     const fetchOpportunities = async () => {
       setIsLoading(true);
@@ -374,14 +524,18 @@ export function Opportunities({ initialFilters, onNavigate }: OpportunitiesProps
         estimated_close_date: initialFilters.newOpportunity.estimated_close_date || initialFilters.newOpportunity.expectedCloseDate || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
         description: initialFilters.newOpportunity.description || initialFilters.newOpportunity.notes || 'Converted from qualified lead',
         next_steps: initialFilters.newOpportunity.next_steps || 'Send initial proposal and schedule presentation',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
         lead_info: {
           company: {
+            id: 1,
             name: initialFilters.newOpportunity.company || 'Unknown Company',
             industry: initialFilters.newOpportunity.industry || 'Unknown',
             location: initialFilters.newOpportunity.location || 'Unknown Location',
             employee_count: initialFilters.newOpportunity.employees || 0
           },
           contact: {
+            id: 1,
             first_name: initialFilters.newOpportunity.contact?.split(' ')[0] || 'Unknown',
             last_name: initialFilters.newOpportunity.contact?.split(' ').slice(1).join(' ') || 'Contact',
             email: initialFilters.newOpportunity.email || 'unknown@email.com',
@@ -397,126 +551,73 @@ export function Opportunities({ initialFilters, onNavigate }: OpportunitiesProps
     }
   }, [initialFilters, opportunities]);
 
-  const getStageInfo = (stageId: string) => {
-    return stages.find(s => s.id === stageId) || stages[0];
-  };
+  // Calculate pipeline metrics
+  const safeOpportunities = opportunities || [];
+  const totalValue = safeOpportunities.reduce((sum, opp) => sum + (opp.value || 0), 0);
+  const weightedValue = safeOpportunities.reduce((sum, opp) => sum + ((opp.value || 0) * (opp.probability || 0) / 100), 0);
+  const avgDealSize = safeOpportunities.length > 0 ? totalValue / safeOpportunities.length : 0;
+  const winRate = safeOpportunities.length > 0 ? (safeOpportunities.filter(opp => opp.stage === 'closed_won').length / safeOpportunities.length) * 100 : 0;
 
-  const getStageColor = (stageId: string) => {
-    const stage = getStageInfo(stageId);
-    switch (stageId) {
-      case 'proposal': return 'outline';
-      case 'negotiation': return 'secondary';
-      case 'closed-won': return 'default';
-      case 'closed-lost': return 'destructive';
-      default: return 'outline';
+  const stageMetrics = stages.map(stage => ({
+    ...stage,
+    count: safeOpportunities.filter(opp => opp.stage === stage.id).length,
+    value: safeOpportunities.filter(opp => opp.stage === stage.id).reduce((sum, opp) => sum + (opp.value || 0), 0)
+  }));
+
+  // Filtered opportunities
+  const filteredOpportunities = safeOpportunities.filter(opp => {
+    if (filters.stage && filters.stage !== 'all' && opp.stage !== filters.stage) return false;
+    if (filters.search && !opp.lead_info?.company?.name?.toLowerCase().includes(filters.search.toLowerCase()) && 
+        !opp.lead_info?.contact?.first_name?.toLowerCase().includes(filters.search.toLowerCase()) &&
+        !opp.lead_info?.contact?.last_name?.toLowerCase().includes(filters.search.toLowerCase())) return false;
+    return true;
+  });
+
+  // Format currency function
+  const formatCurrency = (amount: number) => {
+    if (amount >= 1000000) {
+      return `$${(amount / 1000000).toFixed(1)}M`;
+    } else if (amount >= 1000) {
+      return `$${(amount / 1000).toFixed(0)}K`;
+    } else {
+      return `$${amount.toFixed(0)}`;
     }
   };
 
-  const handleEditOpportunity = (opportunity) => {
+  // Event handlers
+  const handleEditOpportunity = (opportunity: Opportunity) => {
     setSelectedOpportunity(opportunity);
     setEditForm({
       stage: opportunity.stage,
       probability: opportunity.probability.toString(),
-      dealValue: opportunity.dealValue.toString(),
-      expectedCloseDate: opportunity.expectedCloseDate,
-      nextAction: opportunity.nextAction,
-      notes: opportunity.notes
+      value: opportunity.value.toString(),
+      estimated_close_date: opportunity.estimated_close_date,
+      next_steps: opportunity.next_steps || '',
+      description: opportunity.description || ''
     });
     setShowEditDialog(true);
   };
 
-  const handleAddActivity = (opportunity) => {
+  const handleAddActivity = (opportunity: Opportunity) => {
     setSelectedOpportunity(opportunity);
     setActivityForm({
       type: 'call',
-      action: '',
       description: '',
       date: new Date().toISOString().split('T')[0]
     });
     setShowActivityDialog(true);
   };
 
-  const handleSaveEdit = () => {
-    setOpportunities(opportunities.map(opp => 
-      opp.id === selectedOpportunity.id 
-        ? {
-            ...opp,
-            stage: editForm.stage,
-            probability: parseInt(editForm.probability),
-            dealValue: parseInt(editForm.dealValue),
-            expectedCloseDate: editForm.expectedCloseDate,
-            nextAction: editForm.nextAction,
-            notes: editForm.notes,
-            lastActivity: new Date().toISOString().split('T')[0]
-          }
-        : opp
-    ));
-    setShowEditDialog(false);
-    setSuccessMessage(`${selectedOpportunity.company} opportunity has been updated`);
-    setTimeout(() => setSuccessMessage(''), 5000);
+  const handleViewHistory = (opportunity: Opportunity) => {
+    setSelectedOpportunity(opportunity);
+    setShowHistoryDialog(true);
   };
 
-  const handleSaveActivity = () => {
-    setOpportunities(opportunities.map(opp => 
-      opp.id === selectedOpportunity.id 
-        ? {
-            ...opp,
-            activities: [
-              ...opp.activities,
-              {
-                id: opp.activities.length + 1,
-                type: activityForm.type,
-                action: activityForm.action,
-                date: activityForm.date,
-                description: activityForm.description,
-                user: 'Current User',
-                timestamp: new Date().toISOString().split('T')[0] + ' ' + new Date().toTimeString().split(' ')[0],
-                icon: activityForm.type === 'call' ? 'phone' : activityForm.type === 'email' ? 'mail' : activityForm.type === 'meeting' ? 'calendar' : activityForm.type === 'demo' ? 'presentation' : 'note'
-              }
-            ],
-            lastActivity: new Date().toISOString().split('T')[0]
-          }
-        : opp
-    ));
-    setShowActivityDialog(false);
-    setSuccessMessage(`Activity added to ${selectedOpportunity.company} opportunity`);
-    setTimeout(() => setSuccessMessage(''), 5000);
-  };
-
-  const handleMoveToNegotiation = (opportunity) => {
-    setOpportunities(opportunities.map(opp => 
-      opp.id === opportunity.id 
-        ? {
-            ...opp,
-            stage: 'negotiation',
-            probability: 80,
-            nextAction: 'Negotiate contract terms and finalize deal',
-            lastActivity: new Date().toISOString().split('T')[0],
-            activities: [
-              ...opp.activities,
-              {
-                id: opp.activities.length + 1,
-                type: 'stage_change',
-                action: 'Moved to Negotiation stage',
-                date: new Date().toISOString().split('T')[0],
-                description: 'Opportunity advanced to negotiation stage with 80% probability',
-                user: 'Current User',
-                timestamp: new Date().toISOString().split('T')[0] + ' ' + new Date().toTimeString().split(' ')[0],
-                icon: 'arrowright'
-              }
-            ]
-          }
-        : opp
-    ));
-    setSuccessMessage(`${opportunity.company} opportunity moved to Negotiation stage`);
-    setTimeout(() => setSuccessMessage(''), 5000);
-  };
-
-  const handleSendProposal = (opportunity) => {
+  const handleSendProposal = (opportunity: Opportunity) => {
     setSelectedOpportunity(opportunity);
     setProposalForm({
-      title: `Travel Solutions Proposal - ${opportunity.company}`,
-      description: `Comprehensive travel management solution tailored for ${opportunity.company}'s needs including cost optimization, policy compliance, and reporting analytics.`,
+      title: `Travel Solutions Proposal - ${opportunity.lead_info?.company?.name}`,
+      description: `Comprehensive travel management solution tailored for ${opportunity.lead_info?.company?.name}'s needs including cost optimization, policy compliance, and reporting analytics.`,
       validityPeriod: '30',
       specialTerms: '',
       deliveryMethod: 'email'
@@ -524,110 +625,79 @@ export function Opportunities({ initialFilters, onNavigate }: OpportunitiesProps
     setShowProposalDialog(true);
   };
 
-  const handleSaveProposal = () => {
-    setOpportunities(opportunities.map(opp => 
-      opp.id === selectedOpportunity.id 
-        ? {
-            ...opp,
-            nextAction: 'Follow up on proposal review and feedback',
-            lastActivity: new Date().toISOString().split('T')[0],
-            activities: [
-              ...opp.activities,
-              {
-                id: opp.activities.length + 1,
-                type: 'proposal',
-                action: 'Proposal sent',
-                date: new Date().toISOString().split('T')[0],
-                description: `${proposalForm.title} sent via ${proposalForm.deliveryMethod}. Valid for ${proposalForm.validityPeriod} days.`,
-                user: 'Current User',
-                timestamp: new Date().toISOString().split('T')[0] + ' ' + new Date().toTimeString().split(' ')[0],
-                icon: 'file'
-              }
-            ]
-          }
-        : opp
+  const handleMoveToNegotiation = (opportunity: Opportunity) => {
+    const updatedOpportunity = {
+      ...opportunity,
+      stage: 'negotiation',
+      probability: 80,
+      updated_at: new Date().toISOString()
+    };
+    
+    setOpportunities(prev => prev.map(opp => 
+      opp.id === opportunity.id ? updatedOpportunity : opp
     ));
-    setShowProposalDialog(false);
-    setSuccessMessage(`Proposal sent to ${selectedOpportunity.company} successfully`);
+    
+    setSuccessMessage(`${opportunity.lead_info?.company?.name} opportunity moved to Negotiation stage`);
     setTimeout(() => setSuccessMessage(''), 5000);
   };
 
-  const handleViewHistory = (opportunity) => {
-    setSelectedOpportunity(opportunity);
-    setShowHistoryDialog(true);
+  const handleCloseDeal = (opportunity: Opportunity) => {
+    const updatedOpportunity = {
+      ...opportunity,
+      stage: 'closed_won',
+      probability: 100,
+      actual_close_date: new Date().toISOString().split('T')[0],
+      updated_at: new Date().toISOString()
+    };
+    
+    setOpportunities(prev => prev.map(opp => 
+      opp.id === opportunity.id ? updatedOpportunity : opp
+    ));
+    
+    setSuccessMessage(`${opportunity.lead_info?.company?.name} deal closed successfully! 🎉`);
+    setTimeout(() => setSuccessMessage(''), 5000);
   };
 
-  const getHistoryIcon = (type: string) => {
-    switch (type) {
-      case 'call': return Phone;
-      case 'email': return Mail;
-      case 'meeting': return Calendar;
-      case 'demo': return Eye;
-      case 'proposal': return FileText;
-      case 'negotiation': return Handshake;
-      case 'contract': return Handshake;
-      case 'note': return MessageCircle;
-      case 'stage_change': return ArrowRight;
-      case 'conversion': return TrendingUp;
-      case 'file': return FileText;
-      case 'check': return CheckCircle;
-      case 'plus': return Plus;
-      case 'calendar': return Calendar;
-      case 'presentation': return Eye;
-      case 'handshake': return Handshake;
-      case 'phone': return Phone;
-      case 'mail': return Mail;
-      case 'user': return User;
-      default: return MessageCircle;
-    }
+  const handleSaveEdit = () => {
+    if (!selectedOpportunity) return;
+
+    const updatedOpportunity = {
+      ...selectedOpportunity,
+      stage: editForm.stage,
+      probability: parseInt(editForm.probability),
+      value: parseFloat(editForm.value),
+      estimated_close_date: editForm.estimated_close_date,
+      next_steps: editForm.next_steps,
+      description: editForm.description,
+      updated_at: new Date().toISOString()
+    };
+
+    setOpportunities(prev => prev.map(opp => 
+      opp.id === selectedOpportunity.id ? updatedOpportunity : opp
+    ));
+    
+    setShowEditDialog(false);
+    setSuccessMessage(`${selectedOpportunity.lead_info?.company?.name} opportunity has been updated`);
+    setTimeout(() => setSuccessMessage(''), 5000);
   };
 
-  const getHistoryIconColor = (type: string) => {
-    switch (type) {
-      case 'call': return 'text-blue-600 bg-blue-100';
-      case 'phone': return 'text-blue-600 bg-blue-100';
-      case 'email': return 'text-green-600 bg-green-100';
-      case 'mail': return 'text-green-600 bg-green-100';
-      case 'meeting': return 'text-purple-600 bg-purple-100';
-      case 'calendar': return 'text-purple-600 bg-purple-100';
-      case 'demo': return 'text-orange-600 bg-orange-100';
-      case 'presentation': return 'text-orange-600 bg-orange-100';
-      case 'proposal': return 'text-indigo-600 bg-indigo-100';
-      case 'file': return 'text-indigo-600 bg-indigo-100';
-      case 'negotiation': return 'text-yellow-600 bg-yellow-100';
-      case 'handshake': return 'text-yellow-600 bg-yellow-100';
-      case 'contract': return 'text-green-600 bg-green-100';
-      case 'note': return 'text-gray-600 bg-gray-100';
-      case 'stage_change': return 'text-purple-600 bg-purple-100';
-      case 'conversion': return 'text-green-600 bg-green-100';
-      case 'check': return 'text-green-600 bg-green-100';
-      case 'plus': return 'text-blue-600 bg-blue-100';
-      case 'user': return 'text-purple-600 bg-purple-100';
-      default: return 'text-gray-600 bg-gray-100';
-    }
+  const handleSaveActivity = () => {
+    if (!selectedOpportunity) return;
+
+    // In a real implementation, you would send this to the API
+    setShowActivityDialog(false);
+    setSuccessMessage(`Activity added to ${selectedOpportunity.lead_info?.company?.name} opportunity`);
+    setTimeout(() => setSuccessMessage(''), 5000);
   };
 
-  const filteredOpportunities = (opportunities || []).filter(opp => {
-    if (filters.stage && filters.stage !== 'all' && opp.stage !== filters.stage) return false;
-    if (filters.owner && filters.owner !== 'all' && opp.owner !== filters.owner) return false;
-    if (filters.industry && filters.industry !== 'all' && opp.industry !== filters.industry) return false;
-    if (filters.search && !opp.company?.toLowerCase().includes(filters.search.toLowerCase()) && 
-        !opp.contact?.toLowerCase().includes(filters.search.toLowerCase())) return false;
-    return true;
-  });
+  const handleSaveProposal = () => {
+    if (!selectedOpportunity) return;
 
-  // Calculate pipeline metrics
-  const safeOpportunities = opportunities || [];
-  const totalValue = safeOpportunities.reduce((sum, opp) => sum + (opp.value || opp.dealValue || 0), 0);
-  const weightedValue = safeOpportunities.reduce((sum, opp) => sum + ((opp.value || opp.dealValue || 0) * (opp.probability || 0) / 100), 0);
-  const avgDealSize = safeOpportunities.length > 0 ? totalValue / safeOpportunities.length : 0;
-  const winRate = safeOpportunities.length > 0 ? (safeOpportunities.filter(opp => opp.stage === 'closed-won').length / safeOpportunities.length) * 100 : 0;
-
-  const stageMetrics = stages.map(stage => ({
-    ...stage,
-    count: safeOpportunities.filter(opp => opp.stage === stage.id).length,
-    value: safeOpportunities.filter(opp => opp.stage === stage.id).reduce((sum, opp) => sum + (opp.value || opp.dealValue || 0), 0)
-  }));
+    // In a real implementation, you would send this to the API
+    setShowProposalDialog(false);
+    setSuccessMessage(`Proposal sent to ${selectedOpportunity.lead_info?.company?.name} successfully`);
+    setTimeout(() => setSuccessMessage(''), 5000);
+  };
 
   // Drag and Drop Handler
   const handleDrop = useCallback(async (opportunityId: string, newStage: string) => {
@@ -659,698 +729,508 @@ export function Opportunities({ initialFilters, onNavigate }: OpportunitiesProps
   }, [opportunities, stages, updateOpportunityStage]);
 
   const getOpportunitiesForStage = (stageId: string) => {
-    return (filteredOpportunities || []).filter(opportunity => opportunity.stage === stageId);
+    return filteredOpportunities.filter(opportunity => opportunity.stage === stageId);
   };
 
   return (
     <DndProvider backend={HTML5Backend}>
-    <div className="space-y-6 p-5">
-      {/* Success Message */}
-      {successMessage && (
-        <div className="bg-green-50 border border-green-200 rounded-lg p-4 flex items-center gap-2">
-          <CheckCircle className="h-5 w-5 text-green-600" />
-          <span className="text-green-800">{successMessage}</span>
-        </div>
-      )}
+      <div className="space-y-6 p-6 bg-gray-50 min-h-screen">
+        {/* Success Message */}
+        {successMessage && (
+          <Alert className="bg-green-50 border-green-200">
+            <CheckCircle className="h-4 w-4 text-green-600" />
+            <AlertDescription className="text-green-800">
+              {successMessage}
+            </AlertDescription>
+          </Alert>
+        )}
 
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold">Sales Opportunities</h2>
-          <p className="text-muted-foreground">Manage your sales pipeline and track deal progress</p>
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900">Sales Opportunities</h2>
+            <p className="text-gray-600">Manage your sales pipeline and track deal progress</p>
+          </div>
+          <div className="flex gap-2">
+            <Button variant="outline" className="flex items-center gap-2">
+              <Download className="h-4 w-4" />
+              Export
+            </Button>
+            <Button 
+              variant="outline" 
+              className="flex items-center gap-2"
+              onClick={() => window.location.reload()}
+            >
+              <RefreshCw className="h-4 w-4" />
+              Refresh
+            </Button>
+          </div>
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline">
-            <Download className="h-4 w-4 mr-2" />
-            Export
-          </Button>
-          <Button variant="outline">
-            <RefreshCw className="h-4 w-4 mr-2" />
-            Refresh
-          </Button>
+
+        {/* Pipeline Metrics - Matching the design */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          <Card className="bg-white">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium text-gray-600">Total Pipeline Value</CardTitle>
+              <DollarSign className="h-4 w-4 text-gray-400" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-gray-900">{formatCurrency(totalValue)}</div>
+              <p className="text-xs text-gray-500 mt-1">{opportunities.length} opportunities</p>
+            </CardContent>
+          </Card>
+          
+          <Card className="bg-white">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium text-gray-600">Weighted Pipeline</CardTitle>
+              <Target className="h-4 w-4 text-gray-400" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-gray-900">{formatCurrency(weightedValue)}</div>
+              <p className="text-xs text-gray-500 mt-1">Probability adjusted value</p>
+            </CardContent>
+          </Card>
+          
+          <Card className="bg-white">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium text-gray-600">Avg Deal Size</CardTitle>
+              <BarChart3 className="h-4 w-4 text-gray-400" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-gray-900">{formatCurrency(avgDealSize)}</div>
+              <p className="text-xs text-gray-500 mt-1">Average opportunity value</p>
+            </CardContent>
+          </Card>
+          
+          <Card className="bg-white">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium text-gray-600">Win Rate</CardTitle>
+              <Award className="h-4 w-4 text-gray-400" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-gray-900">{winRate.toFixed(0)}%</div>
+              <p className="text-xs text-gray-500 mt-1">Closed won percentage</p>
+            </CardContent>
+          </Card>
         </div>
-      </div>
 
-      {/* Pipeline Metrics */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Pipeline Value</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
+        {/* Pipeline by Stage - Matching the design */}
+        <Card className="bg-white">
+          <CardHeader>
+            <CardTitle className="text-lg font-semibold text-gray-900">Pipeline by Stage</CardTitle>
+            <CardDescription className="text-gray-600">Opportunities distribution across sales stages</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">${(totalValue / 1000000).toFixed(1)}M</div>
-            <p className="text-xs text-muted-foreground">{opportunities.length} opportunities</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Weighted Pipeline</CardTitle>
-            <Target className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">${(weightedValue / 1000000).toFixed(1)}M</div>
-            <p className="text-xs text-muted-foreground">Probability adjusted value</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Avg Deal Size</CardTitle>
-            <BarChart3 className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">${(avgDealSize / 1000).toFixed(0)}K</div>
-            <p className="text-xs text-muted-foreground">Average opportunity value</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Win Rate</CardTitle>
-            <Award className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{winRate.toFixed(0)}%</div>
-            <p className="text-xs text-muted-foreground">Closed won percentage</p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Pipeline Stages */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Pipeline by Stage</CardTitle>
-          <CardDescription>Opportunities distribution across sales stages</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
-            {stageMetrics.map((stage) => (
-              <div key={stage.id} className="text-center">
-                <div className={`w-12 h-12 rounded-full ${stage.color} text-white flex items-center justify-center mx-auto mb-2`}>
-                  {stage.count}
+            <div className="flex justify-center gap-8">
+              {stageMetrics.map((stage, index) => (
+                <div key={stage.id} className="text-center">
+                  <div 
+                    className={`w-16 h-16 rounded-full ${stage.color} text-white flex items-center justify-center mx-auto mb-3 text-lg font-bold`}
+                  >
+                    {stage.count}
+                  </div>
+                  <p className="font-medium text-sm text-gray-900 mb-1">{stage.label}</p>
+                  <p className="text-xs text-gray-500">{formatCurrency(stage.value)}</p>
                 </div>
-                <p className="font-medium text-sm">{stage.label}</p>
-                <p className="text-xs text-muted-foreground">${(stage.value / 1000).toFixed(0)}K</p>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* View Toggle and Filters */}
-      <div className="flex items-center justify-between">
-        <div className="flex gap-2">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search opportunities..."
-              className="pl-10 w-64"
-              value={filters.search}
-              onChange={(e) => setFilters({...filters, search: e.target.value})}
-            />
-          </div>
-          <Select value={filters.stage} onValueChange={(value) => setFilters({...filters, stage: value})}>
-            <SelectTrigger className="w-32">
-              <SelectValue placeholder="Stage" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Stages</SelectItem>
-              {stages.map(stage => (
-                <SelectItem key={stage.id} value={stage.id}>{stage.label}</SelectItem>
               ))}
-            </SelectContent>
-          </Select>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Search and Filters */}
+        <div className="flex items-center justify-between bg-white p-4 rounded-lg border">
+          <div className="flex gap-4 flex-1">
+            <div className="relative max-w-sm">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Input
+                placeholder="Search opportunities..."
+                className="pl-10"
+                value={filters.search}
+                onChange={(e) => setFilters({...filters, search: e.target.value})}
+              />
+            </div>
+            <Select value={filters.stage} onValueChange={(value) => setFilters({...filters, stage: value})}>
+              <SelectTrigger className="w-40">
+                <SelectValue placeholder="All Stages" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Stages</SelectItem>
+                {stages.map(stage => (
+                  <SelectItem key={stage.id} value={stage.id}>{stage.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
-      </div>
 
-      {/* Opportunities Views */}
-      <Tabs value={currentView} onValueChange={setCurrentView}>
-        <div className="flex items-center justify-between mb-4">
-          <TabsList className="grid w-full grid-cols-2 mb-6 bg-gray-50/50 p-1 rounded-xl border border-gray-200/50" style={{ maxWidth: '400px' }}>
-            <TabsTrigger 
-              value="list"
-              className="rounded-lg px-6 py-3 data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:border-b-2 data-[state=active]:border-[#FD9646] data-[state=active]:border-b-[#FD9646] font-medium text-gray-600 data-[state=active]:text-gray-900 hover:text-gray-900 transition-all duration-200"
-            >
-              List View
-            </TabsTrigger>
-            <TabsTrigger 
-              value="kanban"
-              className="rounded-lg px-6 py-3 data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:border-b-2 data-[state=active]:border-[#FD9646] data-[state=active]:border-b-[#FD9646] font-medium text-gray-600 data-[state=active]:text-gray-900 hover:text-gray-900 transition-all duration-200"
-            >
-              Pipeline View
-            </TabsTrigger>
-          </TabsList>
-        </div>
+        {/* View Toggle */}
+        <Tabs value={currentView} onValueChange={setCurrentView} className="w-full">
+          <div className="flex items-center justify-center mb-6">
+            <TabsList className="grid w-64 grid-cols-2">
+              <TabsTrigger value="list">List View</TabsTrigger>
+              <TabsTrigger value="kanban">Pipeline View</TabsTrigger>
+            </TabsList>
+          </div>
 
-        {/* Opportunities List */}
-        <TabsContent value="list" className="space-y-4">
-        {isLoading ? (
-          // Loading skeleton
-          Array.from({ length: 3 }).map((_, index) => (
-            <Card key={index} className="animate-pulse">
-              <CardContent className="p-6">
-                <div className="flex items-start justify-between mb-4">
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 bg-gray-200 rounded-lg"></div>
-                    <div>
-                      <div className="h-5 bg-gray-200 rounded w-40 mb-2"></div>
-                      <div className="h-4 bg-gray-200 rounded w-32 mb-2"></div>
-                      <div className="h-3 bg-gray-200 rounded w-48"></div>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <div className="h-6 bg-gray-200 rounded w-20 mb-2"></div>
-                    <div className="h-4 bg-gray-200 rounded w-16 mb-2"></div>
-                    <div className="h-3 bg-gray-200 rounded w-24"></div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))
-        ) : filteredOpportunities.length === 0 ? (
-          <Card>
-            <CardContent className="p-12 text-center">
-              <Target className="h-12 w-12 mx-auto mb-4 text-gray-300" />
-              <h3 className="text-lg font-medium mb-2">No Opportunities Found</h3>
-              <p className="text-gray-600">No opportunities match your current filters.</p>
-            </CardContent>
-          </Card>
-        ) : (
-          filteredOpportunities.map((opportunity) => {
-            const stageInfo = getStageInfo(opportunity.stage);
-            const company = opportunity.lead_info?.company || { name: 'Unknown Company', industry: 'Unknown', location: 'Unknown' };
-            const contact = opportunity.lead_info?.contact || { first_name: 'Unknown', last_name: 'Contact', email: '', phone: '', position: '' };
-
-            return (
-              <Card key={opportunity.id} className="hover:shadow-md transition-shadow" style={{ boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)' }}>
-                <CardContent className="p-6">
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="flex items-center gap-4">
-                      <div className="flex items-center justify-center w-12 h-12 bg-blue-100 rounded-lg">
-                        <Building2 className="h-6 w-6 text-blue-600" />
-                      </div>
-                      <div>
-                        <div className="flex items-center gap-2 mb-1">
-                          <h3 className="font-semibold text-lg">{company.name}</h3>
-                          <Badge variant={getStageColor(opportunity.stage)}>
-                            {stageInfo.label}
-                          </Badge>
-                        </div>
-                        <p className="font-medium">{contact.first_name} {contact.last_name} • {contact.position}</p>
-                        <div className="flex items-center gap-4 text-sm text-muted-foreground mt-1">
-                          {contact.email && (
-                            <span className="flex items-center gap-1">
-                              <Mail className="h-3 w-3" />
-                              {contact.email}
-                            </span>
-                          )}
-                          {contact.phone && (
-                            <span className="flex items-center gap-1">
-                              <Phone className="h-3 w-3" />
-                              {contact.phone}
-                            </span>
-                          )}
-                          <span className="flex items-center gap-1">
-                            <Globe className="h-3 w-3" />
-                            {company.location}
-                          </span>
+          {/* List View */}
+          <TabsContent value="list" className="space-y-4">
+            {isLoading ? (
+              // Loading skeleton
+              Array.from({ length: 3 }).map((_, index) => (
+                <Card key={index} className="animate-pulse">
+                  <CardContent className="p-6">
+                    <div className="flex items-start justify-between mb-4">
+                      <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 bg-gray-200 rounded-lg"></div>
+                        <div>
+                          <div className="h-5 bg-gray-200 rounded w-40 mb-2"></div>
+                          <div className="h-4 bg-gray-200 rounded w-32"></div>
                         </div>
                       </div>
-                    </div>
-                    <div className="text-right space-y-2">
-                      <div className="text-lg font-bold text-green-600">
-                        ${(opportunity.value / 1000).toFixed(0)}K
-                      </div>
-                      <div className="text-sm text-muted-foreground">
-                        {opportunity.probability}% probability
-                      </div>
-                      <div className="text-xs text-muted-foreground">
-                        Close: {new Date(opportunity.estimated_close_date).toLocaleDateString()}
+                      <div className="text-right">
+                        <div className="h-6 bg-gray-200 rounded w-20 mb-2"></div>
+                        <div className="h-4 bg-gray-200 rounded w-16"></div>
                       </div>
                     </div>
-                  </div>
-
-                <div className="mb-4">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-medium">Probability: {opportunity.probability}%</span>
-                    <span className="text-xs text-muted-foreground">Stage: {stageInfo.label}</span>
-                  </div>
-                  <Progress value={opportunity.probability} className="h-2" />
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                  <div className="space-y-2">
-                    <div className="text-sm">
-                      <span className="font-medium">Industry:</span> {opportunity.industry}
-                    </div>
-                    <div className="text-sm">
-                      <span className="font-medium">Company Size:</span> {opportunity.employees} employees
-                    </div>
-                    <div className="text-sm">
-                      <span className="font-medium">Owner:</span> {opportunity.owner}
-                    </div>
-                    <div className="text-sm">
-                      <span className="font-medium">Source:</span> {opportunity.source}
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <div className="text-sm">
-                      <span className="font-medium">Created:</span> {new Date(opportunity.createdDate).toLocaleDateString()}
-                    </div>
-                    <div className="text-sm">
-                      <span className="font-medium">Last Activity:</span> {new Date(opportunity.lastActivity).toLocaleDateString()}
-                    </div>
-                    <div className="text-sm">
-                      <span className="font-medium">Next Action:</span> {opportunity.nextAction}
-                    </div>
-                    <div className="flex flex-wrap gap-1">
-                      {opportunity?.tags && opportunity?.tags.map((tag, index) => (
-                        <Badge key={index} variant="outline" className="text-xs">
-                          {tag}
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-
-                {opportunity.notes && (
-                  <div className="mb-4 p-3 bg-gray-50 rounded-lg">
-                    <p className="text-sm"><strong>Notes:</strong> {opportunity.notes}</p>
-                  </div>
-                )}
-
-                <div className="flex items-center justify-between">
-                  <div className="flex gap-2">
-                    <Button size="sm" onClick={() => handleEditOpportunity(opportunity)}>
-                      <Edit className="h-4 w-4 mr-1" />
-                      Edit
-                    </Button>
-                    <Button size="sm" variant="outline" onClick={() => handleAddActivity(opportunity)}>
-                      <Plus className="h-4 w-4 mr-1" />
-                      Add Activity
-                    </Button>
-                    <Button size="sm" variant="outline" onClick={() => handleViewHistory(opportunity)} className="bg-gray-50 hover:bg-gray-100 text-gray-700 border-gray-200">
-                      <History className="h-4 w-4 mr-1" />
-                      History
-                    </Button>
-                    <Button size="sm" variant="outline">
-                      <Eye className="h-4 w-4 mr-1" />
-                      Details
-                    </Button>
-                  </div>
-                  <div className="flex gap-2">
-                    {opportunity.stage !== 'closed-won' && opportunity.stage !== 'closed-lost' && (
-                      <>
-                        {opportunity.stage === 'proposal' && (
-                          <>
-                            <Button size="sm" variant="outline" onClick={() => handleSendProposal(opportunity)} className="bg-blue-50 hover:bg-blue-100 text-blue-700 border-blue-200">
-                              <FileText className="h-4 w-4 mr-1" />
-                              Send Proposal
-                            </Button>
-                            <Button size="sm" onClick={() => handleMoveToNegotiation(opportunity)}>
-                              <ArrowRight className="h-4 w-4 mr-1" />
-                              Move to Negotiation
-                            </Button>
-                          </>
-                        )}
-                        {opportunity.stage === 'negotiation' && (
-                          <Button size="sm" className="bg-green-600 hover:bg-green-700">
-                            <Handshake className="h-4 w-4 mr-1" />
-                            Close Deal
-                          </Button>
-                        )}
-                      </>
-                    )}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          )
-        }
-              )
-)}
-        </TabsContent>
-
-        {/* Pipeline View - Drag & Drop Kanban Board */}
-        <TabsContent value="kanban" className="space-y-4">
-          {/* Pipeline Board */}
-          <div className="flex gap-4 overflow-x-auto pb-4">
-            {stages.map((stage) => (
-              <PipelineColumn
-                key={stage.id}
-                stage={stage}
-                opportunities={getOpportunitiesForStage(stage.id)}
-                onDrop={handleDrop}
-                onEdit={handleEditOpportunity}
-                onSendProposal={handleSendProposal}
-                onViewHistory={handleViewHistory}
-                onMoveToNegotiation={handleMoveToNegotiation}
-              />
-            ))}
-          </div>
-
-          {/* Pipeline Instructions */}
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h4 className="font-medium mb-2">Pipeline Instructions</h4>
-                  <div className="flex items-center gap-4">
-                    <div className="flex items-center gap-2">
-                      <div className="w-3 h-3 bg-orange-500 rounded" />
-                      <span className="text-sm">Proposal Stage</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="w-3 h-3 bg-purple-500 rounded" />
-                      <span className="text-sm">Negotiation Stage</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="w-3 h-3 bg-green-500 rounded" />
-                      <span className="text-sm">Closed Won</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="w-3 h-3 bg-red-500 rounded" />
-                      <span className="text-sm">Closed Lost</span>
-                    </div>
-                  </div>
-                </div>
-                <div className="text-sm text-muted-foreground">
-                  Drag opportunities between columns to change their stage
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
-
-      {/* Edit Opportunity Dialog */}
-      <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>Edit Opportunity - {selectedOpportunity?.company}</DialogTitle>
-            <DialogDescription>
-              Update opportunity details and stage information
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label>Stage</Label>
-                <Select value={editForm.stage} onValueChange={(value) => setEditForm({...editForm, stage: value})}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {stages.map(stage => (
-                      <SelectItem key={stage.id} value={stage.id}>{stage.label}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label>Probability (%)</Label>
-                <Input
-                  type="number"
-                  min="0"
-                  max="100"
-                  value={editForm.probability}
-                  onChange={(e) => setEditForm({...editForm, probability: e.target.value})}
-                />
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label>Deal Value ($)</Label>
-                <Input
-                  type="number"
-                  value={editForm.dealValue}
-                  onChange={(e) => setEditForm({...editForm, dealValue: e.target.value})}
-                />
-              </div>
-              <div>
-                <Label>Expected Close Date</Label>
-                <Input
-                  type="date"
-                  value={editForm.expectedCloseDate}
-                  onChange={(e) => setEditForm({...editForm, expectedCloseDate: e.target.value})}
-                />
-              </div>
-            </div>
-            <div>
-              <Label>Next Action</Label>
-              <Input
-                value={editForm.nextAction}
-                onChange={(e) => setEditForm({...editForm, nextAction: e.target.value})}
-                placeholder="Describe the next action to take..."
-              />
-            </div>
-            <div>
-              <Label>Notes</Label>
-              <Textarea
-                value={editForm.notes}
-                onChange={(e) => setEditForm({...editForm, notes: e.target.value})}
-                placeholder="Add opportunity notes..."
-                rows={4}
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowEditDialog(false)}>
-              Cancel
-            </Button>
-            <Button onClick={handleSaveEdit}>
-              <CheckCircle className="h-4 w-4 mr-2" />
-              Save Changes
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Add Activity Dialog */}
-      <Dialog open={showActivityDialog} onOpenChange={setShowActivityDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Add Activity - {selectedOpportunity?.company}</DialogTitle>
-            <DialogDescription>
-              Record a new activity for this opportunity
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label>Activity Type</Label>
-                <Select value={activityForm.type} onValueChange={(value) => setActivityForm({...activityForm, type: value})}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="call">Phone Call</SelectItem>
-                    <SelectItem value="email">Email</SelectItem>
-                    <SelectItem value="meeting">Meeting</SelectItem>
-                    <SelectItem value="demo">Demo</SelectItem>
-                    <SelectItem value="proposal">Proposal</SelectItem>
-                    <SelectItem value="negotiation">Negotiation</SelectItem>
-                    <SelectItem value="contract">Contract</SelectItem>
-                    <SelectItem value="other">Other</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label>Date</Label>
-                <Input
-                  type="date"
-                  value={activityForm.date}
-                  onChange={(e) => setActivityForm({...activityForm, date: e.target.value})}
-                />
-              </div>
-            </div>
-            <div>
-              <Label>Activity Summary</Label>
-              <Input
-                value={activityForm.action}
-                onChange={(e) => setActivityForm({...activityForm, action: e.target.value})}
-                placeholder="Brief summary of the activity..."
-              />
-            </div>
-            <div>
-              <Label>Description</Label>
-              <Textarea
-                value={activityForm.description}
-                onChange={(e) => setActivityForm({...activityForm, description: e.target.value})}
-                placeholder="Detailed description of what happened..."
-                rows={4}
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowActivityDialog(false)}>
-              Cancel
-            </Button>
-            <Button onClick={handleSaveActivity}>
-              <Plus className="h-4 w-4 mr-2" />
-              Add Activity
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Send Proposal Dialog */}
-      <Dialog open={showProposalDialog} onOpenChange={setShowProposalDialog}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <FileText className="h-5 w-5" />
-              Send Proposal - {selectedOpportunity?.company}
-            </DialogTitle>
-            <DialogDescription>
-              Create and send a comprehensive proposal to advance this opportunity
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div>
-              <Label>Proposal Title *</Label>
-              <Input
-                value={proposalForm.title}
-                onChange={(e) => setProposalForm({...proposalForm, title: e.target.value})}
-                placeholder="Enter proposal title..."
-              />
-            </div>
-            <div>
-              <Label>Proposal Description</Label>
-              <Textarea
-                value={proposalForm.description}
-                onChange={(e) => setProposalForm({...proposalForm, description: e.target.value})}
-                placeholder="Describe the proposed solution and key benefits..."
-                rows={4}
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label>Validity Period (Days)</Label>
-                <Select value={proposalForm.validityPeriod} onValueChange={(value) => setProposalForm({...proposalForm, validityPeriod: value})}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="15">15 days</SelectItem>
-                    <SelectItem value="30">30 days</SelectItem>
-                    <SelectItem value="45">45 days</SelectItem>
-                    <SelectItem value="60">60 days</SelectItem>
-                    <SelectItem value="90">90 days</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label>Delivery Method</Label>
-                <Select value={proposalForm.deliveryMethod} onValueChange={(value) => setProposalForm({...proposalForm, deliveryMethod: value})}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="email">Email</SelectItem>
-                    <SelectItem value="secure_portal">Secure Portal</SelectItem>
-                    <SelectItem value="in_person">In-Person Presentation</SelectItem>
-                    <SelectItem value="video_call">Video Call Presentation</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-            <div>
-              <Label>Special Terms & Conditions</Label>
-              <Textarea
-                value={proposalForm.specialTerms}
-                onChange={(e) => setProposalForm({...proposalForm, specialTerms: e.target.value})}
-                placeholder="Any special terms, conditions, or customizations for this proposal..."
-                rows={3}
-              />
-            </div>
-            {selectedOpportunity && (
-              <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                <div className="font-medium text-blue-800 mb-2">Opportunity Summary</div>
-                <div className="grid grid-cols-2 gap-2 text-sm">
-                  <div><strong>Deal Value:</strong> ${(selectedOpportunity.dealValue / 1000).toFixed(0)}K</div>
-                  <div><strong>Industry:</strong> {selectedOpportunity.industry}</div>
-                  <div><strong>Company Size:</strong> {selectedOpportunity.employees} employees</div>
-                  <div><strong>Expected Close:</strong> {new Date(selectedOpportunity.expectedCloseDate).toLocaleDateString()}</div>
-                </div>
-                <div className="mt-2 text-sm">
-                  <strong>Travel Budget:</strong> {selectedOpportunity.travelBudget}
-                </div>
+                  </CardContent>
+                </Card>
+              ))
+            ) : filteredOpportunities.length === 0 ? (
+              <Card>
+                <CardContent className="p-12 text-center">
+                  <Target className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+                  <h3 className="text-lg font-medium mb-2">No Opportunities Found</h3>
+                  <p className="text-gray-600">No opportunities match your current filters.</p>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="space-y-4">
+                {filteredOpportunities.map((opportunity) => (
+                  <OpportunityCard
+                    key={opportunity.id}
+                    opportunity={opportunity}
+                    onEdit={handleEditOpportunity}
+                    onAddActivity={handleAddActivity}
+                    onViewHistory={handleViewHistory}
+                    onSendProposal={handleSendProposal}
+                    onMoveToNegotiation={handleMoveToNegotiation}
+                    onCloseDeal={handleCloseDeal}
+                  />
+                ))}
               </div>
             )}
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowProposalDialog(false)}>
-              Cancel
-            </Button>
-            <Button onClick={handleSaveProposal} disabled={!proposalForm.title} className="bg-blue-600 hover:bg-blue-700">
-              <FileText className="h-4 w-4 mr-2" />
-              Send Proposal
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          </TabsContent>
 
-      {/* History Dialog */}
-      <Dialog open={showHistoryDialog} onOpenChange={setShowHistoryDialog}>
-        <DialogContent className="max-w-4xl max-h-[90vh]">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <History className="h-5 w-5" />
-              Opportunity History - {selectedOpportunity?.company}
-            </DialogTitle>
-            <DialogDescription>
-              Complete activity history for {selectedOpportunity?.contact} at {selectedOpportunity?.company}
-            </DialogDescription>
-          </DialogHeader>
-          <ScrollArea className="h-[60vh] w-full">
-            <div className="space-y-4 pr-4">
-              {selectedOpportunity?.activities && selectedOpportunity.activities.length > 0 ? (
-                selectedOpportunity.activities.map((item, index) => {
-                  const IconComponent = getHistoryIcon(item.icon);
-                  const iconColor = getHistoryIconColor(item.type);
+          {/* Pipeline View - Kanban Board */}
+          <TabsContent value="kanban" className="space-y-4">
+            <div className="flex gap-6 overflow-x-auto pb-4">
+              {stages.map((stage) => (
+                <PipelineColumn
+                  key={stage.id}
+                  stage={stage}
+                  opportunities={getOpportunitiesForStage(stage.id)}
+                  onDrop={handleDrop}
+                  onEdit={handleEditOpportunity}
+                  onAddActivity={handleAddActivity}
+                  onViewHistory={handleViewHistory}
+                  onSendProposal={handleSendProposal}
+                  onMoveToNegotiation={handleMoveToNegotiation}
+                  onCloseDeal={handleCloseDeal}
+                />
+              ))}
+            </div>
 
-                  return (
-                    <div key={item.id} className="flex gap-4 p-4 border rounded-lg hover:bg-gray-50 transition-colors">
-                      <div className={`flex items-center justify-center w-10 h-10 rounded-full ${iconColor}`}>
-                        <IconComponent className="h-5 w-5" />
+            {/* Pipeline Instructions */}
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h4 className="font-medium mb-2">Pipeline Instructions</h4>
+                    <div className="flex items-center gap-4 text-sm">
+                      <div className="flex items-center gap-2">
+                        <div className="w-3 h-3 bg-blue-500 rounded" />
+                        <span>Discovery</span>
                       </div>
-                      <div className="flex-1">
-                        <div className="flex items-center justify-between mb-2">
-                          <div className="flex items-center gap-2">
-                            <Badge variant="outline" className="text-xs capitalize">
-                              {item.type}
-                            </Badge>
-                            <span className="font-medium">{item.action}</span>
-                          </div>
-                          <div className="text-sm text-muted-foreground">
-                            {new Date(item.timestamp || item.date).toLocaleDateString()} at {new Date(item.timestamp || item.date + ' 12:00:00').toLocaleTimeString()}
-                          </div>
-                        </div>
-                        <p className="text-sm text-gray-600 mb-2">{item.description}</p>
-                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                          <User className="h-3 w-3" />
-                          <span>by {item.user}</span>
-                        </div>
+                      <div className="flex items-center gap-2">
+                        <div className="w-3 h-3 bg-orange-500 rounded" />
+                        <span>Proposal</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="w-3 h-3 bg-purple-500 rounded" />
+                        <span>Negotiation</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="w-3 h-3 bg-green-500 rounded" />
+                        <span>Closed Won</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="w-3 h-3 bg-red-500 rounded" />
+                        <span>Closed Lost</span>
                       </div>
                     </div>
-                  );
-                })
-              ) : (
+                  </div>
+                  <div className="text-sm text-muted-foreground">
+                    Drag opportunities between columns to change their stage
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
+
+        {/* Edit Opportunity Dialog */}
+        <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle>Edit Opportunity - {selectedOpportunity?.lead_info?.company?.name}</DialogTitle>
+              <DialogDescription>
+                Update opportunity details and stage information
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label>Stage</Label>
+                  <Select value={editForm.stage} onValueChange={(value) => setEditForm({...editForm, stage: value})}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {stages.map(stage => (
+                        <SelectItem key={stage.id} value={stage.id}>{stage.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label>Probability (%)</Label>
+                  <Input
+                    type="number"
+                    min="0"
+                    max="100"
+                    value={editForm.probability}
+                    onChange={(e) => setEditForm({...editForm, probability: e.target.value})}
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label>Deal Value ($)</Label>
+                  <Input
+                    type="number"
+                    value={editForm.value}
+                    onChange={(e) => setEditForm({...editForm, value: e.target.value})}
+                  />
+                </div>
+                <div>
+                  <Label>Expected Close Date</Label>
+                  <Input
+                    type="date"
+                    value={editForm.estimated_close_date}
+                    onChange={(e) => setEditForm({...editForm, estimated_close_date: e.target.value})}
+                  />
+                </div>
+              </div>
+              <div>
+                <Label>Next Steps</Label>
+                <Input
+                  value={editForm.next_steps}
+                  onChange={(e) => setEditForm({...editForm, next_steps: e.target.value})}
+                  placeholder="Describe the next steps to take..."
+                />
+              </div>
+              <div>
+                <Label>Description</Label>
+                <Textarea
+                  value={editForm.description}
+                  onChange={(e) => setEditForm({...editForm, description: e.target.value})}
+                  placeholder="Add opportunity description..."
+                  rows={4}
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setShowEditDialog(false)}>
+                Cancel
+              </Button>
+              <Button onClick={handleSaveEdit}>
+                <CheckCircle className="h-4 w-4 mr-2" />
+                Save Changes
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Add Activity Dialog */}
+        <Dialog open={showActivityDialog} onOpenChange={setShowActivityDialog}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Add Activity - {selectedOpportunity?.lead_info?.company?.name}</DialogTitle>
+              <DialogDescription>
+                Record a new activity for this opportunity
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label>Activity Type</Label>
+                  <Select value={activityForm.type} onValueChange={(value) => setActivityForm({...activityForm, type: value})}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="call">Phone Call</SelectItem>
+                      <SelectItem value="email">Email</SelectItem>
+                      <SelectItem value="meeting">Meeting</SelectItem>
+                      <SelectItem value="demo">Demo</SelectItem>
+                      <SelectItem value="proposal">Proposal</SelectItem>
+                      <SelectItem value="negotiation">Negotiation</SelectItem>
+                      <SelectItem value="other">Other</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label>Date</Label>
+                  <Input
+                    type="date"
+                    value={activityForm.date}
+                    onChange={(e) => setActivityForm({...activityForm, date: e.target.value})}
+                  />
+                </div>
+              </div>
+              <div>
+                <Label>Description</Label>
+                <Textarea
+                  value={activityForm.description}
+                  onChange={(e) => setActivityForm({...activityForm, description: e.target.value})}
+                  placeholder="Detailed description of what happened..."
+                  rows={4}
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setShowActivityDialog(false)}>
+                Cancel
+              </Button>
+              <Button onClick={handleSaveActivity}>
+                <Plus className="h-4 w-4 mr-2" />
+                Add Activity
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Send Proposal Dialog */}
+        <Dialog open={showProposalDialog} onOpenChange={setShowProposalDialog}>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <FileText className="h-5 w-5" />
+                Send Proposal - {selectedOpportunity?.lead_info?.company?.name}
+              </DialogTitle>
+              <DialogDescription>
+                Create and send a comprehensive proposal to advance this opportunity
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div>
+                <Label>Proposal Title *</Label>
+                <Input
+                  value={proposalForm.title}
+                  onChange={(e) => setProposalForm({...proposalForm, title: e.target.value})}
+                  placeholder="Enter proposal title..."
+                />
+              </div>
+              <div>
+                <Label>Proposal Description</Label>
+                <Textarea
+                  value={proposalForm.description}
+                  onChange={(e) => setProposalForm({...proposalForm, description: e.target.value})}
+                  placeholder="Describe the proposed solution and key benefits..."
+                  rows={4}
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label>Validity Period (Days)</Label>
+                  <Select value={proposalForm.validityPeriod} onValueChange={(value) => setProposalForm({...proposalForm, validityPeriod: value})}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="15">15 days</SelectItem>
+                      <SelectItem value="30">30 days</SelectItem>
+                      <SelectItem value="45">45 days</SelectItem>
+                      <SelectItem value="60">60 days</SelectItem>
+                      <SelectItem value="90">90 days</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label>Delivery Method</Label>
+                  <Select value={proposalForm.deliveryMethod} onValueChange={(value) => setProposalForm({...proposalForm, deliveryMethod: value})}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="email">Email</SelectItem>
+                      <SelectItem value="secure_portal">Secure Portal</SelectItem>
+                      <SelectItem value="in_person">In-Person Presentation</SelectItem>
+                      <SelectItem value="video_call">Video Call Presentation</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <div>
+                <Label>Special Terms & Conditions</Label>
+                <Textarea
+                  value={proposalForm.specialTerms}
+                  onChange={(e) => setProposalForm({...proposalForm, specialTerms: e.target.value})}
+                  placeholder="Any special terms, conditions, or customizations for this proposal..."
+                  rows={3}
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setShowProposalDialog(false)}>
+                Cancel
+              </Button>
+              <Button onClick={handleSaveProposal} disabled={!proposalForm.title} className="bg-blue-600 hover:bg-blue-700">
+                <FileText className="h-4 w-4 mr-2" />
+                Send Proposal
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* History Dialog */}
+        <Dialog open={showHistoryDialog} onOpenChange={setShowHistoryDialog}>
+          <DialogContent className="max-w-4xl max-h-[90vh]">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <History className="h-5 w-5" />
+                Opportunity History - {selectedOpportunity?.lead_info?.company?.name}
+              </DialogTitle>
+              <DialogDescription>
+                Complete activity history for this opportunity
+              </DialogDescription>
+            </DialogHeader>
+            <ScrollArea className="h-[60vh] w-full">
+              <div className="space-y-4 pr-4">
                 <div className="text-center py-8 text-muted-foreground">
                   <History className="h-12 w-12 mx-auto mb-4 opacity-50" />
                   <p>No activity history available for this opportunity</p>
                 </div>
-              )}
-            </div>
-          </ScrollArea>
-          <DialogFooter>
-            <Button onClick={() => setShowHistoryDialog(false)}>
-              Close
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </div>
+              </div>
+            </ScrollArea>
+            <DialogFooter>
+              <Button onClick={() => setShowHistoryDialog(false)}>
+                Close
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </div>
     </DndProvider>
   );
 }
