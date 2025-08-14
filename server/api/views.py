@@ -1238,14 +1238,14 @@ def lead_pipeline_stats(request):
         )
 
 @csrf_exempt
-@api_view(['POST'])
+@api_view(['GET', 'POST'])
 @permission_classes([AllowAny])
 def lead_stats(request):
     """Get comprehensive lead statistics for dashboard"""
     try:
         # Parse the request body for POST or query params for GET
         if request.method == 'POST':
-            data = request.data
+            data = request.data if hasattr(request, 'data') else {}
         else:
             data = request.GET
         date_range = data.get('dateRange', 'all_time')
@@ -1405,7 +1405,7 @@ def lead_stats(request):
         )
 
 @csrf_exempt
-@api_view(['GET'])
+@api_view(['GET', 'POST'])
 @permission_classes([AllowAny])
 def recent_activity(request):
     """Get recent lead activity"""
@@ -1459,7 +1459,7 @@ def recent_activity(request):
         )
 
 @csrf_exempt
-@api_view(['GET'])
+@api_view(['GET', 'POST'])
 @permission_classes([AllowAny])
 def top_leads(request):
     """Get top qualified leads for dashboard"""

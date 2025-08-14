@@ -20,10 +20,10 @@ router.register(r'ai-conversations', views.AIConversationViewSet)
 router.register(r'dashboard', views.DashboardAPIView, basename='dashboard')
 
 urlpatterns = [
-    path('', include(router.urls)),
-    # Custom lead dashboard endpoints
+    # Custom lead dashboard endpoints (must come before router.urls to avoid conflicts)
     path('leads/stats/', views.lead_stats, name='lead_stats'),
     path('leads/recent-activity/', views.recent_activity, name='recent_activity'),
     path('leads/top-leads/', views.top_leads, name='top_leads'),
     path('leads/pipeline-stats/', views.lead_pipeline_stats, name='lead_pipeline_stats'),
+    path('', include(router.urls)),
 ]
