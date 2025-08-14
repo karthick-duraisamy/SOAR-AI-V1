@@ -447,10 +447,10 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
   }, [searchResults, debouncedNameFilter, sortBy, sortOrder]);
 
   // Calculate pagination
-  const totalPages = Math.ceil(filteredResults.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
   const currentResults = filteredResults.slice(startIndex, endIndex);
+  const totalPagesCalculated = Math.ceil(filteredResults.length / itemsPerPage);
 
   const handleSearch = useCallback(async () => {
     setIsLoading(true);
@@ -1172,7 +1172,7 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
           </div>
 
           {/* Pagination Controls */}
-          {totalPages > 1 && (
+          {totalPagesCalculated > 1 && (
             <div className="flex items-center justify-between mt-8 pt-6 border-t border-gray-200">
               <div className="flex items-center gap-2 text-sm text-gray-600">
                 <span>
@@ -1199,7 +1199,7 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
                     const pages = [];
                     const maxVisiblePages = 5;
                     let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
-                    let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+                    let endPage = Math.min(totalPagesCalculated, startPage + maxVisiblePages - 1);
 
                     // Adjust start page if we're near the end
                     if (endPage - startPage + 1 < maxVisiblePages) {
@@ -1242,21 +1242,21 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
                     }
 
                     // Add ellipsis and last page if needed
-                    if (endPage < totalPages) {
-                      if (endPage < totalPages - 1) {
+                    if (endPage < totalPagesCalculated) {
+                      if (endPage < totalPagesCalculated - 1) {
                         pages.push(
                           <span key="ellipsis2" className="px-2 text-gray-500">...</span>
                         );
                       }
                       pages.push(
                         <Button
-                          key={totalPages}
-                          variant={totalPages === currentPage ? "default" : "outline"}
+                          key={totalPagesCalculated}
+                          variant={totalPagesCalculated === currentPage ? "default" : "outline"}
                           size="sm"
-                          onClick={() => setCurrentPage(totalPages)}
-                          className={`w-9 h-9 p-0 ${totalPages === currentPage ? 'bg-orange-500 hover:bg-orange-600 text-white' : 'border-gray-300'}`}
+                          onClick={() => setCurrentPage(totalPagesCalculated)}
+                          className={`w-9 h-9 p-0 ${totalPagesCalculated === currentPage ? 'bg-orange-500 hover:bg-orange-600 text-white' : 'border-gray-300'}`}
                         >
-                          {totalPages}
+                          {totalPagesCalculated}
                         </Button>
                       );
                     }
@@ -1270,7 +1270,7 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
                   variant="outline"
                   size="sm"
                   onClick={() => setCurrentPage(currentPage + 1)}
-                  disabled={currentPage === totalPages}
+                  disabled={currentPage === totalPagesCalculated}
                   className="border-gray-300"
                 >
                   Next
