@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { DndProvider, useDrag, useDrop } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
@@ -147,13 +146,19 @@ function OpportunityCard({
     }
   };
 
-  const formatCurrency = (amount: number) => {
-    if (amount >= 1000000) {
-      return `$${(amount / 1000000).toFixed(1)}M`;
-    } else if (amount >= 1000) {
-      return `$${(amount / 1000).toFixed(0)}K`;
+  const formatCurrency = (amount: number | null | undefined) => {
+    // Handle null, undefined, or NaN values
+    const numAmount = Number(amount);
+    if (!numAmount || isNaN(numAmount)) {
+      return '$0';
+    }
+
+    if (numAmount >= 1000000) {
+      return `$${(numAmount / 1000000).toFixed(1)}M`;
+    } else if (numAmount >= 1000) {
+      return `$${(numAmount / 1000).toFixed(0)}K`;
     } else {
-      return `$${amount.toFixed(0)}`;
+      return `$${numAmount.toFixed(0)}`;
     }
   };
 
@@ -313,7 +318,7 @@ function OpportunityCard({
           <History className="h-3 w-3 mr-1" />
           History
         </Button>
-        
+
         {/* Stage-specific Action Buttons */}
         {opportunity.stage === 'proposal' && onSendProposal && (
           <Button 
@@ -398,13 +403,19 @@ function PipelineColumn({
   }));
 
   const totalValue = opportunities.reduce((sum, opp) => sum + opp.value, 0);
-  const formatCurrency = (amount: number) => {
-    if (amount >= 1000000) {
-      return `$${(amount / 1000000).toFixed(1)}M`;
-    } else if (amount >= 1000) {
-      return `$${(amount / 1000).toFixed(0)}K`;
+  const formatCurrency = (amount: number | null | undefined) => {
+    // Handle null, undefined, or NaN values
+    const numAmount = Number(amount);
+    if (!numAmount || isNaN(numAmount)) {
+      return '$0';
+    }
+
+    if (numAmount >= 1000000) {
+      return `$${(numAmount / 1000000).toFixed(1)}M`;
+    } else if (numAmount >= 1000) {
+      return `$${(numAmount / 1000).toFixed(0)}K`;
     } else {
-      return `$${amount.toFixed(0)}`;
+      return `$${numAmount.toFixed(0)}`;
     }
   };
 
@@ -574,7 +585,7 @@ export function Opportunities({ initialFilters, onNavigate }: OpportunitiesProps
       const companyName = opp.lead_info?.company?.name?.toLowerCase() || '';
       const firstName = opp.lead_info?.contact?.first_name?.toLowerCase() || '';
       const lastName = opp.lead_info?.contact?.last_name?.toLowerCase() || '';
-      
+
       if (!companyName.includes(searchLower) && 
           !firstName.includes(searchLower) &&
           !lastName.includes(searchLower)) {
@@ -585,13 +596,19 @@ export function Opportunities({ initialFilters, onNavigate }: OpportunitiesProps
   });
 
   // Format currency function
-  const formatCurrency = (amount: number) => {
-    if (amount >= 1000000) {
-      return `$${(amount / 1000000).toFixed(1)}M`;
-    } else if (amount >= 1000) {
-      return `$${(amount / 1000).toFixed(0)}K`;
+  const formatCurrency = (amount: number | null | undefined) => {
+    // Handle null, undefined, or NaN values
+    const numAmount = Number(amount);
+    if (!numAmount || isNaN(numAmount)) {
+      return '$0';
+    }
+
+    if (numAmount >= 1000000) {
+      return `$${(numAmount / 1000000).toFixed(1)}M`;
+    } else if (numAmount >= 1000) {
+      return `$${(numAmount / 1000).toFixed(0)}K`;
     } else {
-      return `$${amount.toFixed(0)}`;
+      return `$${numAmount.toFixed(0)}`;
     }
   };
 
@@ -643,11 +660,11 @@ export function Opportunities({ initialFilters, onNavigate }: OpportunitiesProps
       probability: 80,
       updated_at: new Date().toISOString()
     };
-    
+
     setOpportunities(prev => prev.map(opp => 
       opp.id === opportunity.id ? updatedOpportunity : opp
     ));
-    
+
     setSuccessMessage(`${opportunity.lead_info?.company?.name} opportunity moved to Negotiation stage`);
     setTimeout(() => setSuccessMessage(''), 5000);
   };
@@ -660,11 +677,11 @@ export function Opportunities({ initialFilters, onNavigate }: OpportunitiesProps
       actual_close_date: new Date().toISOString().split('T')[0],
       updated_at: new Date().toISOString()
     };
-    
+
     setOpportunities(prev => prev.map(opp => 
       opp.id === opportunity.id ? updatedOpportunity : opp
     ));
-    
+
     setSuccessMessage(`${opportunity.lead_info?.company?.name} deal closed successfully! 🎉`);
     setTimeout(() => setSuccessMessage(''), 5000);
   };
@@ -686,7 +703,7 @@ export function Opportunities({ initialFilters, onNavigate }: OpportunitiesProps
     setOpportunities(prev => prev.map(opp => 
       opp.id === selectedOpportunity.id ? updatedOpportunity : opp
     ));
-    
+
     setShowEditDialog(false);
     setSuccessMessage(`${selectedOpportunity.lead_info?.company?.name} opportunity has been updated`);
     setTimeout(() => setSuccessMessage(''), 5000);
@@ -742,7 +759,7 @@ export function Opportunities({ initialFilters, onNavigate }: OpportunitiesProps
     } catch (error) {
       console.error('Error updating opportunity stage:', error);
       toast.error('Failed to update opportunity stage. Please try again.');
-      
+
       // Refresh opportunities to revert any optimistic updates
       try {
         const data = await getOpportunities(filters);
@@ -804,7 +821,7 @@ export function Opportunities({ initialFilters, onNavigate }: OpportunitiesProps
               <p className="text-xs text-gray-500 mt-1">{opportunities.length} opportunities</p>
             </CardContent>
           </Card>
-          
+
           <Card className="bg-white">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium text-gray-600">Weighted Pipeline</CardTitle>
@@ -815,7 +832,7 @@ export function Opportunities({ initialFilters, onNavigate }: OpportunitiesProps
               <p className="text-xs text-gray-500 mt-1">Probability adjusted value</p>
             </CardContent>
           </Card>
-          
+
           <Card className="bg-white">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium text-gray-600">Avg Deal Size</CardTitle>
@@ -826,7 +843,7 @@ export function Opportunities({ initialFilters, onNavigate }: OpportunitiesProps
               <p className="text-xs text-gray-500 mt-1">Average opportunity value</p>
             </CardContent>
           </Card>
-          
+
           <Card className="bg-white">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium text-gray-600">Win Rate</CardTitle>
