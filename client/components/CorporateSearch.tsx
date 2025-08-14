@@ -758,7 +758,7 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
       {/* Filters Section */}
       <div className="bg-white rounded-lg border border-gray-200 p-6 mb-6">
         {/* Global Search Row */}
-        <div className="mb-6">
+        {/* <div className="mb-6">
           <Label className="text-sm font-medium text-gray-900 mb-2 block">Global Search</Label>
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
@@ -769,7 +769,7 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
               className="pl-10 h-10 bg-white border-gray-300"
             />
           </div>
-        </div>
+        </div> */}
 
         {/* Top Row - 3 columns */}
         <div className="grid grid-cols-3 gap-6 mb-6">
@@ -936,7 +936,7 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
               </div>
 
               {/* Sort Dropdown */}
-              <Select value={sortBy} onValueChange={handleSortChange}>
+              {/* <Select value={sortBy} onValueChange={handleSortChange}>
                 <SelectTrigger className="w-48 h-9">
                   <div className="flex items-center gap-2">
                     {sortOrder === 'asc' ? <ArrowUp className="h-4 w-4" /> : <ArrowDown className="h-4 w-4" />}
@@ -951,7 +951,7 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
                   <SelectItem value="revenue">Revenue</SelectItem>
                   <SelectItem value="established">Year Established</SelectItem>
                 </SelectContent>
-              </Select>
+              </Select> */}
             </div>
           )}
         </div>

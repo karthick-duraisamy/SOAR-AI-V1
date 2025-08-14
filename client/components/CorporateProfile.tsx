@@ -800,6 +800,84 @@ export function CorporateProfile({ corporateData, onBack }: CorporateProfileProp
         <TabsContent value="partnerships" className="space-y-6">
           <Card>
             <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                {/* <Building2 className="h-5 w-5" /> */}
+                Travel Partners / Airlines
+              </CardTitle>
+              <CardDescription>Existing airline partnerships and preferences</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-4">
+                <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                      <Plane className="h-4 w-4 text-blue-600" />
+                    </div>
+                    <div>
+                      <p className="font-semibold">Delta Air Lines</p>
+                      <p className="text-sm text-gray-500">Primary</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Badge className="bg-[#FD9646] text-white">Contract</Badge>
+                    {/* <Edit className="h-4 w-4 text-gray-400 cursor-pointer" /> */}
+                  </div>
+                </div>
+                <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                      <Plane className="h-4 w-4 text-blue-600" />
+                    </div>
+                    <div>
+                      <p className="font-semibold">United Airlines</p>
+                      <p className="text-sm text-gray-500">Secondary</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Badge className="bg-[#FD9646] text-white">Contract</Badge>
+                    {/* <Edit className="h-4 w-4 text-gray-400 cursor-pointer" /> */}
+                  </div>
+                </div>
+                <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                      <Plane className="h-4 w-4 text-blue-600" />
+                    </div>
+                    <div>
+                      <p className="font-semibold">British Airways</p>
+                      <p className="text-sm text-gray-500">International</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Badge variant="outline">No Contract</Badge>
+                    {/* <Edit className="h-4 w-4 text-gray-400 cursor-pointer" /> */}
+                  </div>
+                </div>
+                <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                      <Plane className="h-4 w-4 text-blue-600" />
+                    </div>
+                    <div>
+                      <p className="font-semibold">Singapore Airlines</p>
+                      <p className="text-sm text-gray-500">Asia-Pacific</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Badge variant="outline">No Contract</Badge>
+                    {/* <Edit className="h-4 w-4 text-gray-400 cursor-pointer" /> */}
+                  </div>
+                </div>
+              </div>
+              {/* <Button variant="outline" size="sm" className="w-full">
+                <Plus className="h-4 w-4 mr-2" />
+                Add Partner
+              </Button> */}
+            </CardContent>
+          </Card>
+
+          {/* <Card>
+            <CardHeader>
               <CardTitle>Technology Integration</CardTitle>
             </CardHeader>
             <CardContent>
@@ -813,7 +891,7 @@ export function CorporateProfile({ corporateData, onBack }: CorporateProfileProp
                 ))}
               </div>
             </CardContent>
-          </Card>
+          </Card> */}
 
           <Card>
             <CardHeader>

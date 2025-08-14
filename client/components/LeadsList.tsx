@@ -1579,17 +1579,18 @@ SOAR-AI Team`,
       {/* Leads Header */}
       <div className="flex items-center justify-between mb-4">
         <div>
-          <h2 className="text-lg font-semibold text-gray-900">Showing Leads ({filteredLeads.length} results)</h2>
-          <p className="text-sm text-gray-600">Comprehensive lead management with status tracking and AI suggestions</p>
+          {loading?<h2 className="text-lg font-semibold text-gray-900">Searching Leads</h2>:<h2 className="text-lg font-semibold text-gray-900">Showing Leads   ({filteredLeads.length} results)</h2>}
+          {loading?<p className="text-sm text-gray-600">Loading...</p>:<p className="text-sm text-gray-600">Comprehensive lead management with status tracking and AI suggestions</p>}
         </div>
-        <div className="flex items-center gap-3">
+        {loading?'': <div className="flex items-center gap-3">
           <Checkbox 
             checked={selectAll}
             onCheckedChange={(checked) => handleSelectAll(checked)}
             className="w-4 h-4 text-orange-500 rounded border-gray-300 focus:ring-orange-500"
           />
           <span className="text-sm font-medium text-gray-700">Select All</span>
-        </div>
+        </div>}
+       
       </div>
 
       {/* Leads List */}
