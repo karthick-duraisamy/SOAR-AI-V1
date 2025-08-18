@@ -72,3 +72,12 @@ args = "cd server && python manage.py runserver 0.0.0.0:8000"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "cd client && npm run dev"
+
+[[workflows.workflow]]
+name = "Build Application"
+author = 44435766
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "cd client && npm run build"
