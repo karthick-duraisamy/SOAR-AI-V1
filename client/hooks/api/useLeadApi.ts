@@ -400,7 +400,7 @@ export const useLeadApi = () => {
     }
   }, [setLoading, setError, setData]);
 
-  // Move lead to opportunity
+  // Function to move lead to opportunity
   const moveToOpportunity = useCallback(async (leadId: number, opportunityData: any) => {
     setLoading(true);
     setError(null);
@@ -423,6 +423,33 @@ export const useLeadApi = () => {
                           error.response?.data?.message ||
                           error.message ||
                           'Failed to move lead to opportunity';
+      setError(errorMessage);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  }, [setLoading, setError, setData]);
+
+  // Function to assign agent to lead
+  const assignAgent = useCallback(async (leadId: number, assignmentData: any) => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const response: AxiosResponse<any> = await axios.post(
+        `${API_BASE_URL}/leads/${leadId}/assign_agent/`,
+        assignmentData,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+
+      setData(response.data);
+      return response.data;
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.message || error.message || 'Failed to assign agent';
       setError(errorMessage);
       throw error;
     } finally {
@@ -455,7 +482,7 @@ export const useLeadApi = () => {
 
       const response: AxiosResponse<any[]> = await baseApi.post(
         `/opportunities/search/`,
-        requestBody
+        requestBody,
       );
 
       setData(response.data);
@@ -542,6 +569,7 @@ export const useLeadApi = () => {
     getRecentActivity,
     getTopLeads,
     moveToOpportunity,
+    assignAgent,
     createLeadFromCompany,
     getOpportunities,
     updateOpportunityStage,

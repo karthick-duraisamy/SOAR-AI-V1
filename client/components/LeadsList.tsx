@@ -559,6 +559,14 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
   const [showScheduleDemoModal, setShowScheduleDemoModal] = useState(false);
   const [selectedLeadForAction, setSelectedLeadForAction] = useState<any>(null);
 
+  // Assign Agent states
+  const [showAssignAgentModal, setShowAssignAgentModal] = useState(false);
+  const [selectedLeadForAssign, setSelectedLeadForAssign] = useState<any>(null);
+  const [selectedAgent, setSelectedAgent] = useState('');
+  const [assignmentPriority, setAssignmentPriority] = useState('Medium Priority');
+  const [assignmentNotes, setAssignmentNotes] = useState('');
+  const [isAssigning, setIsAssigning] = useState(false);
+
   const [selectedLeadForHistory, setSelectedLeadForHistory] = useState<any>(null);
   const [leadHistory, setLeadHistory] = useState<{ [key: number]: HistoryEntry[] }>({}); // Stores history entries fetched from API
   const [isLoadingHistory, setIsLoadingHistory] = useState(false); // Loading state for history fetch
@@ -1278,6 +1286,52 @@ SOAR-AI Team`,
   const handleScheduleDemo = (lead: any) => {
     setSelectedLeadForAction(lead);
     setShowScheduleDemoModal(true);
+  };
+
+  // Handle assign/reassign agent
+  const handleAssignAgent = (lead: any) => {
+    setSelectedLeadForAssign(lead);
+    setSelectedAgent('');
+    setAssignmentPriority('Medium Priority');
+    setAssignmentNotes('');
+    setShowAssignAgentModal(true);
+  };
+
+  const handleConfirmAssignAgent = async () => {
+    if (!selectedAgent || !selectedLeadForAssign) {
+      toast.error('Please select an agent');
+      return;
+    }
+
+    try {
+      setIsAssigning(true);
+      
+      // Call API to assign agent
+      await leadApi.assignAgent(selectedLeadForAssign.id, {
+        agent: selectedAgent,
+        priority: assignmentPriority,
+        notes: assignmentNotes
+      });
+
+      // Update local state
+      setLeads(prev => prev.map(l => 
+        l.id === selectedLeadForAssign.id 
+          ? { ...l, assignedAgent: selectedAgent }
+          : l
+      ));
+
+      toast.success(`Lead assigned to ${selectedAgent} successfully!`);
+      setShowAssignAgentModal(false);
+      setSelectedLeadForAssign(null);
+      setSelectedAgent('');
+      setAssignmentNotes('');
+
+    } catch (error) {
+      console.error('Error assigning agent:', error);
+      toast.error('Failed to assign agent. Please try again.');
+    } finally {
+      setIsAssigning(false);
+    }
   };
 
   // Function to move qualified lead to opportunities
@@ -2130,9 +2184,14 @@ SOAR-AI Team`,
                     <History className="h-4 w-4 mr-1" />
                     History
                   </Button>
-                  <Button size="sm" variant="outline" className="text-purple-700 border-purple-200 bg-purple-50">
+                  <Button 
+                    size="sm" 
+                    variant="outline" 
+                    className="text-purple-700 border-purple-200 bg-purple-50"
+                    onClick={() => handleAssignAgent(lead)}
+                  >
                     <User className="h-4 w-4 mr-1" />
-                    Reassign
+                    {lead.assignedAgent ? 'Reassign' : 'Assign Agent'}
                   </Button>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
@@ -3467,6 +3526,175 @@ Key Topics: Travel volume, preferred airlines, booking preferences, cost optimiz
             >
               <Presentation className="h-4 w-4 mr-2" />
               Schedule Demo
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Assign/Reassign Agent Modal */}
+      <Dialog open={showAssignAgentModal} onOpenChange={setShowAssignAgentModal}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-lg font-semibold">
+              <User className="h-5 w-5 text-orange-600" />
+              {selectedLeadForAssign?.assignedAgent ? 'Reassign Sales Agent' : 'Assign Sales Agent'} - {selectedLeadForAssign?.company}
+            </DialogTitle>
+            <DialogDescription className="text-sm text-gray-600">
+              {selectedLeadForAssign?.assignedAgent 
+                ? `Reassign this lead from ${selectedLeadForAssign.assignedAgent} to a sales agent for personalized follow-up and management`
+                : 'Assign this lead to a sales agent for personalized follow-up and management'
+              }
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-5 py-4">
+            {/* Agent Selection */}
+            <div>
+              <Label className="text-sm font-medium text-gray-700 mb-2 block">
+                Select Sales Agent *
+              </Label>
+              <Select value={selectedAgent} onValueChange={setSelectedAgent}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Choose a sales agent..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Sarah Wilson">
+                    <div className="flex flex-col items-start py-1">
+                      <div className="font-medium text-gray-900">Sarah Wilson</div>
+                      <div className="text-xs text-gray-500">Manufacturing, Healthcare • 8 leads</div>
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="John Doe">
+                    <div className="flex flex-col items-start py-1">
+                      <div className="font-medium text-gray-900">John Doe</div>
+                      <div className="text-xs text-gray-500">Technology, Finance • 12 leads</div>
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="Jane Smith">
+                    <div className="flex flex-col items-start py-1">
+                      <div className="font-medium text-gray-900">Jane Smith</div>
+                      <div className="text-xs text-gray-500">Retail, Consulting • 6 leads</div>
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="Mike Johnson">
+                    <div className="flex flex-col items-start py-1">
+                      <div className="font-medium text-gray-900">Mike Johnson</div>
+                      <div className="text-xs text-gray-500">Energy, Manufacturing • 9 leads</div>
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="David Brown">
+                    <div className="flex flex-col items-start py-1">
+                      <div className="font-medium text-gray-900">David Brown</div>
+                      <div className="text-xs text-gray-500">Healthcare, Government • 4 leads</div>
+                    </div>
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Show current agent info if reassigning */}
+            {selectedLeadForAssign?.assignedAgent && selectedAgent && (
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                <div className="flex flex-col space-y-1">
+                  <div className="text-sm font-medium text-blue-900">
+                    Current Agent: {selectedLeadForAssign.assignedAgent}
+                  </div>
+                  <div className="text-sm text-blue-700">
+                    New Agent: {selectedAgent}
+                  </div>
+                  <div className="text-xs text-blue-600">
+                    Email: {selectedAgent.toLowerCase().replace(' ', '.')}@soarai.com
+                  </div>
+                  <div className="text-xs text-blue-600">
+                    Specialties: {selectedAgent === 'Sarah Wilson' ? 'Manufacturing, Healthcare' : 
+                                selectedAgent === 'John Doe' ? 'Technology, Finance' :
+                                selectedAgent === 'Jane Smith' ? 'Retail, Consulting' :
+                                selectedAgent === 'Mike Johnson' ? 'Energy, Manufacturing' :
+                                'Healthcare, Government'}
+                  </div>
+                  <div className="text-xs text-blue-600">
+                    Current Leads: {selectedAgent === 'Sarah Wilson' ? '8' : 
+                                   selectedAgent === 'John Doe' ? '12' :
+                                   selectedAgent === 'Jane Smith' ? '6' :
+                                   selectedAgent === 'Mike Johnson' ? '9' : '4'}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Assignment Priority */}
+            <div>
+              <Label className="text-sm font-medium text-gray-700 mb-2 block">
+                Assignment Priority
+              </Label>
+              <Select value={assignmentPriority} onValueChange={setAssignmentPriority}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Low Priority">Low Priority</SelectItem>
+                  <SelectItem value="Medium Priority">Medium Priority</SelectItem>
+                  <SelectItem value="High Priority">High Priority</SelectItem>
+                  <SelectItem value="Urgent">Urgent</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Assignment Notes */}
+            <div>
+              <Label className="text-sm font-medium text-gray-700 mb-2 block">
+                Assignment Notes
+              </Label>
+              <Textarea
+                value={assignmentNotes}
+                onChange={(e) => setAssignmentNotes(e.target.value)}
+                placeholder="Any specific instructions or context for the assigned agent..."
+                className="min-h-[80px] resize-none"
+              />
+            </div>
+
+            {/* Lead Summary */}
+            <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+              <div className="text-sm font-medium text-gray-700 mb-2">Lead Summary</div>
+              <div className="space-y-1 text-sm text-gray-600">
+                <div>Industry: {selectedLeadForAssign?.industry}</div>
+                <div>Budget: {selectedLeadForAssign?.travelBudget}</div>
+                <div>Score: {selectedLeadForAssign?.score}</div>
+                <div>Status: {selectedLeadForAssign?.status}</div>
+                <div>AI Suggestion: {selectedLeadForAssign?.score >= 80 ? 'Send detailed cost comparison proposal. Mention case studies.' : 'Add to SMB nurture campaign. Follow up in Q4 for growth stage.'}</div>
+              </div>
+            </div>
+          </div>
+
+          <DialogFooter className="flex gap-2 pt-4 border-t">
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                setShowAssignAgentModal(false);
+                setSelectedLeadForAssign(null);
+                setSelectedAgent('');
+                setAssignmentNotes('');
+              }}
+              className="text-gray-600 border-gray-300"
+            >
+              Cancel
+            </Button>
+            <Button 
+              onClick={handleConfirmAssignAgent}
+              disabled={!selectedAgent || isAssigning}
+              className="bg-orange-500 hover:bg-orange-600 text-white"
+            >
+              {isAssigning ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                  Assigning...
+                </>
+              ) : (
+                <>
+                  <User className="h-4 w-4 mr-2" />
+                  {selectedLeadForAssign?.assignedAgent ? 'Reassign Agent' : 'Assign Agent'}
+                </>
+              )}
             </Button>
           </DialogFooter>
         </DialogContent>
