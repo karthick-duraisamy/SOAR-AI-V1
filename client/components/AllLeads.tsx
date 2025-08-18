@@ -5,6 +5,7 @@ import { Badge } from './ui/badge';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
+import { Textarea } from './ui/textarea';
 import {
   Building2,
   Mail,
@@ -35,7 +36,8 @@ import {
   ChevronDown,
   PhoneCall,
   Video,
-  CalendarDays
+  CalendarDays,
+  Activity // Imported for Actions dropdown
 } from 'lucide-react';
 import { toast } from "sonner";
 import {
@@ -74,7 +76,7 @@ interface HistoryEntry {
 
 interface Lead {
   id: number;
-  company: { name: string; industry?: string; }; // Added industry to Lead interface
+  company: { name: string; industry?: string; size?: string; }; // Added industry and size to Lead interface
   contact: { first_name: string; last_name: string; position: string; email: string; phone: string; };
   status: string;
   source: string;
@@ -144,6 +146,17 @@ export function AllLeads({ onNavigate }: AllLeadsProps) {
   const [selectedLeadName, setSelectedLeadName] = useState('');
   const [showAssignAgentDialog, setShowAssignAgentDialog] = useState(false);
   const [selectedAgent, setSelectedAgent] = useState('');
+  const [showAddNoteDialog, setShowAddNoteDialog] = useState(false);
+  const [leadsForViewProfile, setLeadsForViewProfile] = useState<any[]>([]); // State for leads to view profile
+  const [selectedCorporate, setSelectedCorporate] = useState(null);
+  const [showCorporateProfile, setShowCorporateProfile] = useState(false);  
+  const [selectedLeadForNote, setSelectedLeadForNote] = useState<any>(null);
+
+  // Modal states for Actions dropdown
+  const [showCallDialog, setShowCallDialog] = useState(false);
+  const [showMeetingDialog, setShowMeetingDialog] = useState(false);
+  const [showDemoDialog, setShowDemoDialog] = useState(false);
+  const [selectedLeadForAction, setSelectedLeadForAction] = useState<any>(null);
 
   // Initialize API hook
   const leadApi = useLeadApi();
@@ -285,7 +298,7 @@ export function AllLeads({ onNavigate }: AllLeadsProps) {
     setHistoryLoading(true);
     setSelectedLeadName(companyName);
     setShowHistoryDialog(true);
-    
+
     try {
       const history = await leadApi.getHistory(leadId);
       setSelectedLeadHistory(history);
@@ -297,13 +310,37 @@ export function AllLeads({ onNavigate }: AllLeadsProps) {
     }
   };
 
+  const handleViewProfile = (lead: any) => {
+    console.log(leadsForViewProfile, 'leadsForViewProfile',lead,"lead");
+    const item = leadsForViewProfile.find(entry => entry.id === lead.id);
+    console.log(item,"item")
+    setSelectedCorporate(item);
+    setShowCorporateProfile(true);
+  };
+
+  // Handlers for Actions dropdown options
+  const handleInitiateCall = (lead: any) => {
+    setSelectedLeadForAction(lead);
+    setShowCallDialog(true);
+  };
+
+  const handleScheduleMeeting = (lead: any) => {
+    setSelectedLeadForAction(lead);
+    setShowMeetingDialog(true);
+  };
+
+  const handleScheduleDemo = (lead: any) => {
+    setSelectedLeadForAction(lead);
+    setShowDemoDialog(true);
+  };
+
   // Handle bulk actions
   const handleStartCampaign = () => {
     if (selectedLeads.length === 0) {
       toast.error('Please select leads first');
       return;
     }
-    
+
     // Navigate to campaign creation with selected leads
     const selectedLeadData = filteredLeads.filter(lead => selectedLeads.includes(lead.id));
     onNavigate('marketing-campaign', { 
@@ -311,7 +348,7 @@ export function AllLeads({ onNavigate }: AllLeadsProps) {
       campaignType: 'bulk_email'
     });
     toast.success(`Campaign started for ${selectedLeads.length} lead${selectedLeads.length > 1 ? 's' : ''}`);
-    
+
     // Clear selection after action
     setSelectedLeads([]);
     setSelectAll(false);
@@ -330,17 +367,17 @@ export function AllLeads({ onNavigate }: AllLeadsProps) {
       toast.error('Please select an agent');
       return;
     }
-    
+
     try {
       // Here you would make API calls to assign the agent to selected leads
       // For now, we'll simulate the API call
       await new Promise(resolve => setTimeout(resolve, 1000));
-      
+
       toast.success(`${selectedLeads.length} lead${selectedLeads.length > 1 ? 's' : ''} assigned to ${selectedAgent}`);
       setShowAssignAgentDialog(false);
       setSelectedAgent('');
       handleClearSelection();
-      
+
       // Refresh leads to show updated assignments
       await fetchLeads();
     } catch (error) {
@@ -609,7 +646,7 @@ export function AllLeads({ onNavigate }: AllLeadsProps) {
                 {selectedLeads.length} lead{selectedLeads.length > 1 ? 's' : ''} selected
               </span>
             </div>
-            
+
             <div className="flex items-center gap-2">
               <Button 
                 size="sm"
@@ -619,7 +656,7 @@ export function AllLeads({ onNavigate }: AllLeadsProps) {
                 <Mail className="h-4 w-4 mr-2" />
                 Start Campaign
               </Button>
-              
+
               <Button 
                 size="sm"
                 variant="outline" 
@@ -629,7 +666,7 @@ export function AllLeads({ onNavigate }: AllLeadsProps) {
                 <User className="h-4 w-4 mr-2" />
                 Assign Agent
               </Button>
-              
+
               <Button 
                 size="sm"
                 variant="outline" 
@@ -849,31 +886,31 @@ export function AllLeads({ onNavigate }: AllLeadsProps) {
                   </Button>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button size="sm" variant="outline" className="text-blue-700 border-blue-300 bg-blue-50">
-                        <Target className="h-4 w-4 mr-1" />
+                      <Button size="sm" variant="outline" className="text-blue-700 border-blue-200 bg-blue-50">
+                        <Activity className="h-4 w-4 mr-1" />
                         Actions
-                        <ChevronDown className="h-3 w-3 ml-1" />
+                        <ChevronDown className="h-4 w-4 ml-1" />
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-56 bg-white shadow-lg border border-gray-200 rounded-lg p-1">
-                      <DropdownMenuItem className="flex items-center gap-3 px-3 py-2 text-gray-700 hover:bg-gray-50 rounded cursor-pointer">
-                        <AlertTriangle className="h-4 w-4 text-red-500" />
-                        Disqualify
-                      </DropdownMenuItem>
-                      <DropdownMenuItem className="flex items-center gap-3 px-3 py-2 text-gray-700 hover:bg-gray-50 rounded cursor-pointer">
-                        <Eye className="h-4 w-4 text-gray-500" />
-                        Details
-                      </DropdownMenuItem>
-                      <DropdownMenuSeparator className="my-1 border-gray-200" />
-                      <DropdownMenuItem className="flex items-center gap-3 px-3 py-2 text-gray-700 hover:bg-gray-50 rounded cursor-pointer">
+                      <DropdownMenuItem 
+                        className="flex items-center gap-3 px-3 py-2 text-gray-700 hover:bg-gray-50 rounded cursor-pointer"
+                        onClick={() => handleInitiateCall(lead)}
+                      >
                         <PhoneCall className="h-4 w-4 text-blue-500" />
                         Initiate Call
                       </DropdownMenuItem>
-                      <DropdownMenuItem className="flex items-center gap-3 px-3 py-2 text-gray-700 hover:bg-gray-50 rounded cursor-pointer">
+                      <DropdownMenuItem 
+                        className="flex items-center gap-3 px-3 py-2 text-gray-700 hover:bg-gray-50 rounded cursor-pointer"
+                        onClick={() => handleScheduleMeeting(lead)}
+                      >
                         <CalendarDays className="h-4 w-4 text-green-500" />
                         Schedule Meeting
                       </DropdownMenuItem>
-                      <DropdownMenuItem className="flex items-center gap-3 px-3 py-2 text-gray-700 hover:bg-gray-50 rounded cursor-pointer">
+                      <DropdownMenuItem 
+                        className="flex items-center gap-3 px-3 py-2 text-gray-700 hover:bg-gray-50 rounded cursor-pointer"
+                        onClick={() => handleScheduleDemo(lead)}
+                      >
                         <Video className="h-4 w-4 text-purple-500" />
                         Schedule Demo
                       </DropdownMenuItem>
@@ -1201,7 +1238,7 @@ export function AllLeads({ onNavigate }: AllLeadsProps) {
               Complete timeline of all activities and changes for this lead.
             </DialogDescription>
           </DialogHeader>
-          
+
           <div className="max-h-[400px] overflow-y-auto">
             {historyLoading ? (
               <div className="flex items-center justify-center py-8">
@@ -1222,7 +1259,7 @@ export function AllLeads({ onNavigate }: AllLeadsProps) {
                       <div className="flex items-center justify-center w-10 h-10 bg-orange-100 rounded-full flex-shrink-0">
                         <IconComponent className="h-5 w-5 text-orange-600" />
                       </div>
-                      
+
                       <div className="flex-1">
                         <div className="flex items-center justify-between mb-2">
                           <h4 className="font-semibold text-gray-900">{entry.action}</h4>
@@ -1236,9 +1273,9 @@ export function AllLeads({ onNavigate }: AllLeadsProps) {
                             })}
                           </span>
                         </div>
-                        
+
                         <p className="text-gray-700 text-sm mb-2">{entry.details}</p>
-                        
+
                         <div className="flex items-center gap-2">
                           <Badge variant="outline" className="text-xs">
                             {entry.history_type.replace('_', ' ')}
@@ -1252,7 +1289,7 @@ export function AllLeads({ onNavigate }: AllLeadsProps) {
               </div>
             )}
           </div>
-          
+
           <DialogFooter>
             <DialogClose asChild>
               <Button variant="outline">Close</Button>
@@ -1270,7 +1307,7 @@ export function AllLeads({ onNavigate }: AllLeadsProps) {
               Assign {selectedLeads.length} selected lead{selectedLeads.length > 1 ? 's' : ''} to an agent.
             </DialogDescription>
           </DialogHeader>
-          
+
           <div className="py-4">
             <div className="space-y-4">
               <div>
@@ -1290,7 +1327,7 @@ export function AllLeads({ onNavigate }: AllLeadsProps) {
                   </SelectContent>
                 </Select>
               </div>
-              
+
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
                 <p className="text-sm text-blue-800">
                   <strong>Selected Leads:</strong> {selectedLeads.length} lead{selectedLeads.length > 1 ? 's' : ''} will be assigned to the selected agent.
@@ -1298,7 +1335,7 @@ export function AllLeads({ onNavigate }: AllLeadsProps) {
               </div>
             </div>
           </div>
-          
+
           <DialogFooter>
             <DialogClose asChild>
               <Button variant="outline">Cancel</Button>
@@ -1308,6 +1345,242 @@ export function AllLeads({ onNavigate }: AllLeadsProps) {
             </Button>
           </DialogFooter>
         </DialogContent>
+      </Dialog>
+
+      {/* Initiate Call Dialog */}
+      <Dialog open={showCallDialog} onOpenChange={setShowCallDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <PhoneCall className="h-5 w-5 text-blue-600" />
+              Initiate Call with {selectedLeadForAction?.company.name}
+            </DialogTitle>
+            <DialogDescription>
+              Start a phone call with {selectedLeadForAction?.contact.first_name} {selectedLeadForAction?.contact.last_name}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="p-4 bg-blue-50 rounded-lg">
+              <div className="flex items-center gap-2 mb-2">
+                <Phone className="h-4 w-4 text-blue-600" />
+                <span className="font-medium text-blue-900">Contact Information</span>
+              </div>
+              <p className="text-sm text-blue-800">
+                <strong>Phone:</strong> {selectedLeadForAction?.contact.phone}
+              </p>
+              <p className="text-sm text-blue-800">
+                <strong>Email:</strong> {selectedLeadForAction?.contact.email}
+              </p>
+            </div>
+            <div>
+              <Label className="text-sm font-medium text-gray-700">Call Notes (Optional)</Label>
+              <Textarea
+                placeholder="Add any notes or talking points for this call..."
+                className="mt-1 min-h-[80px] resize-none"
+              />
+            </div>
+          </div>
+          <DialogFooter className="flex gap-2">
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                setShowCallDialog(false);
+                setSelectedLeadForAction(null);
+              }}
+              className="text-gray-600 border-gray-300"
+            >
+              Cancel
+            </Button>
+            <Button 
+              onClick={() => {
+                // Handle call initiation logic here
+                toast.success(`Call initiated with ${selectedLeadForAction?.company.name}`);
+                setShowCallDialog(false);
+                setSelectedLeadForAction(null);
+              }}
+              className="bg-blue-500 hover:bg-blue-600 text-white"
+            >
+              <PhoneCall className="h-4 w-4 mr-2" />
+              Start Call
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Schedule Meeting Dialog */}
+      <Dialog open={showMeetingDialog} onOpenChange={setShowMeetingDialog}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <CalendarDays className="h-5 w-5 text-green-600" />
+              Schedule Meeting with {selectedLeadForAction?.company.name}
+            </DialogTitle>
+            <DialogDescription>
+              Schedule a business meeting with {selectedLeadForAction?.contact.first_name} {selectedLeadForAction?.contact.last_name}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label className="text-sm font-medium text-gray-700">Meeting Date</Label>
+                <Input
+                  type="date"
+                  className="mt-1"
+                  min={new Date().toISOString().split('T')[0]}
+                />
+              </div>
+              <div>
+                <Label className="text-sm font-medium text-gray-700">Meeting Time</Label>
+                <Input
+                  type="time"
+                  className="mt-1"
+                />
+              </div>
+            </div>
+            <div>
+              <Label className="text-sm font-medium text-gray-700">Meeting Type</Label>
+              <Select>
+                <SelectTrigger className="mt-1">
+                  <SelectValue placeholder="Select meeting type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="discovery">Discovery Call</SelectItem>
+                  <SelectItem value="presentation">Business Presentation</SelectItem>
+                  <SelectItem value="negotiation">Contract Negotiation</SelectItem>
+                  <SelectItem value="follow-up">Follow-up Meeting</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label className="text-sm font-medium text-gray-700">Meeting Agenda</Label>
+              <Textarea
+                placeholder="Brief description of meeting agenda and objectives..."
+                className="mt-1 min-h-[80px] resize-none"
+              />
+            </div>
+          </div>
+          <DialogFooter className="flex gap-2">
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                setShowMeetingDialog(false);
+                setSelectedLeadForAction(null);
+              }}
+              className="text-gray-600 border-gray-300"
+            >
+              Cancel
+            </Button>
+            <Button 
+              onClick={() => {
+                // Handle meeting scheduling logic here
+                toast.success(`Meeting scheduled with ${selectedLeadForAction?.company.name}`);
+                setShowMeetingDialog(false);
+                setSelectedLeadForAction(null);
+              }}
+              className="bg-green-500 hover:bg-green-600 text-white"
+            >
+              <CalendarDays className="h-4 w-4 mr-2" />
+              Schedule Meeting
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Schedule Demo Dialog */}
+      <Dialog open={showDemoDialog} onOpenChange={setShowDemoDialog}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Video className="h-5 w-5 text-purple-600" />
+              Schedule Demo with {selectedLeadForAction?.company.name}
+            </DialogTitle>
+            <DialogDescription>
+              Schedule a product demonstration for {selectedLeadForAction?.contact.first_name} {selectedLeadForAction?.contact.last_name}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label className="text-sm font-medium text-gray-700">Demo Date</Label>
+                <Input
+                  type="date"
+                  className="mt-1"
+                  min={new Date().toISOString().split('T')[0]}
+                />
+              </div>
+              <div>
+                <Label className="text-sm font-medium text-gray-700">Demo Time</Label>
+                <Input
+                  type="time"
+                  className="mt-1"
+                />
+              </div>
+            </div>
+            <div>
+              <Label className="text-sm font-medium text-gray-700">Demo Type</Label>
+              <Select>
+                <SelectTrigger className="mt-1">
+                  <SelectValue placeholder="Select demo type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="product-overview">Product Overview</SelectItem>
+                  <SelectItem value="technical-demo">Technical Demonstration</SelectItem>
+                  <SelectItem value="custom-solution">Custom Solution Demo</SelectItem>
+                  <SelectItem value="live-demo">Live System Demo</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label className="text-sm font-medium text-gray-700">Demo Duration</Label>
+              <Select>
+                <SelectTrigger className="mt-1">
+                  <SelectValue placeholder="Select duration" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="30">30 minutes</SelectItem>
+                  <SelectItem value="45">45 minutes</SelectItem>
+                  <SelectItem value="60">1 hour</SelectItem>
+                  <SelectItem value="90">1.5 hours</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label className="text-sm font-medium text-gray-700">Demo Focus Areas</Label>
+              <Textarea
+                placeholder="Key features and solutions to demonstrate based on their business needs..."
+                className="mt-1 min-h-[80px] resize-none"
+              />
+            </div>
+          </div>
+          <DialogFooter className="flex gap-2">
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                setShowDemoDialog(false);
+                setSelectedLeadForAction(null);
+              }}
+              className="text-gray-600 border-gray-300"
+            >
+              Cancel
+            </Button>
+            <Button 
+              onClick={() => {
+                // Handle demo scheduling logic here
+                toast.success(`Demo scheduled with ${selectedLeadForAction?.company.name}`);
+                setShowDemoDialog(false);
+                setSelectedLeadForAction(null);
+              }}
+              className="bg-purple-500 hover:bg-purple-600 text-white"
+            >
+              <Video className="h-4 w-4 mr-2" />
+              Schedule Demo
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Add Company Dialog */}
+      <Dialog open={showAddCompanyDialog} onOpenChange={setShowAddCompanyDialog}>
       </Dialog>
     </div>
   );
