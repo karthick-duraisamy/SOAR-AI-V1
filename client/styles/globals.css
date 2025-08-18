@@ -553,7 +553,9 @@ html {
   [data-slot="alert-dialog-content"]>* {
     background-color: inherit;
   }
-
+  .cls-corporate-profile{
+    max-width: 95% !important;
+  }
   .modal-content {
     position: fixed;
     z-index: 9999;

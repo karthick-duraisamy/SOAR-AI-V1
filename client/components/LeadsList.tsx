@@ -69,6 +69,7 @@ import { toast } from "sonner";
 import { format } from 'date-fns';
 import { ScrollArea } from './ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs'; // Added Tabs components
+import { CorporateProfile } from './CorporateProfile';
 
 interface LeadsListProps {
   initialFilters?: any;
@@ -198,6 +199,197 @@ const transformApiLeadToUILead = (apiLead: any) => {
     history_entries: [] // This will be populated via getHistory API call
   };
 };
+
+
+const transformCompanyDataForViewProfile = (apiLead) => {
+  console.log(apiLead, "apilead for view profile")
+  // Transform backend data to match frontend expectations
+  return {
+    id: apiLead.id,
+    name: apiLead.company.name,
+    type: getCompanyTypeDisplay(apiLead.company.company_type || apiLead.company.size),
+    industry: getIndustryDisplay(apiLead.company.industry),
+    location: apiLead.company.location,
+    aiScore: Math.floor(Math.random() * 20) + 80, // Random AI score for demo
+    rating: (Math.random() * 1 + 4).toFixed(1), // Random rating 4.0-5.0
+    established: apiLead.company.year_established || (apiLead.company.created_at ? new Date(apiLead.company.created_at).getFullYear() : 2020),
+    employees: apiLead.company.employee_count || Math.floor(Math.random() * 5000) + 100,
+    specialties: apiLead.company.specialties ? apiLead.company.specialties.split(',').map(s => s.trim()).filter(s => s).slice(0, 5) : ["Business Services", "Corporate Solutions"],
+    travelBudget: apiLead.company.travel_budget ? `${(apiLead.company.travel_budget / 1000000).toFixed(1)}M` : "1.0M",
+    annualTravelVolume: apiLead.company.annual_travel_volume || `${Math.floor(Math.random() * 5000) + 1000} trips`,
+    contracts: Math.floor(Math.random() * 20) + 1,
+    revenue: apiLead.company.annual_revenue || Math.floor(Math.random() * 50000000) + 10000000,
+    phone: apiLead.company.phone || "+1 (555) " + Math.floor(Math.random() * 900 + 100) + "-" + Math.floor(Math.random() * 9000 + 1000),
+    email: apiLead.company.email || `contact@${apiLead.company.name.toLowerCase().replace(/[^a-z0-9]/g, '')}.com`,
+    website: apiLead.company.website || `www.${apiLead.company.name.toLowerCase().replace(/[^a-z0-9]/g, '')}.com`,
+    aiRecommendation: generateAIRecommendation(apiLead.company),
+    compliance: Math.floor(Math.random() * 20) + 80,
+    financialStability: Math.floor(Math.random() * 20) + 80,
+    travelFrequency: apiLead.company.travel_frequency || getRandomTravelFrequency(),
+    destinations: getRandomDestinations(),
+    preferredClass: apiLead.company.preferred_class || getRandomPreferredClass(),
+    teamSize: Math.floor((apiLead.company.employee_count || 1000) * 0.1),
+    travelManagers: Math.floor(Math.random() * 5) + 1,
+    currentAirlines: apiLead.company.current_airlines ? apiLead.company.current_airlines.split(',').map(s => s.trim()).filter(s => s).slice(0, 5) : getRandomAirlines(),
+    paymentTerms: apiLead.company.payment_terms || getRandomPaymentTerms(),
+    creditRating: apiLead.company.credit_rating || getRandomCreditRating(),
+    sustainabilityFocus: apiLead.company.sustainability_focus || getRandomSustainabilityFocus(),
+    technologyIntegration: apiLead.company.technology_integration ? apiLead.company.technology_integration.split(',').map(s => s.trim()).filter(s => s).slice(0, 5) : getRandomTechIntegration(),
+    seasonality: getRandomSeasonality(),
+    meetingTypes: getRandomMeetingTypes(),
+    companySize: getSizeDisplay(apiLead.company.size),
+    marketSegment: getIndustryDisplay(apiLead.company.industry),
+    decisionMakers: Math.floor(Math.random() * 8) + 2,
+    contractValue: Math.floor(Math.random() * 3000000) + 500000,
+    competitorAirlines: Math.floor(Math.random() * 5) + 1,
+    loyaltyPotential: Math.floor(Math.random() * 30) + 70,
+    expansionPlans: apiLead.company.expansion_plans || getRandomExpansionPlans(),
+    riskLevel: apiLead.company.risk_level || getRandomRiskLevel()
+  };
+};
+
+// Helper functions
+const getCompanyTypeDisplay = (size) => {
+  const types = {
+    startup: "Startup Company",
+    small: "Small Business",
+    medium: "Medium Corporation",
+    large: "Large Corporation",
+    enterprise: "Enterprise Corporation",
+    corporation: "Corporation",
+    llc: "LLC",
+    partnership: "Partnership",
+    nonprofit: "Non-Profit"
+  };
+  return types[size] || "Corporation";
+};
+
+const getIndustryDisplay = (industry) => {
+  const industries = {
+    technology: "Technology & Software",
+    finance: "Finance & Banking",
+    healthcare: "Healthcare",
+    manufacturing: "Manufacturing",
+    retail: "Retail & Consumer",
+    consulting: "Consulting Services",
+    telecommunications: "Telecommunications",
+    energy: "Energy & Utilities",
+    transportation: "Transportation & Logistics",
+    education: "Education",
+    government: "Government",
+    other: "Other"
+  };
+  return industries[industry] || "Business Services";
+};
+
+const getSizeDisplay = (size) => {
+  const sizes = {
+    startup: "Startup",
+    small: "Small",
+    medium: "Medium",
+    large: "Large",
+    enterprise: "Enterprise"
+  };
+  return sizes[size] || "Medium";
+};
+
+const generateAIRecommendation = (company) => {
+  const recommendations = [
+    "High-potential corporate client with strong growth indicators. Excellent opportunity for partnership.",
+    "Established company with consistent business patterns. Good candidate for long-term contracts.",
+    "Growing organization with expanding travel needs. Consider volume-based pricing strategies.",
+    "Premium client with sophisticated requirements. Focus on high-service offerings.",
+    "Cost-conscious organization seeking value. Emphasize efficiency and competitive pricing."
+  ];
+  return recommendations[Math.floor(Math.random() * recommendations.length)];
+};
+
+const getRandomTravelFrequency = () => {
+  const frequencies = ["Daily", "Weekly", "Monthly", "Bi-weekly", "Quarterly"];
+  return frequencies[Math.floor(Math.random() * frequencies.length)];
+};
+
+const getRandomDestinations = () => {
+  const destinations = [
+    ["North America", "Europe"],
+    ["Global", "Asia-Pacific", "Europe"],
+    ["North America", "Asia-Pacific"],
+    ["Domestic", "Regional"],
+    ["Global", "Emerging Markets"]
+  ];
+  return destinations[Math.floor(Math.random() * destinations.length)];
+};
+
+const getRandomPreferredClass = () => {
+  const classes = ["Economy", "Economy Plus", "Business", "First", "Business/First"];
+  return classes[Math.floor(Math.random() * classes.length)];
+};
+
+const getRandomAirlines = () => {
+  const airlines = [
+    ["United", "Delta"],
+    ["American", "Southwest"],
+    ["Emirates", "Singapore Airlines"],
+    ["British Airways", "Lufthansa"],
+    ["Air France", "KLM"]
+  ];
+  return airlines[Math.floor(Math.random() * airlines.length)];
+};
+
+const getRandomPaymentTerms = () => {
+  const terms = ["Net 15", "Net 30", "Net 45", "Net 60"];
+  return terms[Math.floor(Math.random() * terms.length)];
+};
+
+const getRandomCreditRating = () => {
+  const ratings = ["AAA", "AA", "A", "BBB", "A+"];
+  return ratings[Math.floor(Math.random() * ratings.length)];
+};
+
+const getRandomSustainabilityFocus = () => {
+  const focus = ["Very High", "High", "Medium", "Low"];
+  return focus[Math.floor(Math.random() * focus.length)];
+};
+
+const getRandomTechIntegration = () => {
+  const tech = [
+    ["API", "Mobile App"],
+    ["GDS", "Corporate Portal"],
+    ["API", "Real-time Booking"],
+    ["Mobile App", "Expense Management"],
+    ["Corporate Portal", "Reporting"]
+  ];
+  return tech[Math.floor(Math.random() * tech.length)];
+};
+
+const getRandomSeasonality = () => {
+  const patterns = ["Year-round", "Q1/Q3 Heavy", "Spring/Summer Peak", "Holiday Heavy"];
+  return patterns[Math.floor(Math.random() * patterns.length)];
+};
+
+const getRandomMeetingTypes = () => {
+  const types = [
+    ["Business Meetings", "Conferences"],
+    ["Client Visits", "Trade Shows"],
+    ["Team Offsites", "Training"],
+    ["Site Visits", "Regulatory Meetings"]
+  ];
+  return types[Math.floor(Math.random() * types.length)];
+};
+
+const getRandomExpansionPlans = () => {
+  const plans = ["Aggressive", "Moderate", "Conservative", "Rapid", "Stable"];
+  return plans[Math.floor(Math.random() * plans.length)];
+};
+
+const getRandomRiskLevel = () => {
+  const risks = ["Very Low", "Low", "Medium", "High"];
+  return risks[Math.floor(Math.random() * risks.length)];
+};
+
+
+
+
 
 // This function is now primarily for reference if needed, but history is fetched from API
 // It's kept here as a fallback or for understanding the original logic.
@@ -347,6 +539,9 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
     followUpDate: ''
   });
   const [showAddNoteDialog, setShowAddNoteDialog] = useState(false);
+  const [leadsForViewProfile, setLeadsForViewProfile] = useState<any[]>([]); // State for leads to view profile
+  const [selectedCorporate, setSelectedCorporate] = useState(null);
+  const [showCorporateProfile, setShowCorporateProfile] = useState(false);  
   const [selectedLeadForNote, setSelectedLeadForNote] = useState<any>(null);
   const [noteForm, setNoteForm] = useState({
     note: '',
@@ -475,8 +670,14 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
         return transformApiLeadToUILead(apiLead);
       });
 
-      console.log('Final transformed leads:', transformedLeads);
+      const transformedLeadsforViewProfile = apiLeads.map((apiLead: any) => {
+        console.log('Transforming leadfor view profile:', apiLead);
+        return transformCompanyDataForViewProfile(apiLead);
+      });
+
+      console.log('Final transformed leads:', transformedLeads,"ddddddddddddddddd",transformedLeadsforViewProfile);
       setLeads(transformedLeads);
+      setLeadsForViewProfile(transformedLeadsforViewProfile);
 
     } catch (error) {
       console.error('Error fetching leads:', error);
@@ -626,6 +827,11 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
       setSelectedLeads([]);
       setSelectAll(false);
     }
+  };
+
+  const handleBackToSearch = () => {
+    setShowCorporateProfile(false);
+    setSelectedCorporate(null);
   };
 
   // Function to create a new lead via API
@@ -1153,6 +1359,14 @@ SOAR-AI Team`,
     </div>
   );
 
+  const handleViewProfile = (lead) => {
+    console.log(leadsForViewProfile, 'leadsForViewProfile',lead,"lead");
+    const item = leadsForViewProfile.find(entry => entry.id === lead.id);
+    console.log(item,"item")
+    setSelectedCorporate(item);
+    setShowCorporateProfile(true);
+  };
+
   // Error state if API call fails
   if (leadApi.error) {
     return (
@@ -1165,6 +1379,24 @@ SOAR-AI Team`,
         </Button>
       </div>
     );
+  }
+
+  // Show specific components based on state
+  if (showCorporateProfile && selectedCorporate) {
+    return (
+      <Dialog open={showCorporateProfile} onOpenChange={setShowCorporateProfile}>
+        <DialogContent className="max-w-2xl  cls-corporate-profile">
+          <div className="mt-4 max-h-[90vh] overflow-y-auto">
+
+          <CorporateProfile
+            corporateData={selectedCorporate}
+            onBack={handleBackToSearch}
+          />
+          
+          </div>
+        </DialogContent>
+      </Dialog>
+    )
   }
 
   return (
@@ -1925,7 +2157,7 @@ SOAR-AI Team`,
                       Disqualify
                     </Button>
                   )}
-                  <Button size="sm" variant="outline" className="text-gray-700 border-gray-300">
+                  <Button size="sm" variant="outline" className="text-gray-700 border-gray-300" onClick={() => handleViewProfile(lead)}>
                     <Eye className="h-4 w-4 mr-1" />
                     Details
                   </Button>

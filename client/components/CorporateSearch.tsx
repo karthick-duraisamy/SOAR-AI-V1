@@ -721,10 +721,19 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
   // Show specific components based on state
   if (showCorporateProfile && selectedCorporate) {
     return (
-      <CorporateProfile 
-        corporateData={selectedCorporate}
-        onBack={handleBackToSearch}
-      />
+
+      <Dialog open={showCorporateProfile} onOpenChange={setShowCorporateProfile}>
+              <DialogContent className="max-w-2xl  cls-corporate-profile">
+                <div className="mt-4 max-h-[90vh] overflow-y-auto">
+                <CorporateProfile 
+                corporateData={selectedCorporate}
+                onBack={handleBackToSearch}
+              />
+                </div>
+              </DialogContent>
+            </Dialog>
+
+      
     );
   }
 
