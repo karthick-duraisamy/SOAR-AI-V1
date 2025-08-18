@@ -855,7 +855,7 @@ export function AllLeads({ onNavigate }: AllLeadsProps) {
                         <ChevronDown className="h-3 w-3 ml-1" />
                       </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-48">
+                    <DropdownMenuContent align="end" className="w-56">
                       <DropdownMenuItem className="flex items-center gap-2 text-red-600 hover:text-red-700 hover:bg-red-50">
                         <AlertTriangle className="h-4 w-4" />
                         Disqualify
