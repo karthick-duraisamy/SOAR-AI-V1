@@ -352,6 +352,15 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
     notes: ''
   });
 
+  const [contactForm, setContactForm] = useState({
+    method: 'Email',
+    subject: '',
+    message: '',
+    followUpDate: '',
+    corporateData: null
+  });
+  const [showContactDialog, setShowContactDialog] = useState(false);
+  
   const loadCompanies = useCallback(async (filters = {}) => {
     setIsLoading(true);
     setError('');
@@ -736,7 +745,27 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
       
     );
   }
+// Function to open dialog for contacting a lead
+  const handleContactCorporate = (corporate: any) => {
+ 
+    setContactForm({
+      method: 'Email',
+      subject: `Partnership Opportunity - ${corporate.name}`,
+      message: `Hi ,
 
+        I hope this message finds you well. I wanted to follow up regarding our corporate travel solutions that could benefit ${corporate.name}.
+
+        Based on your organization's profile, I believe we can help optimize your travel operations and reduce costs.
+
+        Would you be available for a brief call this week to discuss how we can support your travel needs?
+
+        Best regards,
+        SOAR-AI Team`,
+      followUpDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],// 7 days from now
+      corporateData: corporate
+    });
+    setShowContactDialog(true);
+  };
   return (
     <div className="w-full h-full bg-gray-50 p-6">
       {/* Success Message */}
@@ -1128,7 +1157,8 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
                       {movedAsLeadIds.has(corporate.id) ? 'Moved as Lead' : 'Move as Lead'}
                     </Button>
 
-                    <Button variant="outline" size="sm" className="border-gray-300">
+                    <Button variant="outline" size="sm" className="border-gray-300" onClick={() => handleContactCorporate(corporate)}
+>
                       <Phone className="h-4 w-4 mr-1" />
                       Contact
                     </Button>
@@ -1913,6 +1943,96 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
                   Add Company
                 </>
               )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+     {/* Contact Lead Dialog - Remains the same, contact is part of the lead/company info */}
+      <Dialog open={showContactDialog} onOpenChange={setShowContactDialog}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Mail className="h-5 w-5 text-orange-600" />
+              Contact {contactForm?.corporateData?.name}
+            </DialogTitle>
+            <DialogDescription>
+              Send a personalized message to  {contactForm?.corporateData?.name}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label className="text-sm font-medium text-gray-700 mb-2 block">Contact Method</Label>
+              <Select 
+                value={contactForm.method} 
+                onValueChange={(value) => setContactForm({...contactForm, method: value})}
+              >
+                <SelectTrigger className="border-orange-200 focus:border-orange-500 focus:ring-orange-500">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Email">Email</SelectItem>
+                  <SelectItem value="Phone">Phone</SelectItem>
+                  <SelectItem value="LinkedIn">LinkedIn</SelectItem>
+                  <SelectItem value="In-Person Meeting">In-Person Meeting</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label className="text-sm font-medium text-gray-700 mb-2 block">Subject</Label>
+              <Input
+                value={contactForm.subject}
+                onChange={(e) => setContactForm({...contactForm, subject: e.target.value})}
+                placeholder="Enter subject line..."
+                className="border-gray-300 focus:border-orange-500 focus:ring-orange-500"
+              />
+            </div>
+
+            <div>
+              <Label className="text-sm font-medium text-gray-700 mb-2 block">Message</Label>
+              <Textarea
+                value={contactForm.message}
+                onChange={(e) => setContactForm({...contactForm, message: e.target.value})}
+                placeholder="Enter your message..."
+                className="min-h-[200px] resize-none border-gray-300 focus:border-orange-500 focus:ring-orange-500"
+                rows={10}
+              />
+            </div>
+
+            <div>
+              <Label className="text-sm font-medium text-gray-700 mb-2 block">Follow-up Date</Label>
+              <Input
+                type="date"
+                value={contactForm.followUpDate}
+                onChange={(e) => setContactForm({...contactForm, followUpDate: e.target.value})}
+                className="border-gray-300 focus:border-orange-500 focus:ring-orange-500"
+              />
+            </div>
+          </div>
+          <DialogFooter className="flex gap-2">
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                setShowContactDialog(false);
+                setContactForm({
+                  method: 'Email',
+                  subject: '',
+                  message: '',
+                  followUpDate: '',
+                  corporateData: null
+                });
+              }}
+              className="text-gray-600 border-gray-300"
+            >
+              Cancel
+            </Button>
+            <Button 
+              // onClick={handleSendMessage}
+              className="bg-orange-500 hover:bg-orange-600 text-white"
+              disabled={!contactForm.subject || !contactForm.message}
+            >
+              <Mail className="h-4 w-4 mr-2" />
+              Send Message
             </Button>
           </DialogFooter>
         </DialogContent>
