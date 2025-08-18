@@ -3092,49 +3092,104 @@ SOAR-AI Team`,
 
       {/* Initiate Call Modal */}
       <Dialog open={showInitiateCallModal} onOpenChange={setShowInitiateCallModal}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-lg">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <PhoneCall className="h-5 w-5 text-blue-600" />
               Initiate Call - {selectedLeadForAction?.company}
             </DialogTitle>
             <DialogDescription>
-              Prepare for your call with {selectedLeadForAction?.contact}
+              Schedule a phone call with {selectedLeadForAction?.contact} at {selectedLeadForAction?.company}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
-            <div className="bg-blue-50 p-4 rounded-lg">
-              <h4 className="font-medium text-blue-900 mb-2">Contact Information</h4>
-              <div className="space-y-1 text-sm text-blue-800">
-                <p><strong>Phone:</strong> {selectedLeadForAction?.phone}</p>
-                <p><strong>Email:</strong> {selectedLeadForAction?.email}</p>
-                <p><strong>Title:</strong> {selectedLeadForAction?.title}</p>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label className="text-sm font-medium">Call Type</Label>
+                <Select defaultValue="discovery">
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="discovery">Discovery Call</SelectItem>
+                    <SelectItem value="follow-up">Follow-up Call</SelectItem>
+                    <SelectItem value="presentation">Sales Presentation</SelectItem>
+                    <SelectItem value="negotiation">Contract Discussion</SelectItem>
+                    <SelectItem value="check-in">Check-in Call</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label className="text-sm font-medium">Duration (minutes)</Label>
+                <Select defaultValue="30">
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="15">15 minutes</SelectItem>
+                    <SelectItem value="30">30 minutes</SelectItem>
+                    <SelectItem value="45">45 minutes</SelectItem>
+                    <SelectItem value="60">60 minutes</SelectItem>
+                    <SelectItem value="90">90 minutes</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
-            <div className="bg-gray-50 p-4 rounded-lg">
-              <h4 className="font-medium text-gray-900 mb-2">Call Preparation</h4>
-              <ul className="text-sm text-gray-700 space-y-1">
-                <li>• Review company profile and travel requirements</li>
-                <li>• Prepare value proposition for {selectedLeadForAction?.industry} sector</li>
-                <li>• Have pricing options ready for {selectedLeadForAction?.travelBudget} budget</li>
-                <li>• Schedule follow-up if needed</li>
-              </ul>
+
+            <div>
+              <Label className="text-sm font-medium">Scheduled Date & Time</Label>
+              <div className="grid grid-cols-2 gap-2 mt-1">
+                <Input 
+                  type="date" 
+                  placeholder="dd-mm-yyyy"
+                  min={new Date().toISOString().split('T')[0]}
+                />
+                <Input 
+                  type="time" 
+                  placeholder="--:--"
+                />
+              </div>
+            </div>
+
+            <div>
+              <Label className="text-sm font-medium">Call Agenda</Label>
+              <Textarea
+                placeholder="Discovery call with Sarah Johnson from TechCorp Solutions to discuss corporate travel needs and potential partnership opportunities."
+                className="mt-1 min-h-[80px]"
+                defaultValue={`Discovery call with ${selectedLeadForAction?.contact} from ${selectedLeadForAction?.company} to discuss corporate travel needs and potential partnership opportunities.`}
+              />
+            </div>
+
+            <div>
+              <Label className="text-sm font-medium">Preparation Notes</Label>
+              <Textarea
+                placeholder="Any additional preparation notes or context..."
+                className="mt-1 min-h-[80px]"
+                defaultValue={`Company Profile: ${selectedLeadForAction?.industry} sector, ${selectedLeadForAction?.employees} employees
+Budget: ${selectedLeadForAction?.travelBudget}
+Current Status: ${selectedLeadForAction?.status}
+Key Topics: Travel volume, preferred airlines, booking preferences, cost optimization`}
+              />
             </div>
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowInitiateCallModal(false)}>
+          <DialogFooter className="flex gap-2">
+            <Button 
+              variant="outline" 
+              onClick={() => setShowInitiateCallModal(false)}
+              className="text-gray-600 border-gray-300"
+            >
               Cancel
             </Button>
             <Button 
               className="bg-blue-600 hover:bg-blue-700 text-white"
               onClick={() => {
-                toast.success(`Call initiated with ${selectedLeadForAction?.contact}`);
+                toast.success(`Call scheduled with ${selectedLeadForAction?.contact}`);
                 setShowInitiateCallModal(false);
                 setSelectedLeadForAction(null);
               }}
             >
               <PhoneCall className="h-4 w-4 mr-2" />
-              Start Call
+              Schedule Call
             </Button>
           </DialogFooter>
         </DialogContent>
