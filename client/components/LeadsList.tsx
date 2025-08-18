@@ -11,6 +11,7 @@ import { Textarea } from './ui/textarea';
 import { Alert, AlertDescription } from './ui/alert';
 import { Skeleton } from './ui/skeleton';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from './ui/collapsible';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from './ui/dropdown-menu';
 import { useLeadApi } from '../hooks/api/useLeadApi';
 import { 
   Users, 
@@ -551,6 +552,12 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
   const [expandedNotes, setExpandedNotes] = useState<{[key: number]: boolean}>({});
   const [showHistoryDialog, setShowHistoryDialog] = useState(false);
    const [showAddCompanyDialog, setShowAddCompanyDialog] = useState(false);
+  
+  // Actions dropdown states
+  const [showInitiateCallModal, setShowInitiateCallModal] = useState(false);
+  const [showScheduleMeetingModal, setShowScheduleMeetingModal] = useState(false);
+  const [showScheduleDemoModal, setShowScheduleDemoModal] = useState(false);
+  const [selectedLeadForAction, setSelectedLeadForAction] = useState<any>(null);
 
   const [selectedLeadForHistory, setSelectedLeadForHistory] = useState<any>(null);
   const [leadHistory, setLeadHistory] = useState<{ [key: number]: HistoryEntry[] }>({}); // Stores history entries fetched from API
@@ -1255,6 +1262,22 @@ SOAR-AI Team`,
     } finally {
       setIsSavingNote(false);
     }
+  };
+
+  // Handle action dropdown selections
+  const handleInitiateCall = (lead: any) => {
+    setSelectedLeadForAction(lead);
+    setShowInitiateCallModal(true);
+  };
+
+  const handleScheduleMeeting = (lead: any) => {
+    setSelectedLeadForAction(lead);
+    setShowScheduleMeetingModal(true);
+  };
+
+  const handleScheduleDemo = (lead: any) => {
+    setSelectedLeadForAction(lead);
+    setShowScheduleDemoModal(true);
   };
 
   // Function to move qualified lead to opportunities
@@ -2111,11 +2134,38 @@ SOAR-AI Team`,
                     <User className="h-4 w-4 mr-1" />
                     Reassign
                   </Button>
-                  <Button size="sm" variant="outline" className="text-blue-700 border-blue-200 bg-blue-50">
-                    <Activity className="h-4 w-4 mr-1" />
-                    Actions
-                    <ChevronDown className="h-4 w-4 ml-1" />
-                  </Button>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button size="sm" variant="outline" className="text-blue-700 border-blue-200 bg-blue-50">
+                        <Activity className="h-4 w-4 mr-1" />
+                        Actions
+                        <ChevronDown className="h-4 w-4 ml-1" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-56">
+                      <DropdownMenuItem 
+                        className="flex items-center gap-2 cursor-pointer"
+                        onClick={() => handleInitiateCall(lead)}
+                      >
+                        <PhoneCall className="h-4 w-4" />
+                        Initiate Call
+                      </DropdownMenuItem>
+                      <DropdownMenuItem 
+                        className="flex items-center gap-2 cursor-pointer"
+                        onClick={() => handleScheduleMeeting(lead)}
+                      >
+                        <CalendarDays className="h-4 w-4" />
+                        Schedule Meeting
+                      </DropdownMenuItem>
+                      <DropdownMenuItem 
+                        className="flex items-center gap-2 cursor-pointer"
+                        onClick={() => handleScheduleDemo(lead)}
+                      >
+                        <Presentation className="h-4 w-4" />
+                        Schedule Demo
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                   {lead.status === 'qualified' && (
                     <Button size="sm" variant="outline" className="text-orange-700 border-orange-200 bg-orange-50">
                       <Gift className="h-4 w-4 mr-1" />
@@ -3035,6 +3085,214 @@ SOAR-AI Team`,
                   Add Lead
                 </>
               )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Initiate Call Modal */}
+      <Dialog open={showInitiateCallModal} onOpenChange={setShowInitiateCallModal}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <PhoneCall className="h-5 w-5 text-blue-600" />
+              Initiate Call - {selectedLeadForAction?.company}
+            </DialogTitle>
+            <DialogDescription>
+              Prepare for your call with {selectedLeadForAction?.contact}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="bg-blue-50 p-4 rounded-lg">
+              <h4 className="font-medium text-blue-900 mb-2">Contact Information</h4>
+              <div className="space-y-1 text-sm text-blue-800">
+                <p><strong>Phone:</strong> {selectedLeadForAction?.phone}</p>
+                <p><strong>Email:</strong> {selectedLeadForAction?.email}</p>
+                <p><strong>Title:</strong> {selectedLeadForAction?.title}</p>
+              </div>
+            </div>
+            <div className="bg-gray-50 p-4 rounded-lg">
+              <h4 className="font-medium text-gray-900 mb-2">Call Preparation</h4>
+              <ul className="text-sm text-gray-700 space-y-1">
+                <li>• Review company profile and travel requirements</li>
+                <li>• Prepare value proposition for {selectedLeadForAction?.industry} sector</li>
+                <li>• Have pricing options ready for {selectedLeadForAction?.travelBudget} budget</li>
+                <li>• Schedule follow-up if needed</li>
+              </ul>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowInitiateCallModal(false)}>
+              Cancel
+            </Button>
+            <Button 
+              className="bg-blue-600 hover:bg-blue-700 text-white"
+              onClick={() => {
+                toast.success(`Call initiated with ${selectedLeadForAction?.contact}`);
+                setShowInitiateCallModal(false);
+                setSelectedLeadForAction(null);
+              }}
+            >
+              <PhoneCall className="h-4 w-4 mr-2" />
+              Start Call
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Schedule Meeting Modal */}
+      <Dialog open={showScheduleMeetingModal} onOpenChange={setShowScheduleMeetingModal}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <CalendarDays className="h-5 w-5 text-green-600" />
+              Schedule Meeting - {selectedLeadForAction?.company}
+            </DialogTitle>
+            <DialogDescription>
+              Schedule a meeting with {selectedLeadForAction?.contact}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label className="text-sm font-medium">Meeting Type</Label>
+                <Select defaultValue="discovery">
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="discovery">Discovery Call</SelectItem>
+                    <SelectItem value="presentation">Solution Presentation</SelectItem>
+                    <SelectItem value="negotiation">Contract Negotiation</SelectItem>
+                    <SelectItem value="follow-up">Follow-up Meeting</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label className="text-sm font-medium">Duration</Label>
+                <Select defaultValue="30">
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="15">15 minutes</SelectItem>
+                    <SelectItem value="30">30 minutes</SelectItem>
+                    <SelectItem value="60">1 hour</SelectItem>
+                    <SelectItem value="90">1.5 hours</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div>
+              <Label className="text-sm font-medium">Preferred Date</Label>
+              <Input type="date" className="mt-1" />
+            </div>
+            <div>
+              <Label className="text-sm font-medium">Meeting Topic</Label>
+              <Textarea
+                placeholder="Enter meeting agenda and key discussion points..."
+                className="mt-1 min-h-[80px]"
+                defaultValue={`Discussion of travel solutions for ${selectedLeadForAction?.company}. Review current requirements and present tailored offerings.`}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowScheduleMeetingModal(false)}>
+              Cancel
+            </Button>
+            <Button 
+              className="bg-green-600 hover:bg-green-700 text-white"
+              onClick={() => {
+                toast.success(`Meeting scheduled with ${selectedLeadForAction?.contact}`);
+                setShowScheduleMeetingModal(false);
+                setSelectedLeadForAction(null);
+              }}
+            >
+              <CalendarDays className="h-4 w-4 mr-2" />
+              Schedule Meeting
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Schedule Demo Modal */}
+      <Dialog open={showScheduleDemoModal} onOpenChange={setShowScheduleDemoModal}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Presentation className="h-5 w-5 text-purple-600" />
+              Schedule Demo - {selectedLeadForAction?.company}
+            </DialogTitle>
+            <DialogDescription>
+              Schedule a product demonstration for {selectedLeadForAction?.contact}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label className="text-sm font-medium">Demo Type</Label>
+                <Select defaultValue="platform">
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="platform">Platform Overview</SelectItem>
+                    <SelectItem value="custom">Custom Solution Demo</SelectItem>
+                    <SelectItem value="integration">Integration Demo</SelectItem>
+                    <SelectItem value="mobile">Mobile App Demo</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label className="text-sm font-medium">Duration</Label>
+                <Select defaultValue="45">
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="30">30 minutes</SelectItem>
+                    <SelectItem value="45">45 minutes</SelectItem>
+                    <SelectItem value="60">1 hour</SelectItem>
+                    <SelectItem value="90">1.5 hours</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div>
+              <Label className="text-sm font-medium">Preferred Date</Label>
+              <Input type="date" className="mt-1" />
+            </div>
+            <div>
+              <Label className="text-sm font-medium">Attendees</Label>
+              <Input 
+                placeholder="Enter email addresses separated by commas"
+                defaultValue={selectedLeadForAction?.email}
+                className="mt-1"
+              />
+            </div>
+            <div>
+              <Label className="text-sm font-medium">Demo Focus Areas</Label>
+              <Textarea
+                placeholder="Specific features or use cases to highlight during the demo..."
+                className="mt-1 min-h-[80px]"
+                defaultValue={`Travel booking platform, expense management, reporting dashboard, mobile app features relevant to ${selectedLeadForAction?.industry} industry.`}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowScheduleDemoModal(false)}>
+              Cancel
+            </Button>
+            <Button 
+              className="bg-purple-600 hover:bg-purple-700 text-white"
+              onClick={() => {
+                toast.success(`Demo scheduled with ${selectedLeadForAction?.contact}`);
+                setShowScheduleDemoModal(false);
+                setSelectedLeadForAction(null);
+              }}
+            >
+              <Presentation className="h-4 w-4 mr-2" />
+              Schedule Demo
             </Button>
           </DialogFooter>
         </DialogContent>
