@@ -3336,25 +3336,26 @@ Key Topics: Travel volume, preferred airlines, booking preferences, cost optimiz
 
       {/* Schedule Demo Modal */}
       <Dialog open={showScheduleDemoModal} onOpenChange={setShowScheduleDemoModal}>
-        <DialogContent className="max-w-lg">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
+            <DialogTitle className="flex items-center gap-2 text-lg">
               <Presentation className="h-5 w-5 text-purple-600" />
-              Schedule Demo - {selectedLeadForAction?.company}
+              Schedule Demo - TechCorp Solutions
             </DialogTitle>
-            <DialogDescription>
-              Schedule a product demonstration for {selectedLeadForAction?.contact}
+            <DialogDescription className="text-sm text-gray-600">
+              Schedule a product demonstration for Sarah Johnson and team
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4">
+          <div className="space-y-4 py-4">
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label className="text-sm font-medium">Demo Type</Label>
-                <Select defaultValue="platform">
-                  <SelectTrigger>
+                <Label className="text-sm font-medium text-gray-700">Demo Type</Label>
+                <Select defaultValue="product">
+                  <SelectTrigger className="mt-1">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
+                    <SelectItem value="product">Product Demo</SelectItem>
                     <SelectItem value="platform">Platform Overview</SelectItem>
                     <SelectItem value="custom">Custom Solution Demo</SelectItem>
                     <SelectItem value="integration">Integration Demo</SelectItem>
@@ -3363,43 +3364,97 @@ Key Topics: Travel volume, preferred airlines, booking preferences, cost optimiz
                 </Select>
               </div>
               <div>
-                <Label className="text-sm font-medium">Duration</Label>
+                <Label className="text-sm font-medium text-gray-700">Duration (minutes)</Label>
                 <Select defaultValue="45">
-                  <SelectTrigger>
+                  <SelectTrigger className="mt-1">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="30">30 minutes</SelectItem>
                     <SelectItem value="45">45 minutes</SelectItem>
-                    <SelectItem value="60">1 hour</SelectItem>
-                    <SelectItem value="90">1.5 hours</SelectItem>
+                    <SelectItem value="60">60 minutes</SelectItem>
+                    <SelectItem value="90">90 minutes</SelectItem>
+                    <SelectItem value="120">120 minutes</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
             </div>
+
             <div>
-              <Label className="text-sm font-medium">Preferred Date</Label>
-              <Input type="date" className="mt-1" />
-            </div>
-            <div>
-              <Label className="text-sm font-medium">Attendees</Label>
-              <Input 
-                placeholder="Enter email addresses separated by commas"
-                defaultValue={selectedLeadForAction?.email}
+              <Label className="text-sm font-medium text-gray-700">Demo Title</Label>
+              <Input
                 className="mt-1"
+                defaultValue={`SOAR-AI Product Demo - ${selectedLeadForAction?.company}`}
+                placeholder="Enter demo title"
               />
             </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label className="text-sm font-medium text-gray-700">Scheduled Date & Time</Label>
+                <div className="flex gap-2 mt-1">
+                  <Input 
+                    type="date" 
+                    placeholder="dd-mm-yyyy"
+                    min={new Date().toISOString().split('T')[0]}
+                    className="flex-1"
+                  />
+                  <Input 
+                    type="time" 
+                    placeholder="--:--"
+                    className="flex-1"
+                  />
+                </div>
+              </div>
+              <div>
+                <Label className="text-sm font-medium text-gray-700">Demo Format</Label>
+                <Select defaultValue="virtual">
+                  <SelectTrigger className="mt-1">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="virtual">Virtual Demo</SelectItem>
+                    <SelectItem value="onsite">On-site Demo</SelectItem>
+                    <SelectItem value="hybrid">Hybrid Demo</SelectItem>
+                    <SelectItem value="recorded">Recorded Demo</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
             <div>
-              <Label className="text-sm font-medium">Demo Focus Areas</Label>
+              <Label className="text-sm font-medium text-gray-700">Expected Attendees</Label>
+              <Input
+                className="mt-1"
+                defaultValue={`${selectedLeadForAction?.contact} (Procurement Director)`}
+                placeholder="Enter attendee names and roles"
+              />
+            </div>
+
+            <div>
+              <Label className="text-sm font-medium text-gray-700">Focus Areas</Label>
               <Textarea
-                placeholder="Specific features or use cases to highlight during the demo..."
                 className="mt-1 min-h-[80px]"
-                defaultValue={`Travel booking platform, expense management, reporting dashboard, mobile app features relevant to ${selectedLeadForAction?.industry} industry.`}
+                defaultValue="Corporate travel booking platform, expense management, travel analytics, policy compliance"
+                placeholder="Enter specific features or use cases to highlight during the demo"
+              />
+            </div>
+
+            <div>
+              <Label className="text-sm font-medium text-gray-700">Preparation Notes</Label>
+              <Textarea
+                className="mt-1 min-h-[80px]"
+                defaultValue={`Prepare demo tailored for ${selectedLeadForAction?.industry} industry. Highlight cost savings and efficiency improvements.`}
+                placeholder="Enter any preparation notes or context for the demo"
               />
             </div>
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowScheduleDemoModal(false)}>
+          <DialogFooter className="flex gap-2 pt-4 border-t">
+            <Button 
+              variant="outline" 
+              onClick={() => setShowScheduleDemoModal(false)}
+              className="text-gray-600 border-gray-300"
+            >
               Cancel
             </Button>
             <Button 
