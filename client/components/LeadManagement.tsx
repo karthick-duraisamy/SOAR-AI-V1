@@ -531,7 +531,13 @@ export function LeadManagement({ onNavigate }: LeadManagementProps) {
 
           {/* Quick Actions Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <Card className="cursor-pointer hover:shadow-lg transition-all duration-300 bg-green-50 border-green-200" onClick={() => onNavigate('qualified-leads')}>
+            <Card className="cursor-pointer hover:shadow-lg transition-all duration-300 bg-green-50 border-green-200" onClick={() => onNavigate('leads-list',{
+                search: "",
+                status: "qualified",
+                industry: "",
+                score: "",
+                engagement: ""
+              })}>
               <CardContent className="p-6 text-center">
                 <UserCheck className="h-8 w-8 mx-auto mb-3 text-green-600" />
                 <h3 className="font-semibold text-gray-900">Qualified Leads</h3>
@@ -539,7 +545,13 @@ export function LeadManagement({ onNavigate }: LeadManagementProps) {
               </CardContent>
             </Card>
 
-            <Card className="cursor-pointer hover:shadow-lg transition-all duration-300 bg-red-50 border-red-200" onClick={() => onNavigate('unqualified-leads')}>
+            <Card className="cursor-pointer hover:shadow-lg transition-all duration-300 bg-red-50 border-red-200" onClick={() => onNavigate('leads-list',{
+                search: "",
+                status: "unqualified",
+                industry: "",
+                score: "",
+                engagement: ""
+              })}>
               <CardContent className="p-6 text-center">
                 <UserX className="h-8 w-8 mx-auto mb-3 text-red-600" />
                 <h3 className="font-semibold text-gray-900">Unqualified Leads</h3>
@@ -570,7 +582,13 @@ export function LeadManagement({ onNavigate }: LeadManagementProps) {
             <CheckCircle className="h-4 w-4 text-green-600" />
             <AlertDescription className="text-green-800">
               You have {leadStats?.qualifiedLeads || 0} qualified leads. 
-              <Button variant="link" className="p-0 ml-1 text-green-700 hover:text-green-800" onClick={() => onNavigate('qualified-leads')}>
+              <Button variant="link" className="p-0 ml-1 text-green-700 hover:text-green-800" onClick={() => onNavigate('leads-list',{
+                search: "",
+                status: "qualified",
+                industry: "",
+                score: "",
+                engagement: ""
+              })}>
                 View detailed qualified leads &rarr;
               </Button>
             </AlertDescription>
@@ -582,7 +600,13 @@ export function LeadManagement({ onNavigate }: LeadManagementProps) {
             <UserX className="h-4 w-4 text-red-600" />
             <AlertDescription className="text-red-800">
               You have {leadStats?.unqualified || 0} unqualified leads that may need attention.
-              <Button variant="link" className="p-0 ml-1 text-red-700 hover:text-red-800" onClick={() => onNavigate('unqualified-leads')}>
+              <Button variant="link" className="p-0 ml-1 text-red-700 hover:text-red-800" onClick={() => onNavigate('leads-list',{
+                search: "",
+                status: "unqualified",
+                industry: "",
+                score: "",
+                engagement: ""
+              })}>
                 Review unqualified leads &rarr;
               </Button>
             </AlertDescription>

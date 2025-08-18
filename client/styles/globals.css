@@ -1117,6 +1117,7 @@ html {
 .cls-addcomapany {
   color: #133769 !important;
   background-color: #eceef2 !important;
+  border: unset;
 }
 
 .cls-slider-range {

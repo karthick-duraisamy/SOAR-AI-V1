@@ -441,8 +441,7 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
     try {
       setLoading(true);
       setCurrentPage(1); // Reset to first page on new fetch
-
-      // Apply current filters when fetching
+      // Apply current filtrs when fetching
       const filterParams = {
         search: filters.search || '',
         status: filters.status !== 'all' ? filters.status : '',
@@ -1186,22 +1185,22 @@ SOAR-AI Team`,
            filters.status === 'unqualified' ? 'Unqualified Leads' : 
            'All Leads'}
         </h1>
-        <p className="text-gray-600 text-sm">
+        <p className="text-gray-600">
           {filters.status === 'qualified' ? 'High-potential leads ready for offer creation and contract initiation' :
            filters.status === 'unqualified' ? 'Leads requiring nurturing, re-engagement, or future follow-up' :
            'Comprehensive lead management with status tracking and AI suggestions'}
         </p>
         </div>
         <div className="flex items-center gap-3">
-          <Button variant="outline" className="text-gray-700 border-gray-300 hover:bg-gray-50">
+          <Button variant="outline" className="text-gray-700  hover:bg-gray-50 cls-addcomapany">
             <Download className="h-4 w-4 mr-2" />
             Export
           </Button>
-          <Button variant="outline" className="text-gray-700 border-gray-300 hover:bg-gray-50" onClick={fetchLeads}>
+          <Button variant="outline" className="text-gray-700 hover:bg-gray-50 cls-addcomapany" onClick={fetchLeads}>
             <RefreshCw className="h-4 w-4 mr-2" />
             Refresh
           </Button>
-          <Button variant="outline" className="text-gray-700 border-gray-300 hover:bg-gray-50" onClick={() => onNavigate('email-campaigns')}>
+          <Button variant="outline" className="text-gray-700 hover:bg-gray-50 cls-addcomapany" onClick={() => onNavigate('email-campaigns')}>
             <Mail className="h-4 w-4 mr-2" />
             Email Campaign
           </Button>
@@ -1904,7 +1903,7 @@ SOAR-AI Team`,
                   )}
                 </div>
                 <div className="flex gap-2">
-                  {lead.status !== 'qualified' && (
+                  {lead.status !== 'qualified' && lead.status !== 'Inprogress' && lead.status !== 'new' && (
                     <Button 
                       size="sm" 
                       variant="outline" 
@@ -1915,7 +1914,7 @@ SOAR-AI Team`,
                       Qualify
                     </Button>
                   )}
-                  {lead.status !== 'unqualified' && (
+                  {lead.status !== 'unqualified' && lead.status !== 'Inprogress' && lead.status !== 'new' && (
                     <Button 
                       size="sm" 
                       variant="outline" 
