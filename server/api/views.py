@@ -805,6 +805,73 @@ class LeadViewSet(viewsets.ModelViewSet):
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
+    @action(detail=True, methods=['post'])
+    def assign_agent(self, request, pk=None):
+        """Assign or reassign an agent to a lead"""
+        try:
+            lead = self.get_object()
+            agent_name = request.data.get('agent', '')
+            priority = request.data.get('priority', 'Medium Priority')
+            notes = request.data.get('notes', '')
+
+            if not agent_name:
+                return Response(
+                    {'error': 'Agent name is required'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            # Store previous agent for history
+            previous_agent = getattr(lead, 'assigned_agent', None)
+
+            # Update lead with assignment info
+            # Note: Since there's no assigned_agent field in the Lead model,
+            # we'll store this information in the notes for now
+            assignment_note = f"\n\n[Agent Assignment - {timezone.now().strftime('%Y-%m-%d %H:%M')}]\n"
+            assignment_note += f"Assigned to: {agent_name}\n"
+            assignment_note += f"Priority: {priority}\n"
+            if notes:
+                assignment_note += f"Assignment Notes: {notes}"
+
+            lead.notes = (lead.notes or '') + assignment_note
+
+            # Update priority based on assignment priority
+            priority_mapping = {
+                'Low Priority': 'low',
+                'Medium Priority': 'medium', 
+                'High Priority': 'high',
+                'Urgent': 'urgent'
+            }
+            lead.priority = priority_mapping.get(priority, 'medium')
+            lead.save()
+
+            # Create history entry for agent assignment
+            action_text = f'Agent assigned: {agent_name}' if not previous_agent else f'Agent reassigned: {agent_name}'
+            details = f'Lead assigned to {agent_name} with {priority.lower()} priority.'
+            if notes:
+                details += f' Assignment notes: {notes}'
+
+            create_lead_history(
+                lead=lead,
+                history_type='agent_assignment',
+                action=action_text,
+                details=details,
+                icon='user',
+                user=request.user if request.user.is_authenticated else None
+            )
+
+            # Return updated lead
+            serializer = LeadSerializer(lead)
+            return Response({
+                'message': f'Lead successfully assigned to {agent_name}',
+                'lead': serializer.data
+            }, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            return Response(
+                {'error': f'Failed to assign agent: {str(e)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
 class OpportunityViewSet(viewsets.ModelViewSet):
     queryset = Opportunity.objects.all()
     serializer_class = OpportunitySerializer
