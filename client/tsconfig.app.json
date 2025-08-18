@@ -22,11 +22,12 @@
     }
   },
   "include": [
-    "src",
-    "components",
-    "hooks",
-    "styles",
+    "src/**/*",
+    "components/**/*",
+    "hooks/**/*",
+    "styles/**/*",
+    "types/**/*",
     "App.tsx",
-    "vite-env.d.ts"
+    "src/vite-env.d.ts"
   ]
 }
