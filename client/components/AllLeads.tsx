@@ -31,7 +31,11 @@ import {
   Target,
   Eye,
   MoreVertical,
-  ExternalLink
+  ExternalLink,
+  ChevronDown,
+  PhoneCall,
+  Video,
+  CalendarDays
 } from 'lucide-react';
 import { toast } from "sonner";
 import {
@@ -44,6 +48,13 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "./ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "./ui/dropdown-menu";
 import { useLeadApi } from '../hooks/api/useLeadApi';
 
 
@@ -836,10 +847,38 @@ export function AllLeads({ onNavigate }: AllLeadsProps) {
                     <User className="h-4 w-4 mr-1" />
                     Reassign
                   </Button>
-                  <Button size="sm" variant="outline" className="text-blue-700 border-blue-300 bg-blue-50">
-                    <CheckCircle2 className="h-4 w-4 mr-1" />
-                    Actions
-                  </Button>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button size="sm" variant="outline" className="text-blue-700 border-blue-300 bg-blue-50">
+                        <CheckCircle2 className="h-4 w-4 mr-1" />
+                        Actions
+                        <ChevronDown className="h-3 w-3 ml-1" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-48">
+                      <DropdownMenuItem className="flex items-center gap-2 text-red-600 hover:text-red-700 hover:bg-red-50">
+                        <AlertTriangle className="h-4 w-4" />
+                        Disqualify
+                      </DropdownMenuItem>
+                      <DropdownMenuItem className="flex items-center gap-2 text-gray-700 hover:text-gray-900 hover:bg-gray-50">
+                        <Eye className="h-4 w-4" />
+                        Details
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem className="flex items-center gap-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50">
+                        <PhoneCall className="h-4 w-4" />
+                        Initiate Call
+                      </DropdownMenuItem>
+                      <DropdownMenuItem className="flex items-center gap-2 text-green-600 hover:text-green-700 hover:bg-green-50">
+                        <CalendarDays className="h-4 w-4" />
+                        Schedule Meeting
+                      </DropdownMenuItem>
+                      <DropdownMenuItem className="flex items-center gap-2 text-purple-600 hover:text-purple-700 hover:bg-purple-50">
+                        <Video className="h-4 w-4" />
+                        Schedule Demo
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                   <Button size="sm" variant="outline" className="text-orange-700 border-orange-300 bg-orange-50">
                     <Target className="h-4 w-4 mr-1" />
                     Create Offer
