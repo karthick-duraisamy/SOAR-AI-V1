@@ -191,6 +191,7 @@ class Lead(models.Model):
     estimated_value = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
     notes = models.TextField(blank=True)
     assigned_to = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    assigned_agent = models.CharField(max_length=255, blank=True, null=True)
     next_action = models.CharField(max_length=255, blank=True)
     next_action_date = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)

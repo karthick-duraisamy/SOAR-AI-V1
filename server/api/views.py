@@ -821,11 +821,12 @@ class LeadViewSet(viewsets.ModelViewSet):
                 )
 
             # Store previous agent for history
-            previous_agent = getattr(lead, 'assigned_agent', None)
+            previous_agent = lead.assigned_agent
 
             # Update lead with assignment info
-            # Note: Since there's no assigned_agent field in the Lead model,
-            # we'll store this information in the notes for now
+            lead.assigned_agent = agent_name
+            
+            # Also add to notes for audit trail
             assignment_note = f"\n\n[Agent Assignment - {timezone.now().strftime('%Y-%m-%d %H:%M')}]\n"
             assignment_note += f"Assigned to: {agent_name}\n"
             assignment_note += f"Priority: {priority}\n"

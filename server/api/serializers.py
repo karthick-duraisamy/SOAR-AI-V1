@@ -90,6 +90,7 @@ class LeadSerializer(serializers.ModelSerializer):
     company = CompanySerializer(read_only=True)
     contact = ContactSerializer(read_only=True)
     assigned_to = serializers.StringRelatedField(read_only=True)
+    assigned_agent = serializers.CharField(read_only=True)
     lead_notes = LeadNoteSerializer(many=True, read_only=True)
     history_entries = serializers.SerializerMethodField()
 
