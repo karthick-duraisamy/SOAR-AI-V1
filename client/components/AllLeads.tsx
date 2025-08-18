@@ -850,31 +850,31 @@ export function AllLeads({ onNavigate }: AllLeadsProps) {
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button size="sm" variant="outline" className="text-blue-700 border-blue-300 bg-blue-50">
-                        <CheckCircle2 className="h-4 w-4 mr-1" />
+                        <Target className="h-4 w-4 mr-1" />
                         Actions
                         <ChevronDown className="h-3 w-3 ml-1" />
                       </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-56">
-                      <DropdownMenuItem className="flex items-center gap-2 text-red-600 hover:text-red-700 hover:bg-red-50">
-                        <AlertTriangle className="h-4 w-4" />
+                    <DropdownMenuContent align="end" className="w-56 bg-white shadow-lg border border-gray-200 rounded-lg p-1">
+                      <DropdownMenuItem className="flex items-center gap-3 px-3 py-2 text-gray-700 hover:bg-gray-50 rounded cursor-pointer">
+                        <AlertTriangle className="h-4 w-4 text-red-500" />
                         Disqualify
                       </DropdownMenuItem>
-                      <DropdownMenuItem className="flex items-center gap-2 text-gray-700 hover:text-gray-900 hover:bg-gray-50">
-                        <Eye className="h-4 w-4" />
+                      <DropdownMenuItem className="flex items-center gap-3 px-3 py-2 text-gray-700 hover:bg-gray-50 rounded cursor-pointer">
+                        <Eye className="h-4 w-4 text-gray-500" />
                         Details
                       </DropdownMenuItem>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem className="flex items-center gap-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50">
-                        <PhoneCall className="h-4 w-4" />
+                      <DropdownMenuSeparator className="my-1 border-gray-200" />
+                      <DropdownMenuItem className="flex items-center gap-3 px-3 py-2 text-gray-700 hover:bg-gray-50 rounded cursor-pointer">
+                        <PhoneCall className="h-4 w-4 text-blue-500" />
                         Initiate Call
                       </DropdownMenuItem>
-                      <DropdownMenuItem className="flex items-center gap-2 text-green-600 hover:text-green-700 hover:bg-green-50">
-                        <CalendarDays className="h-4 w-4" />
+                      <DropdownMenuItem className="flex items-center gap-3 px-3 py-2 text-gray-700 hover:bg-gray-50 rounded cursor-pointer">
+                        <CalendarDays className="h-4 w-4 text-green-500" />
                         Schedule Meeting
                       </DropdownMenuItem>
-                      <DropdownMenuItem className="flex items-center gap-2 text-purple-600 hover:text-purple-700 hover:bg-purple-50">
-                        <Video className="h-4 w-4" />
+                      <DropdownMenuItem className="flex items-center gap-3 px-3 py-2 text-gray-700 hover:bg-gray-50 rounded cursor-pointer">
+                        <Video className="h-4 w-4 text-purple-500" />
                         Schedule Demo
                       </DropdownMenuItem>
                     </DropdownMenuContent>
