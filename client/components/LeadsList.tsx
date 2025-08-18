@@ -3197,25 +3197,26 @@ Key Topics: Travel volume, preferred airlines, booking preferences, cost optimiz
 
       {/* Schedule Meeting Modal */}
       <Dialog open={showScheduleMeetingModal} onOpenChange={setShowScheduleMeetingModal}>
-        <DialogContent className="max-w-lg">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <CalendarDays className="h-5 w-5 text-green-600" />
+            <DialogTitle className="flex items-center gap-2 text-lg">
+              <CalendarDays className="h-5 w-5 text-blue-600" />
               Schedule Meeting - {selectedLeadForAction?.company}
             </DialogTitle>
-            <DialogDescription>
-              Schedule a meeting with {selectedLeadForAction?.contact}
+            <DialogDescription className="text-sm text-gray-600">
+              Schedule a business meeting with {selectedLeadForAction?.contact} and team
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4">
+          <div className="space-y-4 py-4">
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label className="text-sm font-medium">Meeting Type</Label>
-                <Select defaultValue="discovery">
-                  <SelectTrigger>
+                <Label className="text-sm font-medium text-gray-700">Meeting Type</Label>
+                <Select defaultValue="business">
+                  <SelectTrigger className="mt-1">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
+                    <SelectItem value="business">Business Meeting</SelectItem>
                     <SelectItem value="discovery">Discovery Call</SelectItem>
                     <SelectItem value="presentation">Solution Presentation</SelectItem>
                     <SelectItem value="negotiation">Contract Negotiation</SelectItem>
@@ -3224,39 +3225,102 @@ Key Topics: Travel volume, preferred airlines, booking preferences, cost optimiz
                 </Select>
               </div>
               <div>
-                <Label className="text-sm font-medium">Duration</Label>
-                <Select defaultValue="30">
-                  <SelectTrigger>
+                <Label className="text-sm font-medium text-gray-700">Duration (minutes)</Label>
+                <Select defaultValue="60">
+                  <SelectTrigger className="mt-1">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="15">15 minutes</SelectItem>
                     <SelectItem value="30">30 minutes</SelectItem>
-                    <SelectItem value="60">1 hour</SelectItem>
-                    <SelectItem value="90">1.5 hours</SelectItem>
+                    <SelectItem value="45">45 minutes</SelectItem>
+                    <SelectItem value="60">60 minutes</SelectItem>
+                    <SelectItem value="90">90 minutes</SelectItem>
+                    <SelectItem value="120">120 minutes</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
             </div>
+
             <div>
-              <Label className="text-sm font-medium">Preferred Date</Label>
-              <Input type="date" className="mt-1" />
+              <Label className="text-sm font-medium text-gray-700">Meeting Title</Label>
+              <Input
+                className="mt-1"
+                defaultValue={`Business Meeting - ${selectedLeadForAction?.company}`}
+                placeholder="Enter meeting title"
+              />
             </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label className="text-sm font-medium text-gray-700">Scheduled Date & Time</Label>
+                <div className="flex gap-2 mt-1">
+                  <Input 
+                    type="date" 
+                    placeholder="dd-mm-yyyy"
+                    min={new Date().toISOString().split('T')[0]}
+                    className="flex-1"
+                  />
+                  <Input 
+                    type="time" 
+                    placeholder="--:--"
+                    className="flex-1"
+                  />
+                </div>
+              </div>
+              <div>
+                <Label className="text-sm font-medium text-gray-700">Location/Format</Label>
+                <Select defaultValue="virtual">
+                  <SelectTrigger className="mt-1">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="virtual">Virtual Meeting</SelectItem>
+                    <SelectItem value="office">Office Meeting</SelectItem>
+                    <SelectItem value="client-site">Client Site</SelectItem>
+                    <SelectItem value="conference-room">Conference Room</SelectItem>
+                    <SelectItem value="phone">Phone Call</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
             <div>
-              <Label className="text-sm font-medium">Meeting Topic</Label>
+              <Label className="text-sm font-medium text-gray-700">Expected Attendees</Label>
+              <Input
+                className="mt-1"
+                defaultValue={`${selectedLeadForAction?.contact} (Procurement Director)`}
+                placeholder="Enter attendee names and roles"
+              />
+            </div>
+
+            <div>
+              <Label className="text-sm font-medium text-gray-700">Meeting Agenda</Label>
               <Textarea
-                placeholder="Enter meeting agenda and key discussion points..."
                 className="mt-1 min-h-[80px]"
-                defaultValue={`Discussion of travel solutions for ${selectedLeadForAction?.company}. Review current requirements and present tailored offerings.`}
+                defaultValue="Travel program requirements, solution presentation, pricing discussion, next steps"
+                placeholder="Enter meeting agenda items"
+              />
+            </div>
+
+            <div>
+              <Label className="text-sm font-medium text-gray-700">Meeting Objectives</Label>
+              <Textarea
+                className="mt-1 min-h-[80px]"
+                defaultValue="Understand travel needs, present SOAR-AI solutions, identify decision makers, establish timeline"
+                placeholder="Enter meeting objectives and expected outcomes"
               />
             </div>
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowScheduleMeetingModal(false)}>
+          <DialogFooter className="flex gap-2 pt-4 border-t">
+            <Button 
+              variant="outline" 
+              onClick={() => setShowScheduleMeetingModal(false)}
+              className="text-gray-600 border-gray-300"
+            >
               Cancel
             </Button>
             <Button 
-              className="bg-green-600 hover:bg-green-700 text-white"
+              className="bg-blue-600 hover:bg-blue-700 text-white"
               onClick={() => {
                 toast.success(`Meeting scheduled with ${selectedLeadForAction?.contact}`);
                 setShowScheduleMeetingModal(false);
