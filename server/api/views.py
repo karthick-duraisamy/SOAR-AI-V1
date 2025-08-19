@@ -952,13 +952,14 @@ class LeadViewSet(viewsets.ModelViewSet):
         """Assign or reassign an agent to a lead"""
         try:
             lead = self.get_object()
-            agent_name = request.data.get('agent_name')
+            # Handle both 'agent_name' and 'agent' field names for compatibility
+            agent_name = request.data.get('agent_name') or request.data.get('agent')
             priority = request.data.get('priority', 'Medium Priority')
             assignment_notes = request.data.get('notes', '')
 
             if not agent_name:
                 return Response(
-                    {'error': 'Agent name is required'},
+                    {'error': 'Agent name is required (use agent_name or agent field)'},
                     status=status.HTTP_400_BAD_REQUEST
                 )
 
@@ -980,13 +981,13 @@ class LeadViewSet(viewsets.ModelViewSet):
 
             # Create history entry for agent assignment
             if previous_agent and previous_agent != agent_name:
-                action_text = f'Agent reassigned from {previous_agent} to {agent_name}'
-                details = f'Lead reassigned from {previous_agent} to {agent_name} with {priority.lower()} priority.'
                 history_type = 'agent_reassignment'
+                action_text = f'Agent reassigned from {previous_agent} to {agent_name}'
+                details = f'Lead reassigned from {previous_agent} to {agent_name} with {priority.lower()}.'
             else:
-                action_type = 'agent_assignment'
-                action = f'Agent assigned: {agent_name}'
-                details = f'Lead assigned to {agent_name} with {priority.lower()} priority.'
+                history_type = 'agent_assignment'
+                action_text = f'Agent assigned: {agent_name}'
+                details = f'Lead assigned to {agent_name} with {priority.lower()}.'
 
             if assignment_notes:
                 details += f' Assignment notes: {assignment_notes}'
