@@ -19,7 +19,7 @@ import {
   CheckCircle,
   AlertCircle
 } from 'lucide-react';
-import soarLogo from './public/SOAR Logo.svg';
+// Remove this import as we'll use the public URL directly
 
 interface LoginProps {
   onLogin: (user: any) => void;
@@ -127,7 +127,7 @@ export function Login({ onLogin }: LoginProps) {
         <div className="text-center mb-8">
           <div className="flex justify-center mb-4">
             <div className="w-16 h-16 bg-gradient-to-r from-[#133769] to-[#2F66C0] rounded-2xl flex items-center justify-center shadow-lg">
-              <Bot className="h-8 w-8 text-white" />
+              <img src="/SOAR Logo.svg" alt="SOAR Logo" className="h-8 w-8" />
             </div>
           </div>
           <h1 className="text-3xl font-bold bg-gradient-to-r from-[#133769] to-[#2F66C0] bg-clip-text text-transparent">
