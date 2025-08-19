@@ -923,7 +923,7 @@ class LeadViewSet(viewsets.ModelViewSet):
             lead = self.get_object()
             agent_name = request.data.get('agent', '')
             priority = request.data.get('priority', 'Medium Priority')
-            notes = request.data.get('notes', '')
+            assignment_notes = request.data.get('notes', '')
 
             if not agent_name:
                 return Response(
@@ -936,15 +936,6 @@ class LeadViewSet(viewsets.ModelViewSet):
 
             # Update lead with assignment info
             lead.assigned_agent = agent_name
-            
-            # Also add to notes for audit trail
-            assignment_note = f"\n\n[Agent Assignment - {timezone.now().strftime('%Y-%m-%d %H:%M')}]\n"
-            assignment_note += f"Assigned to: {agent_name}\n"
-            assignment_note += f"Priority: {priority}\n"
-            if notes:
-                assignment_note += f"Assignment Notes: {notes}"
-
-            lead.notes = (lead.notes or '') + assignment_note
 
             # Update priority based on assignment priority
             priority_mapping = {
@@ -957,14 +948,21 @@ class LeadViewSet(viewsets.ModelViewSet):
             lead.save()
 
             # Create history entry for agent assignment
-            action_text = f'Agent assigned: {agent_name}' if not previous_agent else f'Agent reassigned: {agent_name}'
-            details = f'Lead assigned to {agent_name} with {priority.lower()} priority.'
-            if notes:
-                details += f' Assignment notes: {notes}'
+            if previous_agent and previous_agent != agent_name:
+                action_text = f'Agent reassigned from {previous_agent} to {agent_name}'
+                details = f'Lead reassigned from {previous_agent} to {agent_name} with {priority.lower()} priority.'
+                history_type = 'agent_reassignment'
+            else:
+                action_text = f'Agent assigned: {agent_name}'
+                details = f'Lead assigned to {agent_name} with {priority.lower()} priority.'
+                history_type = 'agent_assignment'
+            
+            if assignment_notes:
+                details += f' Assignment notes: {assignment_notes}'
 
             create_lead_history(
                 lead=lead,
-                history_type='agent_assignment',
+                history_type=history_type,
                 action=action_text,
                 details=details,
                 icon='user',

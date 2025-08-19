@@ -461,6 +461,8 @@ class LeadHistory(models.Model):
         ('status_change', 'Status Changed'),
         ('note_added', 'Note Added'),
         ('score_update', 'Score Updated'),
+        ('agent_assignment', 'Agent Assigned'),
+        ('agent_reassignment', 'Agent Reassigned'),
         ('assignment', 'Lead Assigned'),
         ('contact_made', 'Contact Made'),
         ('email_sent', 'Email Sent'),

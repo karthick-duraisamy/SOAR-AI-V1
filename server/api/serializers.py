@@ -78,6 +78,7 @@ class LeadHistorySerializer(serializers.ModelSerializer):
     user_name = serializers.SerializerMethodField()
     user_role = serializers.SerializerMethodField()
     formatted_timestamp = serializers.SerializerMethodField()
+    assigned_agent = serializers.SerializerMethodField()
 
     class Meta:
         model = LeadHistory
@@ -104,6 +105,20 @@ class LeadHistorySerializer(serializers.ModelSerializer):
             # Format as "7/8/2024 at 9:15:00 AM"
             return obj.timestamp.strftime('%m/%d/%Y at %I:%M:%S %p')
         return ""
+    
+    def get_assigned_agent(self, obj):
+        """Extract assigned agent name from history type and details"""
+        if obj.history_type in ['agent_assignment', 'agent_reassignment']:
+            # Extract agent name from the action text
+            if 'assigned to' in obj.action.lower():
+                parts = obj.action.split(' to ')
+                if len(parts) > 1:
+                    return parts[1]
+            elif 'assigned:' in obj.action.lower():
+                parts = obj.action.split(': ')
+                if len(parts) > 1:
+                    return parts[1]
+        return obj.lead.assigned_agent if obj.lead else None
 
 class LeadSerializer(serializers.ModelSerializer):
     company = CompanySerializer(read_only=True)

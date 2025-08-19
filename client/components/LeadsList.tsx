@@ -86,6 +86,13 @@ interface HistoryEntry {
   description: string;
   timestamp: string;
   author: { username: string }; // Assuming author structure from API
+  history_type?: string; // Added for new history types
+  action?: string;
+  user_name?: string;
+  user_role?: string;
+  metadata?: any;
+  formatted_timestamp?: string;
+  assigned_agent?: string; // Added for agent assignment history
 }
 
 // Interface for Lead (simplified for context)
@@ -1201,7 +1208,8 @@ SOAR-AI Team`,
         details: item.details,
         icon: item.icon || 'plus', // Use icon from API, or 'plus' as default
         metadata: item.metadata, // Pass metadata directly
-        formatted_timestamp: item.formatted_timestamp // Use formatted timestamp if available from API
+        formatted_timestamp: item.formatted_timestamp, // Use formatted timestamp if available from API
+        assigned_agent: item.assigned_agent, // Include assigned_agent if available
       }));
 
       setLeadHistory(prev => ({
@@ -2546,16 +2554,16 @@ SOAR-AI Team`,
       <Dialog open={showHistoryDialog} onOpenChange={setShowHistoryDialog}>
         <DialogContent className="max-w-3xl max-h-[80vh] overflow-hidden">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <History className="h-5 w-5 text-orange-600" />
+            <DialogTitle className="flex items-center gap-2 text-lg font-semibold">
+              <History className="h-5 w-5 text-blue-600" />
               Lead History - {selectedLeadForHistory?.company}
             </DialogTitle>
-            <DialogDescription>
+            <DialogDescription className="text-sm text-gray-600">
               Complete activity history for {selectedLeadForHistory?.contact} at {selectedLeadForHistory?.company}
             </DialogDescription>
           </DialogHeader>
 
-          <div className="py-4 max-h-[65vh] overflow-y-auto">
+          <div className="overflow-y-auto max-h-[60vh] pr-2">
             {isLoadingHistory ? (
               <div className="flex items-center justify-center py-12">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600 mr-3"></div>
@@ -2564,147 +2572,79 @@ SOAR-AI Team`,
             ) : leadHistory[selectedLeadForHistory?.id]?.length === 0 ? (
               <div className="text-center py-12">
                 <History className="h-12 w-12 mx-auto mb-4 text-gray-400" />
-                <p className="text-gray-600 text-lg">No history available for this lead.</p>
+                <p>No history available for this lead.</p>
               </div>
             ) : (
-              <div className="space-y-6">
+              <div className="space-y-4">
                 {leadHistory[selectedLeadForHistory?.id]?.map((entry, index) => {
-                  const IconComponent = getHistoryIcon(entry.icon);
+                  const getIconForHistoryType = (historyType: string) => {
+                    switch (historyType) {
+                      case 'agent_assignment':
+                      case 'agent_reassignment':
+                        return <User className="h-4 w-4 text-purple-600" />;
+                      case 'note_added':
+                        return <MessageSquare className="h-4 w-4 text-green-600" />;
+                      case 'call_made':
+                        return <Phone className="h-4 w-4 text-blue-600" />;
+                      case 'status_change':
+                        return <TrendingUp className="h-4 w-4 text-orange-600" />;
+                      case 'creation':
+                        return <Plus className="h-4 w-4 text-gray-600" />;
+                      default:
+                        return <Plus className="h-4 w-4 text-blue-600" />;
+                    }
+                  };
+
+                  const getBgColorForHistoryType = (historyType: string) => {
+                    switch (historyType) {
+                      case 'agent_assignment':
+                      case 'agent_reassignment':
+                        return 'bg-purple-100';
+                      case 'note_added':
+                        return 'bg-green-100';
+                      case 'call_made':
+                        return 'bg-blue-100';
+                      case 'status_change':
+                        return 'bg-orange-100';
+                      case 'creation':
+                        return 'bg-gray-100';
+                      default:
+                        return 'bg-blue-100';
+                    }
+                  };
 
                   return (
-                    <div key={entry.id} className="flex gap-4 group">
-                      {/* Timeline line */}
-                      <div className="flex flex-col items-center">
-                        <div className={`flex items-center justify-center w-10 h-10 rounded-full ${
-                          entry.history_type === 'qualification' ? 'bg-green-100' :
-                          entry.history_type === 'disqualification' ? 'bg-red-100' :
-                          entry.history_type === 'note_added' ? 'bg-blue-100' :
-                          entry.history_type === 'assignment' ? 'bg-purple-100' :
-                          entry.history_type === 'call_made' ? 'bg-orange-100' :
-                          entry.history_type === 'contact_made' ? 'bg-cyan-100' :
-                          entry.history_type === 'status_change' ? 'bg-yellow-100' :
-                          'bg-gray-100'
-                        }`}>
-                          <IconComponent className={`h-5 w-5 ${
-                            entry.history_type === 'qualification' ? 'text-green-600' :
-                            entry.history_type === 'disqualification' ? 'text-red-600' :
-                            entry.history_type === 'note_added' ? 'text-blue-600' :
-                            entry.history_type === 'assignment' ? 'text-purple-600' :
-                            entry.history_type === 'call_made' ? 'text-orange-600' :
-                            entry.history_type === 'contact_made' ? 'text-cyan-600' :
-                            entry.history_type === 'status_change' ? 'text-yellow-600' :
-                            'text-gray-600'
-                          }`} />
+                    <div key={entry.id} className="flex gap-3 p-3 bg-gray-50 rounded-lg border">
+                      <div className="flex-shrink-0">
+                        <div className={`w-8 h-8 ${getBgColorForHistoryType(entry.history_type || '')} rounded-full flex items-center justify-center`}>
+                          {getIconForHistoryType(entry.history_type || '')}
                         </div>
-                        {index < leadHistory[selectedLeadForHistory?.id]?.length - 1 && (
-                          <div className="w-px h-16 bg-gray-200 mt-2"></div>
-                        )}
                       </div>
-
-                      {/* Content */}
-                      <div className="flex-1 pb-6">
-                        <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow">
-                          <div className="flex items-start justify-between mb-3">
-                            <div className="flex-1">
-                              <h4 className="font-semibold text-gray-900 text-base">{entry.action}</h4>
-                              <div className="flex items-center gap-4 mt-1">
-                                <p className="text-sm text-gray-600">
-                                  by <span className="font-medium">{entry.user_name}</span>
-                                  {entry.user_role && <span className="text-gray-400"> • {entry.user_role}</span>}
-                                </p>
-                                {entry.history_type && (
-                                  <Badge variant="outline" className="text-xs">
-                                    {entry.history_type.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
-                                  </Badge>
-                                )}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <h4 className="text-sm font-medium text-gray-900 mb-1">
+                              {entry.action}
+                            </h4>
+                            <p className="text-sm text-gray-600 mb-2">
+                              {entry.details}
+                            </p>
+                            {(entry.history_type === 'agent_assignment' || entry.history_type === 'agent_reassignment') && entry.assigned_agent && (
+                              <div className="mb-2 p-2 bg-purple-50 rounded border border-purple-200">
+                                <div className="text-xs font-medium text-purple-800">Assigned Agent Details:</div>
+                                <div className="text-xs text-purple-700">Agent: {entry.assigned_agent}</div>
                               </div>
+                            )}
+                            <div className="flex items-center gap-4 text-xs text-gray-500">
+                              <span className="flex items-center gap-1">
+                                <User className="h-3 w-3" />
+                                by {entry.user_name || 'System'}
+                              </span>
                             </div>
-                            <span className="text-xs text-gray-500 bg-gray-50 px-2 py-1 rounded">
-                              {entry.formatted_timestamp || format(new Date(entry.timestamp), 'MMM d, yyyy h:mm a')}
-                            </span>
                           </div>
-
-                          <p className="text-sm text-gray-700 leading-relaxed mb-3">{entry.details}</p>
-
-                          {/* Activity Type Specific Details */}
-                          {entry.history_type === 'assignment' && (
-                            <div className="bg-purple-50 border border-purple-200 rounded p-3 mt-3">
-                              <div className="flex items-center gap-2 mb-2">
-                                <User className="h-4 w-4 text-purple-600" />
-                                <span className="text-sm font-medium text-purple-800">Assigned Agent Details</span>
-                              </div>
-                              <div className="text-sm text-purple-700">
-                                <p><span className="font-medium">Agent:</span> {entry.user_name}</p>
-                                <p><span className="font-medium">Role:</span> {entry.user_role || 'Sales Representative'}</p>
-                                <p><span className="font-medium">Status:</span> Active Assignment</p>
-                              </div>
-                            </div>
-                          )}
-
-                          {entry.history_type === 'note_added' && (
-                            <div className="bg-blue-50 border border-blue-200 rounded p-3 mt-3">
-                              <div className="flex items-center gap-2 mb-2">
-                                <MessageSquare className="h-4 w-4 text-blue-600" />
-                                <span className="text-sm font-medium text-blue-800">Note Details</span>
-                              </div>
-                              <div className="text-sm text-blue-700">
-                                <p><span className="font-medium">Added by:</span> {entry.user_name}</p>
-                                {entry.metadata?.urgency && (
-                                  <p><span className="font-medium">Urgency:</span> {entry.metadata.urgency}</p>
-                                )}
-                                {entry.metadata?.next_action && (
-                                  <p><span className="font-medium">Next Action:</span> {entry.metadata.next_action}</p>
-                                )}
-                              </div>
-                            </div>
-                          )}
-
-                          {entry.history_type === 'call_made' && (
-                            <div className="bg-orange-50 border border-orange-200 rounded p-3 mt-3">
-                              <div className="flex items-center gap-2 mb-2">
-                                <Phone className="h-4 w-4 text-orange-600" />
-                                <span className="text-sm font-medium text-orange-800">Call Details</span>
-                              </div>
-                              <div className="text-sm text-orange-700">
-                                <p><span className="font-medium">Call Type:</span> Discovery Call</p>
-                                <p><span className="font-medium">Duration:</span> 30 minutes</p>
-                                <p><span className="font-medium">Conducted by:</span> {entry.user_name}</p>
-                                <p><span className="font-medium">Outcome:</span> Requirements discussed</p>
-                              </div>
-                            </div>
-                          )}
-
-                          {(entry.history_type === 'qualification' || entry.history_type === 'disqualification' || entry.history_type === 'status_change') && (
-                            <div className={`border rounded p-3 mt-3 ${
-                              entry.history_type === 'qualification' ? 'bg-green-50 border-green-200' :
-                              entry.history_type === 'disqualification' ? 'bg-red-50 border-red-200' :
-                              'bg-yellow-50 border-yellow-200'
-                            }`}>
-                              <div className="flex items-center gap-2 mb-2">
-                                {entry.history_type === 'qualification' ? (
-                                  <CheckCircle className="h-4 w-4 text-green-600" />
-                                ) : entry.history_type === 'disqualification' ? (
-                                  <AlertTriangle className="h-4 w-4 text-red-600" />
-                                ) : (
-                                  <RefreshCw className="h-4 w-4 text-yellow-600" />
-                                )}
-                                <span className={`text-sm font-medium ${
-                                  entry.history_type === 'qualification' ? 'text-green-800' :
-                                  entry.history_type === 'disqualification' ? 'text-red-800' :
-                                  'text-yellow-800'
-                                }`}>Status Details</span>
-                              </div>
-                              <div className={`text-sm ${
-                                entry.history_type === 'qualification' ? 'text-green-700' :
-                                entry.history_type === 'disqualification' ? 'text-red-700' :
-                                'text-yellow-700'
-                              }`}>
-                                <p><span className="font-medium">Status Change:</span> {entry.action}</p>
-                                <p><span className="font-medium">Updated by:</span> {entry.user_name}</p>
-                                <p><span className="font-medium">Lead Score:</span> {selectedLeadForHistory?.score || 'N/A'}</p>
-                              </div>
-                            </div>
-                          )}
+                          <div className="text-xs text-gray-500 text-right ml-4">
+                            {entry.formatted_timestamp || format(new Date(entry.timestamp), 'MMM d, yyyy h:mm a')}
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -2714,12 +2654,8 @@ SOAR-AI Team`,
             )}
           </div>
 
-          <DialogFooter>
-            <Button 
-              variant="outline" 
-              onClick={() => setShowHistoryDialog(false)}
-              className="text-gray-600 border-gray-300"
-            >
+          <DialogFooter className="border-t border-gray-200 pt-4">
+            <Button onClick={() => setShowHistoryDialog(false)} className="bg-[#FD9646] hover:bg-[#FD9646]/90 text-white">
               Close
             </Button>
           </DialogFooter>
