@@ -94,13 +94,28 @@ const useAuth = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Clear any stored authentication data and show login page
+    // Check for existing authentication on app load
     const checkAuth = async () => {
       await new Promise((resolve) => setTimeout(resolve, 500)); // Simulate network delay
-      // Clear any existing stored user data to ensure login page shows
-      localStorage.removeItem("soar_user");
-      setUser(null);
-      setIsAuthenticated(false);
+      
+      // Check if user is already logged in from previous session
+      const storedUser = localStorage.getItem("soar_user");
+      if (storedUser) {
+        try {
+          const userData = JSON.parse(storedUser);
+          setUser(userData);
+          setIsAuthenticated(true);
+        } catch (error) {
+          // Invalid stored data, clear it
+          localStorage.removeItem("soar_user");
+          setUser(null);
+          setIsAuthenticated(false);
+        }
+      } else {
+        // No stored user, show login page
+        setUser(null);
+        setIsAuthenticated(false);
+      }
       setLoading(false);
     };
     checkAuth();
@@ -911,8 +926,8 @@ export default function App() {
     );
   }
 
-  // Show login page if not authenticated
-  if (!isAuthenticated) {
+  // Show login page if not authenticated - this is the primary condition
+  if (!isAuthenticated || !user) {
     return <Login onLogin={login} />;
   }
 
