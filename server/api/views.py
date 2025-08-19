@@ -646,12 +646,12 @@ class LeadViewSet(viewsets.ModelViewSet):
         try:
             lead = self.get_object()
             history_entries = lead.history_entries.all().order_by('timestamp')
-            
+
             # If no history entries exist, create comprehensive history
             if not history_entries.exists():
                 try:
                     current_time = lead.created_at
-                    
+
                     # 1. Lead creation
                     LeadHistory.objects.create(
                         lead=lead,
@@ -662,13 +662,13 @@ class LeadViewSet(viewsets.ModelViewSet):
                         user=None,
                         timestamp=current_time
                     )
-                    
+
                     # 2. Parse agent assignments from notes if they exist
                     if lead.notes and '[Agent Assignment' in lead.notes:
                         import re
                         # Extract agent assignments from notes
                         agent_assignments = re.findall(r'\[Agent Assignment - ([^\]]+)\]\s*Assigned to: ([^\n]+)\s*Priority: ([^\n]+)(?:\s*Assignment Notes: ([^\n]+))?', lead.notes)
-                        
+
                         for idx, (date_str, agent_name, priority, assignment_notes) in enumerate(agent_assignments):
                             try:
                                 # Parse the date
@@ -677,13 +677,13 @@ class LeadViewSet(viewsets.ModelViewSet):
                                 assignment_time = timezone.make_aware(assignment_time)
                             except:
                                 assignment_time = current_time + timedelta(hours=idx + 1)
-                            
+
                             history_type = 'agent_reassignment' if idx > 0 else 'agent_assignment'
                             action = f'Agent {"reassigned" if idx > 0 else "assigned"} to {agent_name}'
                             details = f'Lead {"reassigned" if idx > 0 else "assigned"} to {agent_name} with {priority.lower()}.'
                             if assignment_notes:
                                 details += f' Assignment notes: {assignment_notes}'
-                            
+
                             LeadHistory.objects.create(
                                 lead=lead,
                                 history_type=history_type,
@@ -693,7 +693,7 @@ class LeadViewSet(viewsets.ModelViewSet):
                                 user=lead.assigned_to,
                                 timestamp=assignment_time
                             )
-                    
+
                     # 3. Agent assignment (if assigned and not already processed from notes)
                     elif lead.assigned_agent or lead.assigned_to:
                         current_time += timedelta(hours=1)
@@ -707,7 +707,7 @@ class LeadViewSet(viewsets.ModelViewSet):
                             user=lead.assigned_to,
                             timestamp=current_time
                         )
-                    
+
                     # 4. Status-specific entries
                     if lead.status == 'contacted':
                         current_time += timedelta(hours=2)
@@ -720,7 +720,7 @@ class LeadViewSet(viewsets.ModelViewSet):
                             user=lead.assigned_to,
                             timestamp=current_time
                         )
-                        
+
                         # Add call entry
                         current_time += timedelta(hours=3)
                         LeadHistory.objects.create(
@@ -732,19 +732,19 @@ class LeadViewSet(viewsets.ModelViewSet):
                             user=lead.assigned_to,
                             timestamp=current_time
                         )
-                    
+
                     elif lead.status == 'qualified':
                         current_time += timedelta(days=1)
                         LeadHistory.objects.create(
                             lead=lead,
                             history_type='qualification',
                             action='Lead qualified',
-                            details=f'Lead qualified based on budget, authority, and timeline. Ready for proposal stage. Estimated value: ${lead.estimated_value or 0:,.0f}',
+                            details=f'Lead qualified based on budget ({f"${int(lead.estimated_value/1000)}K" if lead.estimated_value else "TBD"}), authority, and timeline. Ready for proposal stage.',
                             icon='check-circle',
                             user=lead.assigned_to,
                             timestamp=current_time
                         )
-                    
+
                     elif lead.status == 'unqualified':
                         current_time += timedelta(days=1)
                         LeadHistory.objects.create(
@@ -756,7 +756,7 @@ class LeadViewSet(viewsets.ModelViewSet):
                             user=lead.assigned_to,
                             timestamp=current_time
                         )
-                    
+
                     # 5. Add notes from lead_notes (excluding agent assignment entries)
                     for note in lead.lead_notes.all()[:3]:  # Latest 3 notes
                         current_time += timedelta(hours=1)
@@ -769,7 +769,7 @@ class LeadViewSet(viewsets.ModelViewSet):
                             user=note.created_by,
                             timestamp=current_time
                         )
-                    
+
                     # 6. Score update (if score > 50)
                     if lead.score > 50:
                         current_time += timedelta(hours=1)
@@ -782,12 +782,12 @@ class LeadViewSet(viewsets.ModelViewSet):
                             user=None,
                             timestamp=current_time
                         )
-                    
+
                     # Fetch again after creation
                     history_entries = lead.history_entries.all().order_by('timestamp')
                 except Exception as create_error:
                     print(f"Error creating initial history: {create_error}")
-            
+
             serializer = LeadHistorySerializer(history_entries, many=True)
             return Response(serializer.data)
         except Exception as e:
@@ -952,7 +952,7 @@ class LeadViewSet(viewsets.ModelViewSet):
         """Assign or reassign an agent to a lead"""
         try:
             lead = self.get_object()
-            agent_name = request.data.get('agent', '')
+            agent_name = request.data.get('agent_name')
             priority = request.data.get('priority', 'Medium Priority')
             assignment_notes = request.data.get('notes', '')
 
@@ -971,7 +971,7 @@ class LeadViewSet(viewsets.ModelViewSet):
             # Update priority based on assignment priority
             priority_mapping = {
                 'Low Priority': 'low',
-                'Medium Priority': 'medium', 
+                'Medium Priority': 'medium',
                 'High Priority': 'high',
                 'Urgent': 'urgent'
             }
@@ -984,10 +984,10 @@ class LeadViewSet(viewsets.ModelViewSet):
                 details = f'Lead reassigned from {previous_agent} to {agent_name} with {priority.lower()} priority.'
                 history_type = 'agent_reassignment'
             else:
-                action_text = f'Agent assigned: {agent_name}'
+                action_type = 'agent_assignment'
+                action = f'Agent assigned: {agent_name}'
                 details = f'Lead assigned to {agent_name} with {priority.lower()} priority.'
-                history_type = 'agent_assignment'
-            
+
             if assignment_notes:
                 details += f' Assignment notes: {assignment_notes}'
 
@@ -1402,17 +1402,6 @@ class DashboardAPIView(viewsets.ViewSet):
         return Response(overview_data)
 
 # Add the new endpoints
-from rest_framework.decorators import api_view
-from rest_framework.response import Response
-from rest_framework import status
-from django.shortcuts import get_object_or_404
-from django.db.models import Count, Avg, Q
-from django.utils import timezone
-from datetime import datetime, timedelta
-from .models import Lead, Company, Contact, LeadNote, LeadHistory
-from .serializers import LeadSerializer, CompanySerializer, ContactSerializer
-import json
-
 @api_view(['POST'])
 def lead_pipeline_stats(request):
     """Get lead pipeline statistics"""

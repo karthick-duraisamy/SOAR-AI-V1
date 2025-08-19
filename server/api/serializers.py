@@ -82,7 +82,23 @@ class LeadHistorySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = LeadHistory
-        fields = '__all__'
+        fields = ['id', 'history_type', 'action', 'details', 'icon', 'timestamp', 'user_name', 'user_role', 'formatted_timestamp', 'assigned_agent']
+
+    def get_user_name(self, obj):
+        if obj.user:
+            return obj.user.get_full_name() or obj.user.username
+        return 'System'
+
+    def get_user_role(self, obj):
+        return 'Agent' if obj.user else 'System'
+
+    def get_formatted_timestamp(self, obj):
+        return obj.timestamp.strftime('%m/%d/%Y at %I:%M %p')
+
+    def get_assigned_agent(self, obj):
+        if obj.user:
+            return obj.user.get_full_name() or obj.user.username
+        return None
 
     def get_user_name(self, obj):
         if obj.user:
