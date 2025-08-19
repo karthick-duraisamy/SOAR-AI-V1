@@ -169,6 +169,7 @@ class LeadSerializer(serializers.ModelSerializer):
     contact = ContactSerializer(read_only=True)
     assigned_to = serializers.StringRelatedField(read_only=True)
     assigned_agent = serializers.CharField(read_only=True)
+    assigned_agent_details = serializers.SerializerMethodField()
     lead_notes = LeadNoteSerializer(many=True, read_only=True)
     history_entries = serializers.SerializerMethodField()
 
@@ -219,6 +220,52 @@ class LeadSerializer(serializers.ModelSerializer):
     def get_days_since_created(self, obj):
         from django.utils import timezone
         return (timezone.now() - obj.created_at).days
+
+    def get_assigned_agent_details(self, obj):
+        """Get detailed information about the assigned agent"""
+        if not obj.assigned_agent:
+            return None
+        
+        # Map agent names to their details (in a real system, this would come from a User/Agent model)
+        agent_details = {
+            'John Smith': {
+                'name': 'John Smith',
+                'email': 'john.smith@soarai.com',
+                'specialties': ['Enterprise', 'Technology'],
+                'current_leads': 12,
+                'role': 'Senior Sales Representative'
+            },
+            'Jane Smith': {
+                'name': 'Jane Smith',
+                'email': 'jane.smith@soarai.com',
+                'specialties': ['Healthcare', 'Manufacturing'],
+                'current_leads': 15,
+                'role': 'Sales Representative'
+            },
+            'Sarah Wilson': {
+                'name': 'Sarah Wilson',
+                'email': 'sarah.wilson@soarai.com',
+                'specialties': ['Manufacturing', 'Healthcare'],
+                'current_leads': 7,
+                'role': 'Sales Representative'
+            },
+            'Mike Johnson': {
+                'name': 'Mike Johnson',
+                'email': 'mike.johnson@soarai.com',
+                'specialties': ['Energy', 'Manufacturing'],
+                'current_leads': 9,
+                'role': 'Sales Representative'
+            },
+            'David Brown': {
+                'name': 'David Brown',
+                'email': 'david.brown@soarai.com',
+                'specialties': ['Healthcare', 'Government'],
+                'current_leads': 4,
+                'role': 'Sales Representative'
+            }
+        }
+        
+        return agent_details.get(obj.assigned_agent)
 
 class OptimizedLeadSerializer(serializers.ModelSerializer):
     """Optimized serializer for list views with minimal data"""

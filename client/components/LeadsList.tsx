@@ -131,6 +131,12 @@ interface Lead {
   lastActivity: string;
   followUpDate: string;
   assignedAgent: string | null;
+  assigned_agent_details?: { // Added for agent details
+    name: string;
+    email: string;
+    specialties: string[];
+    current_leads: number;
+  };
   history_entries: HistoryEntry[]; // This will be populated from API calls
 }
 
@@ -210,6 +216,12 @@ const transformApiLeadToUILead = (apiLead: any) => {
     lastActivity: apiLead.updated_at ? new Date(apiLead.updated_at).toISOString().split('T')[0] : apiLead.created_at ? new Date(apiLead.created_at).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
     followUpDate: apiLead.next_action_date || new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
     assignedAgent: apiLead.assigned_to?.username || null,
+    assigned_agent_details: apiLead.assigned_to ? { // Map assigned agent details if available
+      name: apiLead.assigned_to.full_name || apiLead.assigned_to.username,
+      email: apiLead.assigned_to.email || `${apiLead.assigned_to.username}@soarai.com`,
+      specialties: apiLead.assigned_to.specialties || [], // Assuming specialties field exists
+      current_leads: apiLead.assigned_to.current_leads || 0, // Assuming current_leads field exists
+    } : undefined,
     // History will be fetched separately via API and mapped in the dialog
     history_entries: [] // This will be populated via getHistory API call
   };
@@ -1357,7 +1369,7 @@ SOAR-AI Team`,
         stage: 'proposal',
         probability: 65,
         estimated_close_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-        value: parseInt(lead.travelBudget.replace(/[^0-9]/g, '')) * 1000 || 250000,
+        value: parseInt(lead.travelBudget.replace(/[^0-9]/g, '')) || 250000,
         description: `Opportunity created from qualified lead. ${lead.notes}`,
         next_steps: 'Send initial proposal and schedule presentation'
       };
@@ -3556,21 +3568,36 @@ Key Topics: Travel volume, preferred airlines, booking preferences, cost optimiz
             </DialogTitle>
             <DialogDescription className="text-sm text-gray-600">
               {selectedLeadForAssign?.assignedAgent 
-                ? 'Reassign this lead from ${selectedLeadForAssign.assignedAgent} to a sales agent for personalized follow-up and management'
+                ? `Reassign this lead from ${selectedLeadForAssign.assignedAgent} to a new sales agent for personalized follow-up and management`
                 : 'Assign this lead to a sales agent for personalized follow-up and management'
               }
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-5 py-4">
-            {/* Agent Selection */}
+            {/* Current Agent Display (for reassignment) */}
+            {selectedLeadForAssign?.assigned_agent_details && (
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                <Label className="text-sm font-medium text-blue-900 mb-2 block">Current Agent</Label>
+                <div className="flex items-start justify-between">
+                  <div>
+                    <div className="font-medium text-blue-900">{selectedLeadForAssign.assigned_agent_details.name}</div>
+                    <div className="text-sm text-blue-700">{selectedLeadForAssign.assigned_agent_details.email}</div>
+                    <div className="text-xs text-blue-600 mt-1">
+                      Specialties: {selectedLeadForAssign.assigned_agent_details.specialties?.join(', ')} • {selectedLeadForAssign.assigned_agent_details.current_leads} leads
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
             <div>
               <Label className="text-sm font-medium text-gray-700 mb-2 block">
-                Select Sales Agent *
+                {selectedLeadForAssign?.assignedAgent ? 'Select New Sales Agent' : 'Select Sales Agent'}
               </Label>
               <Select value={selectedAgent} onValueChange={setSelectedAgent}>
                 <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Choose a sales agent..." />
+                  <SelectValue placeholder="Choose an agent..." />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="Sarah Wilson">
@@ -3606,36 +3633,6 @@ Key Topics: Travel volume, preferred airlines, booking preferences, cost optimiz
                 </SelectContent>
               </Select>
             </div>
-
-            {/* Show current agent info if reassigning */}
-            {selectedLeadForAssign?.assignedAgent && selectedAgent && (
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                <div className="flex flex-col space-y-1">
-                  <div className="text-sm font-medium text-blue-900">
-                    Current Agent: {selectedLeadForAssign.assignedAgent}
-                  </div>
-                  <div className="text-sm text-blue-700">
-                    New Agent: {selectedAgent}
-                  </div>
-                  <div className="text-xs text-blue-600">
-                    Email: {selectedAgent.toLowerCase().replace(' ', '.')}@soarai.com
-                  </div>
-                  <div className="text-xs text-blue-600">
-                    Specialties: {selectedAgent === 'Sarah Wilson' ? 'Manufacturing, Healthcare' : 
-                                selectedAgent === 'John Doe' ? 'Technology, Finance' :
-                                selectedAgent === 'Jane Smith' ? 'Retail, Consulting' :
-                                selectedAgent === 'Mike Johnson' ? 'Energy, Manufacturing' :
-                                'Healthcare, Government'}
-                  </div>
-                  <div className="text-xs text-blue-600">
-                    Current Leads: {selectedAgent === 'Sarah Wilson' ? '8' : 
-                                   selectedAgent === 'John Doe' ? '12' :
-                                   selectedAgent === 'Jane Smith' ? '6' :
-                                   selectedAgent === 'Mike Johnson' ? '9' : '4'}
-                  </div>
-                </div>
-              </div>
-            )}
 
             {/* Assignment Priority */}
             <div>
