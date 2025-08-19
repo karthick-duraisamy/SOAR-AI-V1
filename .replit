@@ -81,3 +81,12 @@ mode = "sequential"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "cd client && npm run build"
+
+[[workflows.workflow]]
+name = "Serve Build"
+author = 44435766
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "cd client && npm run build && npm run preview"
