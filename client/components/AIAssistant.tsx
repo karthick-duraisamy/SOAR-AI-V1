@@ -403,7 +403,7 @@ export function AIAssistant({ onNavigate }: AIAssistantProps) {
 
                 {/* Welcome Text */}
                 <div className="text-center space-y-2">
-                  <h2 className="text-2xl font-semibold text-gray-900">Welcome, John Rose!</h2>
+                  <h2 className="text-2xl font-semibold text-gray-900">Welcome!</h2>
                   <p className="text-gray-600">Hello! What report would you like to generate today?</p>
                 </div>
 
@@ -472,7 +472,7 @@ export function AIAssistant({ onNavigate }: AIAssistantProps) {
                       
                       {/* Welcome Text */}
                       <div className="space-y-1 mb-4">
-                        <h2 className="text-xl font-semibold text-gray-900">Hi John Rose!</h2>
+                        <h2 className="text-xl font-semibold text-gray-900">Hi there!</h2>
                         <p className="text-sm text-gray-600">I'm your SOAR-AI assistant — here to help with clients, contracts, offers, support tickets, and more.<br />What would you like to do today?</p>
                       </div>
 

@@ -77,7 +77,242 @@ import {
   ChevronRight,
 } from "lucide-react";
 
+// Mock user data and authentication status for demonstration
+const mockUser = {
+  id: "user-123",
+  firstName: "John",
+  lastName: "Rose",
+  email: "john.rose@example.com",
+  role: "admin",
+};
+
+// Placeholder for actual authentication logic
+const useAuth = () => {
+  const [user, setUser] = useState(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // Simulate checking authentication status
+    const checkAuth = async () => {
+      // Replace with your actual authentication check (e.g., token validation)
+      await new Promise((resolve) => setTimeout(resolve, 500)); // Simulate network delay
+      const storedUser = localStorage.getItem("currentUser");
+      if (storedUser) {
+        setUser(JSON.parse(storedUser));
+        setIsAuthenticated(true);
+      } else {
+        // For this example, let's set a default mock user if none is found
+        setUser(mockUser);
+        setIsAuthenticated(true);
+        localStorage.setItem("currentUser", JSON.stringify(mockUser));
+      }
+      setLoading(false);
+    };
+    checkAuth();
+  }, []);
+
+  const login = async (email, password) => {
+    setLoading(true);
+    // Simulate login API call
+    await new Promise((resolve) => setTimeout(resolve, 500));
+    // Dummy validation
+    if (email === "admin@example.com" && password === "password") {
+      const adminUser = {
+        id: "admin-001",
+        firstName: "Admin",
+        lastName: "User",
+        email: "admin@example.com",
+        role: "admin",
+      };
+      setUser(adminUser);
+      setIsAuthenticated(true);
+      localStorage.setItem("currentUser", JSON.stringify(adminUser));
+      setLoading(false);
+      return true;
+    } else {
+      setLoading(false);
+      return false;
+    }
+  };
+
+  const logout = () => {
+    setUser(null);
+    setIsAuthenticated(false);
+    localStorage.removeItem("currentUser");
+  };
+
+  return { user, isAuthenticated, loading, login, logout };
+};
+
+
+// Login Component
+const Login = ({ onLoginSuccess }) => {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [isCreatingAdmin, setIsCreatingAdmin] = useState(false);
+  const [adminEmail, setAdminEmail] = useState("");
+  const [adminPassword, setAdminPassword] = useState("");
+  const [confirmAdminPassword, setConfirmAdminPassword] = useState("");
+  const [adminCreationError, setAdminCreationError] = useState("");
+
+  const handleLogin = async () => {
+    setError(""); // Clear previous errors
+    const success = await useAuth().login(email, password); // Use the useAuth hook for login
+    if (success) {
+      onLoginSuccess();
+    } else {
+      setError("Invalid email or password. Please try again.");
+    }
+  };
+
+  const handleCreateAdmin = async () => {
+    setAdminCreationError("");
+    if (adminPassword !== confirmAdminPassword) {
+      setAdminCreationError("Passwords do not match.");
+      return;
+    }
+    if (!adminEmail || !adminPassword) {
+      setAdminCreationError("Please fill in all fields for admin creation.");
+      return;
+    }
+
+    // Simulate admin creation
+    await new Promise((resolve) => setTimeout(resolve, 500));
+    // In a real app, this would involve an API call to create the admin user
+    console.log("Creating admin user:", { email: adminEmail, password: adminPassword });
+    // For demonstration, we'll just log and assume success if fields are provided
+    alert("Admin user created successfully (simulated). Please use admin@example.com with password 'password' to login.");
+    setIsCreatingAdmin(false); // Reset the form visibility
+    setAdminEmail("");
+    setAdminPassword("");
+    setConfirmAdminPassword("");
+  };
+
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-500 to-purple-600 text-white p-4">
+      <div className="bg-white bg-opacity-10 backdrop-blur-sm rounded-lg shadow-2xl p-8 max-w-md w-full transform transition duration-500 hover:scale-105">
+        <div className="text-center mb-8">
+          <img src={soarLogo} alt="SOAR AI Logo" className="mx-auto h-16 w-auto mb-4" />
+          <h1 className="text-3xl font-extrabold mb-2">SOAR-AI Platform</h1>
+          <p className="text-lg opacity-90">Intelligent Solutions for Corporate Growth</p>
+        </div>
+
+        {!isCreatingAdmin ? (
+          <>
+            <form onSubmit={(e) => { e.preventDefault(); handleLogin(); }} className="space-y-6">
+              <div>
+                <label htmlFor="email" className="block text-sm font-medium mb-1">Email Address</label>
+                <input
+                  type="email"
+                  id="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full p-3 rounded-md border-none bg-white bg-opacity-20 placeholder-white placeholder-opacity-70 focus:outline-none focus:ring-2 focus:ring-white focus:ring-opacity-50"
+                  placeholder="Enter your email"
+                  required
+                />
+              </div>
+              <div>
+                <label htmlFor="password" className="block text-sm font-medium mb-1">Password</label>
+                <input
+                  type="password"
+                  id="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full p-3 rounded-md border-none bg-white bg-opacity-20 placeholder-white placeholder-opacity-70 focus:outline-none focus:ring-2 focus:ring-white focus:ring-opacity-50"
+                  placeholder="Enter your password"
+                  required
+                />
+              </div>
+              {error && <p className="text-red-300 text-sm">{error}</p>}
+              <Button
+                type="submit"
+                className="w-full py-3 rounded-md font-semibold bg-yellow-400 hover:bg-yellow-500 text-gray-800 transition duration-300 shadow-md"
+              >
+                Login
+              </Button>
+            </form>
+            <div className="mt-6 text-center">
+              <p>Don't have an account yet?</p>
+              <Button
+                variant="link"
+                className="text-white underline opacity-90 hover:opacity-100"
+                onClick={() => setIsCreatingAdmin(true)}
+              >
+                Create Admin Account
+              </Button>
+            </div>
+          </>
+        ) : (
+          <>
+            <h2 className="text-2xl font-bold text-center mb-6">Create Admin Account</h2>
+            <form onSubmit={(e) => { e.preventDefault(); handleCreateAdmin(); }} className="space-y-4">
+              <div>
+                <label htmlFor="adminEmail" className="block text-sm font-medium mb-1">Admin Email</label>
+                <input
+                  type="email"
+                  id="adminEmail"
+                  value={adminEmail}
+                  onChange={(e) => setAdminEmail(e.target.value)}
+                  className="w-full p-3 rounded-md border-none bg-white bg-opacity-20 placeholder-white placeholder-opacity-70 focus:outline-none focus:ring-2 focus:ring-white focus:ring-opacity-50"
+                  placeholder="Enter admin email"
+                  required
+                />
+              </div>
+              <div>
+                <label htmlFor="adminPassword" className="block text-sm font-medium mb-1">Admin Password</label>
+                <input
+                  type="password"
+                  id="adminPassword"
+                  value={adminPassword}
+                  onChange={(e) => setAdminPassword(e.target.value)}
+                  className="w-full p-3 rounded-md border-none bg-white bg-opacity-20 placeholder-white placeholder-opacity-70 focus:outline-none focus:ring-2 focus:ring-white focus:ring-opacity-50"
+                  placeholder="Enter admin password"
+                  required
+                />
+              </div>
+              <div>
+                <label htmlFor="confirmAdminPassword" className="block text-sm font-medium mb-1">Confirm Password</label>
+                <input
+                  type="password"
+                  id="confirmAdminPassword"
+                  value={confirmAdminPassword}
+                  onChange={(e) => setConfirmAdminPassword(e.target.value)}
+                  className="w-full p-3 rounded-md border-none bg-white bg-opacity-20 placeholder-white placeholder-opacity-70 focus:outline-none focus:ring-2 focus:ring-white focus:ring-opacity-50"
+                  placeholder="Confirm admin password"
+                  required
+                />
+              </div>
+              {adminCreationError && <p className="text-red-300 text-sm">{adminCreationError}</p>}
+              <Button
+                type="submit"
+                className="w-full py-3 rounded-md font-semibold bg-green-500 hover:bg-green-600 text-white transition duration-300 shadow-md"
+              >
+                Create Admin
+              </Button>
+            </form>
+            <div className="mt-6 text-center">
+              <Button
+                variant="link"
+                className="text-white underline opacity-90 hover:opacity-100"
+                onClick={() => setIsCreatingAdmin(false)}
+              >
+                Back to Login
+              </Button>
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  );
+};
+
+
 export default function App() {
+  const { user, isAuthenticated, loading, login, logout } = useAuth();
   const [activeSection, setActiveSection] = useState("ai-assistant");
   const [sectionFilters, setSectionFilters] = useState({});
   const [expandedGroups, setExpandedGroups] = useState({
@@ -389,7 +624,7 @@ export default function App() {
       case "lead-management":
         return <LeadManagement onNavigate={navigateToSection} />;
       case 'leads-list':
-        return <LeadsList onNavigate={navigateToSection} initialFilters={sectionFilters} />; 
+        return <LeadsList onNavigate={navigateToSection} initialFilters={sectionFilters} />;
       case 'all-leads':
         return <AllLeads onNavigate={navigateToSection} />;
       // case "qualified-leads":
@@ -704,6 +939,21 @@ export default function App() {
     },
   ];
 
+  // Handle loading state and redirect to login if not authenticated
+  if (loading) {
+    return <div className="flex justify-center items-center min-h-screen">Loading...</div>;
+  }
+
+  if (!isAuthenticated) {
+    return <Login onLoginSuccess={() => {
+      // After successful login, set the user and potentially redirect
+      // For simplicity, we'll just update the state here and let the App render
+      console.log("Login successful, redirecting to AI Assistant");
+      setActiveSection("ai-assistant"); // Set the initial section to AI Assistant
+      // Optionally, you could use react-router-dom for actual redirection
+    }} />;
+  }
+
   return (
     <TooltipProvider>
       <SidebarProvider>
@@ -975,6 +1225,18 @@ export default function App() {
 
                 {/* Right Side - Enhanced Actions - Quick Actions Area */}
                 <div className="flex items-center gap-3" data-quick-actions>
+                  {/* Logout Button */}
+                  {isAuthenticated && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={logout}
+                      className="hover:bg-red-500 hover:text-white"
+                    >
+                      Logout
+                    </Button>
+                  )}
+
                   {/* Tour Guide Button with Dropdown */}
                   <div className="flex items-center gap-1">
                     <Button
