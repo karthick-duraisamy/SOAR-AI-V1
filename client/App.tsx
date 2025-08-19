@@ -35,8 +35,8 @@ import { AIAssistant } from "./components/AIAssistant";
 import { Dashboard } from "./components/Dashboard";
 import { CorporateSearch } from "./components/CorporateSearch";
 import { LeadManagement } from "./components/LeadManagement";
-import { LeadsList } from './components/LeadsList';
-import { AllLeads } from './components/AllLeads';
+import { LeadsList } from "./components/LeadsList";
+import { AllLeads } from "./components/AllLeads";
 import { EmailCampaigns } from "./components/EmailCampaigns";
 import { Opportunities } from "./components/Opportunities";
 import { RevenuePrediction } from "./components/RevenuePrediction";
@@ -97,7 +97,7 @@ const useAuth = () => {
     // Check for existing authentication on app load
     const checkAuth = async () => {
       await new Promise((resolve) => setTimeout(resolve, 500)); // Simulate network delay
-      
+
       // Check if user is already logged in from previous session
       const storedUser = localStorage.getItem("soar_user");
       if (storedUser) {
@@ -124,23 +124,17 @@ const useAuth = () => {
   const login = (userData) => {
     setUser(userData);
     setIsAuthenticated(true);
-    alert('hii')
     localStorage.setItem("soar_user", JSON.stringify(userData));
   };
 
   const logout = () => {
     setUser(null);
     setIsAuthenticated(false);
-    alert('hii')
     localStorage.removeItem("soar_user");
   };
 
   return { user, isAuthenticated, loading, login, logout };
 };
-
-
-
-
 
 export default function App() {
   const { user, isAuthenticated, loading, login, logout } = useAuth();
@@ -454,9 +448,14 @@ export default function App() {
         );
       case "lead-management":
         return <LeadManagement onNavigate={navigateToSection} />;
-      case 'leads-list':
-        return <LeadsList onNavigate={navigateToSection} initialFilters={sectionFilters} />;
-      case 'all-leads':
+      case "leads-list":
+        return (
+          <LeadsList
+            onNavigate={navigateToSection}
+            initialFilters={sectionFilters}
+          />
+        );
+      case "all-leads":
         return <AllLeads onNavigate={navigateToSection} />;
       // case "qualified-leads":
       //   return (
@@ -624,6 +623,153 @@ export default function App() {
   };
 
   // Main business menu groups that can be collapsed
+  // const mainMenuGroups = [
+  //   {
+  //     label: "Highlights",
+  //     items: [
+  //       {
+  //         id: "ai-assistant",
+  //         label: "AI Assistant",
+  //         icon: Bot,
+  //         description: "Natural language interface",
+  //       },
+  //       {
+  //         id: "dashboard",
+  //         label: "Dashboard",
+  //         icon: LayoutDashboard,
+  //         description: "System overview",
+  //       },
+  //     ],
+  //   },
+  //   {
+  //     label: "COINHUB",
+  //     items: [
+  //       {
+  //         id: "corporate-search",
+  //         label: "Corporate Search",
+  //         icon: Search,
+  //         description: "Find corporate clients",
+  //       },
+  //       {
+  //         id: "lead-management",
+  //         label: "Lead Dashboard",
+  //         icon: Target,
+  //         description: "Lead pipeline overview",
+  //       },
+  //       {
+  //         id: "leads-list",
+  //         label: "All Leads",
+  //         icon: UsersIcon,
+  //         description: "Complete lead management",
+  //       },
+  //       // Removed duplicate "All Leads" entry
+  //       // {
+  //       //   id: "qualified-leads",
+  //       //   label: "Qualified Leads",
+  //       //   icon: UserCheck,
+  //       //   description: "High-potential prospects",
+  //       // },
+  //       // {
+  //       //   id: "unqualified-leads",
+  //       //   label: "Unqualified Leads",
+  //       //   icon: UserX,
+  //       //   description: "Nurturing opportunities",
+  //       // },
+  //       {
+  //         id: "email-campaigns",
+  //         label: "Email Campaigns",
+  //         icon: Mail,
+  //         description: "Automated outreach",
+  //       },
+  //       {
+  //         id: "opportunities",
+  //         label: "Opportunities",
+  //         icon: TrendingUp,
+  //         description: "Sales pipeline tracking",
+  //       },
+  //     ],
+  //   },
+  //   {
+  //     label: "COCAST",
+  //     subtitle: "Corporate Commercial Analytics & Sales Trend",
+  //     items: [
+  //       {
+  //         id: "revenue-prediction",
+  //         label: "Revenue Prediction",
+  //         icon: Brain,
+  //         description: "AI revenue forecasting & sales predictions",
+  //       },
+  //     ],
+  //   },
+  //   {
+  //     label: "CONTRAQ",
+  //     items: [
+  //       {
+  //         id: "contracts",
+  //         label: "Contracts",
+  //         icon: FileText,
+  //         description: "Manage agreements",
+  //       },
+  //       {
+  //         id: "breach-monitoring",
+  //         label: "Risk Monitoring",
+  //         icon: AlertTriangle,
+  //         description: "Contract compliance",
+  //       },
+  //     ],
+  //   },
+  //   {
+  //     label: "Travel Offers",
+  //     items: [
+  //       {
+  //         id: "design-travel-offers",
+  //         label: "Travel Offers",
+  //         icon: Presentation,
+  //         description: "Comprehensive offer management & creation",
+  //       },
+  //     ],
+  //   },
+  // ];
+
+  // Support and system menu groups that are always visible
+  // const supportMenuGroups = [
+  //   {
+  //     label: "CONVOY",
+  //     items: [
+  //       {
+  //         id: "agent-dashboard",
+  //         label: "Agent Dashboard",
+  //         icon: UserCheck,
+  //         description: "Agent workspace",
+  //       },
+  //       {
+  //         id: "ticket-list",
+  //         label: "Support Tickets",
+  //         icon: Users,
+  //         description: "Customer support",
+  //       },
+  //       {
+  //         id: "admin-dashboard",
+  //         label: "Admin Dashboard",
+  //         icon: Shield,
+  //         description: "System administration",
+  //       },
+  //     ],
+  //   },
+  //   {
+  //     label: "System",
+  //     items: [
+  //       {
+  //         id: "settings",
+  //         label: "Settings",
+  //         icon: SettingsIcon,
+  //         description: "System configuration",
+  //       },
+  //     ],
+  //   },
+  // ];
+
+  // Main business menu groups that can be collapsed
   const mainMenuGroups = [
     {
       label: "Highlights",
@@ -770,152 +916,6 @@ export default function App() {
     },
   ];
 
-  // Main business menu groups that can be collapsed
-  const mainMenuGroups = [
-    {
-      label: "Highlights",
-      items: [
-        {
-          id: "ai-assistant",
-          label: "AI Assistant",
-          icon: Bot,
-          description: "Natural language interface",
-        },
-        {
-          id: "dashboard",
-          label: "Dashboard",
-          icon: LayoutDashboard,
-          description: "System overview",
-        },
-      ],
-    },
-    {
-      label: "COINHUB",
-      items: [
-        {
-          id: "corporate-search",
-          label: "Corporate Search",
-          icon: Search,
-          description: "Find corporate clients",
-        },
-        {
-          id: "lead-management",
-          label: "Lead Dashboard",
-          icon: Target,
-          description: "Lead pipeline overview",
-        },
-        {
-          id: "leads-list",
-          label: "All Leads",
-          icon: UsersIcon,
-          description: "Complete lead management",
-        },
-        // {
-        //   id: "qualified-leads",
-        //   label: "Qualified Leads",
-        //   icon: UserCheck,
-        //   description: "High-potential prospects",
-        // },
-        // {
-        //   id: "unqualified-leads",
-        //   label: "Unqualified Leads",
-        //   icon: UserX,
-        //   description: "Nurturing opportunities",
-        // },
-        {
-          id: "email-campaigns",
-          label: "Email Campaigns",
-          icon: Mail,
-          description: "Automated outreach",
-        },
-        {
-          id: "opportunities",
-          label: "Opportunities",
-          icon: TrendingUp,
-          description: "Sales pipeline tracking",
-        },
-      ],
-    },
-    {
-      label: "COCAST",
-      subtitle: "Corporate Commercial Analytics & Sales Trend",
-      items: [
-        {
-          id: "revenue-prediction",
-          label: "Revenue Prediction",
-          icon: Brain,
-          description: "AI revenue forecasting & sales predictions",
-        },
-      ],
-    },
-    {
-      label: "CONTRAQ",
-      items: [
-        {
-          id: "contracts",
-          label: "Contracts",
-          icon: FileText,
-          description: "Manage agreements",
-        },
-        {
-          id: "breach-monitoring",
-          label: "Risk Monitoring",
-          icon: AlertTriangle,
-          description: "Contract compliance",
-        },
-      ],
-    },
-    {
-      label: "Travel Offers",
-      items: [
-        {
-          id: "design-travel-offers",
-          label: "Travel Offers",
-          icon: Presentation,
-          description: "Comprehensive offer management & creation",
-        },
-      ],
-    },
-  ];
-
-  // Support and system menu groups that are always visible
-  const supportMenuGroups = [
-    {
-      label: "CONVOY",
-      items: [
-        {
-          id: "agent-dashboard",
-          label: "Agent Dashboard",
-          icon: UserCheck,
-          description: "Agent workspace",
-        },
-        {
-          id: "ticket-list",
-          label: "Support Tickets",
-          icon: Users,
-          description: "Customer support",
-        },
-        {
-          id: "admin-dashboard",
-          label: "Admin Dashboard",
-          icon: Shield,
-          description: "System administration",
-        },
-      ],
-    },
-    {
-      label: "System",
-      items: [
-        {
-          id: "settings",
-          label: "Settings",
-          icon: SettingsIcon,
-          description: "System configuration",
-        },
-      ],
-    },
-  ];
-
   // Handle loading state
   if (loading) {
     return (
@@ -927,7 +927,6 @@ export default function App() {
       </div>
     );
   }
-  console.log("muniraj")
   // Show login page if not authenticated - this is the primary condition
   if (!isAuthenticated || !user) {
     return <Login onLogin={login} />;
@@ -935,7 +934,6 @@ export default function App() {
 
   return (
     <TooltipProvider>
-     
       <SidebarProvider>
         <div className="min-h-screen w-full bg-gradient-to-br from-gray-50 via-white to-gray-50 flex relative overflow-hidden">
           {/* Enhanced Tour Guide Component */}
@@ -979,7 +977,7 @@ export default function App() {
                       <div className="flex items-center justify-between w-full">
                         <div className="flex flex-col">
                           <span className="text-sm leading-tight">
-                            {/* {group.label} */}
+                            {group.label}
                           </span>
                         </div>
                         {isExpanded ? (
@@ -1205,18 +1203,6 @@ export default function App() {
 
                 {/* Right Side - Enhanced Actions - Quick Actions Area */}
                 <div className="flex items-center gap-3" data-quick-actions>
-                  {/* Logout Button */}
-                  {isAuthenticated && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={logout}
-                      className="hover:bg-red-500 hover:text-white"
-                    >
-                      Logout
-                    </Button>
-                  )}
-
                   {/* Tour Guide Button with Dropdown */}
                   <div className="flex items-center gap-1">
                     <Button
