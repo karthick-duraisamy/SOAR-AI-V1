@@ -110,14 +110,16 @@ class LeadHistorySerializer(serializers.ModelSerializer):
         """Extract assigned agent name from history type and details"""
         if obj.history_type in ['agent_assignment', 'agent_reassignment']:
             # Extract agent name from the action text
-            if 'assigned to' in obj.action.lower():
-                parts = obj.action.split(' to ')
-                if len(parts) > 1:
-                    return parts[1]
+            if 'assigned to' in obj.action.lower() or 'reassigned to' in obj.action.lower():
+                # Find the agent name after "to"
+                import re
+                match = re.search(r'(?:assigned|reassigned) to (.+)', obj.action, re.IGNORECASE)
+                if match:
+                    return match.group(1).strip()
             elif 'assigned:' in obj.action.lower():
                 parts = obj.action.split(': ')
                 if len(parts) > 1:
-                    return parts[1]
+                    return parts[1].strip()
         return obj.lead.assigned_agent if obj.lead else None
 
 class LeadSerializer(serializers.ModelSerializer):

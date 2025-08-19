@@ -663,13 +663,44 @@ class LeadViewSet(viewsets.ModelViewSet):
                         timestamp=current_time
                     )
                     
-                    # 2. Agent assignment (if assigned)
-                    if lead.assigned_agent or lead.assigned_to:
+                    # 2. Parse agent assignments from notes if they exist
+                    if lead.notes and '[Agent Assignment' in lead.notes:
+                        import re
+                        # Extract agent assignments from notes
+                        agent_assignments = re.findall(r'\[Agent Assignment - ([^\]]+)\]\s*Assigned to: ([^\n]+)\s*Priority: ([^\n]+)(?:\s*Assignment Notes: ([^\n]+))?', lead.notes)
+                        
+                        for idx, (date_str, agent_name, priority, assignment_notes) in enumerate(agent_assignments):
+                            try:
+                                # Parse the date
+                                import datetime
+                                assignment_time = datetime.datetime.strptime(date_str, '%Y-%m-%d %H:%M')
+                                assignment_time = timezone.make_aware(assignment_time)
+                            except:
+                                assignment_time = current_time + timedelta(hours=idx + 1)
+                            
+                            history_type = 'agent_reassignment' if idx > 0 else 'agent_assignment'
+                            action = f'Agent {"reassigned" if idx > 0 else "assigned"} to {agent_name}'
+                            details = f'Lead {"reassigned" if idx > 0 else "assigned"} to {agent_name} with {priority.lower()}.'
+                            if assignment_notes:
+                                details += f' Assignment notes: {assignment_notes}'
+                            
+                            LeadHistory.objects.create(
+                                lead=lead,
+                                history_type=history_type,
+                                action=action,
+                                details=details,
+                                icon='user',
+                                user=lead.assigned_to,
+                                timestamp=assignment_time
+                            )
+                    
+                    # 3. Agent assignment (if assigned and not already processed from notes)
+                    elif lead.assigned_agent or lead.assigned_to:
                         current_time += timedelta(hours=1)
                         agent_name = lead.assigned_agent or (f"{lead.assigned_to.first_name} {lead.assigned_to.last_name}".strip() if lead.assigned_to else "Unknown Agent")
                         LeadHistory.objects.create(
                             lead=lead,
-                            history_type='assignment',
+                            history_type='agent_assignment',
                             action=f'Lead assigned to {agent_name}',
                             details=f'Lead assigned to {agent_name} for follow-up and qualification.',
                             icon='user',
@@ -677,7 +708,7 @@ class LeadViewSet(viewsets.ModelViewSet):
                             timestamp=current_time
                         )
                     
-                    # 3. Status-specific entries
+                    # 4. Status-specific entries
                     if lead.status == 'contacted':
                         current_time += timedelta(hours=2)
                         LeadHistory.objects.create(
@@ -726,7 +757,7 @@ class LeadViewSet(viewsets.ModelViewSet):
                             timestamp=current_time
                         )
                     
-                    # 4. Add notes from lead_notes
+                    # 5. Add notes from lead_notes (excluding agent assignment entries)
                     for note in lead.lead_notes.all()[:3]:  # Latest 3 notes
                         current_time += timedelta(hours=1)
                         LeadHistory.objects.create(
@@ -739,7 +770,7 @@ class LeadViewSet(viewsets.ModelViewSet):
                             timestamp=current_time
                         )
                     
-                    # 5. Score update (if score > 50)
+                    # 6. Score update (if score > 50)
                     if lead.score > 50:
                         current_time += timedelta(hours=1)
                         LeadHistory.objects.create(

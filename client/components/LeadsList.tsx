@@ -93,6 +93,7 @@ interface HistoryEntry {
   metadata?: any;
   formatted_timestamp?: string;
   assigned_agent?: string; // Added for agent assignment history
+  icon?: string; // Added for icon mapping
 }
 
 // Interface for Lead (simplified for context)
@@ -186,7 +187,7 @@ const transformApiLeadToUILead = (apiLead: any) => {
     industry: apiLead.company.industry || 'Unknown',
     employees: apiLead.company?.size || 0,
     revenue: apiLead.company?.annual_revenue ? `$${Math.floor(apiLead.company.annual_revenue / 1000)}K` : '$0K',
-    location: apiLead.company?.location || 'Unknown Location',
+    location: apiLead.company.location || 'Unknown Location',
     status: apiLead.status || 'new',
     score: apiLead.score || 50,
     source: apiLead.source || 'Unknown',
@@ -2552,107 +2553,103 @@ SOAR-AI Team`,
 
       {/* History Dialog */}
       <Dialog open={showHistoryDialog} onOpenChange={setShowHistoryDialog}>
-        <DialogContent className="max-w-3xl max-h-[80vh] overflow-hidden">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-lg font-semibold">
-              <History className="h-5 w-5 text-blue-600" />
-              Lead History - {selectedLeadForHistory?.company}
-            </DialogTitle>
-            <DialogDescription className="text-sm text-gray-600">
-              Complete activity history for {selectedLeadForHistory?.contact} at {selectedLeadForHistory?.company}
-            </DialogDescription>
-          </DialogHeader>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <History className="h-5 w-5" />
+                Lead History - {selectedLeadForHistory?.company}
+              </DialogTitle>
+              <DialogDescription>
+                Complete activity history for {selectedLeadForHistory?.contact} at {selectedLeadForHistory?.company}
+              </DialogDescription>
+            </DialogHeader>
 
-          <div className="overflow-y-auto max-h-[60vh] pr-2">
             {isLoadingHistory ? (
-              <div className="flex items-center justify-center py-12">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600 mr-3"></div>
-                <p className="text-gray-600">Loading history...</p>
-              </div>
-            ) : leadHistory[selectedLeadForHistory?.id]?.length === 0 ? (
-              <div className="text-center py-12">
-                <History className="h-12 w-12 mx-auto mb-4 text-gray-400" />
-                <p>No history available for this lead.</p>
+              <div className="flex items-center justify-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600"></div>
+                <span className="ml-2 text-gray-600">Loading history...</span>
               </div>
             ) : (
-              <div className="space-y-4">
-                {leadHistory[selectedLeadForHistory?.id]?.map((entry, index) => {
-                  const getIconForHistoryType = (historyType: string) => {
-                    switch (historyType) {
-                      case 'agent_assignment':
-                      case 'agent_reassignment':
-                        return <User className="h-4 w-4 text-purple-600" />;
-                      case 'note_added':
-                        return <MessageSquare className="h-4 w-4 text-green-600" />;
-                      case 'call_made':
-                        return <Phone className="h-4 w-4 text-blue-600" />;
-                      case 'status_change':
-                        return <TrendingUp className="h-4 w-4 text-orange-600" />;
-                      case 'creation':
-                        return <Plus className="h-4 w-4 text-gray-600" />;
-                      default:
-                        return <Plus className="h-4 w-4 text-blue-600" />;
-                    }
-                  };
+              <div className="mt-4">
+                {leadHistory[selectedLeadForHistory?.id] && leadHistory[selectedLeadForHistory.id].length > 0 ? (
+                  <div className="space-y-4">
+                    {leadHistory[selectedLeadForHistory.id].map((entry, index) => {
+                      const getIconComponent = (iconName: string) => {
+                        const iconMap: { [key: string]: React.ComponentType<{ className?: string }> } = {
+                          'plus': Plus,
+                          'mail': Mail,
+                          'phone': Phone,
+                          'message-circle': MessageCircle,
+                          'message-square': MessageSquare,
+                          'trending-up': TrendingUp,
+                          'user': User,
+                          'check-circle': CheckCircle,
+                          'x-circle': X,
+                          'calendar': Calendar,
+                          'briefcase': Briefcase,
+                          'file-text': Edit,
+                          'handshake': Handshake,
+                          'trophy': Award,
+                        };
+                        return iconMap[iconName] || Plus;
+                      };
 
-                  const getBgColorForHistoryType = (historyType: string) => {
-                    switch (historyType) {
-                      case 'agent_assignment':
-                      case 'agent_reassignment':
-                        return 'bg-purple-100';
-                      case 'note_added':
-                        return 'bg-green-100';
-                      case 'call_made':
-                        return 'bg-blue-100';
-                      case 'status_change':
-                        return 'bg-orange-100';
-                      case 'creation':
-                        return 'bg-gray-100';
-                      default:
-                        return 'bg-blue-100';
-                    }
-                  };
+                      const IconComponent = getIconComponent(entry.icon);
+                      const isAgentAssignment = entry.history_type === 'agent_assignment' || entry.history_type === 'agent_reassignment';
 
-                  return (
-                    <div key={entry.id} className="flex gap-3 p-3 bg-gray-50 rounded-lg border">
-                      <div className="flex-shrink-0">
-                        <div className={`w-8 h-8 ${getBgColorForHistoryType(entry.history_type || '')} rounded-full flex items-center justify-center`}>
-                          {getIconForHistoryType(entry.history_type || '')}
-                        </div>
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-start justify-between">
-                          <div className="flex-1">
-                            <h4 className="text-sm font-medium text-gray-900 mb-1">
-                              {entry.action}
-                            </h4>
-                            <p className="text-sm text-gray-600 mb-2">
-                              {entry.details}
-                            </p>
-                            {(entry.history_type === 'agent_assignment' || entry.history_type === 'agent_reassignment') && entry.assigned_agent && (
-                              <div className="mb-2 p-2 bg-purple-50 rounded border border-purple-200">
-                                <div className="text-xs font-medium text-purple-800">Assigned Agent Details:</div>
-                                <div className="text-xs text-purple-700">Agent: {entry.assigned_agent}</div>
-                              </div>
-                            )}
-                            <div className="flex items-center gap-4 text-xs text-gray-500">
-                              <span className="flex items-center gap-1">
-                                <User className="h-3 w-3" />
-                                by {entry.user_name || 'System'}
-                              </span>
+                      return (
+                        <div key={index} className="flex gap-4 pb-4 border-b border-gray-100 last:border-b-0">
+                          <div className="flex-shrink-0">
+                            <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                              isAgentAssignment ? 'bg-blue-100' : 'bg-orange-100'
+                            }`}>
+                              <IconComponent className={`h-5 w-5 ${
+                                isAgentAssignment ? 'text-blue-600' : 'text-orange-600'
+                              }`} />
                             </div>
                           </div>
-                          <div className="text-xs text-gray-500 text-right ml-4">
-                            {entry.formatted_timestamp || format(new Date(entry.timestamp), 'MMM d, yyyy h:mm a')}
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-start justify-between">
+                              <div className="flex-1">
+                                <p className="text-sm font-medium text-gray-900">
+                                  {entry.action}
+                                </p>
+                                <p className="text-sm text-gray-600 mt-1">
+                                  {entry.details}
+                                </p>
+
+                                {/* Show assigned agent info for agent assignment entries */}
+                                {isAgentAssignment && entry.assigned_agent && (
+                                  <div className="mt-2 p-2 bg-blue-50 border border-blue-200 rounded-lg">
+                                    <div className="flex items-center gap-2">
+                                      <User className="h-4 w-4 text-blue-600" />
+                                      <span className="text-sm font-medium text-blue-900">
+                                        Assigned Agent: {entry.assigned_agent}
+                                      </span>
+                                    </div>
+                                  </div>
+                                )}
+
+                                <div className="flex items-center gap-4 mt-2 text-xs text-gray-500">
+                                  <span>by {entry.user_name || 'System'}</span>
+                                  <span>{entry.formatted_timestamp || new Date(entry.timestamp).toLocaleDateString()}</span>
+                                  {entry.user_role && <span>• {entry.user_role}</span>}
+                                </div>
+                              </div>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    </div>
-                  );
-                })}
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div className="text-center py-8 text-gray-500">
+                    <History className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+                    <p>No history available for this lead.</p>
+                  </div>
+                )}
               </div>
             )}
-          </div>
 
           <DialogFooter className="border-t border-gray-200 pt-4">
             <Button onClick={() => setShowHistoryDialog(false)} className="bg-[#FD9646] hover:bg-[#FD9646]/90 text-white">
