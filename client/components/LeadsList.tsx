@@ -202,7 +202,7 @@ const transformApiLeadToUILead = (apiLead: any) => {
   };
 };
 
-
+// Transform API lead data to match the component's expected format for view profile
 const transformCompanyDataForViewProfile = (apiLead) => {
   console.log(apiLead, "apilead for view profile")
   // Transform backend data to match frontend expectations
@@ -250,7 +250,7 @@ const transformCompanyDataForViewProfile = (apiLead) => {
   };
 };
 
-// Helper functions
+// Helper functions for company profile data transformation
 const getCompanyTypeDisplay = (size) => {
   const types = {
     startup: "Startup Company",
@@ -388,10 +388,6 @@ const getRandomRiskLevel = () => {
   const risks = ["Very Low", "Low", "Medium", "High"];
   return risks[Math.floor(Math.random() * risks.length)];
 };
-
-
-
-
 
 // This function is now primarily for reference if needed, but history is fetched from API
 // It's kept here as a fallback or for understanding the original logic.
@@ -3584,7 +3580,7 @@ Key Topics: Travel volume, preferred airlines, booking preferences, cost optimiz
             </DialogTitle>
             <DialogDescription className="text-sm text-gray-600">
               {selectedLeadForAssign?.assignedAgent 
-                ? `Reassign this lead from ${selectedLeadForAssign.assignedAgent} to a sales agent for personalized follow-up and management`
+                ? 'Reassign this lead from ${selectedLeadForAssign.assignedAgent} to a sales agent for personalized follow-up and management'
                 : 'Assign this lead to a sales agent for personalized follow-up and management'
               }
             </DialogDescription>

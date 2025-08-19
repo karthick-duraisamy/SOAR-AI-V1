@@ -646,6 +646,23 @@ class LeadViewSet(viewsets.ModelViewSet):
         try:
             lead = self.get_object()
             history_entries = lead.history_entries.all().order_by('timestamp')
+            
+            # If no history entries exist, create a basic one
+            if not history_entries.exists():
+                try:
+                    LeadHistory.objects.create(
+                        lead=lead,
+                        history_type='creation',
+                        action='Lead created',
+                        details=f'Lead created from {lead.source} source. Initial contact information collected for {lead.company.name}.',
+                        icon='plus',
+                        user=None
+                    )
+                    # Fetch again after creation
+                    history_entries = lead.history_entries.all().order_by('timestamp')
+                except Exception as create_error:
+                    print(f"Error creating initial history: {create_error}")
+            
             serializer = LeadHistorySerializer(history_entries, many=True)
             return Response(serializer.data)
         except Exception as e:

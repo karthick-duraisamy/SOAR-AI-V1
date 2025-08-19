@@ -489,9 +489,9 @@ export const useLeadApi = () => {
       return response.data;
     } catch (error: any) {
       console.error('Error fetching opportunities:', error);
-      const errorMessage = error.response?.data?.detail || 
-                          error.response?.data?.message || 
-                          error.message || 
+      const errorMessage = error.response?.data?.detail ||
+                          error.response?.data?.message ||
+                          error.message ||
                           'Failed to fetch opportunities';
       setError(errorMessage);
       return []; // Return empty array instead of throwing to prevent crashes
@@ -515,9 +515,9 @@ export const useLeadApi = () => {
       return response.data;
     } catch (error: any) {
       console.error('Error updating opportunity stage:', error);
-      const errorMessage = error.response?.data?.detail || 
-                          error.response?.data?.message || 
-                          error.message || 
+      const errorMessage = error.response?.data?.detail ||
+                          error.response?.data?.message ||
+                          error.message ||
                           'Failed to update opportunity stage';
       setError(errorMessage);
       throw error;
@@ -540,9 +540,9 @@ export const useLeadApi = () => {
       return response.data;
     } catch (error: any) {
       console.error('Error fetching pipeline data:', error);
-      const errorMessage = error.response?.data?.detail || 
-                          error.response?.data?.message || 
-                          error.message || 
+      const errorMessage = error.response?.data?.detail ||
+                          error.response?.data?.message ||
+                          error.message ||
                           'Failed to fetch pipeline data';
       setError(errorMessage);
       throw error;
