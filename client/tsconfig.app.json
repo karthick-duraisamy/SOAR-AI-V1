@@ -29,7 +29,6 @@
     "hooks/**/*.tsx",
     "styles/**/*",
     "types/**/*",
-    "App.tsx",
     "src/vite-env.d.ts"
   ],
   "exclude": [
