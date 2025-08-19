@@ -124,12 +124,14 @@ const useAuth = () => {
   const login = (userData) => {
     setUser(userData);
     setIsAuthenticated(true);
+    alert('hii')
     localStorage.setItem("soar_user", JSON.stringify(userData));
   };
 
   const logout = () => {
     setUser(null);
     setIsAuthenticated(false);
+    alert('hii')
     localStorage.removeItem("soar_user");
   };
 
@@ -925,7 +927,7 @@ export default function App() {
       </div>
     );
   }
-
+  console.log("muniraj")
   // Show login page if not authenticated - this is the primary condition
   if (!isAuthenticated || !user) {
     return <Login onLogin={login} />;
@@ -933,6 +935,7 @@ export default function App() {
 
   return (
     <TooltipProvider>
+     
       <SidebarProvider>
         <div className="min-h-screen w-full bg-gradient-to-br from-gray-50 via-white to-gray-50 flex relative overflow-hidden">
           {/* Enhanced Tour Guide Component */}
@@ -976,7 +979,7 @@ export default function App() {
                       <div className="flex items-center justify-between w-full">
                         <div className="flex flex-col">
                           <span className="text-sm leading-tight">
-                            {group.label}
+                            {/* {group.label} */}
                           </span>
                         </div>
                         {isExpanded ? (
