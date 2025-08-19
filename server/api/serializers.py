@@ -76,6 +76,8 @@ class LeadNoteSerializer(serializers.ModelSerializer):
 
 class LeadHistorySerializer(serializers.ModelSerializer):
     user_name = serializers.SerializerMethodField()
+    user_role = serializers.SerializerMethodField()
+    formatted_timestamp = serializers.SerializerMethodField()
 
     class Meta:
         model = LeadHistory
@@ -85,6 +87,23 @@ class LeadHistorySerializer(serializers.ModelSerializer):
         if obj.user:
             return f"{obj.user.first_name} {obj.user.last_name}".strip() or obj.user.username
         return "System"
+    
+    def get_user_role(self, obj):
+        if obj.user:
+            # You can customize this based on your user model
+            if obj.user.is_staff:
+                return "Sales Manager"
+            return "Sales Representative"
+        return "System"
+    
+    def get_formatted_timestamp(self, obj):
+        from django.utils import timezone
+        from datetime import datetime
+        
+        if obj.timestamp:
+            # Format as "7/8/2024 at 9:15:00 AM"
+            return obj.timestamp.strftime('%m/%d/%Y at %I:%M:%S %p')
+        return ""
 
 class LeadSerializer(serializers.ModelSerializer):
     company = CompanySerializer(read_only=True)

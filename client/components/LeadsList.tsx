@@ -1193,15 +1193,15 @@ SOAR-AI Team`,
       // Transform API response to internal format
       const transformedHistory = history.map((item: any) => ({
         id: item.id,
-        type: item.history_type, // Use the type from the API response
+        history_type: item.history_type, // Use the type from the API response
         action: item.action,     // Use the action from the API response
-        user: item.user_name || 'System', // Use user_name if available, else fallback
+        user_name: item.user_name || 'System', // Use user_name if available, else fallback
+        user_role: item.user_role,
         timestamp: item.timestamp,
         details: item.details,
         icon: item.icon || 'plus', // Use icon from API, or 'plus' as default
-        // Include urgency and next_action if they exist in the API response for specific history types
-        urgency: item.urgency,
-        next_action: item.next_action
+        metadata: item.metadata, // Pass metadata directly
+        formatted_timestamp: item.formatted_timestamp // Use formatted timestamp if available from API
       }));
 
       setLeadHistory(prev => ({
@@ -2544,21 +2544,15 @@ SOAR-AI Team`,
 
       {/* History Dialog */}
       <Dialog open={showHistoryDialog} onOpenChange={setShowHistoryDialog}>
-        <DialogContent className="max-w-4xl max-h-[85vh] overflow-hidden">
-          <DialogHeader className="border-b border-gray-200 pb-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <DialogTitle className="text-xl font-semibold text-gray-900">
-                  Lead History - {selectedLeadForHistory?.company?.name || 'Company'}
-                </DialogTitle>
-                <DialogDescription className="text-gray-600 mt-1">
-                  Complete activity history for {selectedLeadForHistory?.contact?.first_name} {selectedLeadForHistory?.contact?.last_name} at {selectedLeadForHistory?.company?.name}
-                </DialogDescription>
-              </div>
-              <Button variant="ghost" size="sm" onClick={() => setShowHistoryDialog(false)} className="text-gray-500 hover:text-gray-700">
-                <X className="h-4 w-4" />
-              </Button>
-            </div>
+        <DialogContent className="max-w-3xl max-h-[80vh] overflow-hidden">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <History className="h-5 w-5 text-orange-600" />
+              Lead History - {selectedLeadForHistory?.company}
+            </DialogTitle>
+            <DialogDescription>
+              Complete activity history for {selectedLeadForHistory?.contact} at {selectedLeadForHistory?.company}
+            </DialogDescription>
           </DialogHeader>
 
           <div className="py-4 max-h-[65vh] overflow-y-auto">
@@ -2567,144 +2561,150 @@ SOAR-AI Team`,
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600 mr-3"></div>
                 <p className="text-gray-600">Loading history...</p>
               </div>
-            ) : (leadHistory[selectedLeadForHistory?.id || 0] || []).length === 0 ? (
+            ) : leadHistory[selectedLeadForHistory?.id]?.length === 0 ? (
               <div className="text-center py-12">
                 <History className="h-12 w-12 mx-auto mb-4 text-gray-400" />
                 <p className="text-gray-600 text-lg">No history available for this lead.</p>
               </div>
             ) : (
               <div className="space-y-6">
-                {(leadHistory[selectedLeadForHistory?.id || 0] || []).map((entry, index) => {
-                  const getHistoryIcon = (icon: string) => {
-                    const iconMap: { [key: string]: any } = {
-                      'plus': Plus,
-                      'mail': Mail,
-                      'phone': Phone,
-                      'message-circle': MessageCircle,
-                      'message-square': MessageSquare,
-                      'trending-up': TrendingUpIcon,
-                      'user': User,
-                      'check-circle': CheckCircle,
-                      'x-circle': UserX,
-                      'calendar': Calendar,
-                      'briefcase': Briefcase,
-                      'file-text': Edit,
-                      'handshake': Handshake,
-                      'trophy': Award,
-                      'x': UserX
-                    };
-                    return iconMap[icon] || Activity;
-                  };
-
-                  const getActionTypeLabel = (type: string) => {
-                    const typeMap: { [key: string]: string } = {
-                      'creation': 'Note',
-                      'status_change': 'Status',
-                      'note_added': 'Note',
-                      'score_update': 'Score',
-                      'assignment': 'Assignment',
-                      'contact_made': 'Call',
-                      'email_sent': 'Email',
-                      'call_made': 'Call',
-                      'meeting_scheduled': 'Meeting',
-                      'qualification': 'Qualification',
-                      'disqualification': 'Disqualification',
-                      'opportunity_created': 'Opportunity',
-                      'proposal_sent': 'Proposal',
-                      'negotiation_started': 'Negotiation',
-                      'won': 'Won',
-                      'lost': 'Lost'
-                    };
-                    return typeMap[type] || 'Activity';
-                  };
-
-                  const getIconColor = (type: string) => {
-                    const colorMap: { [key: string]: string } = {
-                      'creation': 'bg-blue-100 text-blue-600',
-                      'status_change': 'bg-green-100 text-green-600',
-                      'note_added': 'bg-purple-100 text-purple-600',
-                      'score_update': 'bg-orange-100 text-orange-600',
-                      'assignment': 'bg-indigo-100 text-indigo-600',
-                      'contact_made': 'bg-blue-100 text-blue-600',
-                      'email_sent': 'bg-blue-100 text-blue-600',
-                      'call_made': 'bg-green-100 text-green-600',
-                      'meeting_scheduled': 'bg-purple-100 text-purple-600',
-                      'qualification': 'bg-green-100 text-green-600',
-                      'disqualification': 'bg-red-100 text-red-600',
-                      'opportunity_created': 'bg-yellow-100 text-yellow-600',
-                      'proposal_sent': 'bg-indigo-100 text-indigo-600',
-                      'negotiation_started': 'bg-purple-100 text-purple-600',
-                      'won': 'bg-green-100 text-green-600',
-                      'lost': 'bg-red-100 text-red-600'
-                    };
-                    return colorMap[entry.type] || 'bg-gray-100 text-gray-600';
-                  };
-
+                {leadHistory[selectedLeadForHistory?.id]?.map((entry, index) => {
                   const IconComponent = getHistoryIcon(entry.icon);
-                  const formatTimestamp = (timestamp: string) => {
-                    const date = new Date(timestamp);
-                    return date.toLocaleDateString('en-US', {
-                      month: 'numeric',
-                      day: 'numeric',
-                      year: 'numeric'
-                    }) + ' at ' + date.toLocaleTimeString('en-US', {
-                      hour: 'numeric',
-                      minute: '2-digit',
-                      hour12: true
-                    });
-                  };
 
                   return (
-                    <div key={entry.id} className="flex items-start gap-4 relative">
+                    <div key={entry.id} className="flex gap-4 group">
                       {/* Timeline line */}
-                      {index < (leadHistory[selectedLeadForHistory?.id || 0] || []).length - 1 && (
-                        <div className="absolute left-6 top-12 w-px h-12 bg-gray-200"></div>
-                      )}
-
-                      {/* Icon */}
-                      <div className={`flex items-center justify-center w-12 h-12 rounded-full flex-shrink-0 ${getIconColor(entry.type)}`}>
-                        <IconComponent className="h-5 w-5" />
+                      <div className="flex flex-col items-center">
+                        <div className={`flex items-center justify-center w-10 h-10 rounded-full ${
+                          entry.history_type === 'qualification' ? 'bg-green-100' :
+                          entry.history_type === 'disqualification' ? 'bg-red-100' :
+                          entry.history_type === 'note_added' ? 'bg-blue-100' :
+                          entry.history_type === 'assignment' ? 'bg-purple-100' :
+                          entry.history_type === 'call_made' ? 'bg-orange-100' :
+                          entry.history_type === 'contact_made' ? 'bg-cyan-100' :
+                          entry.history_type === 'status_change' ? 'bg-yellow-100' :
+                          'bg-gray-100'
+                        }`}>
+                          <IconComponent className={`h-5 w-5 ${
+                            entry.history_type === 'qualification' ? 'text-green-600' :
+                            entry.history_type === 'disqualification' ? 'text-red-600' :
+                            entry.history_type === 'note_added' ? 'text-blue-600' :
+                            entry.history_type === 'assignment' ? 'text-purple-600' :
+                            entry.history_type === 'call_made' ? 'text-orange-600' :
+                            entry.history_type === 'contact_made' ? 'text-cyan-600' :
+                            entry.history_type === 'status_change' ? 'text-yellow-600' :
+                            'text-gray-600'
+                          }`} />
+                        </div>
+                        {index < leadHistory[selectedLeadForHistory?.id]?.length - 1 && (
+                          <div className="w-px h-16 bg-gray-200 mt-2"></div>
+                        )}
                       </div>
 
                       {/* Content */}
-                      <div className="flex-1 min-w-0 bg-white border border-gray-200 rounded-lg p-4">
-                        <div className="flex items-start justify-between gap-4">
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-2">
-                              <span className="text-xs font-medium text-gray-500 bg-gray-100 px-2 py-1 rounded">
-                                {getActionTypeLabel(entry.type)}
-                              </span>
-                              <span className="text-sm text-gray-500">
-                                {formatTimestamp(entry.timestamp)}
-                              </span>
-                            </div>
-                            <h4 className="font-medium text-gray-900 mb-2">{entry.action}</h4>
-                            <p className="text-gray-600 text-sm leading-relaxed">{entry.details}</p>
-                            {(entry.urgency || entry.next_action) && (
-                              <div className="mt-3 flex gap-2">
-                                {entry.urgency && (
-                                  <span className={`text-xs px-2 py-1 rounded-full ${
-                                    entry.urgency === 'High' || entry.urgency === 'Urgent' 
-                                      ? 'bg-red-100 text-red-700' 
-                                      : entry.urgency === 'Medium'
-                                      ? 'bg-yellow-100 text-yellow-700'
-                                      : 'bg-green-100 text-green-700'
-                                  }`}>
-                                    {entry.urgency} Priority
-                                  </span>
-                                )}
-                                {entry.next_action && (
-                                  <span className="text-xs px-2 py-1 rounded-full bg-blue-100 text-blue-700">
-                                    Next: {entry.next_action}
-                                  </span>
+                      <div className="flex-1 pb-6">
+                        <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow">
+                          <div className="flex items-start justify-between mb-3">
+                            <div className="flex-1">
+                              <h4 className="font-semibold text-gray-900 text-base">{entry.action}</h4>
+                              <div className="flex items-center gap-4 mt-1">
+                                <p className="text-sm text-gray-600">
+                                  by <span className="font-medium">{entry.user_name}</span>
+                                  {entry.user_role && <span className="text-gray-400"> • {entry.user_role}</span>}
+                                </p>
+                                {entry.history_type && (
+                                  <Badge variant="outline" className="text-xs">
+                                    {entry.history_type.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                                  </Badge>
                                 )}
                               </div>
-                            )}
+                            </div>
+                            <span className="text-xs text-gray-500 bg-gray-50 px-2 py-1 rounded">
+                              {entry.formatted_timestamp || format(new Date(entry.timestamp), 'MMM d, yyyy h:mm a')}
+                            </span>
                           </div>
-                        </div>
-                        <div className="flex items-center gap-1 mt-3 text-xs text-gray-500">
-                          <User className="h-3 w-3" />
-                          <span>by {entry.user || 'System'}</span>
+
+                          <p className="text-sm text-gray-700 leading-relaxed mb-3">{entry.details}</p>
+
+                          {/* Activity Type Specific Details */}
+                          {entry.history_type === 'assignment' && (
+                            <div className="bg-purple-50 border border-purple-200 rounded p-3 mt-3">
+                              <div className="flex items-center gap-2 mb-2">
+                                <User className="h-4 w-4 text-purple-600" />
+                                <span className="text-sm font-medium text-purple-800">Assigned Agent Details</span>
+                              </div>
+                              <div className="text-sm text-purple-700">
+                                <p><span className="font-medium">Agent:</span> {entry.user_name}</p>
+                                <p><span className="font-medium">Role:</span> {entry.user_role || 'Sales Representative'}</p>
+                                <p><span className="font-medium">Status:</span> Active Assignment</p>
+                              </div>
+                            </div>
+                          )}
+
+                          {entry.history_type === 'note_added' && (
+                            <div className="bg-blue-50 border border-blue-200 rounded p-3 mt-3">
+                              <div className="flex items-center gap-2 mb-2">
+                                <MessageSquare className="h-4 w-4 text-blue-600" />
+                                <span className="text-sm font-medium text-blue-800">Note Details</span>
+                              </div>
+                              <div className="text-sm text-blue-700">
+                                <p><span className="font-medium">Added by:</span> {entry.user_name}</p>
+                                {entry.metadata?.urgency && (
+                                  <p><span className="font-medium">Urgency:</span> {entry.metadata.urgency}</p>
+                                )}
+                                {entry.metadata?.next_action && (
+                                  <p><span className="font-medium">Next Action:</span> {entry.metadata.next_action}</p>
+                                )}
+                              </div>
+                            </div>
+                          )}
+
+                          {entry.history_type === 'call_made' && (
+                            <div className="bg-orange-50 border border-orange-200 rounded p-3 mt-3">
+                              <div className="flex items-center gap-2 mb-2">
+                                <Phone className="h-4 w-4 text-orange-600" />
+                                <span className="text-sm font-medium text-orange-800">Call Details</span>
+                              </div>
+                              <div className="text-sm text-orange-700">
+                                <p><span className="font-medium">Call Type:</span> Discovery Call</p>
+                                <p><span className="font-medium">Duration:</span> 30 minutes</p>
+                                <p><span className="font-medium">Conducted by:</span> {entry.user_name}</p>
+                                <p><span className="font-medium">Outcome:</span> Requirements discussed</p>
+                              </div>
+                            </div>
+                          )}
+
+                          {(entry.history_type === 'qualification' || entry.history_type === 'disqualification' || entry.history_type === 'status_change') && (
+                            <div className={`border rounded p-3 mt-3 ${
+                              entry.history_type === 'qualification' ? 'bg-green-50 border-green-200' :
+                              entry.history_type === 'disqualification' ? 'bg-red-50 border-red-200' :
+                              'bg-yellow-50 border-yellow-200'
+                            }`}>
+                              <div className="flex items-center gap-2 mb-2">
+                                {entry.history_type === 'qualification' ? (
+                                  <CheckCircle className="h-4 w-4 text-green-600" />
+                                ) : entry.history_type === 'disqualification' ? (
+                                  <AlertTriangle className="h-4 w-4 text-red-600" />
+                                ) : (
+                                  <RefreshCw className="h-4 w-4 text-yellow-600" />
+                                )}
+                                <span className={`text-sm font-medium ${
+                                  entry.history_type === 'qualification' ? 'text-green-800' :
+                                  entry.history_type === 'disqualification' ? 'text-red-800' :
+                                  'text-yellow-800'
+                                }`}>Status Details</span>
+                              </div>
+                              <div className={`text-sm ${
+                                entry.history_type === 'qualification' ? 'text-green-700' :
+                                entry.history_type === 'disqualification' ? 'text-red-700' :
+                                'text-yellow-700'
+                              }`}>
+                                <p><span className="font-medium">Status Change:</span> {entry.action}</p>
+                                <p><span className="font-medium">Updated by:</span> {entry.user_name}</p>
+                                <p><span className="font-medium">Lead Score:</span> {selectedLeadForHistory?.score || 'N/A'}</p>
+                              </div>
+                            </div>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -2714,8 +2714,12 @@ SOAR-AI Team`,
             )}
           </div>
 
-          <DialogFooter className="border-t border-gray-200 pt-4">
-            <Button onClick={() => setShowHistoryDialog(false)} className="bg-[#FD9646] hover:bg-[#FD9646]/90 text-white">
+          <DialogFooter>
+            <Button 
+              variant="outline" 
+              onClick={() => setShowHistoryDialog(false)}
+              className="text-gray-600 border-gray-300"
+            >
               Close
             </Button>
           </DialogFooter>
