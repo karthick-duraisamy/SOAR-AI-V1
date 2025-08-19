@@ -64,7 +64,8 @@ import {
   Eye,
   Handshake, // Added for contract_signed
   Award,    // Added for deal_won
-  Save // Added for Save button in dialog
+  Save, // Added for Save button in dialog
+  X // Added for close button in dialog
 } from 'lucide-react';
 import { toast } from "sonner";
 import { format } from 'date-fns';
@@ -552,7 +553,7 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
   const [expandedNotes, setExpandedNotes] = useState<{[key: number]: boolean}>({});
   const [showHistoryDialog, setShowHistoryDialog] = useState(false);
    const [showAddCompanyDialog, setShowAddCompanyDialog] = useState(false);
-  
+
   // Actions dropdown states
   const [showInitiateCallModal, setShowInitiateCallModal] = useState(false);
   const [showScheduleMeetingModal, setShowScheduleMeetingModal] = useState(false);
@@ -1305,7 +1306,7 @@ SOAR-AI Team`,
 
     try {
       setIsAssigning(true);
-      
+
       // Call API to assign agent
       await leadApi.assignAgent(selectedLeadForAssign.id, {
         agent: selectedAgent,
@@ -1469,7 +1470,7 @@ SOAR-AI Team`,
             corporateData={selectedCorporate}
             onBack={handleBackToSearch}
           />
-          
+
           </div>
         </DialogContent>
       </Dialog>
@@ -2547,119 +2548,167 @@ SOAR-AI Team`,
 
       {/* History Dialog */}
       <Dialog open={showHistoryDialog} onOpenChange={setShowHistoryDialog}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <History className="h-5 w-5 text-gray-600" />
-              Lead History - {selectedLeadForHistory?.company}
-            </DialogTitle>
-            <DialogDescription>
-              Complete activity history for {selectedLeadForHistory?.contact} at {selectedLeadForHistory?.company}
-            </DialogDescription>
+        <DialogContent className="max-w-4xl max-h-[85vh] overflow-hidden">
+          <DialogHeader className="border-b border-gray-200 pb-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <DialogTitle className="text-xl font-semibold text-gray-900">
+                  Lead History - {selectedLeadForHistory?.company?.name || 'Company'}
+                </DialogTitle>
+                <DialogDescription className="text-gray-600 mt-1">
+                  Complete activity history for {selectedLeadForHistory?.contact?.first_name} {selectedLeadForHistory?.contact?.last_name} at {selectedLeadForHistory?.company?.name}
+                </DialogDescription>
+              </div>
+              <Button variant="ghost" size="sm" onClick={() => setShowHistoryDialog(false)} className="text-gray-500 hover:text-gray-700">
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
           </DialogHeader>
 
-          <div className="space-y-4 max-h-[60vh] overflow-y-auto">
+          <div className="py-4 max-h-[65vh] overflow-y-auto">
             {isLoadingHistory ? (
-              <div className="text-center py-8">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
-                <p className="text-gray-500">Loading history...</p>
+              <div className="flex items-center justify-center py-12">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600 mr-3"></div>
+                <p className="text-gray-600">Loading history...</p>
               </div>
             ) : (leadHistory[selectedLeadForHistory?.id || 0] || []).length === 0 ? (
-              <div className="text-center py-8 text-gray-500">
-                No history available for this lead.
+              <div className="text-center py-12">
+                <History className="h-12 w-12 mx-auto mb-4 text-gray-400" />
+                <p className="text-gray-600 text-lg">No history available for this lead.</p>
               </div>
             ) : (
-              <div className="space-y-4">
-                {(leadHistory[selectedLeadForHistory?.id || 0] || []).map((entry) => {
-                  // Use the existing transformHistoryEntry if it's suitable, or adjust
-                  const mappedEntry = {
-                    id: entry.id,
-                    type: entry.type, // Already mapped by handleHistoryClick
-                    action: entry.action,
-                    user: entry.user || 'Unknown User',
-                    timestamp: entry.timestamp,
-                    details: entry.details,
-                    icon: entry.icon, // Use icon from transformed data
-                    urgency: entry.urgency, // Propagate urgency
-                    next_action: entry.next_action // Propagate next_action
+              <div className="space-y-6">
+                {(leadHistory[selectedLeadForHistory?.id || 0] || []).map((entry, index) => {
+                  const getHistoryIcon = (icon: string) => {
+                    const iconMap: { [key: string]: any } = {
+                      'plus': Plus,
+                      'mail': Mail,
+                      'phone': Phone,
+                      'message-circle': MessageCircle,
+                      'message-square': MessageSquare,
+                      'trending-up': TrendingUpIcon,
+                      'user': User,
+                      'check-circle': CheckCircle,
+                      'x-circle': UserX,
+                      'calendar': Calendar,
+                      'briefcase': Briefcase,
+                      'file-text': Edit,
+                      'handshake': Handshake,
+                      'trophy': Award,
+                      'x': UserX
+                    };
+                    return iconMap[icon] || Activity;
                   };
 
-                  const getHistoryIcon = (type: string) => {
-                    switch (type) {
-                      case 'lead_created':
-                        return <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center"><Plus className="h-4 w-4 text-blue-600" /></div>;
-                      case 'note_added':
-                        return <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center"><MessageSquare className="h-4 w-4 text-blue-600" /></div>;
-                      case 'phone_call':
-                        return <div className="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center"><Phone className="h-4 w-4 text-purple-600" /></div>;
-                      case 'meeting_scheduled':
-                        return <div className="w-8 h-8 rounded-full bg-pink-100 flex items-center justify-center"><Calendar className="h-4 w-4 text-pink-600" /></div>;
-                      case 'lead_qualified':
-                        return <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center"><CheckCircle className="h-4 w-4 text-green-600" /></div>;
-                      case 'lead_disqualified':
-                        return <div className="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center"><UserX className="h-4 w-4 text-red-600" /></div>;
-                      case 'email_sent':
-                        return <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center"><Mail className="h-4 w-4 text-blue-600" /></div>;
-                      case 'lead_responded':
-                        return <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center"><MessageCircle className="h-4 w-4 text-green-600" /></div>;
-                      case 'status_change':
-                        return <div className="w-8 h-8 rounded-full bg-yellow-100 flex items-center justify-center"><RefreshCw className="h-4 w-4 text-yellow-600" /></div>;
-                      case 'score_updated':
-                        return <div className="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center"><TrendingUp className="h-4 w-4 text-orange-600" /></div>;
-                      case 'lead_assigned':
-                        return <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center"><User className="h-4 w-4 text-indigo-600" /></div>;
-                      case 'proposal_sent':
-                        return <div className="w-8 h-8 rounded-full bg-teal-100 flex items-center justify-center"><Briefcase className="h-4 w-4 text-teal-600" /></div>;
-                      case 'contract_signed':
-                        return <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center"><Handshake className="h-4 w-4 text-emerald-600" /></div>;
-                      case 'deal_won':
-                        return <div className="w-8 h-8 rounded-full bg-lime-100 flex items-center justify-center"><Award className="h-4 w-4 text-lime-600" /></div>;
-                      default:
-                        return <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center"><Activity className="h-4 w-4 text-gray-600" /></div>;
-                    }
+                  const getActionTypeLabel = (type: string) => {
+                    const typeMap: { [key: string]: string } = {
+                      'creation': 'Note',
+                      'status_change': 'Status',
+                      'note_added': 'Note',
+                      'score_update': 'Score',
+                      'assignment': 'Assignment',
+                      'contact_made': 'Call',
+                      'email_sent': 'Email',
+                      'call_made': 'Call',
+                      'meeting_scheduled': 'Meeting',
+                      'qualification': 'Qualification',
+                      'disqualification': 'Disqualification',
+                      'opportunity_created': 'Opportunity',
+                      'proposal_sent': 'Proposal',
+                      'negotiation_started': 'Negotiation',
+                      'won': 'Won',
+                      'lost': 'Lost'
+                    };
+                    return typeMap[type] || 'Activity';
+                  };
+
+                  const getIconColor = (type: string) => {
+                    const colorMap: { [key: string]: string } = {
+                      'creation': 'bg-blue-100 text-blue-600',
+                      'status_change': 'bg-green-100 text-green-600',
+                      'note_added': 'bg-purple-100 text-purple-600',
+                      'score_update': 'bg-orange-100 text-orange-600',
+                      'assignment': 'bg-indigo-100 text-indigo-600',
+                      'contact_made': 'bg-blue-100 text-blue-600',
+                      'email_sent': 'bg-blue-100 text-blue-600',
+                      'call_made': 'bg-green-100 text-green-600',
+                      'meeting_scheduled': 'bg-purple-100 text-purple-600',
+                      'qualification': 'bg-green-100 text-green-600',
+                      'disqualification': 'bg-red-100 text-red-600',
+                      'opportunity_created': 'bg-yellow-100 text-yellow-600',
+                      'proposal_sent': 'bg-indigo-100 text-indigo-600',
+                      'negotiation_started': 'bg-purple-100 text-purple-600',
+                      'won': 'bg-green-100 text-green-600',
+                      'lost': 'bg-red-100 text-red-600'
+                    };
+                    return colorMap[entry.type] || 'bg-gray-100 text-gray-600';
+                  };
+
+                  const IconComponent = getHistoryIcon(entry.icon);
+                  const formatTimestamp = (timestamp: string) => {
+                    const date = new Date(timestamp);
+                    return date.toLocaleDateString('en-US', {
+                      month: 'numeric',
+                      day: 'numeric',
+                      year: 'numeric'
+                    }) + ' at ' + date.toLocaleTimeString('en-US', {
+                      hour: 'numeric',
+                      minute: '2-digit',
+                      hour12: true
+                    });
                   };
 
                   return (
-                    <div key={entry.id} className="flex items-start gap-4 p-4 rounded-lg border border-gray-100 hover:bg-gray-50 transition-colors">
-                      <div className="flex-shrink-0 mt-1">
-                        {getHistoryIcon(mappedEntry.type)}
+                    <div key={entry.id} className="flex items-start gap-4 relative">
+                      {/* Timeline line */}
+                      {index < (leadHistory[selectedLeadForHistory?.id || 0] || []).length - 1 && (
+                        <div className="absolute left-6 top-12 w-px h-12 bg-gray-200"></div>
+                      )}
+
+                      {/* Icon */}
+                      <div className={`flex items-center justify-center w-12 h-12 rounded-full flex-shrink-0 ${getIconColor(entry.type)}`}>
+                        <IconComponent className="h-5 w-5" />
                       </div>
 
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between mb-2">
-                          <div className="flex items-center gap-2">
-                            <span className="text-xs px-2 py-1 bg-gray-100 rounded-full text-gray-600 uppercase font-medium">
-                              {mappedEntry.type}
-                            </span>
-                            <h4 className="text-sm font-semibold text-gray-900">
-                              {mappedEntry.action}
-                            </h4>
-                            {/* Add urgency badge if available and relevant, e.g., from note_added */}
-                            {entry.urgency && entry.urgency !== 'Medium' && (
-                               <Badge className={`text-xs px-1 py-0 ${getUrgencyBadgeStyle(entry.urgency)}`}>
-                                {entry.urgency}
-                              </Badge>
+                      {/* Content */}
+                      <div className="flex-1 min-w-0 bg-white border border-gray-200 rounded-lg p-4">
+                        <div className="flex items-start justify-between gap-4">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-2">
+                              <span className="text-xs font-medium text-gray-500 bg-gray-100 px-2 py-1 rounded">
+                                {getActionTypeLabel(entry.type)}
+                              </span>
+                              <span className="text-sm text-gray-500">
+                                {formatTimestamp(entry.timestamp)}
+                              </span>
+                            </div>
+                            <h4 className="font-medium text-gray-900 mb-2">{entry.action}</h4>
+                            <p className="text-gray-600 text-sm leading-relaxed">{entry.details}</p>
+                            {(entry.urgency || entry.next_action) && (
+                              <div className="mt-3 flex gap-2">
+                                {entry.urgency && (
+                                  <span className={`text-xs px-2 py-1 rounded-full ${
+                                    entry.urgency === 'High' || entry.urgency === 'Urgent' 
+                                      ? 'bg-red-100 text-red-700' 
+                                      : entry.urgency === 'Medium'
+                                      ? 'bg-yellow-100 text-yellow-700'
+                                      : 'bg-green-100 text-green-700'
+                                  }`}>
+                                    {entry.urgency} Priority
+                                  </span>
+                                )}
+                                {entry.next_action && (
+                                  <span className="text-xs px-2 py-1 rounded-full bg-blue-100 text-blue-700">
+                                    Next: {entry.next_action}
+                                  </span>
+                                )}
+                              </div>
                             )}
                           </div>
-                          <span className="text-xs text-gray-500">
-                            {format(new Date(entry.timestamp), 'MM/dd/yyyy \'at\' HH:mm:ss')}
-                          </span>
                         </div>
-
-                        <p className="text-sm text-gray-700 mb-2">
-                          {mappedEntry.details}
-                        </p>
-
-                        {/* Display next action if available, might come from note or other activity types */}
-                        {entry.next_action && (
-                          <p className="text-xs text-blue-600 mb-2">
-                            <strong>Next Action:</strong> {entry.next_action}
-                          </p>
-                        )}
-
-                        <div className="flex items-center gap-1 text-xs text-gray-500">
+                        <div className="flex items-center gap-1 mt-3 text-xs text-gray-500">
                           <User className="h-3 w-3" />
-                          <span>by {mappedEntry.user}</span>
+                          <span>by {entry.user || 'System'}</span>
                         </div>
                       </div>
                     </div>
@@ -2669,17 +2718,11 @@ SOAR-AI Team`,
             )}
           </div>
 
-          <div className="flex justify-end pt-4 border-t">
-            <Button 
-              onClick={() => {
-                setShowHistoryDialog(false);
-                setSelectedLeadForHistory(null);
-              }}
-              className="bg-orange-500 hover:bg-orange-600 text-white"
-            >
+          <DialogFooter className="border-t border-gray-200 pt-4">
+            <Button onClick={() => setShowHistoryDialog(false)} className="bg-[#FD9646] hover:bg-[#FD9646]/90 text-white">
               Close
             </Button>
-          </div>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
 

@@ -43,7 +43,6 @@ import { toast } from "sonner";
 import {
   Dialog,
   DialogClose,
-  DialogContent,
   DialogDescription,
   DialogFooter,
   DialogHeader,
@@ -294,19 +293,63 @@ export function AllLeads({ onNavigate }: AllLeadsProps) {
   };
 
   // Handle viewing lead history
-  const handleViewHistory = async (leadId: number, companyName: string) => {
+  const handleViewHistory = async (lead: Lead) => {
     setHistoryLoading(true);
-    setSelectedLeadName(companyName);
+    // Use the lead object directly to set name and open dialog
+    setSelectedLeadName(lead.company.name); // Store company name for the title
     setShowHistoryDialog(true);
 
     try {
-      const history = await leadApi.getHistory(leadId);
-      setSelectedLeadHistory(history);
+      const history = await leadApi.getHistory(lead.id);
+      // Map history entries to include an icon, e.g., based on history_type
+      const historyWithIcons = history.map(entry => ({
+        ...entry,
+        icon: getHistoryIconType(entry.history_type) // Helper function to map type to icon key
+      }));
+      setSelectedLeadHistory(historyWithIcons);
     } catch (error) {
       toast.error('Failed to fetch lead history');
       setSelectedLeadHistory([]);
     } finally {
       setHistoryLoading(false);
+    }
+  };
+
+  // Helper to map history_type to an icon key
+  const getHistoryIconType = (historyType: string): string => {
+    switch (historyType.toLowerCase()) {
+      case 'creation':
+      case 'note_added':
+        return 'message-square'; // Or 'file-text'
+      case 'status_change':
+        return 'check-circle';
+      case 'score_update':
+        return 'trending-up';
+      case 'assignment':
+        return 'user';
+      case 'contact_made':
+      case 'call_made':
+        return 'phone';
+      case 'email_sent':
+        return 'mail';
+      case 'meeting_scheduled':
+        return 'calendar';
+      case 'qualification':
+        return 'target';
+      case 'disqualification':
+        return 'x';
+      case 'opportunity_created':
+        return 'dollar-sign';
+      case 'proposal_sent':
+        return 'file-text';
+      case 'negotiation_started':
+        return 'handshake';
+      case 'won':
+        return 'trophy';
+      case 'lost':
+        return 'x';
+      default:
+        return 'message-square';
     }
   };
 
@@ -875,7 +918,7 @@ export function AllLeads({ onNavigate }: AllLeadsProps) {
                     size="sm" 
                     variant="outline" 
                     className="text-gray-700 border-gray-300"
-                    onClick={() => handleViewHistory(lead.id, lead.company.name)}
+                    onClick={() => handleViewHistory(lead)} // Pass the lead object
                   >
                     <History className="h-4 w-4 mr-1" />
                     History
@@ -1230,73 +1273,146 @@ export function AllLeads({ onNavigate }: AllLeadsProps) {
       </Dialog>
 
       {/* History Dialog */}
-      <Dialog open={showHistoryDialog} onOpenChange={setShowHistoryDialog}>
-        <DialogContent className="sm:max-w-[600px] max-h-[80vh]">
-          <DialogHeader>
-            <DialogTitle>Lead History - {selectedLeadName}</DialogTitle>
-            <DialogDescription>
-              Complete timeline of all activities and changes for this lead.
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="max-h-[400px] overflow-y-auto">
-            {historyLoading ? (
-              <div className="flex items-center justify-center py-8">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600"></div>
-                <span className="ml-2 text-gray-600">Loading history...</span>
+        <Dialog open={showHistoryDialog} onOpenChange={setShowHistoryDialog}>
+          <DialogContent className="max-w-4xl max-h-[85vh] overflow-hidden">
+            <DialogHeader className="border-b border-gray-200 pb-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <DialogTitle className="text-xl font-semibold text-gray-900">
+                    Lead History - {selectedLeadName}
+                  </DialogTitle>
+                  <DialogDescription className="text-gray-600 mt-1">
+                    Complete activity history for {selectedLeadName}
+                  </DialogDescription>
+                </div>
+                <DialogClose asChild>
+                  <Button variant="ghost" size="sm" className="text-gray-500 hover:text-gray-700">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                  </Button>
+                </DialogClose>
               </div>
-            ) : selectedLeadHistory.length === 0 ? (
-              <div className="text-center py-8">
-                <History className="h-12 w-12 mx-auto mb-4 text-gray-400" />
-                <p className="text-gray-600">No history available for this lead.</p>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {selectedLeadHistory.map((entry) => {
-                  const IconComponent = getHistoryIcon(entry.icon);
-                  return (
-                    <div key={entry.id} className="flex items-start gap-4 p-4 border border-gray-200 rounded-lg">
-                      <div className="flex items-center justify-center w-10 h-10 bg-orange-100 rounded-full flex-shrink-0">
-                        <IconComponent className="h-5 w-5 text-orange-600" />
-                      </div>
+            </DialogHeader>
 
-                      <div className="flex-1">
-                        <div className="flex items-center justify-between mb-2">
-                          <h4 className="font-semibold text-gray-900">{entry.action}</h4>
-                          <span className="text-sm text-gray-500">
-                            {new Date(entry.timestamp).toLocaleDateString('en-US', {
-                              month: 'short',
-                              day: 'numeric',
-                              year: 'numeric',
-                              hour: '2-digit',
-                              minute: '2-digit'
-                            })}
-                          </span>
+            <div className="py-4 max-h-[65vh] overflow-y-auto">
+              {historyLoading ? (
+                <div className="flex items-center justify-center py-12">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600 mr-3"></div>
+                  <p className="text-gray-600">Loading history...</p>
+                </div>
+              ) : selectedLeadHistory.length === 0 ? (
+                <div className="text-center py-12">
+                  <History className="h-12 w-12 mx-auto mb-4 text-gray-400" />
+                  <p className="text-gray-600 text-lg">No history available for this lead.</p>
+                </div>
+              ) : (
+                <div className="space-y-6">
+                  {selectedLeadHistory.map((entry, index) => {
+                    const IconComponent = getHistoryIcon(entry.icon);
+
+                    const getActionTypeLabel = (type: string) => {
+                      const typeMap: { [key: string]: string } = {
+                        'creation': 'Note',
+                        'status_change': 'Status',
+                        'note_added': 'Note',
+                        'score_update': 'Score',
+                        'assignment': 'Assignment',
+                        'contact_made': 'Call',
+                        'email_sent': 'Email',
+                        'call_made': 'Call',
+                        'meeting_scheduled': 'Meeting',
+                        'qualification': 'Qualification',
+                        'disqualification': 'Disqualification',
+                        'opportunity_created': 'Opportunity',
+                        'proposal_sent': 'Proposal',
+                        'negotiation_started': 'Negotiation',
+                        'won': 'Won',
+                        'lost': 'Lost'
+                      };
+                      return typeMap[entry.history_type] || 'Activity';
+                    };
+
+                    const getIconColor = (type: string) => {
+                      const colorMap: { [key: string]: string } = {
+                        'creation': 'bg-blue-100 text-blue-600',
+                        'status_change': 'bg-green-100 text-green-600',
+                        'note_added': 'bg-purple-100 text-purple-600',
+                        'score_update': 'bg-orange-100 text-orange-600',
+                        'assignment': 'bg-indigo-100 text-indigo-600',
+                        'contact_made': 'bg-blue-100 text-blue-600',
+                        'email_sent': 'bg-blue-100 text-blue-600',
+                        'call_made': 'bg-green-100 text-green-600',
+                        'meeting_scheduled': 'bg-purple-100 text-purple-600',
+                        'qualification': 'bg-green-100 text-green-600',
+                        'disqualification': 'bg-red-100 text-red-600',
+                        'opportunity_created': 'bg-yellow-100 text-yellow-600',
+                        'proposal_sent': 'bg-indigo-100 text-indigo-600',
+                        'negotiation_started': 'bg-purple-100 text-purple-600',
+                        'won': 'bg-green-100 text-green-600',
+                        'lost': 'bg-red-100 text-red-600'
+                      };
+                      return colorMap[entry.history_type] || 'bg-gray-100 text-gray-600';
+                    };
+
+                    const formatTimestamp = (timestamp: string) => {
+                      const date = new Date(timestamp);
+                      return date.toLocaleDateString('en-US', {
+                        month: 'numeric',
+                        day: 'numeric',
+                        year: 'numeric'
+                      }) + ' at ' + date.toLocaleTimeString('en-US', {
+                        hour: 'numeric',
+                        minute: '2-digit',
+                        hour12: true
+                      });
+                    };
+
+                    return (
+                      <div key={entry.id} className="flex items-start gap-4 relative">
+                        {/* Timeline line */}
+                        {index < selectedLeadHistory.length - 1 && (
+                          <div className="absolute left-6 top-12 w-px h-12 bg-gray-200"></div>
+                        )}
+
+                        {/* Icon */}
+                        <div className={`flex items-center justify-center w-12 h-12 rounded-full flex-shrink-0 ${getIconColor(entry.history_type)}`}>
+                          <IconComponent className="h-5 w-5" />
                         </div>
 
-                        <p className="text-gray-700 text-sm mb-2">{entry.details}</p>
-
-                        <div className="flex items-center gap-2">
-                          <Badge variant="outline" className="text-xs">
-                            {entry.history_type.replace('_', ' ')}
-                          </Badge>
-                          <span className="text-xs text-gray-500">by {entry.user_name}</span>
+                        {/* Content */}
+                        <div className="flex-1 min-w-0 bg-white border border-gray-200 rounded-lg p-4">
+                          <div className="flex items-start justify-between gap-4">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-2">
+                                <span className="text-xs font-medium text-gray-500 bg-gray-100 px-2 py-1 rounded">
+                                  {getActionTypeLabel(entry.history_type)}
+                                </span>
+                                <span className="text-sm text-gray-500">
+                                  {formatTimestamp(entry.timestamp)}
+                                </span>
+                              </div>
+                              <h4 className="font-medium text-gray-900 mb-2">{entry.action}</h4>
+                              <p className="text-gray-600 text-sm leading-relaxed">{entry.details}</p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-1 mt-3 text-xs text-gray-500">
+                            <User className="h-3 w-3" />
+                            <span>by {entry.user_name || 'System'}</span>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
 
-          <DialogFooter>
-            <DialogClose asChild>
-              <Button variant="outline">Close</Button>
-            </DialogClose>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+            <DialogFooter className="border-t border-gray-200 pt-4">
+              <Button onClick={() => setShowHistoryDialog(false)} className="bg-[#FD9646] hover:bg-[#FD9646]/90 text-white">
+                Close
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
 
       {/* Assign Agent Dialog */}
       <Dialog open={showAssignAgentDialog} onOpenChange={setShowAssignAgentDialog}>
