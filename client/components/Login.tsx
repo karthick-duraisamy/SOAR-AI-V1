@@ -62,9 +62,6 @@ export function Login({ onLogin }: LoginProps) {
           role: 'admin'
         };
         
-        // Store user in localStorage
-        localStorage.setItem('soar_user', JSON.stringify(user));
-        
         setTimeout(() => {
           onLogin(user);
         }, 1000);
@@ -106,9 +103,6 @@ export function Login({ onLogin }: LoginProps) {
         email: registerForm.email,
         role: 'admin'
       };
-
-      // Store user in localStorage
-      localStorage.setItem('soar_user', JSON.stringify(newUser));
       
       setSuccess('Admin account created successfully! Logging you in...');
       
