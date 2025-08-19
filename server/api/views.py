@@ -992,14 +992,32 @@ class LeadViewSet(viewsets.ModelViewSet):
             if assignment_notes:
                 details += f' Assignment notes: {assignment_notes}'
 
-            create_lead_history(
-                lead=lead,
-                history_type=history_type,
-                action=action_text,
-                details=details,
-                icon='user',
-                user=request.user if request.user.is_authenticated else None
-            )
+            # Create the history entry with agent metadata
+            try:
+                from .models import LeadHistory
+                LeadHistory.objects.create(
+                    lead=lead,
+                    history_type=history_type,
+                    action=action_text,
+                    details=details,
+                    icon='user',
+                    metadata={
+                        'agent_name': agent_name,
+                        'previous_agent': previous_agent,
+                        'priority': priority,
+                        'assignment_notes': assignment_notes
+                    },
+                    user=request.user if request.user.is_authenticated else None
+                )
+            except Exception as e:
+                print(f"Error creating lead history: {e}")
+
+            # Clean up old assignment notes from the lead notes field
+            if lead.notes:
+                import re
+                # Remove old agent assignment entries from notes
+                lead.notes = re.sub(r'\[Agent Assignment[^\]]*\][^\n]*\n?', '', lead.notes)
+                lead.save()
 
             # Return updated lead
             serializer = LeadSerializer(lead)

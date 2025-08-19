@@ -79,10 +79,13 @@ class LeadHistorySerializer(serializers.ModelSerializer):
     user_role = serializers.SerializerMethodField()
     formatted_timestamp = serializers.SerializerMethodField()
     assigned_agent = serializers.SerializerMethodField()
+    previous_agent = serializers.SerializerMethodField()
+    assignment_priority = serializers.SerializerMethodField()
+    assignment_notes = serializers.SerializerMethodField()
 
     class Meta:
         model = LeadHistory
-        fields = ['id', 'history_type', 'action', 'details', 'icon', 'timestamp', 'user_name', 'user_role', 'formatted_timestamp', 'assigned_agent']
+        fields = ['id', 'history_type', 'action', 'details', 'icon', 'timestamp', 'metadata', 'user_name', 'user_role', 'formatted_timestamp', 'assigned_agent', 'previous_agent', 'assignment_priority', 'assignment_notes']
 
     def get_user_name(self, obj):
         if obj.user:
@@ -123,11 +126,16 @@ class LeadHistorySerializer(serializers.ModelSerializer):
         return ""
     
     def get_assigned_agent(self, obj):
-        """Extract assigned agent name from history type and details"""
+        """Extract assigned agent name from metadata or action text"""
         if obj.history_type in ['agent_assignment', 'agent_reassignment']:
-            # Extract agent name from the action text
+            # First try to get from metadata
+            if hasattr(obj, 'metadata') and obj.metadata:
+                agent_name = obj.metadata.get('agent_name')
+                if agent_name:
+                    return agent_name
+            
+            # Fallback to extracting from action text
             if 'assigned to' in obj.action.lower() or 'reassigned to' in obj.action.lower():
-                # Find the agent name after "to"
                 import re
                 match = re.search(r'(?:assigned|reassigned) to (.+)', obj.action, re.IGNORECASE)
                 if match:
@@ -137,6 +145,24 @@ class LeadHistorySerializer(serializers.ModelSerializer):
                 if len(parts) > 1:
                     return parts[1].strip()
         return obj.lead.assigned_agent if obj.lead else None
+
+    def get_previous_agent(self, obj):
+        """Extract previous agent name from metadata"""
+        if obj.history_type == 'agent_reassignment' and hasattr(obj, 'metadata') and obj.metadata:
+            return obj.metadata.get('previous_agent')
+        return None
+
+    def get_assignment_priority(self, obj):
+        """Extract assignment priority from metadata"""
+        if obj.history_type in ['agent_assignment', 'agent_reassignment'] and hasattr(obj, 'metadata') and obj.metadata:
+            return obj.metadata.get('priority')
+        return None
+
+    def get_assignment_notes(self, obj):
+        """Extract assignment notes from metadata"""
+        if obj.history_type in ['agent_assignment', 'agent_reassignment'] and hasattr(obj, 'metadata') and obj.metadata:
+            return obj.metadata.get('assignment_notes')
+        return None
 
 class LeadSerializer(serializers.ModelSerializer):
     company = CompanySerializer(read_only=True)

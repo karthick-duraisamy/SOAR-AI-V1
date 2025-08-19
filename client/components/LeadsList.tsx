@@ -65,7 +65,9 @@ import {
   Handshake, // Added for contract_signed
   Award,    // Added for deal_won
   Save, // Added for Save button in dialog
-  X // Added for close button in dialog
+  X, // Added for close button in dialog
+  FileText, // Added for FileText
+  XCircle // Added for XCircle
 } from 'lucide-react';
 import { toast } from "sonner";
 import { format } from 'date-fns';
@@ -93,6 +95,9 @@ interface HistoryEntry {
   metadata?: any;
   formatted_timestamp?: string;
   assigned_agent?: string; // Added for agent assignment history
+  previous_agent?: string; // Added for previous agent in reassignment history
+  assignment_priority?: string; // Added for priority in assignment history
+  assignment_notes?: string; // Added for notes in assignment history
   icon?: string; // Added for icon mapping
 }
 
@@ -1211,6 +1216,9 @@ SOAR-AI Team`,
         metadata: item.metadata, // Pass metadata directly
         formatted_timestamp: item.formatted_timestamp, // Use formatted timestamp if available from API
         assigned_agent: item.assigned_agent, // Include assigned_agent if available
+        previous_agent: item.previous_agent, // Include previous_agent if available
+        assignment_priority: item.assignment_priority, // Include priority if available
+        assignment_notes: item.assignment_notes, // Include notes if available
       }));
 
       setLeadHistory(prev => ({
@@ -2587,9 +2595,9 @@ SOAR-AI Team`,
                           'x-circle': X,
                           'calendar': Calendar,
                           'briefcase': Briefcase,
-                          'file-text': Edit,
+                          'file-text': FileText,
                           'handshake': Handshake,
-                          'trophy': Award,
+                          'award': Award,
                         };
                         return iconMap[iconName] || Plus;
                       };
@@ -2598,44 +2606,75 @@ SOAR-AI Team`,
                       const isAgentAssignment = entry.history_type === 'agent_assignment' || entry.history_type === 'agent_reassignment';
 
                       return (
-                        <div key={index} className="flex gap-4 pb-4 border-b border-gray-100 last:border-b-0">
-                          <div className="flex-shrink-0">
-                            <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                              isAgentAssignment ? 'bg-blue-100' : 'bg-orange-100'
-                            }`}>
-                              <IconComponent className={`h-5 w-5 ${
-                                isAgentAssignment ? 'text-blue-600' : 'text-orange-600'
-                              }`} />
-                            </div>
+                        <div key={index} className="flex gap-3 border-b border-gray-100 pb-3 last:border-b-0">
+                          <div className="flex-shrink-0 w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                            {entry.icon === 'user' && <Users className="w-4 h-4 text-blue-600" />}
+                            {entry.icon === 'phone' && <Phone className="w-4 h-4 text-green-600" />}
+                            {entry.icon === 'mail' && <Mail className="w-4 h-4 text-orange-600" />}
+                            {entry.icon === 'message-square' && <MessageSquare className="w-4 h-4 text-purple-600" />}
+                            {entry.icon === 'trending-up' && <TrendingUp className="w-4 h-4 text-red-600" />}
+                            {entry.icon === 'check-circle' && <CheckCircle className="w-4 h-4 text-green-600" />}
+                            {entry.icon === 'x-circle' && <XCircle className="w-4 h-4 text-red-600" />}
+                            {entry.icon === 'calendar' && <Calendar className="w-4 h-4 text-blue-600" />}
+                            {entry.icon === 'file-text' && <FileText className="w-4 h-4 text-gray-600" />}
+                            {!['user', 'phone', 'mail', 'message-square', 'trending-up', 'check-circle', 'x-circle', 'calendar', 'file-text'].includes(entry.icon) && (
+                              <div className="w-2 h-2 bg-gray-400 rounded-full" />
+                            )}
                           </div>
                           <div className="flex-1 min-w-0">
                             <div className="flex items-start justify-between">
                               <div className="flex-1">
-                                <p className="text-sm font-medium text-gray-900">
-                                  {entry.action}
-                                </p>
-                                <p className="text-sm text-gray-600 mt-1">
-                                  {entry.details}
-                                </p>
+                                <h4 className="text-sm font-medium text-gray-900">{entry.action}</h4>
+                                <p className="text-sm text-gray-600 mt-1">{entry.details}</p>
 
-                                {/* Show assigned agent info for agent assignment entries */}
-                                {isAgentAssignment && entry.assigned_agent && (
-                                  <div className="mt-2 p-2 bg-blue-50 border border-blue-200 rounded-lg">
-                                    <div className="flex items-center gap-2">
-                                      <User className="h-4 w-4 text-blue-600" />
-                                      <span className="text-sm font-medium text-blue-900">
-                                        Assigned Agent: {entry.assigned_agent}
-                                      </span>
+                                {/* Show agent assignment details */}
+                                {(entry.history_type === 'agent_assignment' || entry.history_type === 'agent_reassignment') && (
+                                  <div className="mt-2 p-2 bg-blue-50 rounded-md border border-blue-200">
+                                    <div className="space-y-1 text-xs">
+                                      {entry.assigned_agent && (
+                                        <div className="flex items-center gap-2">
+                                          <Users className="w-3 h-3 text-blue-600" />
+                                          <span className="font-medium">Agent:</span>
+                                          <span className="text-blue-700">{entry.assigned_agent}</span>
+                                        </div>
+                                      )}
+                                      {entry.previous_agent && (
+                                        <div className="flex items-center gap-2">
+                                          <span className="font-medium">Previous Agent:</span>
+                                          <span className="text-gray-600">{entry.previous_agent}</span>
+                                        </div>
+                                      )}
+                                      {entry.assignment_priority && (
+                                        <div className="flex items-center gap-2">
+                                          <span className="font-medium">Priority:</span>
+                                          <span className={`px-1 py-0.5 rounded text-xs ${
+                                            entry.assignment_priority === 'High Priority' ? 'bg-red-100 text-red-700' :
+                                            entry.assignment_priority === 'Medium Priority' ? 'bg-yellow-100 text-yellow-700' :
+                                            'bg-gray-100 text-gray-700'
+                                          }`}>
+                                            {entry.assignment_priority}
+                                          </span>
+                                        </div>
+                                      )}
+                                      {entry.assignment_notes && (
+                                        <div className="flex items-start gap-2">
+                                          <MessageSquare className="w-3 h-3 text-blue-600 mt-0.5" />
+                                          <span className="font-medium">Notes:</span>
+                                          <span className="text-gray-700">{entry.assignment_notes}</span>
+                                        </div>
+                                      )}
                                     </div>
                                   </div>
                                 )}
-
-                                <div className="flex items-center gap-4 mt-2 text-xs text-gray-500">
-                                  <span>by {entry.user_name || 'System'}</span>
-                                  <span>{entry.formatted_timestamp || new Date(entry.timestamp).toLocaleDateString()}</span>
-                                  {entry.user_role && <span>• {entry.user_role}</span>}
-                                </div>
                               </div>
+                              <div className="text-xs text-gray-500 ml-2 flex-shrink-0">
+                                {entry.formatted_timestamp}
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2 mt-2 text-xs text-gray-500">
+                              <span>{entry.user_role}</span>
+                              <span>•</span>
+                              <span>{entry.user_name}</span>
                             </div>
                           </div>
                         </div>
