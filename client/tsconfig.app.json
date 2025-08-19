@@ -21,12 +21,23 @@
     }
   },
   "include": [
-    "src/**/*",
-    "components/**/*",
-    "hooks/**/*",
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "components/**/*.ts",
+    "components/**/*.tsx",
+    "hooks/**/*.ts",
+    "hooks/**/*.tsx",
     "styles/**/*",
     "types/**/*",
     "App.tsx",
     "src/vite-env.d.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "**/*.js",
+    "**/*.d.ts",
+    "**/*.d.ts.map",
+    "*.config.js"
   ]
 }
