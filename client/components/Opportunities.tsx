@@ -283,11 +283,10 @@ const OpportunityCard = memo(({
       </div>
 
       {/* Action Buttons */}
-      <div className="flex gap-1">
+      <div className="flex gap-2">
         <Button
-          variant="ghost"
           size="sm"
-          className="h-7 px-2 text-xs"
+          className="h-8 px-3 text-xs bg-orange-500 hover:bg-orange-600 text-white rounded-md font-medium"
           onClick={(e) => {
             e.stopPropagation();
             onEdit(opportunity);
@@ -297,9 +296,9 @@ const OpportunityCard = memo(({
           Edit
         </Button>
         <Button
-          variant="ghost"
+          variant="outline"
           size="sm"
-          className="h-7 px-2 text-xs"
+          className="h-8 px-3 text-xs border-gray-300 text-gray-700 hover:bg-gray-50 rounded-md font-medium"
           onClick={(e) => {
             e.stopPropagation();
             onAddActivity(opportunity);
@@ -309,9 +308,9 @@ const OpportunityCard = memo(({
           Add Activity
         </Button>
         <Button
-          variant="ghost"
+          variant="outline"
           size="sm"
-          className="h-7 px-2 text-xs"
+          className="h-8 px-3 text-xs border-gray-300 text-gray-700 hover:bg-gray-50 rounded-md font-medium"
           onClick={(e) => {
             e.stopPropagation();
             onViewHistory(opportunity);
@@ -320,12 +319,24 @@ const OpportunityCard = memo(({
           <History className="h-3 w-3 mr-1" />
           History
         </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          className="h-8 px-3 text-xs border-gray-300 text-gray-700 hover:bg-gray-50 rounded-md font-medium"
+          onClick={(e) => {
+            e.stopPropagation();
+            onViewHistory(opportunity);
+          }}
+        >
+          <Eye className="h-3 w-3 mr-1" />
+          Details
+        </Button>
 
         {/* Stage-specific Action Buttons */}
         {opportunity.stage === 'proposal' && onSendProposal && (
           <Button
             size="sm"
-            className="h-7 px-2 text-xs bg-blue-600 hover:bg-blue-700"
+            className="h-8 px-3 text-xs bg-purple-600 hover:bg-purple-700 text-white rounded-md font-medium"
             onClick={(e) => {
               e.stopPropagation();
               onSendProposal(opportunity);
@@ -339,7 +350,7 @@ const OpportunityCard = memo(({
         {opportunity.stage === 'proposal' && onMoveToNegotiation && (
           <Button
             size="sm"
-            className="h-7 px-2 text-xs bg-orange-600 hover:bg-orange-700"
+            className="h-8 px-3 text-xs bg-orange-500 hover:bg-orange-600 text-white rounded-md font-medium"
             onClick={(e) => {
               e.stopPropagation();
               onMoveToNegotiation(opportunity);
@@ -353,7 +364,7 @@ const OpportunityCard = memo(({
         {opportunity.stage === 'negotiation' && onCloseDeal && (
           <Button
             size="sm"
-            className="h-7 px-2 text-xs bg-green-600 hover:bg-green-700"
+            className="h-8 px-3 text-xs bg-green-600 hover:bg-green-700 text-white rounded-md font-medium"
             onClick={(e) => {
               e.stopPropagation();
               onCloseDeal(opportunity);
