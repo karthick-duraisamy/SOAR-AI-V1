@@ -1379,7 +1379,7 @@ SOAR-AI Team`,
       // Call the API to move the lead to opportunity
       const response = await leadApi.moveToOpportunity(lead.id, opportunityData);
 
-      // Remove the lead from the leads list locally
+      // Remove the lead from the leads list locally immediately
       setLeads(prev => prev.filter(l => l.id !== lead.id));
 
       // Show success message
@@ -1387,35 +1387,38 @@ SOAR-AI Team`,
       setTimeout(() => setSuccessMessage(''), 5000);
 
       // Navigate to opportunities page with the new opportunity data
-      // if (onNavigate) {
-      //   onNavigate('opportunities', { 
-      //     newOpportunity: {
-      //       ...response.opportunity,
-      //       leadId: response.lead_id,
-      //       company: lead.company,
-      //       contact: lead.contact,
-      //       title: lead.title,
-      //       email: lead.email,
-      //       phone: lead.phone,
-      //       industry: lead.industry,
-      //       employees: typeof lead.employees === 'number' ? lead.employees : parseInt(lead.employees as string) || 0,
-      //       revenue: lead.revenue,
-      //       location: lead.location,
-      //       source: lead.source,
-      //       travelBudget: lead.travelBudget,
-      //       decisionMaker: lead.decisionMaker,
-      //       tags: lead.tags || [lead.industry, 'Qualified Lead'],
-      //       owner: lead.assignedAgent || 'Current User'
-      //     },
-      //     message: response.message || `${lead.company} has been converted to a sales opportunity`
-      //   });
-      // }
-      await fetchLeads();
+      if (onNavigate) {
+        onNavigate('opportunities', { 
+          newOpportunity: {
+            ...response.opportunity,
+            leadId: response.lead_id,
+            company: lead.company,
+            contact: lead.contact,
+            title: lead.title,
+            email: lead.email,
+            phone: lead.phone,
+            industry: lead.industry,
+            employees: typeof lead.employees === 'number' ? lead.employees : parseInt(lead.employees as string) || 0,
+            revenue: lead.revenue,
+            location: lead.location,
+            source: lead.source,
+            travelBudget: lead.travelBudget,
+            decisionMaker: lead.decisionMaker,
+            tags: lead.tags || [lead.industry, 'Qualified Lead'],
+            owner: lead.assignedAgent || 'Current User'
+          },
+          message: response.message || `${lead.company} has been converted to a sales opportunity`
+        });
+      }
+
       toast.success(`${lead.company} moved to opportunities successfully!`);
 
     } catch (error) {
       console.error('Error moving lead to opportunity:', error);
       toast.error('Failed to move lead to opportunities. Please try again.');
+      
+      // If there's an error, refresh the leads to ensure consistency
+      await fetchLeads();
     }
   };
 
