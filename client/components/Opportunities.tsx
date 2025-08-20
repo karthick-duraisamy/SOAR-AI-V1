@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { DndProvider, useDrag, useDrop } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
@@ -15,7 +15,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import { ScrollArea } from './ui/scroll-area';
 import { useLeadApi } from '../hooks/api/useLeadApi';
 import { toast } from 'sonner';
-import { 
+import {
   TrendingUp,
   TrendingDown,
   DollarSign,
@@ -115,15 +115,15 @@ interface OpportunityCardProps {
   onCloseDeal?: (opportunity: Opportunity) => void;
 }
 
-function OpportunityCard({ 
-  opportunity, 
-  onEdit, 
-  onAddActivity, 
-  onViewHistory, 
+const OpportunityCard = memo(({
+  opportunity,
+  onEdit,
+  onAddActivity,
+  onViewHistory,
   onSendProposal,
   onMoveToNegotiation,
-  onCloseDeal 
-}: OpportunityCardProps) {
+  onCloseDeal
+}: OpportunityCardProps) => {
   const [{ isDragging }, drag] = useDrag(() => ({
     type: ItemTypes.OPPORTUNITY,
     item: { id: opportunity.id, stage: opportunity.stage },
@@ -146,7 +146,7 @@ function OpportunityCard({
     }
   };
 
-  const formatCurrency = (amount: number | null | undefined) => {
+  const formatCurrency = useCallback((amount: number | null | undefined) => {
     // Handle null, undefined, or NaN values
     const numAmount = Number(amount);
     if (!numAmount || isNaN(numAmount)) {
@@ -160,15 +160,15 @@ function OpportunityCard({
     } else {
       return `$${numAmount.toFixed(0)}`;
     }
-  };
+  }, []);
 
-  const formatDate = (dateString: string) => {
+  const formatDate = useCallback((dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       month: '2-digit',
       day: '2-digit',
       year: 'numeric'
     });
-  };
+  }, []);
 
   return (
     <div
@@ -282,9 +282,9 @@ function OpportunityCard({
 
       {/* Action Buttons */}
       <div className="flex gap-1">
-        <Button 
-          variant="ghost" 
-          size="sm" 
+        <Button
+          variant="ghost"
+          size="sm"
           className="h-7 px-2 text-xs"
           onClick={(e) => {
             e.stopPropagation();
@@ -294,9 +294,9 @@ function OpportunityCard({
           <Edit className="h-3 w-3 mr-1" />
           Edit
         </Button>
-        <Button 
-          variant="ghost" 
-          size="sm" 
+        <Button
+          variant="ghost"
+          size="sm"
           className="h-7 px-2 text-xs"
           onClick={(e) => {
             e.stopPropagation();
@@ -306,9 +306,9 @@ function OpportunityCard({
           <Plus className="h-3 w-3 mr-1" />
           Add Activity
         </Button>
-        <Button 
-          variant="ghost" 
-          size="sm" 
+        <Button
+          variant="ghost"
+          size="sm"
           className="h-7 px-2 text-xs"
           onClick={(e) => {
             e.stopPropagation();
@@ -321,8 +321,8 @@ function OpportunityCard({
 
         {/* Stage-specific Action Buttons */}
         {opportunity.stage === 'proposal' && onSendProposal && (
-          <Button 
-            size="sm" 
+          <Button
+            size="sm"
             className="h-7 px-2 text-xs bg-blue-600 hover:bg-blue-700"
             onClick={(e) => {
               e.stopPropagation();
@@ -335,8 +335,8 @@ function OpportunityCard({
         )}
 
         {opportunity.stage === 'proposal' && onMoveToNegotiation && (
-          <Button 
-            size="sm" 
+          <Button
+            size="sm"
             className="h-7 px-2 text-xs bg-orange-600 hover:bg-orange-700"
             onClick={(e) => {
               e.stopPropagation();
@@ -349,8 +349,8 @@ function OpportunityCard({
         )}
 
         {opportunity.stage === 'negotiation' && onCloseDeal && (
-          <Button 
-            size="sm" 
+          <Button
+            size="sm"
             className="h-7 px-2 text-xs bg-green-600 hover:bg-green-700"
             onClick={(e) => {
               e.stopPropagation();
@@ -364,7 +364,10 @@ function OpportunityCard({
       </div>
     </div>
   );
-}
+});
+
+OpportunityCard.displayName = 'OpportunityCard';
+
 
 // Pipeline Column Component
 interface PipelineColumnProps {
@@ -379,17 +382,17 @@ interface PipelineColumnProps {
   onCloseDeal?: (opportunity: Opportunity) => void;
 }
 
-function PipelineColumn({ 
-  stage, 
-  opportunities, 
-  onDrop, 
-  onEdit, 
-  onAddActivity, 
+const PipelineColumn = memo(({
+  stage,
+  opportunities,
+  onDrop,
+  onEdit,
+  onAddActivity,
   onViewHistory,
   onSendProposal,
   onMoveToNegotiation,
   onCloseDeal
-}: PipelineColumnProps) {
+}: PipelineColumnProps) => {
   const [{ isOver }, drop] = useDrop(() => ({
     accept: ItemTypes.OPPORTUNITY,
     drop: (item: { id: string; stage: string }) => {
@@ -402,8 +405,7 @@ function PipelineColumn({
     }),
   }));
 
-  const totalValue = opportunities.reduce((sum, opp) => sum + opp.value, 0);
-  const formatCurrency = (amount: number | null | undefined) => {
+  const formatCurrency = useCallback((amount: number | null | undefined) => {
     // Handle null, undefined, or NaN values
     const numAmount = Number(amount);
     if (!numAmount || isNaN(numAmount)) {
@@ -417,7 +419,9 @@ function PipelineColumn({
     } else {
       return `$${numAmount.toFixed(0)}`;
     }
-  };
+  }, []);
+
+  const totalValue = useMemo(() => opportunities.reduce((sum, opp) => sum + opp.value, 0), [opportunities]);
 
   return (
     <div
@@ -463,12 +467,18 @@ function PipelineColumn({
       </ScrollArea>
     </div>
   );
-}
+});
+
+PipelineColumn.displayName = 'PipelineColumn';
+
 
 export function Opportunities({ initialFilters, onNavigate }: OpportunitiesProps) {
   const { getOpportunities, updateOpportunityStage } = useLeadApi();
   const [opportunities, setOpportunities] = useState<Opportunity[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
   const [successMessage, setSuccessMessage] = useState('');
   const [selectedOpportunity, setSelectedOpportunity] = useState<Opportunity | null>(null);
   const [showEditDialog, setShowEditDialog] = useState(false);
@@ -508,9 +518,14 @@ export function Opportunities({ initialFilters, onNavigate }: OpportunitiesProps
   useEffect(() => {
     const fetchOpportunities = async () => {
       setIsLoading(true);
+      setCurrentPage(1); // Reset to first page on filter change
+      setHasMore(true); // Assume more data is available until proven otherwise
       try {
-        const data = await getOpportunities(filters);
+        const data = await getOpportunities({ ...filters, page: 1, limit: 25 }); // Fetch initial batch
         setOpportunities(Array.isArray(data) ? data : []);
+        if (!data || data.length < 25) {
+          setHasMore(false); // No more data if initial load is less than limit
+        }
       } catch (error) {
         console.error('Error fetching opportunities:', error);
         setOpportunities([]);
@@ -564,20 +579,20 @@ export function Opportunities({ initialFilters, onNavigate }: OpportunitiesProps
   }, [initialFilters, opportunities]);
 
   // Calculate pipeline metrics
-  const safeOpportunities = Array.isArray(opportunities) ? opportunities : [];
-  const totalValue = safeOpportunities.reduce((sum, opp) => sum + (opp?.value || 0), 0);
-  const weightedValue = safeOpportunities.reduce((sum, opp) => sum + ((opp?.value || 0) * (opp?.probability || 0) / 100), 0);
-  const avgDealSize = safeOpportunities.length > 0 ? totalValue / safeOpportunities.length : 0;
-  const winRate = safeOpportunities.length > 0 ? (safeOpportunities.filter(opp => opp?.stage === 'closed_won').length / safeOpportunities.length) * 100 : 0;
+  const safeOpportunities = useMemo(() => Array.isArray(opportunities) ? opportunities : [], [opportunities]);
+  const totalValue = useMemo(() => safeOpportunities.reduce((sum, opp) => sum + (opp?.value || 0), 0), [safeOpportunities]);
+  const weightedValue = useMemo(() => safeOpportunities.reduce((sum, opp) => sum + ((opp?.value || 0) * (opp?.probability || 0) / 100), 0), [safeOpportunities]);
+  const avgDealSize = useMemo(() => safeOpportunities.length > 0 ? totalValue / safeOpportunities.length : 0, [safeOpportunities, totalValue]);
+  const winRate = useMemo(() => safeOpportunities.length > 0 ? (safeOpportunities.filter(opp => opp?.stage === 'closed_won').length / safeOpportunities.length) * 100 : 0, [safeOpportunities]);
 
-  const stageMetrics = stages.map(stage => ({
+  const stageMetrics = useMemo(() => stages.map(stage => ({
     ...stage,
     count: safeOpportunities.filter(opp => opp?.stage === stage.id).length,
     value: safeOpportunities.filter(opp => opp?.stage === stage.id).reduce((sum, opp) => sum + (opp?.value || 0), 0)
-  }));
+  })), [safeOpportunities]);
 
   // Filtered opportunities
-  const filteredOpportunities = safeOpportunities.filter(opp => {
+  const filteredOpportunities = useMemo(() => safeOpportunities.filter(opp => {
     if (!opp) return false;
     if (filters.stage && filters.stage !== 'all' && opp.stage !== filters.stage) return false;
     if (filters.search) {
@@ -586,17 +601,17 @@ export function Opportunities({ initialFilters, onNavigate }: OpportunitiesProps
       const firstName = opp.lead_info?.contact?.first_name?.toLowerCase() || '';
       const lastName = opp.lead_info?.contact?.last_name?.toLowerCase() || '';
 
-      if (!companyName.includes(searchLower) && 
+      if (!companyName.includes(searchLower) &&
           !firstName.includes(searchLower) &&
           !lastName.includes(searchLower)) {
         return false;
       }
     }
     return true;
-  });
+  }), [safeOpportunities, filters]);
 
   // Format currency function
-  const formatCurrency = (amount: number | null | undefined) => {
+  const formatCurrency = useCallback((amount: number | null | undefined) => {
     // Handle null, undefined, or NaN values
     const numAmount = Number(amount);
     if (!numAmount || isNaN(numAmount)) {
@@ -610,10 +625,40 @@ export function Opportunities({ initialFilters, onNavigate }: OpportunitiesProps
     } else {
       return `$${numAmount.toFixed(0)}`;
     }
-  };
+  }, []);
+
+  // Load more opportunities function
+  const loadMoreOpportunities = useCallback(async () => {
+    if (loadingMore || !hasMore) return;
+
+    setLoadingMore(true);
+    try {
+      const nextPage = currentPage + 1;
+      const moreData = await getOpportunities({
+        ...filters,
+        page: nextPage,
+        limit: 25 // Smaller batch for subsequent loads
+      });
+
+      if (moreData && moreData.length > 0) {
+        setOpportunities(prev => [...prev, ...moreData]);
+        setCurrentPage(nextPage);
+        if (moreData.length < 25) {
+          setHasMore(false); // No more data available
+        }
+      } else {
+        setHasMore(false);
+      }
+    } catch (error) {
+      console.error('Error loading more opportunities:', error);
+      toast.error('Failed to load more opportunities');
+    } finally {
+      setLoadingMore(false);
+    }
+  }, [loadingMore, hasMore, currentPage, getOpportunities, filters]);
 
   // Event handlers
-  const handleEditOpportunity = (opportunity: Opportunity) => {
+  const handleEditOpportunity = useCallback((opportunity: Opportunity) => {
     setSelectedOpportunity(opportunity);
     setEditForm({
       stage: opportunity.stage,
@@ -624,9 +669,9 @@ export function Opportunities({ initialFilters, onNavigate }: OpportunitiesProps
       description: opportunity.description || ''
     });
     setShowEditDialog(true);
-  };
+  }, []);
 
-  const handleAddActivity = (opportunity: Opportunity) => {
+  const handleAddActivity = useCallback((opportunity: Opportunity) => {
     setSelectedOpportunity(opportunity);
     setActivityForm({
       type: 'call',
@@ -634,14 +679,14 @@ export function Opportunities({ initialFilters, onNavigate }: OpportunitiesProps
       date: new Date().toISOString().split('T')[0]
     });
     setShowActivityDialog(true);
-  };
+  }, []);
 
-  const handleViewHistory = (opportunity: Opportunity) => {
+  const handleViewHistory = useCallback((opportunity: Opportunity) => {
     setSelectedOpportunity(opportunity);
     setShowHistoryDialog(true);
-  };
+  }, []);
 
-  const handleSendProposal = (opportunity: Opportunity) => {
+  const handleSendProposal = useCallback((opportunity: Opportunity) => {
     setSelectedOpportunity(opportunity);
     setProposalForm({
       title: `Travel Solutions Proposal - ${opportunity.lead_info?.company?.name}`,
@@ -651,9 +696,9 @@ export function Opportunities({ initialFilters, onNavigate }: OpportunitiesProps
       deliveryMethod: 'email'
     });
     setShowProposalDialog(true);
-  };
+  }, []);
 
-  const handleMoveToNegotiation = (opportunity: Opportunity) => {
+  const handleMoveToNegotiation = useCallback((opportunity: Opportunity) => {
     const updatedOpportunity = {
       ...opportunity,
       stage: 'negotiation',
@@ -661,15 +706,15 @@ export function Opportunities({ initialFilters, onNavigate }: OpportunitiesProps
       updated_at: new Date().toISOString()
     };
 
-    setOpportunities(prev => prev.map(opp => 
+    setOpportunities(prev => prev.map(opp =>
       opp.id === opportunity.id ? updatedOpportunity : opp
     ));
 
     setSuccessMessage(`${opportunity.lead_info?.company?.name} opportunity moved to Negotiation stage`);
     setTimeout(() => setSuccessMessage(''), 5000);
-  };
+  }, []);
 
-  const handleCloseDeal = (opportunity: Opportunity) => {
+  const handleCloseDeal = useCallback((opportunity: Opportunity) => {
     const updatedOpportunity = {
       ...opportunity,
       stage: 'closed_won',
@@ -678,15 +723,15 @@ export function Opportunities({ initialFilters, onNavigate }: OpportunitiesProps
       updated_at: new Date().toISOString()
     };
 
-    setOpportunities(prev => prev.map(opp => 
+    setOpportunities(prev => prev.map(opp =>
       opp.id === opportunity.id ? updatedOpportunity : opp
     ));
 
     setSuccessMessage(`${opportunity.lead_info?.company?.name} deal closed successfully! 🎉`);
     setTimeout(() => setSuccessMessage(''), 5000);
-  };
+  }, []);
 
-  const handleSaveEdit = () => {
+  const handleSaveEdit = useCallback(() => {
     if (!selectedOpportunity) return;
 
     const updatedOpportunity = {
@@ -700,32 +745,32 @@ export function Opportunities({ initialFilters, onNavigate }: OpportunitiesProps
       updated_at: new Date().toISOString()
     };
 
-    setOpportunities(prev => prev.map(opp => 
+    setOpportunities(prev => prev.map(opp =>
       opp.id === selectedOpportunity.id ? updatedOpportunity : opp
     ));
 
     setShowEditDialog(false);
     setSuccessMessage(`${selectedOpportunity.lead_info?.company?.name} opportunity has been updated`);
     setTimeout(() => setSuccessMessage(''), 5000);
-  };
+  }, [selectedOpportunity, editForm]);
 
-  const handleSaveActivity = () => {
+  const handleSaveActivity = useCallback(() => {
     if (!selectedOpportunity) return;
 
     // In a real implementation, you would send this to the API
     setShowActivityDialog(false);
     setSuccessMessage(`Activity added to ${selectedOpportunity.lead_info?.company?.name} opportunity`);
     setTimeout(() => setSuccessMessage(''), 5000);
-  };
+  }, [selectedOpportunity]);
 
-  const handleSaveProposal = () => {
+  const handleSaveProposal = useCallback(() => {
     if (!selectedOpportunity) return;
 
     // In a real implementation, you would send this to the API
     setShowProposalDialog(false);
     setSuccessMessage(`Proposal sent to ${selectedOpportunity.lead_info?.company?.name} successfully`);
     setTimeout(() => setSuccessMessage(''), 5000);
-  };
+  }, [selectedOpportunity]);
 
   // Drag and Drop Handler
   const handleDrop = useCallback(async (opportunityId: string, newStage: string) => {
@@ -742,8 +787,8 @@ export function Opportunities({ initialFilters, onNavigate }: OpportunitiesProps
       setOpportunities(prevOpportunities =>
         prevOpportunities.map(opportunity =>
           opportunity.id === parseInt(opportunityId)
-            ? { 
-                ...opportunity, 
+            ? {
+                ...opportunity,
                 stage: newStage,
                 probability: stages.find(s => s.id === newStage)?.probability || opportunity.probability,
                 updated_at: new Date().toISOString()
@@ -762,17 +807,17 @@ export function Opportunities({ initialFilters, onNavigate }: OpportunitiesProps
 
       // Refresh opportunities to revert any optimistic updates
       try {
-        const data = await getOpportunities(filters);
+        const data = await getOpportunities({ ...filters, page: currentPage, limit: 25 });
         setOpportunities(Array.isArray(data) ? data : []);
       } catch (refreshError) {
         console.error('Error refreshing opportunities:', refreshError);
       }
     }
-  }, [opportunities, stages, updateOpportunityStage, getOpportunities, filters]);
+  }, [opportunities, stages, updateOpportunityStage, getOpportunities, filters, currentPage]);
 
-  const getOpportunitiesForStage = (stageId: string) => {
+  const getOpportunitiesForStage = useCallback((stageId: string) => {
     return filteredOpportunities.filter(opportunity => opportunity.stage === stageId);
-  };
+  }, [filteredOpportunities]);
 
   return (
     <DndProvider backend={HTML5Backend}>
@@ -798,8 +843,8 @@ export function Opportunities({ initialFilters, onNavigate }: OpportunitiesProps
               <Download className="h-4 w-4" />
               Export
             </Button>
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               className="flex items-center gap-2"
               onClick={() => window.location.reload()}
             >
@@ -866,7 +911,7 @@ export function Opportunities({ initialFilters, onNavigate }: OpportunitiesProps
             <div className="flex justify-center gap-8">
               {stageMetrics.map((stage, index) => (
                 <div key={stage.id} className="text-center">
-                  <div 
+                  <div
                     className={`w-16 h-16 rounded-full ${stage.color} text-white flex items-center justify-center mx-auto mb-3 text-lg font-bold`}
                   >
                     {stage.count}
@@ -917,26 +962,33 @@ export function Opportunities({ initialFilters, onNavigate }: OpportunitiesProps
           {/* List View */}
           <TabsContent value="list" className="space-y-4">
             {isLoading ? (
-              // Loading skeleton
-              Array.from({ length: 3 }).map((_, index) => (
-                <Card key={index} className="animate-pulse">
-                  <CardContent className="p-6">
-                    <div className="flex items-start justify-between mb-4">
-                      <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 bg-gray-200 rounded-lg"></div>
-                        <div>
-                          <div className="h-5 bg-gray-200 rounded w-40 mb-2"></div>
-                          <div className="h-4 bg-gray-200 rounded w-32"></div>
+              // Optimized loading skeleton
+              <div className="space-y-4">
+                {Array.from({ length: 6 }).map((_, index) => (
+                  <Card key={index} className="animate-pulse">
+                    <CardContent className="p-4">
+                      <div className="flex items-start justify-between mb-3">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 bg-gray-200 rounded-lg"></div>
+                          <div>
+                            <div className="h-4 bg-gray-200 rounded w-32 mb-2"></div>
+                            <div className="h-3 bg-gray-200 rounded w-24"></div>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className="h-5 bg-gray-200 rounded w-16 mb-1"></div>
+                          <div className="h-3 bg-gray-200 rounded w-12"></div>
                         </div>
                       </div>
-                      <div className="text-right">
-                        <div className="h-6 bg-gray-200 rounded w-20 mb-2"></div>
-                        <div className="h-4 bg-gray-200 rounded w-16"></div>
+                      <div className="h-2 bg-gray-200 rounded w-full mb-3"></div>
+                      <div className="grid grid-cols-2 gap-2">
+                        <div className="h-3 bg-gray-200 rounded w-20"></div>
+                        <div className="h-3 bg-gray-200 rounded w-16"></div>
                       </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
             ) : filteredOpportunities.length === 0 ? (
               <Card>
                 <CardContent className="p-12 text-center">
@@ -959,6 +1011,13 @@ export function Opportunities({ initialFilters, onNavigate }: OpportunitiesProps
                     onCloseDeal={handleCloseDeal}
                   />
                 ))}
+                {hasMore && !isLoading && !loadingMore && (
+                  <div className="text-center py-4">
+                    <Button onClick={loadMoreOpportunities} variant="outline">
+                      {loadingMore ? 'Loading...' : 'Load More'}
+                    </Button>
+                  </div>
+                )}
               </div>
             )}
           </TabsContent>

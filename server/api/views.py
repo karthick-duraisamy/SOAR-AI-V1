@@ -1082,7 +1082,7 @@ class OpportunityViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['post'])
     def search(self, request):
         """
-        Search opportunities with filters
+        Search opportunities with filters and pagination
         """
         filters = request.data
 
@@ -1094,6 +1094,8 @@ class OpportunityViewSet(viewsets.ModelViewSet):
         stage = filters.get('stage', '')
         owner = filters.get('owner', '')
         industry = filters.get('industry', '')
+        limit = int(filters.get('limit', 100))  # Default limit of 100
+        page = int(filters.get('page', 1))
 
         if search:
             queryset = queryset.filter(
@@ -1112,7 +1114,13 @@ class OpportunityViewSet(viewsets.ModelViewSet):
         # Order by probability and value for better prioritization
         queryset = queryset.order_by('-probability', '-value')
 
-        serializer = self.get_serializer(queryset, many=True)
+        # Apply pagination
+        offset = (page - 1) * limit
+        queryset = queryset[offset:offset + limit]
+
+        # Use optimized serializer for faster response
+        from .serializers import OptimizedOpportunitySerializer
+        serializer = OptimizedOpportunitySerializer(queryset, many=True)
         return Response(serializer.data)
 
 class ContractViewSet(viewsets.ModelViewSet):

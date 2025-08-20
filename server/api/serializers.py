@@ -306,6 +306,45 @@ class OpportunitySerializer(serializers.ModelSerializer):
     def get_weighted_value(self, obj):
         return float(obj.value) * (obj.probability / 100)
 
+
+class OptimizedOpportunitySerializer(serializers.ModelSerializer):
+    """Optimized serializer for opportunity list views with minimal data"""
+    lead_info = serializers.SerializerMethodField()
+    weighted_value = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Opportunity
+        fields = [
+            'id', 'name', 'stage', 'probability', 'value', 
+            'estimated_close_date', 'created_at', 'updated_at',
+            'description', 'next_steps', 'lead_info', 'weighted_value'
+        ]
+
+    def get_lead_info(self, obj):
+        if obj.lead:
+            return {
+                'company': {
+                    'id': obj.lead.company.id,
+                    'name': obj.lead.company.name,
+                    'industry': obj.lead.company.industry,
+                    'location': obj.lead.company.location,
+                    'employee_count': obj.lead.company.employee_count,
+                    'size': obj.lead.company.size
+                },
+                'contact': {
+                    'id': obj.lead.contact.id,
+                    'first_name': obj.lead.contact.first_name,
+                    'last_name': obj.lead.contact.last_name,
+                    'email': obj.lead.contact.email,
+                    'phone': obj.lead.contact.phone,
+                    'position': obj.lead.contact.position
+                }
+            }
+        return None
+
+    def get_weighted_value(self, obj):
+        return float(obj.value) * (obj.probability / 100)
+
 class ContractBreachSerializer(serializers.ModelSerializer):
     contract_title = serializers.CharField(source='contract.title', read_only=True)
 

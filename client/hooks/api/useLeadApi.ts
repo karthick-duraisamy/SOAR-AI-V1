@@ -468,7 +468,7 @@ export const useLeadApi = () => {
     }
   }, [baseApi]);
 
-  // Get opportunities
+  // Get opportunities with optimization
   const getOpportunities = useCallback(async (filters: any = {}) => {
     setLoading(true);
     setError(null);
@@ -477,12 +477,17 @@ export const useLeadApi = () => {
       const requestBody = {
         search: filters?.search || '',
         stage: filters?.stage || '',
+        limit: filters?.limit || 50, // Default limit for faster loading
+        page: filters?.page || 1,
         ...filters
       };
 
       const response: AxiosResponse<any[]> = await baseApi.post(
         `/opportunities/search/`,
         requestBody,
+        {
+          timeout: 30000, // 30 second timeout
+        }
       );
 
       setData(response.data);
