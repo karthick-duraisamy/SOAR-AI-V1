@@ -50,7 +50,9 @@ import {
   History,
   MessageCircle,
   User,
-  ExternalLink
+  ExternalLink,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
 
 interface OpportunitiesProps {
@@ -476,9 +478,8 @@ export function Opportunities({ initialFilters, onNavigate }: OpportunitiesProps
   const { getOpportunities, updateOpportunityStage } = useLeadApi();
   const [opportunities, setOpportunities] = useState<Opportunity[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [loadingMore, setLoadingMore] = useState(false);
-  const [hasMore, setHasMore] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(10);
   const [successMessage, setSuccessMessage] = useState('');
   const [selectedOpportunity, setSelectedOpportunity] = useState<Opportunity | null>(null);
   const [showEditDialog, setShowEditDialog] = useState(false);
@@ -519,13 +520,9 @@ export function Opportunities({ initialFilters, onNavigate }: OpportunitiesProps
     const fetchOpportunities = async () => {
       setIsLoading(true);
       setCurrentPage(1); // Reset to first page on filter change
-      setHasMore(true); // Assume more data is available until proven otherwise
       try {
-        const data = await getOpportunities({ ...filters, page: 1, limit: 25 }); // Fetch initial batch
+        const data = await getOpportunities({ ...filters }); // Fetch all opportunities
         setOpportunities(Array.isArray(data) ? data : []);
-        if (!data || data.length < 25) {
-          setHasMore(false); // No more data if initial load is less than limit
-        }
       } catch (error) {
         console.error('Error fetching opportunities:', error);
         setOpportunities([]);
@@ -627,35 +624,16 @@ export function Opportunities({ initialFilters, onNavigate }: OpportunitiesProps
     }
   }, []);
 
-  // Load more opportunities function
-  const loadMoreOpportunities = useCallback(async () => {
-    if (loadingMore || !hasMore) return;
+  // Pagination calculations
+  const totalPages = Math.ceil(filteredOpportunities.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedOpportunities = filteredOpportunities.slice(startIndex, endIndex);
 
-    setLoadingMore(true);
-    try {
-      const nextPage = currentPage + 1;
-      const moreData = await getOpportunities({
-        ...filters,
-        page: nextPage,
-        limit: 25 // Smaller batch for subsequent loads
-      });
-
-      if (moreData && moreData.length > 0) {
-        setOpportunities(prev => [...prev, ...moreData]);
-        setCurrentPage(nextPage);
-        if (moreData.length < 25) {
-          setHasMore(false); // No more data available
-        }
-      } else {
-        setHasMore(false);
-      }
-    } catch (error) {
-      console.error('Error loading more opportunities:', error);
-      toast.error('Failed to load more opportunities');
-    } finally {
-      setLoadingMore(false);
-    }
-  }, [loadingMore, hasMore, currentPage, getOpportunities, filters]);
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   // Event handlers
   const handleEditOpportunity = useCallback((opportunity: Opportunity) => {
@@ -998,27 +976,131 @@ export function Opportunities({ initialFilters, onNavigate }: OpportunitiesProps
                 </CardContent>
               </Card>
             ) : (
-              <div className="space-y-4">
-                {filteredOpportunities.map((opportunity) => (
-                  <OpportunityCard
-                    key={opportunity.id}
-                    opportunity={opportunity}
-                    onEdit={handleEditOpportunity}
-                    onAddActivity={handleAddActivity}
-                    onViewHistory={handleViewHistory}
-                    onSendProposal={handleSendProposal}
-                    onMoveToNegotiation={handleMoveToNegotiation}
-                    onCloseDeal={handleCloseDeal}
-                  />
-                ))}
-                {hasMore && !isLoading && !loadingMore && (
-                  <div className="text-center py-4">
-                    <Button onClick={loadMoreOpportunities} variant="outline">
-                      {loadingMore ? 'Loading...' : 'Load More'}
-                    </Button>
+              <>
+                <div className="space-y-4">
+                  {paginatedOpportunities.map((opportunity) => (
+                    <OpportunityCard
+                      key={opportunity.id}
+                      opportunity={opportunity}
+                      onEdit={handleEditOpportunity}
+                      onAddActivity={handleAddActivity}
+                      onViewHistory={handleViewHistory}
+                      onSendProposal={handleSendProposal}
+                      onMoveToNegotiation={handleMoveToNegotiation}
+                      onCloseDeal={handleCloseDeal}
+                    />
+                  ))}
+                </div>
+
+                {/* Pagination Controls */}
+                {totalPages > 1 && (
+                  <div className="flex items-center justify-between mt-8 pt-6 border-t border-gray-200">
+                    <div className="flex items-center gap-2 text-sm text-gray-600">
+                      <span>
+                        Showing {startIndex + 1}-{Math.min(endIndex, filteredOpportunities.length)} of {filteredOpportunities.length} opportunities
+                      </span>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      {/* Previous Page Button */}
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handlePageChange(currentPage - 1)}
+                        disabled={currentPage === 1}
+                        className="border-gray-300"
+                      >
+                        <ChevronLeft className="h-4 w-4 mr-1" />
+                        Previous
+                      </Button>
+
+                      {/* Page Numbers */}
+                      <div className="flex items-center gap-1">
+                        {(() => {
+                          const pages = [];
+                          const maxVisiblePages = 5;
+                          let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+                          let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+
+                          // Adjust start page if we're near the end
+                          if (endPage - startPage + 1 < maxVisiblePages) {
+                            startPage = Math.max(1, endPage - maxVisiblePages + 1);
+                          }
+
+                          // Add first page and ellipsis if needed
+                          if (startPage > 1) {
+                            pages.push(
+                              <Button
+                                key={1}
+                                variant={1 === currentPage ? "default" : "outline"}
+                                size="sm"
+                                onClick={() => handlePageChange(1)}
+                                className={`w-9 h-9 p-0 ${1 === currentPage ? 'bg-orange-500 hover:bg-orange-600 text-white' : 'border-gray-300'}`}
+                              >
+                                1
+                              </Button>
+                            );
+                            if (startPage > 2) {
+                              pages.push(
+                                <span key="ellipsis1" className="px-2 text-gray-500">...</span>
+                              );
+                            }
+                          }
+
+                          // Add visible page numbers
+                          for (let i = startPage; i <= endPage; i++) {
+                            pages.push(
+                              <Button
+                                key={i}
+                                variant={i === currentPage ? "default" : "outline"}
+                                size="sm"
+                                onClick={() => handlePageChange(i)}
+                                className={`w-9 h-9 p-0 ${i === currentPage ? 'bg-orange-500 hover:bg-orange-600 text-white' : 'border-gray-300'}`}
+                              >
+                                {i}
+                              </Button>
+                            );
+                          }
+
+                          // Add ellipsis and last page if needed
+                          if (endPage < totalPages) {
+                            if (endPage < totalPages - 1) {
+                              pages.push(
+                                <span key="ellipsis2" className="px-2 text-gray-500">...</span>
+                              );
+                            }
+                            pages.push(
+                              <Button
+                                key={totalPages}
+                                variant={totalPages === currentPage ? "default" : "outline"}
+                                size="sm"
+                                onClick={() => handlePageChange(totalPages)}
+                                className={`w-9 h-9 p-0 ${totalPages === currentPage ? 'bg-orange-500 hover:bg-orange-600 text-white' : 'border-gray-300'}`}
+                              >
+                                {totalPages}
+                              </Button>
+                            );
+                          }
+
+                          return pages;
+                        })()}
+                      </div>
+
+                      {/* Next Page Button */}
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handlePageChange(currentPage + 1)}
+                        disabled={currentPage === totalPages}
+                        className="border-gray-300"
+                      >
+                        Next
+                        <ChevronRight className="h-4 w-4 ml-1" />
+                      </Button>
+                    </div>
                   </div>
                 )}
-              </div>
+              </>
             )}
           </TabsContent>
 
