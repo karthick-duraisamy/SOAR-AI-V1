@@ -931,18 +931,42 @@ export function Opportunities({
   const handleSaveEdit = useCallback(async () => {
     if (!selectedOpportunity) return;
 
+    // Validate and convert data types properly
+    const probability = parseInt(editForm.probability);
+    const value = parseFloat(editForm.value);
+
+    // Validate inputs
+    if (isNaN(probability) || probability < 0 || probability > 100) {
+      toast.error('Probability must be a number between 0 and 100');
+      return;
+    }
+
+    if (isNaN(value) || value < 0) {
+      toast.error('Value must be a positive number');
+      return;
+    }
+
+    if (!editForm.estimated_close_date) {
+      toast.error('Estimated close date is required');
+      return;
+    }
+
     const updateData = {
       stage: editForm.stage,
-      probability: parseInt(editForm.probability),
-      value: parseFloat(editForm.value),
+      probability: probability,
+      value: value,
       estimated_close_date: editForm.estimated_close_date,
-      next_steps: editForm.next_steps,
-      description: editForm.description,
+      next_steps: editForm.next_steps || '',
+      description: editForm.description || '',
     };
 
     try {
+      console.log('Updating opportunity with data:', updateData);
+      
       // Update via API
       const response = await updateOpportunityStage(selectedOpportunity.id, updateData);
+      
+      console.log('Update response:', response);
 
       const updatedOpportunity = {
         ...selectedOpportunity,
@@ -967,7 +991,14 @@ export function Opportunities({
 
     } catch (error) {
       console.error('Error updating opportunity:', error);
-      toast.error('Failed to update opportunity. Please try again.');
+      console.error('Error details:', error.response?.data);
+      
+      // Show specific error message if available
+      const errorMessage = error.response?.data?.detail || 
+                          error.response?.data?.message || 
+                          error.response?.data?.error ||
+                          'Failed to update opportunity. Please try again.';
+      toast.error(errorMessage);
       
       // Optionally refresh opportunities to ensure consistency
       try {

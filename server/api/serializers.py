@@ -306,6 +306,22 @@ class OpportunitySerializer(serializers.ModelSerializer):
     def get_weighted_value(self, obj):
         return float(obj.value) * (obj.probability / 100)
 
+    def validate_probability(self, value):
+        if value < 0 or value > 100:
+            raise serializers.ValidationError("Probability must be between 0 and 100")
+        return value
+
+    def validate_value(self, value):
+        if value < 0:
+            raise serializers.ValidationError("Value must be positive")
+        return value
+
+    def validate_stage(self, value):
+        valid_stages = [choice[0] for choice in Opportunity.OPPORTUNITY_STAGES]
+        if value not in valid_stages:
+            raise serializers.ValidationError(f"Invalid stage. Must be one of: {valid_stages}")
+        return value
+
 
 class OptimizedOpportunitySerializer(serializers.ModelSerializer):
     """Optimized serializer for opportunity list views with minimal data"""

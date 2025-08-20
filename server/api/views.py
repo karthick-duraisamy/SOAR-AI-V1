@@ -1036,6 +1036,28 @@ class OpportunityViewSet(viewsets.ModelViewSet):
     queryset = Opportunity.objects.all()
     serializer_class = OpportunitySerializer
 
+    def update(self, request, *args, **kwargs):
+        """Handle opportunity updates with proper validation"""
+        try:
+            instance = self.get_object()
+            serializer = self.get_serializer(instance, data=request.data, partial=True)
+            
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data)
+            else:
+                print(f"Validation errors: {serializer.errors}")
+                return Response(
+                    {'error': 'Validation failed', 'details': serializer.errors}, 
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+        except Exception as e:
+            print(f"Error updating opportunity: {str(e)}")
+            return Response(
+                {'error': f'Update failed: {str(e)}'}, 
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
     @action(detail=False, methods=['get'])
     def pipeline_value(self, request):
         pipeline = {}

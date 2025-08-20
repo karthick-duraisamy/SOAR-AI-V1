@@ -511,16 +511,22 @@ export const useLeadApi = () => {
     setError(null);
 
     try {
-      const response: AxiosResponse<any> = await baseApi.put(
+      console.log('Sending update request with data:', stageData);
+      
+      const response: AxiosResponse<any> = await baseApi.patch(
         `/opportunities/${id}/`,
         stageData
       );
 
+      console.log('Update response received:', response.data);
       setData(response.data);
       return response.data;
     } catch (error: any) {
       console.error('Error updating opportunity stage:', error);
-      const errorMessage = error.response?.data?.detail ||
+      console.error('Error response:', error.response?.data);
+      
+      const errorMessage = error.response?.data?.error ||
+                          error.response?.data?.detail ||
                           error.response?.data?.message ||
                           error.message ||
                           'Failed to update opportunity stage';
