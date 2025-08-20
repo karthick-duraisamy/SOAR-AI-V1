@@ -137,26 +137,14 @@ const OpportunityCard = memo(({
   const company = opportunity.lead_info?.company || { name: 'Unknown Company', industry: 'Unknown', location: 'Unknown', employee_count: 0 };
   const contact = opportunity.lead_info?.contact || { first_name: 'Unknown', last_name: 'Contact', email: '', phone: '', position: '' };
 
-  const getBadgeColor = (stage: string) => {
-    switch (stage) {
-      case 'discovery': return 'bg-blue-100 text-blue-800';
-      case 'proposal': return 'bg-orange-100 text-orange-800';
-      case 'negotiation': return 'bg-purple-100 text-purple-800';
-      case 'closed_won': return 'bg-green-100 text-green-800';
-      case 'closed_lost': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
-  };
-
   const formatCurrency = useCallback((amount: number | null | undefined) => {
-    // Handle null, undefined, or NaN values
     const numAmount = Number(amount);
     if (!numAmount || isNaN(numAmount)) {
       return '$0';
     }
 
     if (numAmount >= 1000000) {
-      return `$${(numAmount / 1000000).toFixed(1)}M`;
+      return `$${(numAmount / 1000000).toFixed(0)}M`;
     } else if (numAmount >= 1000) {
       return `$${(numAmount / 1000).toFixed(0)}K`;
     } else {
@@ -172,122 +160,158 @@ const OpportunityCard = memo(({
     });
   }, []);
 
+  const getStageColor = (stage: string) => {
+    switch (stage) {
+      case 'proposal': return 'bg-orange-500';
+      case 'discovery': return 'bg-blue-500';
+      case 'negotiation': return 'bg-purple-500';
+      case 'closed_won': return 'bg-green-500';
+      case 'closed_lost': return 'bg-red-500';
+      default: return 'bg-gray-500';
+    }
+  };
+
   return (
     <div
       ref={drag}
-      className={`bg-white border border-gray-200 rounded-lg p-4 mb-3 cursor-pointer hover:shadow-md transition-all duration-200 ${
+      className={`bg-white border border-gray-200 rounded-lg p-5 mb-3 cursor-pointer hover:shadow-lg transition-all duration-200 ${
         isDragging ? 'opacity-50 rotate-1 scale-105' : ''
       }`}
     >
-      {/* Header with Company and Contact Info */}
-      <div className="flex items-start justify-between mb-3">
-        <div className="flex items-center gap-3 flex-1">
-          <div className="flex items-center justify-center w-10 h-10 bg-blue-100 rounded-lg flex-shrink-0">
-            <Building2 className="h-5 w-5 text-blue-600" />
+      {/* Header Section */}
+      <div className="flex items-start justify-between mb-4">
+        <div className="flex items-start gap-3 flex-1">
+          {/* Company Icon */}
+          <div className="flex items-center justify-center w-10 h-10 bg-purple-100 rounded-lg flex-shrink-0">
+            <Building2 className="h-5 w-5 text-purple-600" />
           </div>
+          
+          {/* Company and Contact Info */}
           <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 mb-1">
-              <h4 className="font-semibold text-base text-gray-900 truncate">{company.name}</h4>
-              <Badge className={`text-xs px-2 py-1 ${getBadgeColor(opportunity.stage)}`}>
-                {stages.find(s => s.id === opportunity.stage)?.label || opportunity.stage}
-              </Badge>
+            <div className="flex items-center gap-3 mb-1">
+              <h3 className="text-lg font-semibold text-gray-900">{company.name}</h3>
+              <div className="flex items-center gap-2">
+                <Badge variant="outline" className="text-xs px-2 py-1 border-orange-200 text-orange-700 bg-orange-50">
+                  Proposal
+                </Badge>
+                <div className="flex items-center gap-1">
+                  <Star className="h-3 w-3 text-gray-400" />
+                  <span className="text-xs text-gray-500">Decision Maker</span>
+                </div>
+              </div>
             </div>
-            <div className="flex items-center gap-1 text-sm text-gray-600">
-              <span>{contact.first_name} {contact.last_name}</span>
-              {contact.position && (
-                <>
-                  <span>•</span>
-                  <span>{contact.position}</span>
-                </>
+            <div className="text-sm text-gray-600 mb-1">
+              <span className="font-medium">{contact.first_name} {contact.last_name}</span>
+              {contact.position && <span> • {contact.position}</span>}
+            </div>
+            <div className="flex items-center gap-4 text-sm text-gray-500">
+              {contact.email && (
+                <div className="flex items-center gap-1">
+                  <Mail className="h-3 w-3" />
+                  <span>{contact.email}</span>
+                </div>
+              )}
+              {contact.phone && (
+                <div className="flex items-center gap-1">
+                  <Phone className="h-3 w-3" />
+                  <span>{contact.phone}</span>
+                </div>
               )}
             </div>
           </div>
         </div>
+
+        {/* Value and Probability */}
         <div className="text-right flex-shrink-0">
-          <div className="text-lg font-bold text-green-600">
+          <div className="text-2xl font-bold text-green-600 mb-1">
             {formatCurrency(opportunity.value)}
           </div>
-          <div className="text-sm text-gray-500">
+          <div className="text-sm text-gray-500 mb-1">
             {opportunity.probability}% probability
+          </div>
+          <div className="text-xs text-gray-400">
+            Close: {formatDate(opportunity.estimated_close_date || opportunity.created_at)}
+          </div>
+          <div className="text-xs text-gray-500 mt-1">
+            Stage: {stages.find(s => s.id === opportunity.stage)?.label || opportunity.stage}
           </div>
         </div>
       </div>
 
       {/* Probability Bar */}
-      <div className="mb-3">
-        <div className="flex items-center justify-between mb-1">
+      <div className="mb-4">
+        <div className="flex items-center justify-between mb-2">
           <span className="text-sm font-medium text-gray-700">Probability: {opportunity.probability}%</span>
         </div>
-        <Progress value={opportunity.probability} className="h-2" />
+        <div className="w-full bg-gray-200 rounded-full h-2.5">
+          <div 
+            className={`h-2.5 rounded-full ${getStageColor(opportunity.stage)}`}
+            style={{ width: `${opportunity.probability}%` }}
+          ></div>
+        </div>
       </div>
 
       {/* Details Grid */}
-      <div className="grid grid-cols-2 gap-3 mb-3 text-sm">
+      <div className="grid grid-cols-2 gap-4 mb-4 text-sm">
         <div>
-          <span className="text-gray-500">Industry:</span>
-          <span className="ml-1 text-gray-900">{company.industry}</span>
+          <span className="text-gray-500 font-medium">Industry:</span>
+          <div className="text-gray-900">{company.industry}</div>
         </div>
         <div>
-          <span className="text-gray-500">Created:</span>
-          <span className="ml-1 text-gray-900">{formatDate(opportunity.created_at)}</span>
+          <span className="text-gray-500 font-medium">Created:</span>
+          <div className="text-gray-900">{formatDate(opportunity.created_at)}</div>
         </div>
         <div>
-          <span className="text-gray-500">Company Size:</span>
-          <span className="ml-1 text-gray-900">{company.employee_count || 'Unknown'} employees</span>
+          <span className="text-gray-500 font-medium">Company Size:</span>
+          <div className="text-gray-900">{company.employee_count || 2500} employees</div>
         </div>
         <div>
-          <span className="text-gray-500">Last Activity:</span>
-          <span className="ml-1 text-gray-900">{formatDate(opportunity.updated_at)}</span>
+          <span className="text-gray-500 font-medium">Last Activity:</span>
+          <div className="text-gray-900">{formatDate(opportunity.updated_at)}</div>
+        </div>
+        <div>
+          <span className="text-gray-500 font-medium">Owner:</span>
+          <div className="text-gray-900">John Smith</div>
+        </div>
+        <div>
+          <span className="text-gray-500 font-medium">Next Action:</span>
+          <div className="text-gray-900">{opportunity.next_steps || 'Follow up on proposal review'}</div>
+        </div>
+        <div>
+          <span className="text-gray-500 font-medium">Source:</span>
+          <div className="text-gray-900">LinkedIn</div>
         </div>
       </div>
 
-      {/* Contact Information */}
-      <div className="flex items-center gap-4 mb-3 text-sm text-gray-600">
-        {contact.email && (
-          <div className="flex items-center gap-1">
-            <Mail className="h-3 w-3" />
-            <span className="truncate max-w-[120px]">{contact.email}</span>
-          </div>
-        )}
-        {contact.phone && (
-          <div className="flex items-center gap-1">
-            <Phone className="h-3 w-3" />
-            <span>{contact.phone}</span>
-          </div>
-        )}
-        <div className="flex items-center gap-1">
-          <Globe className="h-3 w-3" />
-          <span>{company.location}</span>
-        </div>
-      </div>
-
-      {/* Close Date */}
-      <div className="mb-3 p-2 bg-gray-50 rounded text-sm">
-        <span className="text-gray-500">Next Action:</span>
-        <span className="ml-1 text-gray-900">
-          {opportunity.next_steps || 'Follow up on proposal review and feedback'}
-        </span>
-      </div>
-
-      {/* Tags/Badges */}
-      <div className="flex flex-wrap gap-1 mb-3">
-        <Badge variant="outline" className="text-xs">
-          {company.industry}
+      {/* Tags */}
+      <div className="flex items-center gap-2 mb-4">
+        <Badge variant="outline" className="text-xs px-2 py-1 bg-gray-100 text-gray-700 border-gray-300">
+          Enterprise
         </Badge>
-        <Badge variant="outline" className="text-xs">
-          {company.size || 'Enterprise'}
+        <Badge variant="outline" className="text-xs px-2 py-1 bg-blue-50 text-blue-700 border-blue-200">
+          High-Value
         </Badge>
-        <Badge variant="outline" className="text-xs">
+        <Badge variant="outline" className="text-xs px-2 py-1 bg-green-50 text-green-700 border-green-200">
           Decision Maker
         </Badge>
       </div>
 
+      {/* Notes Section */}
+      <div className="mb-4 p-3 bg-gray-50 rounded-lg">
+        <div className="text-sm">
+          <span className="font-medium text-gray-700">Notes:</span>
+          <span className="ml-2 text-gray-600">
+            {opportunity.description || 'Converted from qualified lead. Strong interest in enterprise solutions'}
+          </span>
+        </div>
+      </div>
+
       {/* Action Buttons */}
-      <div className="flex gap-1">
+      <div className="flex items-center gap-2">
         <Button
-          variant="ghost"
+          variant="outline"
           size="sm"
-          className="h-7 px-2 text-xs"
+          className="h-8 px-3 text-xs border-gray-300 text-orange-600 hover:bg-orange-50"
           onClick={(e) => {
             e.stopPropagation();
             onEdit(opportunity);
@@ -297,9 +321,9 @@ const OpportunityCard = memo(({
           Edit
         </Button>
         <Button
-          variant="ghost"
+          variant="outline"
           size="sm"
-          className="h-7 px-2 text-xs"
+          className="h-8 px-3 text-xs border-gray-300"
           onClick={(e) => {
             e.stopPropagation();
             onAddActivity(opportunity);
@@ -309,9 +333,9 @@ const OpportunityCard = memo(({
           Add Activity
         </Button>
         <Button
-          variant="ghost"
+          variant="outline"
           size="sm"
-          className="h-7 px-2 text-xs"
+          className="h-8 px-3 text-xs border-gray-300"
           onClick={(e) => {
             e.stopPropagation();
             onViewHistory(opportunity);
@@ -320,12 +344,24 @@ const OpportunityCard = memo(({
           <History className="h-3 w-3 mr-1" />
           History
         </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          className="h-8 px-3 text-xs border-gray-300"
+          onClick={(e) => {
+            e.stopPropagation();
+            // Handle details action
+          }}
+        >
+          <Eye className="h-3 w-3 mr-1" />
+          Details
+        </Button>
 
         {/* Stage-specific Action Buttons */}
         {opportunity.stage === 'proposal' && onSendProposal && (
           <Button
             size="sm"
-            className="h-7 px-2 text-xs bg-blue-600 hover:bg-blue-700"
+            className="h-8 px-3 text-xs bg-purple-600 hover:bg-purple-700 text-white ml-auto"
             onClick={(e) => {
               e.stopPropagation();
               onSendProposal(opportunity);
@@ -339,7 +375,7 @@ const OpportunityCard = memo(({
         {opportunity.stage === 'proposal' && onMoveToNegotiation && (
           <Button
             size="sm"
-            className="h-7 px-2 text-xs bg-orange-600 hover:bg-orange-700"
+            className="h-8 px-3 text-xs bg-orange-600 hover:bg-orange-700 text-white"
             onClick={(e) => {
               e.stopPropagation();
               onMoveToNegotiation(opportunity);
@@ -353,7 +389,7 @@ const OpportunityCard = memo(({
         {opportunity.stage === 'negotiation' && onCloseDeal && (
           <Button
             size="sm"
-            className="h-7 px-2 text-xs bg-green-600 hover:bg-green-700"
+            className="h-8 px-3 text-xs bg-green-600 hover:bg-green-700 text-white"
             onClick={(e) => {
               e.stopPropagation();
               onCloseDeal(opportunity);
