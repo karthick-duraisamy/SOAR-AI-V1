@@ -30,7 +30,7 @@ export function Login({ onLogin }: LoginProps) {
     email: '',
     password: ''
   });
-  
+
   const [registerForm, setRegisterForm] = useState({
     firstName: '',
     lastName: '',
@@ -61,7 +61,7 @@ export function Login({ onLogin }: LoginProps) {
           email: 'admin@soar.com',
           role: 'admin'
         };
-        
+
         setTimeout(() => {
           onLogin(user);
         }, 1000);
@@ -103,13 +103,13 @@ export function Login({ onLogin }: LoginProps) {
         email: registerForm.email,
         role: 'admin'
       };
-      
+
       setSuccess('Admin account created successfully! Logging you in...');
-      
+
       setTimeout(() => {
         onLogin(newUser);
       }, 2000);
-      
+
     } catch (err) {
       setError('Registration failed. Please try again.');
     } finally {
@@ -121,19 +121,11 @@ export function Login({ onLogin }: LoginProps) {
     <div className="min-h-screen w-full bg-gradient-to-br from-blue-50 via-white to-blue-50 flex items-center justify-center p-4 cls-nagu">
       {/* Background Pattern */}
       <div className="absolute inset-0 bg-grid-pattern opacity-5"></div>
-      
+
       <div className="w-full max-w-md relative z-10">
         {/* Logo and Brand */}
         <div className="text-center mb-8">
-          <div className="flex justify-center mb-4">
-            <div className="w-16 h-16 bg-gradient-to-r from-[#133769] to-[#2F66C0] rounded-2xl flex items-center justify-center shadow-lg">
-              <img src="/SOAR Logo.svg" alt="SOAR Logo" className="h-8 w-8" />
-            </div>
-          </div>
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-[#133769] to-[#2F66C0] bg-clip-text text-transparent">
-            SOAR-AI
-          </h1>
-          <p className="text-gray-600 mt-2">Corporate Intelligence Platform</p>
+              <img src="/SOAR Logo.svg" alt="SOAR Logo" className="h-16 w-full" />        
         </div>
 
         <Card className="shadow-xl border-0 bg-white/80 backdrop-blur-sm">
@@ -143,10 +135,10 @@ export function Login({ onLogin }: LoginProps) {
               Access your corporate travel intelligence dashboard
             </CardDescription>
           </CardHeader>
-          
+
           <CardContent>
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="grid w-full grid-cols-2 mb-6">
+              {/* <TabsList className="grid w-full grid-cols-2 mb-6">
                 <TabsTrigger value="login" className="flex items-center gap-2">
                   <User className="h-4 w-4" />
                   Login
@@ -155,7 +147,7 @@ export function Login({ onLogin }: LoginProps) {
                   <UserPlus className="h-4 w-4" />
                   Create Admin
                 </TabsTrigger>
-              </TabsList>
+              </TabsList> */}
 
               {/* Error/Success Messages */}
               {error && (
@@ -234,18 +226,6 @@ export function Login({ onLogin }: LoginProps) {
                   </Button>
                 </form>
 
-                <div className="mt-6 p-4 bg-blue-50 rounded-lg">
-                  <div className="flex items-start gap-3">
-                    <Shield className="h-5 w-5 text-blue-600 mt-0.5" />
-                    <div>
-                      <h4 className="font-medium text-blue-900 mb-1">Demo Credentials</h4>
-                      <p className="text-sm text-blue-700">
-                        Email: admin@soar.com<br />
-                        Password: admin123
-                      </p>
-                    </div>
-                  </div>
-                </div>
               </TabsContent>
 
               {/* Register Tab */}
@@ -266,7 +246,7 @@ export function Login({ onLogin }: LoginProps) {
                         required
                       />
                     </div>
-                    
+
                     <div className="space-y-2">
                       <Label htmlFor="lastName" className="text-sm font-medium text-gray-700">
                         Last Name

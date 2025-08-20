@@ -1201,6 +1201,7 @@ export default function App() {
                   </div>
                 </div>
 
+
                 {/* Right Side - Enhanced Actions - Quick Actions Area */}
                 <div className="flex items-center gap-3" data-quick-actions>
                   {/* Tour Guide Button with Dropdown */}
@@ -1212,7 +1213,7 @@ export default function App() {
                       className="flex items-center gap-2 hover:bg-[#FD9646]/10 hover:border-[#FD9646]/30 hover:text-[#FD9646] transition-all duration-200"
                     >
                       <MapPin className="h-4 w-4" />
-                      <span className="hidden sm:inline">Tour Guide</span>
+                      <span className="hidden sm:inline">Tours Guide</span>
                     </Button>
 
                     {/* Section-specific tour buttons */}
@@ -1288,12 +1289,26 @@ export default function App() {
                   )}
 
                   {/* System Status */}
-                  <div className="hidden lg:flex items-center gap-2">
+                  {/* <div className="hidden lg:flex items-center gap-2">
                     <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
                     <span className="text-xs text-muted-foreground">
                       All Systems Operational
                     </span>
-                  </div>
+                  </div> */}
+                        {/* Right Side - Enhanced Actions - Quick Actions Area */}
+                <div className="flex items-center gap-3" data-quick-actions>
+                  {/* Logout Button */}
+                  {isAuthenticated && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={logout}
+                      className="hover:bg-red-500 hover:text-white"
+                    >
+                      Logout
+                    </Button>
+                  )}
+                </div>
                 </div>
               </div>
             </header>
