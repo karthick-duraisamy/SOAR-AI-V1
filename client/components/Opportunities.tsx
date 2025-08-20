@@ -522,7 +522,23 @@ export function Opportunities({ initialFilters, onNavigate }: OpportunitiesProps
       setCurrentPage(1); // Reset to first page on filter change
       try {
         const data = await getOpportunities({ ...filters }); // Fetch all opportunities
-        setOpportunities(Array.isArray(data) ? data : []);
+        console.log('Fetched opportunities data:', data);
+        
+        // Handle different API response formats
+        let opportunitiesArray = [];
+        if (Array.isArray(data)) {
+          opportunitiesArray = data;
+        } else if (data && Array.isArray(data.results)) {
+          opportunitiesArray = data.results;
+        } else if (data && Array.isArray(data.opportunities)) {
+          opportunitiesArray = data.opportunities;
+        } else {
+          console.warn('Unexpected opportunities data format:', data);
+          opportunitiesArray = [];
+        }
+        
+        console.log('Setting opportunities:', opportunitiesArray);
+        setOpportunities(opportunitiesArray);
       } catch (error) {
         console.error('Error fetching opportunities:', error);
         setOpportunities([]);
@@ -577,16 +593,44 @@ export function Opportunities({ initialFilters, onNavigate }: OpportunitiesProps
 
   // Calculate pipeline metrics
   const safeOpportunities = useMemo(() => Array.isArray(opportunities) ? opportunities : [], [opportunities]);
-  const totalValue = useMemo(() => safeOpportunities.reduce((sum, opp) => sum + (opp?.value || 0), 0), [safeOpportunities]);
-  const weightedValue = useMemo(() => safeOpportunities.reduce((sum, opp) => sum + ((opp?.value || 0) * (opp?.probability || 0) / 100), 0), [safeOpportunities]);
-  const avgDealSize = useMemo(() => safeOpportunities.length > 0 ? totalValue / safeOpportunities.length : 0, [safeOpportunities, totalValue]);
-  const winRate = useMemo(() => safeOpportunities.length > 0 ? (safeOpportunities.filter(opp => opp?.stage === 'closed_won').length / safeOpportunities.length) * 100 : 0, [safeOpportunities]);
+  const totalValue = useMemo(() => {
+    return safeOpportunities.reduce((sum, opp) => {
+      const oppValue = typeof opp?.value === 'string' ? parseFloat(opp.value) : (opp?.value || 0);
+      return sum + oppValue;
+    }, 0);
+  }, [safeOpportunities]);
+  
+  const weightedValue = useMemo(() => {
+    return safeOpportunities.reduce((sum, opp) => {
+      const oppValue = typeof opp?.value === 'string' ? parseFloat(opp.value) : (opp?.value || 0);
+      const oppProbability = opp?.probability || 0;
+      return sum + (oppValue * oppProbability / 100);
+    }, 0);
+  }, [safeOpportunities]);
+  
+  const avgDealSize = useMemo(() => {
+    return safeOpportunities.length > 0 ? totalValue / safeOpportunities.length : 0;
+  }, [safeOpportunities, totalValue]);
+  
+  const winRate = useMemo(() => {
+    if (safeOpportunities.length === 0) return 0;
+    const closedWonCount = safeOpportunities.filter(opp => opp?.stage === 'closed_won').length;
+    return (closedWonCount / safeOpportunities.length) * 100;
+  }, [safeOpportunities]);
 
-  const stageMetrics = useMemo(() => stages.map(stage => ({
-    ...stage,
-    count: safeOpportunities.filter(opp => opp?.stage === stage.id).length,
-    value: safeOpportunities.filter(opp => opp?.stage === stage.id).reduce((sum, opp) => sum + (opp?.value || 0), 0)
-  })), [safeOpportunities]);
+  const stageMetrics = useMemo(() => stages.map(stage => {
+    const stageOpps = safeOpportunities.filter(opp => opp?.stage === stage.id);
+    const stageValue = stageOpps.reduce((sum, opp) => {
+      const oppValue = typeof opp?.value === 'string' ? parseFloat(opp.value) : (opp?.value || 0);
+      return sum + oppValue;
+    }, 0);
+    
+    return {
+      ...stage,
+      count: stageOpps.length,
+      value: stageValue
+    };
+  }), [safeOpportunities]);
 
   // Filtered opportunities
   const filteredOpportunities = useMemo(() => safeOpportunities.filter(opp => {
