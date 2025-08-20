@@ -928,32 +928,57 @@ export function Opportunities({
     setTimeout(() => setSuccessMessage(""), 5000);
   }, []);
 
-  const handleSaveEdit = useCallback(() => {
+  const handleSaveEdit = useCallback(async () => {
     if (!selectedOpportunity) return;
 
-    const updatedOpportunity = {
-      ...selectedOpportunity,
+    const updateData = {
       stage: editForm.stage,
       probability: parseInt(editForm.probability),
       value: parseFloat(editForm.value),
       estimated_close_date: editForm.estimated_close_date,
       next_steps: editForm.next_steps,
       description: editForm.description,
-      updated_at: new Date().toISOString(),
     };
 
-    setOpportunities((prev) =>
-      prev.map((opp) =>
-        opp.id === selectedOpportunity.id ? updatedOpportunity : opp,
-      ),
-    );
+    try {
+      // Update via API
+      const response = await updateOpportunityStage(selectedOpportunity.id, updateData);
 
-    setShowEditDialog(false);
-    setSuccessMessage(
-      `${selectedOpportunity.lead_info?.company?.name} opportunity has been updated`,
-    );
-    setTimeout(() => setSuccessMessage(""), 5000);
-  }, [selectedOpportunity, editForm]);
+      const updatedOpportunity = {
+        ...selectedOpportunity,
+        ...updateData,
+        updated_at: new Date().toISOString(),
+      };
+
+      // Update local state with the response or optimistic update
+      setOpportunities((prev) =>
+        prev.map((opp) =>
+          opp.id === selectedOpportunity.id ? updatedOpportunity : opp,
+        ),
+      );
+
+      setShowEditDialog(false);
+      setSuccessMessage(
+        `${selectedOpportunity.lead_info?.company?.name} opportunity has been updated`,
+      );
+      setTimeout(() => setSuccessMessage(""), 5000);
+
+      toast.success(`${selectedOpportunity.lead_info?.company?.name} opportunity updated successfully!`);
+
+    } catch (error) {
+      console.error('Error updating opportunity:', error);
+      toast.error('Failed to update opportunity. Please try again.');
+      
+      // Optionally refresh opportunities to ensure consistency
+      try {
+        const data = await getOpportunities({ ...filters });
+        const opportunitiesArray = Array.isArray(data) ? data : data?.results || data?.opportunities || [];
+        setOpportunities(opportunitiesArray);
+      } catch (refreshError) {
+        console.error("Error refreshing opportunities:", refreshError);
+      }
+    }
+  }, [selectedOpportunity, editForm, updateOpportunityStage, getOpportunities, filters]);
 
   const handleSaveActivity = useCallback(() => {
     if (!selectedOpportunity) return;
