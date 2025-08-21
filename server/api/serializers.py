@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from .models import (
-    Company, Contact, Lead, Opportunity, Contract, ContractBreach,
+    Company, Contact, Lead, Opportunity, OpportunityActivity, Contract, ContractBreach,
     EmailCampaign, TravelOffer, SupportTicket, RevenueForecast,
     ActivityLog, AIConversation, LeadNote, LeadHistory
 )
