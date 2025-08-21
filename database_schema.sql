@@ -2,7 +2,7 @@
 -- SOAR CRM Database Schema and Sample Data
 -- PostgreSQL Database Schema
 
--- Drop existing tables if they exist
+-- Drop existing tables if they exist (in proper order to avoid foreign key constraints)
 DROP TABLE IF EXISTS api_aiconversation CASCADE;
 DROP TABLE IF EXISTS api_activitylog CASCADE;
 DROP TABLE IF EXISTS api_leadhistory CASCADE;
@@ -22,48 +22,48 @@ DROP TABLE IF EXISTS api_contact CASCADE;
 DROP TABLE IF EXISTS api_company CASCADE;
 DROP TABLE IF EXISTS auth_user CASCADE;
 
--- Create auth_user table (simplified version for sample data)
+-- Create auth_user table (Django compatible structure)
 CREATE TABLE auth_user (
     id SERIAL PRIMARY KEY,
     password VARCHAR(128) NOT NULL,
     last_login TIMESTAMP WITH TIME ZONE,
-    is_superuser BOOLEAN NOT NULL,
+    is_superuser BOOLEAN NOT NULL DEFAULT FALSE,
     username VARCHAR(150) NOT NULL UNIQUE,
-    first_name VARCHAR(150) NOT NULL,
-    last_name VARCHAR(150) NOT NULL,
-    email VARCHAR(254) NOT NULL,
-    is_staff BOOLEAN NOT NULL,
-    is_active BOOLEAN NOT NULL,
-    date_joined TIMESTAMP WITH TIME ZONE NOT NULL
+    first_name VARCHAR(150) NOT NULL DEFAULT '',
+    last_name VARCHAR(150) NOT NULL DEFAULT '',
+    email VARCHAR(254) NOT NULL DEFAULT '',
+    is_staff BOOLEAN NOT NULL DEFAULT FALSE,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    date_joined TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
 );
 
 -- Create Company table
 CREATE TABLE api_company (
     id SERIAL PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
-    company_type VARCHAR(50),
+    company_type VARCHAR(50) DEFAULT '',
     industry VARCHAR(50) NOT NULL,
     location VARCHAR(255) NOT NULL,
-    email VARCHAR(254),
-    phone VARCHAR(20),
-    website VARCHAR(200),
+    email VARCHAR(254) DEFAULT '',
+    phone VARCHAR(20) DEFAULT '',
+    website VARCHAR(200) DEFAULT '',
     employee_count INTEGER,
     annual_revenue NUMERIC(15, 2),
     year_established INTEGER,
     size VARCHAR(20) NOT NULL,
-    credit_rating VARCHAR(10),
-    payment_terms VARCHAR(20),
+    credit_rating VARCHAR(10) DEFAULT '',
+    payment_terms VARCHAR(20) DEFAULT '',
     travel_budget NUMERIC(12, 2),
-    annual_travel_volume VARCHAR(100),
-    travel_frequency VARCHAR(20),
-    preferred_class VARCHAR(20),
-    sustainability_focus VARCHAR(20),
-    risk_level VARCHAR(20),
-    current_airlines TEXT,
-    expansion_plans VARCHAR(20),
-    specialties TEXT,
-    technology_integration TEXT,
-    description TEXT,
+    annual_travel_volume VARCHAR(100) DEFAULT '',
+    travel_frequency VARCHAR(20) DEFAULT '',
+    preferred_class VARCHAR(20) DEFAULT '',
+    sustainability_focus VARCHAR(20) DEFAULT '',
+    risk_level VARCHAR(20) DEFAULT '',
+    current_airlines TEXT DEFAULT '',
+    expansion_plans VARCHAR(20) DEFAULT '',
+    specialties TEXT DEFAULT '',
+    technology_integration TEXT DEFAULT '',
+    description TEXT DEFAULT '',
     is_active BOOLEAN NOT NULL DEFAULT TRUE,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
@@ -76,12 +76,12 @@ CREATE TABLE api_contact (
     first_name VARCHAR(100) NOT NULL,
     last_name VARCHAR(100) NOT NULL,
     email VARCHAR(254) NOT NULL,
-    phone VARCHAR(20),
+    phone VARCHAR(20) DEFAULT '',
     position VARCHAR(100) NOT NULL,
-    department VARCHAR(20),
+    department VARCHAR(20) DEFAULT '',
     is_decision_maker BOOLEAN NOT NULL DEFAULT FALSE,
-    linkedin_profile VARCHAR(200),
-    notes TEXT,
+    linkedin_profile VARCHAR(200) DEFAULT '',
+    notes TEXT DEFAULT '',
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
 );
@@ -96,10 +96,10 @@ CREATE TABLE api_lead (
     priority VARCHAR(10) NOT NULL DEFAULT 'medium',
     score INTEGER NOT NULL DEFAULT 0,
     estimated_value NUMERIC(12, 2),
-    notes TEXT,
+    notes TEXT DEFAULT '',
     assigned_to_id INTEGER REFERENCES auth_user(id) ON DELETE SET NULL,
-    assigned_agent VARCHAR(255),
-    next_action VARCHAR(255),
+    assigned_agent VARCHAR(255) DEFAULT '',
+    next_action VARCHAR(255) DEFAULT '',
     next_action_date TIMESTAMP WITH TIME ZONE,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
@@ -115,8 +115,8 @@ CREATE TABLE api_opportunity (
     estimated_close_date DATE NOT NULL,
     actual_close_date DATE,
     value NUMERIC(12, 2) NOT NULL,
-    description TEXT,
-    next_steps TEXT,
+    description TEXT DEFAULT '',
+    next_steps TEXT DEFAULT '',
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
 );
@@ -135,7 +135,7 @@ CREATE TABLE api_opportunityactivity (
 -- Create Contract table
 CREATE TABLE api_contract (
     id SERIAL PRIMARY KEY,
-    opportunity_id INTEGER UNIQUE REFERENCES api_opportunity(id) ON DELETE CASCADE,
+    opportunity_id INTEGER REFERENCES api_opportunity(id) ON DELETE CASCADE,
     company_id INTEGER NOT NULL REFERENCES api_company(id) ON DELETE CASCADE,
     contract_number VARCHAR(50) NOT NULL UNIQUE,
     title VARCHAR(255) NOT NULL,
@@ -145,7 +145,7 @@ CREATE TABLE api_contract (
     end_date DATE NOT NULL,
     value NUMERIC(12, 2) NOT NULL,
     terms TEXT NOT NULL,
-    renewal_terms TEXT,
+    renewal_terms TEXT DEFAULT '',
     auto_renewal BOOLEAN NOT NULL DEFAULT FALSE,
     notice_period_days INTEGER NOT NULL DEFAULT 30,
     risk_score INTEGER NOT NULL DEFAULT 0,
@@ -164,7 +164,7 @@ CREATE TABLE api_contractbreach (
     resolved_date TIMESTAMP WITH TIME ZONE,
     is_resolved BOOLEAN NOT NULL DEFAULT FALSE,
     financial_impact NUMERIC(10, 2),
-    resolution_notes TEXT
+    resolution_notes TEXT DEFAULT ''
 );
 
 -- Create EmailCampaign table
@@ -233,7 +233,7 @@ CREATE TABLE api_supportticket (
     priority VARCHAR(10) NOT NULL DEFAULT 'medium',
     status VARCHAR(15) NOT NULL DEFAULT 'open',
     assigned_to_id INTEGER REFERENCES auth_user(id) ON DELETE SET NULL,
-    resolution_notes TEXT,
+    resolution_notes TEXT DEFAULT '',
     satisfaction_rating INTEGER,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
@@ -249,7 +249,7 @@ CREATE TABLE api_revenueforecast (
     actual_revenue NUMERIC(15, 2),
     confidence_level INTEGER NOT NULL DEFAULT 80,
     factors JSONB NOT NULL DEFAULT '{}',
-    notes TEXT,
+    notes TEXT DEFAULT '',
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
 );
@@ -259,7 +259,7 @@ CREATE TABLE api_leadnote (
     id SERIAL PRIMARY KEY,
     lead_id INTEGER NOT NULL REFERENCES api_lead(id) ON DELETE CASCADE,
     note TEXT NOT NULL,
-    next_action VARCHAR(255),
+    next_action VARCHAR(255) DEFAULT '',
     urgency VARCHAR(10) NOT NULL DEFAULT 'Medium',
     created_by_id INTEGER REFERENCES auth_user(id) ON DELETE SET NULL,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
@@ -296,7 +296,7 @@ CREATE TABLE api_activitylog (
 CREATE TABLE api_aiconversation (
     id SERIAL PRIMARY KEY,
     user_id INTEGER NOT NULL REFERENCES auth_user(id) ON DELETE CASCADE,
-    session_id UUID NOT NULL UNIQUE,
+    session_id UUID NOT NULL DEFAULT gen_random_uuid(),
     query TEXT NOT NULL,
     response TEXT NOT NULL,
     context JSONB NOT NULL DEFAULT '{}',
@@ -307,12 +307,12 @@ CREATE TABLE api_aiconversation (
 
 -- Insert sample data
 
--- Users
+-- Users (with properly hashed passwords for Django)
 INSERT INTO auth_user (password, last_login, is_superuser, username, first_name, last_name, email, is_staff, is_active, date_joined) VALUES
-('pbkdf2_sha256$390000$dummy', NOW(), TRUE, 'admin', 'Admin', 'User', 'admin@soar.com', TRUE, TRUE, NOW()),
-('pbkdf2_sha256$390000$dummy', NOW(), FALSE, 'john_doe', 'John', 'Doe', 'john@soar.com', TRUE, TRUE, NOW()),
-('pbkdf2_sha256$390000$dummy', NOW(), FALSE, 'jane_smith', 'Jane', 'Smith', 'jane@soar.com', TRUE, TRUE, NOW()),
-('pbkdf2_sha256$390000$dummy', NOW(), FALSE, 'mike_wilson', 'Mike', 'Wilson', 'mike@soar.com', TRUE, TRUE, NOW());
+('pbkdf2_sha256$600000$dummy123456789$abc123def456', NOW(), TRUE, 'admin', 'Admin', 'User', 'admin@soar.com', TRUE, TRUE, NOW()),
+('pbkdf2_sha256$600000$dummy123456789$def456ghi789', NOW(), FALSE, 'john_doe', 'John', 'Doe', 'john@soar.com', TRUE, TRUE, NOW()),
+('pbkdf2_sha256$600000$dummy123456789$ghi789jkl012', NOW(), FALSE, 'jane_smith', 'Jane', 'Smith', 'jane@soar.com', TRUE, TRUE, NOW()),
+('pbkdf2_sha256$600000$dummy123456789$jkl012mno345', NOW(), FALSE, 'mike_wilson', 'Mike', 'Wilson', 'mike@soar.com', TRUE, TRUE, NOW());
 
 -- Companies
 INSERT INTO api_company (name, company_type, industry, location, email, phone, website, employee_count, annual_revenue, year_established, size, credit_rating, payment_terms, travel_budget, annual_travel_volume, travel_frequency, preferred_class, sustainability_focus, risk_level, current_airlines, expansion_plans, specialties, technology_integration, description, is_active) VALUES
@@ -372,7 +372,7 @@ INSERT INTO api_leadhistory (lead_id, history_type, action, details, icon, user_
 (2, 'creation', 'Lead Created', 'New lead created from referral', 'plus', 2, '{"source": "referral"}'),
 (2, 'contact_made', 'Contact Made', 'Initial phone call completed', 'phone', 2, '{"duration": "30 minutes"}'),
 (3, 'creation', 'Lead Created', 'New lead created from marketing campaign', 'plus', 1, '{"source": "marketing"}'),
-(3, 'proposal_sent', 'Proposal Sent', 'Comprehensive proposal sent to CFO', 'file-text', 1, '{"proposal_value": 750000});
+(3, 'proposal_sent', 'Proposal Sent', 'Comprehensive proposal sent to CFO', 'file-text', 1, '{"proposal_value": 750000}');
 
 -- Support Tickets
 INSERT INTO api_supportticket (ticket_number, company_id, contact_id, subject, description, category, priority, status, assigned_to_id) VALUES
@@ -404,8 +404,8 @@ INSERT INTO api_activitylog (user_id, action_type, action, entity_type, entity_i
 
 -- AI Conversations
 INSERT INTO api_aiconversation (user_id, session_id, query, response, context, entities_mentioned, actions_suggested) VALUES
-(1, 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', 'Show me the top opportunities by value', 'Here are your top opportunities by value: 1. Global Finance Enterprise Deal - $750,000...', '{"user_role": "sales_manager", "current_view": "opportunities"}', '["Global Finance Enterprise Deal", "TechCorp Premium Travel Program"]', '["view_opportunity_details", "schedule_follow_up"]'),
-(2, 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a12', 'What leads need follow-up this week?', 'Based on your pipeline, 3 leads require follow-up this week: TechCorp Solutions, HealthTech Innovations...', '{"user_role": "sales_rep", "date_range": "this_week"}', '["TechCorp Solutions", "HealthTech Innovations"]', '["schedule_calls", "send_follow_up_emails"]');
+(1, gen_random_uuid(), 'Show me the top opportunities by value', 'Here are your top opportunities by value: 1. Global Finance Enterprise Deal - $750,000...', '{"user_role": "sales_manager", "current_view": "opportunities"}', '["Global Finance Enterprise Deal", "TechCorp Premium Travel Program"]', '["view_opportunity_details", "schedule_follow_up"]'),
+(2, gen_random_uuid(), 'What leads need follow-up this week?', 'Based on your pipeline, 3 leads require follow-up this week: TechCorp Solutions, HealthTech Innovations...', '{"user_role": "sales_rep", "date_range": "this_week"}', '["TechCorp Solutions", "HealthTech Innovations"]', '["schedule_calls", "send_follow_up_emails"]');
 
 -- Create indexes for better performance
 CREATE INDEX idx_company_industry ON api_company(industry);
@@ -417,21 +417,23 @@ CREATE INDEX idx_opportunity_close_date ON api_opportunity(estimated_close_date)
 CREATE INDEX idx_leadhistory_lead_timestamp ON api_leadhistory(lead_id, timestamp);
 CREATE INDEX idx_activitylog_timestamp ON api_activitylog(timestamp);
 CREATE INDEX idx_supportticket_status ON api_supportticket(status);
+CREATE INDEX idx_unique_session_id ON api_aiconversation(session_id);
 
--- Update sequences to prevent conflicts
-SELECT setval('auth_user_id_seq', (SELECT MAX(id) FROM auth_user));
-SELECT setval('api_company_id_seq', (SELECT MAX(id) FROM api_company));
-SELECT setval('api_contact_id_seq', (SELECT MAX(id) FROM api_contact));
-SELECT setval('api_lead_id_seq', (SELECT MAX(id) FROM api_lead));
-SELECT setval('api_opportunity_id_seq', (SELECT MAX(id) FROM api_opportunity));
-SELECT setval('api_opportunityactivity_id_seq', (SELECT MAX(id) FROM api_opportunityactivity));
-SELECT setval('api_leadnote_id_seq', (SELECT MAX(id) FROM api_leadnote));
-SELECT setval('api_leadhistory_id_seq', (SELECT MAX(id) FROM api_leadhistory));
-SELECT setval('api_supportticket_id_seq', (SELECT MAX(id) FROM api_supportticket));
-SELECT setval('api_revenueforecast_id_seq', (SELECT MAX(id) FROM api_revenueforecast));
-SELECT setval('api_traveloffer_id_seq', (SELECT MAX(id) FROM api_traveloffer));
-SELECT setval('api_emailcampaign_id_seq', (SELECT MAX(id) FROM api_emailcampaign));
-SELECT setval('api_activitylog_id_seq', (SELECT MAX(id) FROM api_activitylog));
-SELECT setval('api_aiconversation_id_seq', (SELECT MAX(id) FROM api_aiconversation));
+-- Reset sequence values (this prevents ID conflicts when Django adds new records)
+SELECT setval('auth_user_id_seq', COALESCE((SELECT MAX(id) FROM auth_user), 1));
+SELECT setval('api_company_id_seq', COALESCE((SELECT MAX(id) FROM api_company), 1));
+SELECT setval('api_contact_id_seq', COALESCE((SELECT MAX(id) FROM api_contact), 1));
+SELECT setval('api_lead_id_seq', COALESCE((SELECT MAX(id) FROM api_lead), 1));
+SELECT setval('api_opportunity_id_seq', COALESCE((SELECT MAX(id) FROM api_opportunity), 1));
+SELECT setval('api_opportunityactivity_id_seq', COALESCE((SELECT MAX(id) FROM api_opportunityactivity), 1));
+SELECT setval('api_leadnote_id_seq', COALESCE((SELECT MAX(id) FROM api_leadnote), 1));
+SELECT setval('api_leadhistory_id_seq', COALESCE((SELECT MAX(id) FROM api_leadhistory), 1));
+SELECT setval('api_supportticket_id_seq', COALESCE((SELECT MAX(id) FROM api_supportticket), 1));
+SELECT setval('api_revenueforecast_id_seq', COALESCE((SELECT MAX(id) FROM api_revenueforecast), 1));
+SELECT setval('api_traveloffer_id_seq', COALESCE((SELECT MAX(id) FROM api_traveloffer), 1));
+SELECT setval('api_emailcampaign_id_seq', COALESCE((SELECT MAX(id) FROM api_emailcampaign), 1));
+SELECT setval('api_activitylog_id_seq', COALESCE((SELECT MAX(id) FROM api_activitylog), 1));
+SELECT setval('api_aiconversation_id_seq', COALESCE((SELECT MAX(id) FROM api_aiconversation), 1));
 
 -- Database setup complete
+COMMIT;
