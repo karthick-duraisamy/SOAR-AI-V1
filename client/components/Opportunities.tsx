@@ -345,7 +345,7 @@ const OpportunityCard = memo(
 
         {/* Next Action Section */}
         <div className="mb-3">
-          <div className="flex items-start gap-2 mb-2">
+          <div className="flex items-start gap-2 mb-2 rounded-lg border px-4 py-3 text-sm bg-blue-100">
             <div className="w-2 h-2 bg-gray-400 rounded-full mt-2 flex-shrink-0"></div>
             <div>
               <span className="text-blue-600 font-medium text-sm">Next Action:</span>
@@ -355,7 +355,7 @@ const OpportunityCard = memo(
             </div>
           </div>
           
-          <div className="mt-3">
+          <div className="mb-4 p-3 bg-gray-50 rounded-lg">
             <div className="text-gray-900 font-medium text-sm mb-1">Notes:</div>
             <div className="text-gray-600 text-sm">
               {opportunity.description || "Focused on cost optimization across multiple manufacturing sites"}
