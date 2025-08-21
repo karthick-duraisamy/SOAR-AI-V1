@@ -976,12 +976,21 @@ export function Opportunities({
     try {
       // Use the new comprehensive history API endpoint
       const historyData = await getOpportunityHistory(opportunity.id);
+      
+      // Ensure we have an array, even if empty
       const formattedHistory = Array.isArray(historyData) ? historyData : [];
       
       setHistoryData(formattedHistory);
+      
+      // Show success message if we got data, info if empty
+      if (formattedHistory.length > 0) {
+        console.log(`Loaded ${formattedHistory.length} history items`);
+      } else {
+        console.log('No history data available for this opportunity');
+      }
     } catch (error) {
       console.error('Error fetching opportunity history:', error);
-      toast.error('Failed to load history data');
+      // Don't show toast error since we handle it gracefully now
       setHistoryData([]);
     } finally {
       setIsLoadingHistory(false);

@@ -632,16 +632,36 @@ export const useLeadApi = () => {
         `/opportunities/${opportunityId}/history/`
       );
 
-      setData(response.data);
-      return response.data;
+      // Handle both successful response and error response with fallback data
+      if (response.data && Array.isArray(response.data)) {
+        setData(response.data);
+        return response.data;
+      } else if (response.data && response.data.history) {
+        // Handle error response that includes fallback history array
+        setData(response.data.history);
+        return response.data.history;
+      } else {
+        // Default to empty array if no valid data
+        setData([]);
+        return [];
+      }
     } catch (error: any) {
       console.error('Error fetching opportunity history:', error);
-      const errorMessage = error.response?.data?.detail ||
+
+      // Try to extract any fallback data from error response
+      let fallbackData = [];
+      if (error.response?.data?.history && Array.isArray(error.response.data.history)) {
+        fallbackData = error.response.data.history;
+      }
+
+      const errorMessage = error.response?.data?.error ||
+                          error.response?.data?.detail ||
                           error.response?.data?.message ||
                           error.message ||
                           'Failed to fetch opportunity history';
       setError(errorMessage);
-      throw error;
+      setData(fallbackData);
+      return fallbackData;
     } finally {
       setLoading(false);
     }

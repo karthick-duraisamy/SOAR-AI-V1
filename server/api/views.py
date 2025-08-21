@@ -1117,49 +1117,92 @@ class OpportunityViewSet(viewsets.ModelViewSet):
             opportunity = self.get_object()
             
             # Get opportunity activities
-            activities = opportunity.activities.all()
-            activity_data = OpportunityActivitySerializer(activities, many=True).data
+            activities = opportunity.activities.all().order_by('-created_at')
+            history_items = []
             
             # Format activities as history items
-            history_items = []
-            for activity in activity_data:
-                history_items.append({
-                    'id': f"activity_{activity['id']}",
-                    'history_type': 'activity',
-                    'action': activity['type_display'],
-                    'details': activity['description'],
-                    'icon': 'activity',
-                    'timestamp': activity['created_at'],
-                    'user_name': activity['created_by_name'] or 'Unknown User',
-                    'user_role': 'Sales Representative',
-                    'formatted_timestamp': activity['created_at'],
-                    'metadata': {'activity_type': activity['type']}
-                })
+            for activity in activities:
+                try:
+                    # Handle created_by user safely
+                    user_name = 'System'
+                    if activity.created_by:
+                        user_name = f"{activity.created_by.first_name} {activity.created_by.last_name}".strip()
+                        if not user_name:
+                            user_name = activity.created_by.username
+                    
+                    # Format timestamp safely
+                    formatted_timestamp = activity.created_at.strftime('%m/%d/%Y at %I:%M:%S %p') if activity.created_at else 'Unknown'
+                    
+                    history_items.append({
+                        'id': f"activity_{activity.id}",
+                        'history_type': 'activity',
+                        'action': f"{activity.get_type_display()} - {activity.description[:50]}{'...' if len(activity.description) > 50 else ''}",
+                        'details': activity.description,
+                        'icon': 'activity',
+                        'timestamp': activity.created_at.isoformat() if activity.created_at else '',
+                        'user_name': user_name,
+                        'user_role': 'Sales Representative',
+                        'formatted_timestamp': formatted_timestamp,
+                        'metadata': {'activity_type': activity.type, 'activity_date': str(activity.date)}
+                    })
+                except Exception as activity_error:
+                    print(f"Error processing activity {activity.id}: {activity_error}")
+                    continue
             
             # If opportunity is linked to a lead, get lead history
             if hasattr(opportunity, 'lead') and opportunity.lead:
-                lead_history = LeadHistory.objects.filter(lead=opportunity.lead).order_by('-timestamp')
-                for history in lead_history:
-                    history_items.append({
-                        'id': f"lead_history_{history.id}",
-                        'history_type': history.history_type,
-                        'action': history.action,
-                        'details': history.details,
-                        'icon': history.icon,
-                        'timestamp': history.timestamp.isoformat(),
-                        'user_name': history.user_name,
-                        'user_role': history.user_role,
-                        'formatted_timestamp': history.formatted_timestamp(),
-                        'metadata': history.metadata
-                    })
+                try:
+                    lead_history = LeadHistory.objects.filter(lead=opportunity.lead).order_by('-timestamp')
+                    for history in lead_history:
+                        try:
+                            # Handle user safely
+                            user_name = 'System'
+                            user_role = 'System'
+                            if history.user:
+                                user_name = f"{history.user.first_name} {history.user.last_name}".strip()
+                                if not user_name:
+                                    user_name = history.user.username
+                                user_role = 'Sales Manager' if history.user.is_staff else 'Sales Representative'
+                            
+                            # Handle metadata safely
+                            metadata = {}
+                            if hasattr(history, 'metadata') and history.metadata:
+                                metadata = history.metadata
+                            
+                            # Format timestamp
+                            formatted_timestamp = history.timestamp.strftime('%m/%d/%Y at %I:%M:%S %p') if history.timestamp else 'Unknown'
+                            
+                            history_items.append({
+                                'id': f"lead_history_{history.id}",
+                                'history_type': history.history_type,
+                                'action': history.action,
+                                'details': history.details,
+                                'icon': history.icon,
+                                'timestamp': history.timestamp.isoformat() if history.timestamp else '',
+                                'user_name': user_name,
+                                'user_role': user_role,
+                                'formatted_timestamp': formatted_timestamp,
+                                'metadata': metadata
+                            })
+                        except Exception as history_error:
+                            print(f"Error processing lead history {history.id}: {history_error}")
+                            continue
+                except Exception as lead_history_error:
+                    print(f"Error fetching lead history: {lead_history_error}")
             
             # Sort by timestamp (newest first)
-            history_items.sort(key=lambda x: x['timestamp'], reverse=True)
+            try:
+                history_items.sort(key=lambda x: x['timestamp'] if x['timestamp'] else '', reverse=True)
+            except Exception as sort_error:
+                print(f"Error sorting history items: {sort_error}")
             
             return Response(history_items)
+            
         except Exception as e:
+            print(f"Error in opportunity history endpoint: {str(e)}")
             return Response({
-                'error': f'Failed to fetch opportunity history: {str(e)}'
+                'error': f'Failed to fetch opportunity history: {str(e)}',
+                'history': []
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     @action(detail=False, methods=['get'])
