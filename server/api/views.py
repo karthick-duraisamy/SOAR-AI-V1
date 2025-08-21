@@ -1073,11 +1073,17 @@ class OpportunityViewSet(viewsets.ModelViewSet):
             
             activity_serializer = OpportunityActivitySerializer(data=activity_data)
             if activity_serializer.is_valid():
-                activity = activity_serializer.save(created_by=request.user if request.user.is_authenticated else None)
+                # Save with user information
+                activity = activity_serializer.save(
+                    created_by=request.user if request.user.is_authenticated else None
+                )
+                
+                # Return the activity with updated serializer data including user info
+                response_data = OpportunityActivitySerializer(activity).data
                 
                 return Response({
                     'message': f'Activity added to {opportunity.name}',
-                    'activity': OpportunityActivitySerializer(activity).data
+                    'activity': response_data
                 }, status=status.HTTP_201_CREATED)
             else:
                 return Response({

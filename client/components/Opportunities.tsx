@@ -72,6 +72,8 @@ import {
   ExternalLink,
   ChevronLeft,
   ChevronRight,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 
 interface OpportunitiesProps {
@@ -166,6 +168,67 @@ const stages = [
 const ItemTypes = {
   OPPORTUNITY: "opportunity",
 };
+
+// Activity Accordion Component
+interface ActivityAccordionProps {
+  activities: Activity[];
+}
+
+const ActivityAccordion = memo(({ activities }: ActivityAccordionProps) => {
+  const [isExpanded, setIsExpanded] = useState(false);
+  
+  const displayedActivities = isExpanded ? activities : activities.slice(0, 1);
+  const remainingCount = activities.length - 1;
+
+  return (
+    <div className="mb-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
+      <div className="flex items-center justify-between mb-2">
+        <div className="text-blue-900 font-medium text-sm">
+          Recent Activities ({activities.length})
+        </div>
+        {activities.length > 1 && (
+          <button
+            onClick={() => setIsExpanded(!isExpanded)}
+            className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 transition-colors"
+          >
+            {isExpanded ? (
+              <>
+                <span>Show less</span>
+                <ChevronUp className="h-3 w-3" />
+              </>
+            ) : (
+              <>
+                <span>Show {remainingCount} more</span>
+                <ChevronDown className="h-3 w-3" />
+              </>
+            )}
+          </button>
+        )}
+      </div>
+      <div className="space-y-2">
+        {displayedActivities.map((activity) => (
+          <div key={activity.id} className="text-xs text-blue-700 p-2 bg-white rounded border border-blue-100">
+            <div className="flex items-center gap-2 mb-1">
+              <div className="w-1 h-1 bg-blue-400 rounded-full"></div>
+              <span className="font-medium">{activity.type_display}</span>
+              <span className="text-blue-600">
+                {new Date(activity.date).toLocaleDateString()}
+              </span>
+              <span className="text-blue-500 ml-auto">
+                by {activity.created_by_name}
+              </span>
+            </div>
+            <div className="text-blue-600 ml-3">
+              {activity.description}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+});
+
+ActivityAccordion.displayName = "ActivityAccordion";
 
 // Opportunity Card Component matching the design in the image
 interface OpportunityCardProps {
@@ -376,30 +439,7 @@ const OpportunityCard = memo(
 
           {/* Recent Activities Section */}
           {opportunity.latest_activities && opportunity.latest_activities.length > 0 && (
-            <div className="mb-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
-              <div className="text-blue-900 font-medium text-sm mb-2">Recent Activities:</div>
-              <div className="space-y-2">
-                {opportunity.latest_activities.slice(0, 2).map((activity) => (
-                  <div key={activity.id} className="text-xs text-blue-700">
-                    <div className="flex items-center gap-2 mb-1">
-                      <div className="w-1 h-1 bg-blue-400 rounded-full"></div>
-                      <span className="font-medium">{activity.type_display}</span>
-                      <span className="text-blue-600">
-                        {new Date(activity.date).toLocaleDateString()}
-                      </span>
-                    </div>
-                    <div className="text-blue-600 ml-3 truncate">
-                      {activity.description}
-                    </div>
-                  </div>
-                ))}
-                {opportunity.latest_activities.length > 2 && (
-                  <div className="text-xs text-blue-500 ml-3">
-                    +{opportunity.latest_activities.length - 2} more activities
-                  </div>
-                )}
-              </div>
-            </div>
+            <ActivityAccordion activities={opportunity.latest_activities} />
           )}
         </div>
 
@@ -1071,7 +1111,13 @@ export function Opportunities({
     }
 
     try {
-      const response = await addOpportunityActivity(selectedOpportunity.id, activityForm);
+      // Add user information to the activity data
+      const activityWithUser = {
+        ...activityForm,
+        created_by_name: 'Current User', // In a real app, this would come from auth context
+      };
+
+      const response = await addOpportunityActivity(selectedOpportunity.id, activityWithUser);
       
       // Refresh opportunities to show the new activity
       const updatedOpportunities = await getOpportunities({ ...filters });

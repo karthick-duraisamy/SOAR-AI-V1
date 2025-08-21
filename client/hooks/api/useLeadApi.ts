@@ -568,9 +568,17 @@ export const useLeadApi = () => {
     setError(null);
 
     try {
+      // Ensure we send the user information with the activity
+      const activityWithUser = {
+        type: activityData.type,
+        description: activityData.description,
+        date: activityData.date,
+        created_by_name: activityData.created_by_name || 'Current User'
+      };
+
       const response: AxiosResponse<any> = await baseApi.post(
         `/opportunities/${opportunityId}/add_activity/`,
-        activityData
+        activityWithUser
       );
 
       setData(response.data);
