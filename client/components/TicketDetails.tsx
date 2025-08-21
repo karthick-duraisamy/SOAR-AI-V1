@@ -119,7 +119,7 @@ const chatHistory = [
     id: 2,
     sender: 'system',
     senderName: 'System',
-    message: 'Ticket TKT-2024-001 has been created and assigned to Customer Support Team.',
+    message: 'Ticket TKT-2024-001 has been created & assigned to Customer Support Team.',
     timestamp: '2024-06-17 09:32:00',
     channel: 'System',
     read: true
