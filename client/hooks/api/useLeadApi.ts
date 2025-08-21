@@ -562,6 +562,58 @@ export const useLeadApi = () => {
     }
   }, [setLoading, setError, setData]);
 
+  // Add activity to opportunity
+  const addOpportunityActivity = useCallback(async (opportunityId: number, activityData: any) => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const response: AxiosResponse<any> = await baseApi.post(
+        `/opportunities/${opportunityId}/add_activity/`,
+        activityData
+      );
+
+      setData(response.data);
+      return response.data;
+    } catch (error: any) {
+      console.error('Error adding activity:', error);
+      const errorMessage = error.response?.data?.error ||
+                          error.response?.data?.detail ||
+                          error.response?.data?.message ||
+                          error.message ||
+                          'Failed to add activity';
+      setError(errorMessage);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  }, [setLoading, setError, setData]);
+
+  // Get activities for opportunity
+  const getOpportunityActivities = useCallback(async (opportunityId: number) => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const response: AxiosResponse<any> = await baseApi.get(
+        `/opportunities/${opportunityId}/activities/`
+      );
+
+      setData(response.data);
+      return response.data;
+    } catch (error: any) {
+      console.error('Error fetching activities:', error);
+      const errorMessage = error.response?.data?.detail ||
+                          error.response?.data?.message ||
+                          error.message ||
+                          'Failed to fetch activities';
+      setError(errorMessage);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  }, [setLoading, setError, setData]);
+
   return {
     ...state,
     getLeads,
@@ -584,6 +636,8 @@ export const useLeadApi = () => {
     createLeadFromCompany,
     getOpportunities,
     updateOpportunityStage,
-    getOpportunityPipeline
+    getOpportunityPipeline,
+    addOpportunityActivity,
+    getOpportunityActivities
   };
 };

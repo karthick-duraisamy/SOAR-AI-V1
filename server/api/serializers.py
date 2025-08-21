@@ -294,10 +294,25 @@ class OptimizedLeadSerializer(serializers.ModelSerializer):
         return None
 
 
+class OpportunityActivitySerializer(serializers.ModelSerializer):
+    created_by_name = serializers.SerializerMethodField()
+    type_display = serializers.CharField(source='get_type_display', read_only=True)
+
+    class Meta:
+        model = OpportunityActivity
+        fields = '__all__'
+
+    def get_created_by_name(self, obj):
+        if obj.created_by:
+            return f"{obj.created_by.first_name} {obj.created_by.last_name}".strip() or obj.created_by.username
+        return 'System'
+
 class OpportunitySerializer(serializers.ModelSerializer):
     lead_info = LeadSerializer(source='lead', read_only=True)
     company_name = serializers.CharField(source='lead.company.name', read_only=True)
     weighted_value = serializers.SerializerMethodField()
+    activities = OpportunityActivitySerializer(many=True, read_only=True)
+    latest_activities = serializers.SerializerMethodField()
 
     class Meta:
         model = Opportunity
@@ -305,6 +320,10 @@ class OpportunitySerializer(serializers.ModelSerializer):
 
     def get_weighted_value(self, obj):
         return float(obj.value) * (obj.probability / 100)
+
+    def get_latest_activities(self, obj):
+        latest_activities = obj.activities.all()[:3]  # Get latest 3 activities
+        return OpportunityActivitySerializer(latest_activities, many=True).data
 
     def validate_probability(self, value):
         if value < 0 or value > 100:
@@ -327,13 +346,15 @@ class OptimizedOpportunitySerializer(serializers.ModelSerializer):
     """Optimized serializer for opportunity list views with minimal data"""
     lead_info = serializers.SerializerMethodField()
     weighted_value = serializers.SerializerMethodField()
+    latest_activities = serializers.SerializerMethodField()
 
     class Meta:
         model = Opportunity
         fields = [
             'id', 'name', 'stage', 'probability', 'value', 
             'estimated_close_date', 'created_at', 'updated_at',
-            'description', 'next_steps', 'lead_info', 'weighted_value'
+            'description', 'next_steps', 'lead_info', 'weighted_value',
+            'latest_activities'
         ]
 
     def get_lead_info(self, obj):
@@ -360,6 +381,10 @@ class OptimizedOpportunitySerializer(serializers.ModelSerializer):
 
     def get_weighted_value(self, obj):
         return float(obj.value) * (obj.probability / 100)
+
+    def get_latest_activities(self, obj):
+        latest_activities = obj.activities.all()[:3]  # Get latest 3 activities
+        return OpportunityActivitySerializer(latest_activities, many=True).data
 
 class ContractBreachSerializer(serializers.ModelSerializer):
     contract_title = serializers.CharField(source='contract.title', read_only=True)

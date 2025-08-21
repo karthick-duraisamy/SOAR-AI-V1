@@ -7,12 +7,12 @@ from django.db.models import Q, Sum, Count, Avg
 from django.utils import timezone
 from datetime import datetime, timedelta
 from .models import (
-    Company, Contact, Lead, Opportunity, Contract, ContractBreach,
+    Company, Contact, Lead, Opportunity, OpportunityActivity, Contract, ContractBreach,
     EmailCampaign, TravelOffer, SupportTicket, RevenueForecast,
     ActivityLog, AIConversation, LeadNote, LeadHistory
 )
 from .serializers import (
-    CompanySerializer, ContactSerializer, LeadSerializer, OpportunitySerializer,
+    CompanySerializer, ContactSerializer, LeadSerializer, OpportunitySerializer, OpportunityActivitySerializer,
     ContractSerializer, ContractBreachSerializer, EmailCampaignSerializer,
     TravelOfferSerializer, SupportTicketSerializer, RevenueForecastSerializer,
     ActivityLogSerializer, AIConversationSerializer, LeadNoteSerializer, LeadHistorySerializer
@@ -1033,7 +1033,7 @@ class LeadViewSet(viewsets.ModelViewSet):
             )
 
 class OpportunityViewSet(viewsets.ModelViewSet):
-    queryset = Opportunity.objects.all()
+    queryset = Opportunity.objects.prefetch_related('activities').all()
     serializer_class = OpportunitySerializer
 
     def update(self, request, *args, **kwargs):
@@ -1057,6 +1057,52 @@ class OpportunityViewSet(viewsets.ModelViewSet):
                 {'error': f'Update failed: {str(e)}'}, 
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
+
+    @action(detail=True, methods=['post'])
+    def add_activity(self, request, pk=None):
+        """Add activity to opportunity"""
+        try:
+            opportunity = self.get_object()
+            
+            activity_data = {
+                'opportunity': opportunity.id,
+                'type': request.data.get('type', 'call'),
+                'description': request.data.get('description', ''),
+                'date': request.data.get('date', timezone.now().date()),
+            }
+            
+            activity_serializer = OpportunityActivitySerializer(data=activity_data)
+            if activity_serializer.is_valid():
+                activity = activity_serializer.save(created_by=request.user if request.user.is_authenticated else None)
+                
+                return Response({
+                    'message': f'Activity added to {opportunity.name}',
+                    'activity': OpportunityActivitySerializer(activity).data
+                }, status=status.HTTP_201_CREATED)
+            else:
+                return Response({
+                    'error': 'Invalid activity data',
+                    'details': activity_serializer.errors
+                }, status=status.HTTP_400_BAD_REQUEST)
+                
+        except Exception as e:
+            print(f"Error adding activity: {str(e)}")
+            return Response({
+                'error': f'Failed to add activity: {str(e)}'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    @action(detail=True, methods=['get'])
+    def activities(self, request, pk=None):
+        """Get all activities for opportunity"""
+        try:
+            opportunity = self.get_object()
+            activities = opportunity.activities.all()
+            serializer = OpportunityActivitySerializer(activities, many=True)
+            return Response(serializer.data)
+        except Exception as e:
+            return Response({
+                'error': f'Failed to fetch activities: {str(e)}'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     @action(detail=False, methods=['get'])
     def pipeline_value(self, request):
@@ -1144,6 +1190,22 @@ class OpportunityViewSet(viewsets.ModelViewSet):
         from .serializers import OptimizedOpportunitySerializer
         serializer = OptimizedOpportunitySerializer(queryset, many=True)
         return Response(serializer.data)
+
+class OpportunityActivityViewSet(viewsets.ModelViewSet):
+    queryset = OpportunityActivity.objects.all()
+    serializer_class = OpportunityActivitySerializer
+
+    def get_queryset(self):
+        queryset = self.queryset
+        opportunity_id = self.request.query_params.get('opportunity_id', None)
+        
+        if opportunity_id:
+            queryset = queryset.filter(opportunity_id=opportunity_id)
+            
+        return queryset.order_by('-date', '-created_at')
+
+    def perform_create(self, serializer):
+        serializer.save(created_by=self.request.user if self.request.user.is_authenticated else None)
 
 class ContractViewSet(viewsets.ModelViewSet):
     queryset = Contract.objects.all()

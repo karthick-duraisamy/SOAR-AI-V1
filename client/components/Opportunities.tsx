@@ -80,6 +80,16 @@ interface OpportunitiesProps {
 }
 
 // Define opportunity interface based on your Django model
+interface Activity {
+  id: number;
+  type: string;
+  type_display: string;
+  description: string;
+  date: string;
+  created_at: string;
+  created_by_name: string;
+}
+
 interface Opportunity {
   id: number;
   leadId?: number;
@@ -93,6 +103,8 @@ interface Opportunity {
   next_steps?: string;
   created_at: string;
   updated_at: string;
+  activities?: Activity[];
+  latest_activities?: Activity[];
   lead_info?: {
     company: {
       id: number;
@@ -361,6 +373,34 @@ const OpportunityCard = memo(
               {opportunity.description || "Focused on cost optimization across multiple manufacturing sites"}
             </div>
           </div>
+
+          {/* Recent Activities Section */}
+          {opportunity.latest_activities && opportunity.latest_activities.length > 0 && (
+            <div className="mb-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
+              <div className="text-blue-900 font-medium text-sm mb-2">Recent Activities:</div>
+              <div className="space-y-2">
+                {opportunity.latest_activities.slice(0, 2).map((activity) => (
+                  <div key={activity.id} className="text-xs text-blue-700">
+                    <div className="flex items-center gap-2 mb-1">
+                      <div className="w-1 h-1 bg-blue-400 rounded-full"></div>
+                      <span className="font-medium">{activity.type_display}</span>
+                      <span className="text-blue-600">
+                        {new Date(activity.date).toLocaleDateString()}
+                      </span>
+                    </div>
+                    <div className="text-blue-600 ml-3 truncate">
+                      {activity.description}
+                    </div>
+                  </div>
+                ))}
+                {opportunity.latest_activities.length > 2 && (
+                  <div className="text-xs text-blue-500 ml-3">
+                    +{opportunity.latest_activities.length - 2} more activities
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Tags/Badges */}
@@ -594,7 +634,7 @@ export function Opportunities({
   initialFilters,
   onNavigate,
 }: OpportunitiesProps) {
-  const { getOpportunities, updateOpportunityStage } = useLeadApi();
+  const { getOpportunities, updateOpportunityStage, addOpportunityActivity, getOpportunityActivities } = useLeadApi();
   const [opportunities, setOpportunities] = useState<Opportunity[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
@@ -1022,16 +1062,34 @@ export function Opportunities({
     }
   }, [selectedOpportunity, editForm, updateOpportunityStage, getOpportunities, filters]);
 
-  const handleSaveActivity = useCallback(() => {
+  const handleSaveActivity = useCallback(async () => {
     if (!selectedOpportunity) return;
 
-    // In a real implementation, you would send this to the API
-    setShowActivityDialog(false);
-    setSuccessMessage(
-      `Activity added to ${selectedOpportunity.lead_info?.company?.name} opportunity`,
-    );
-    setTimeout(() => setSuccessMessage(""), 5000);
-  }, [selectedOpportunity]);
+    if (!activityForm.description.trim()) {
+      toast.error('Activity description is required');
+      return;
+    }
+
+    try {
+      const response = await addOpportunityActivity(selectedOpportunity.id, activityForm);
+      
+      // Refresh opportunities to show the new activity
+      const updatedOpportunities = await getOpportunities({ ...filters });
+      const opportunitiesArray = Array.isArray(updatedOpportunities) ? updatedOpportunities : updatedOpportunities?.results || updatedOpportunities?.opportunities || [];
+      setOpportunities(opportunitiesArray);
+
+      setShowActivityDialog(false);
+      setSuccessMessage(
+        `Activity added to ${selectedOpportunity.lead_info?.company?.name} opportunity`,
+      );
+      setTimeout(() => setSuccessMessage(""), 5000);
+      toast.success('Activity added successfully!');
+
+    } catch (error) {
+      console.error('Error saving activity:', error);
+      toast.error('Failed to save activity. Please try again.');
+    }
+  }, [selectedOpportunity, activityForm, addOpportunityActivity, getOpportunities, filters, setOpportunities]);
 
   const handleSaveProposal = useCallback(() => {
     if (!selectedOpportunity) return;

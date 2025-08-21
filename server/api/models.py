@@ -224,6 +224,31 @@ class Opportunity(models.Model):
     def __str__(self):
         return f"{self.name} - {self.stage}"
 
+class OpportunityActivity(models.Model):
+    ACTIVITY_TYPES = [
+        ('call', 'Phone Call'),
+        ('email', 'Email'),
+        ('meeting', 'Meeting'),
+        ('demo', 'Demo'),
+        ('proposal', 'Proposal'),
+        ('negotiation', 'Negotiation'),
+        ('other', 'Other'),
+    ]
+
+    opportunity = models.ForeignKey(Opportunity, on_delete=models.CASCADE, related_name='activities')
+    type = models.CharField(max_length=20, choices=ACTIVITY_TYPES)
+    description = models.TextField()
+    date = models.DateField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    created_by = models.ForeignKey('auth.User', on_delete=models.SET_NULL, null=True, blank=True)
+
+    class Meta:
+        ordering = ['-date', '-created_at']
+        verbose_name_plural = 'Opportunity Activities'
+
+    def __str__(self):
+        return f"{self.get_type_display()} - {self.opportunity.name}"
+
 class Contract(models.Model):
     CONTRACT_STATUS_CHOICES = [
         ('draft', 'Draft'),
