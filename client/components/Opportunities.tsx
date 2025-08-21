@@ -242,12 +242,12 @@ const OpportunityCard = memo(
     return (
       <div
         ref={drag}
-        className={`bg-white border border-gray-200 rounded-lg p-4 mb-3 cursor-pointer hover:shadow-md transition-all duration-200 ${
+        className={`bg-white border border-gray-200 rounded-lg p-5 mb-3 cursor-pointer hover:shadow-md transition-all duration-200 ${
           isDragging ? "opacity-50 rotate-1 scale-105" : ""
         }`}
       >
         {/* Header with Company and Contact Info */}
-        <div className="flex items-start justify-between mb-3">
+        <div className="flex items-start justify-between p-2 mb-3">
           <div className="flex items-center gap-3 flex-1">
             <div className="flex items-center justify-center w-10 h-10 bg-blue-100 rounded-lg flex-shrink-0">
               <Building2 className="h-5 w-5 text-blue-600" />
