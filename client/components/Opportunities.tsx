@@ -1844,7 +1844,7 @@ export function Opportunities({
               >
                 Cancel
               </Button>
-              <Button onClick={handleSaveActivity}>
+              <Button onClick={handleSaveActivity} className="bg-orange-500 hover:bg-orange-600 text-white rounded-md ">
                 <Plus className="h-4 w-4 mr-2" />
                 Add Activity
               </Button>
