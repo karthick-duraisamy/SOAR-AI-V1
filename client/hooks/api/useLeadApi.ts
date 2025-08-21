@@ -512,7 +512,7 @@ export const useLeadApi = () => {
 
     try {
       console.log('Sending update request with data:', stageData);
-      
+
       const response: AxiosResponse<any> = await baseApi.patch(
         `/opportunities/${id}/`,
         stageData
@@ -524,7 +524,7 @@ export const useLeadApi = () => {
     } catch (error: any) {
       console.error('Error updating opportunity stage:', error);
       console.error('Error response:', error.response?.data);
-      
+
       const errorMessage = error.response?.data?.error ||
                           error.response?.data?.detail ||
                           error.response?.data?.message ||
@@ -646,6 +646,6 @@ export const useLeadApi = () => {
     updateOpportunityStage,
     getOpportunityPipeline,
     addOpportunityActivity,
-    getOpportunityActivities
+    getOpportunityActivities,
   };
 };

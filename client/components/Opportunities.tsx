@@ -176,7 +176,7 @@ interface ActivityAccordionProps {
 
 const ActivityAccordion = memo(({ activities }: ActivityAccordionProps) => {
   const [isExpanded, setIsExpanded] = useState(false);
-  
+
   const displayedActivities = isExpanded ? activities : activities.slice(0, 1);
   const remainingCount = activities.length - 1;
 
@@ -429,7 +429,7 @@ const OpportunityCard = memo(
               </div>
             </div>
           </div>
-          
+
           <div className="mb-4 p-3 bg-gray-50 rounded-lg">
             <div className="text-gray-900 font-medium text-sm mb-1">Notes:</div>
             <div className="text-gray-600 text-sm">
@@ -1053,10 +1053,10 @@ export function Opportunities({
 
     try {
       console.log('Updating opportunity with data:', updateData);
-      
+
       // Update via API
       const response = await updateOpportunityStage(selectedOpportunity.id, updateData);
-      
+
       console.log('Update response:', response);
 
       const updatedOpportunity = {
@@ -1083,14 +1083,14 @@ export function Opportunities({
     } catch (error) {
       console.error('Error updating opportunity:', error);
       console.error('Error details:', error.response?.data);
-      
+
       // Show specific error message if available
       const errorMessage = error.response?.data?.detail || 
                           error.response?.data?.message || 
                           error.response?.data?.error ||
                           'Failed to update opportunity. Please try again.';
       toast.error(errorMessage);
-      
+
       // Optionally refresh opportunities to ensure consistency
       try {
         const data = await getOpportunities({ ...filters });
@@ -1118,7 +1118,7 @@ export function Opportunities({
       };
 
       const response = await addOpportunityActivity(selectedOpportunity.id, activityWithUser);
-      
+
       // Refresh opportunities to show the new activity
       const updatedOpportunities = await getOpportunities({ ...filters });
       const opportunitiesArray = Array.isArray(updatedOpportunities) ? updatedOpportunities : updatedOpportunities?.results || updatedOpportunities?.opportunities || [];
@@ -1992,10 +1992,25 @@ export function Opportunities({
             </DialogHeader>
             <ScrollArea className="h-[60vh] w-full">
               <div className="space-y-4 pr-4">
-                <div className="text-center py-8 text-muted-foreground">
-                  <History className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                  <p>No activity history available for this opportunity</p>
-                </div>
+                {selectedOpportunity?.activities && selectedOpportunity.activities.length > 0 ? (
+                  selectedOpportunity.activities.map((activity) => (
+                    <div key={activity.id} className="p-3 bg-white rounded-lg border border-gray-200 shadow-sm">
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-semibold text-gray-800">{activity.type_display}</span>
+                          <span className="text-xs text-gray-500">• {new Date(activity.date).toLocaleDateString()}</span>
+                        </div>
+                        <span className="text-xs text-gray-500">By: {activity.created_by_name}</span>
+                      </div>
+                      <p className="text-sm text-gray-700">{activity.description}</p>
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <Activity className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                    <p>No activity history available for this opportunity</p>
+                  </div>
+                )}
               </div>
             </ScrollArea>
             <DialogFooter>
