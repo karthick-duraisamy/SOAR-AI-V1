@@ -622,6 +622,31 @@ export const useLeadApi = () => {
     }
   }, [setLoading, setError, setData]);
 
+  // Get opportunity history (combining activities and related lead history)
+  const getOpportunityHistory = useCallback(async (opportunityId: number) => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const response: AxiosResponse<any> = await baseApi.get(
+        `/opportunities/${opportunityId}/history/`
+      );
+
+      setData(response.data);
+      return response.data;
+    } catch (error: any) {
+      console.error('Error fetching opportunity history:', error);
+      const errorMessage = error.response?.data?.detail ||
+                          error.response?.data?.message ||
+                          error.message ||
+                          'Failed to fetch opportunity history';
+      setError(errorMessage);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  }, [setLoading, setError, setData]);
+
   return {
     ...state,
     getLeads,
@@ -647,5 +672,6 @@ export const useLeadApi = () => {
     getOpportunityPipeline,
     addOpportunityActivity,
     getOpportunityActivities,
+    getOpportunityHistory,
   };
 };

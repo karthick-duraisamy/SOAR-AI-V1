@@ -1110,6 +1110,58 @@ class OpportunityViewSet(viewsets.ModelViewSet):
                 'error': f'Failed to fetch activities: {str(e)}'
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+    @action(detail=True, methods=['get'])
+    def history(self, request, pk=None):
+        """Get comprehensive history for opportunity including lead history"""
+        try:
+            opportunity = self.get_object()
+            
+            # Get opportunity activities
+            activities = opportunity.activities.all()
+            activity_data = OpportunityActivitySerializer(activities, many=True).data
+            
+            # Format activities as history items
+            history_items = []
+            for activity in activity_data:
+                history_items.append({
+                    'id': f"activity_{activity['id']}",
+                    'history_type': 'activity',
+                    'action': activity['type_display'],
+                    'details': activity['description'],
+                    'icon': 'activity',
+                    'timestamp': activity['created_at'],
+                    'user_name': activity['created_by_name'] or 'Unknown User',
+                    'user_role': 'Sales Representative',
+                    'formatted_timestamp': activity['created_at'],
+                    'metadata': {'activity_type': activity['type']}
+                })
+            
+            # If opportunity is linked to a lead, get lead history
+            if hasattr(opportunity, 'lead') and opportunity.lead:
+                lead_history = LeadHistory.objects.filter(lead=opportunity.lead).order_by('-timestamp')
+                for history in lead_history:
+                    history_items.append({
+                        'id': f"lead_history_{history.id}",
+                        'history_type': history.history_type,
+                        'action': history.action,
+                        'details': history.details,
+                        'icon': history.icon,
+                        'timestamp': history.timestamp.isoformat(),
+                        'user_name': history.user_name,
+                        'user_role': history.user_role,
+                        'formatted_timestamp': history.formatted_timestamp(),
+                        'metadata': history.metadata
+                    })
+            
+            # Sort by timestamp (newest first)
+            history_items.sort(key=lambda x: x['timestamp'], reverse=True)
+            
+            return Response(history_items)
+        except Exception as e:
+            return Response({
+                'error': f'Failed to fetch opportunity history: {str(e)}'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
     @action(detail=False, methods=['get'])
     def pipeline_value(self, request):
         pipeline = {}

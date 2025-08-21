@@ -674,7 +674,7 @@ export function Opportunities({
   initialFilters,
   onNavigate,
 }: OpportunitiesProps) {
-  const { getOpportunities, updateOpportunityStage, addOpportunityActivity, getOpportunityActivities } = useLeadApi();
+  const { getOpportunities, updateOpportunityStage, addOpportunityActivity, getOpportunityActivities, getOpportunityHistory, getHistory } = useLeadApi();
   const [opportunities, setOpportunities] = useState<Opportunity[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
@@ -691,6 +691,8 @@ export function Opportunities({
     stage: "all",
     search: "",
   });
+  const [historyData, setHistoryData] = useState<any[]>([]);
+  const [isLoadingHistory, setIsLoadingHistory] = useState(false);
 
   const [editForm, setEditForm] = useState({
     stage: "",
@@ -965,10 +967,26 @@ export function Opportunities({
     setShowActivityDialog(true);
   }, []);
 
-  const handleViewHistory = useCallback((opportunity: Opportunity) => {
+  const handleViewHistory = useCallback(async (opportunity: Opportunity) => {
     setSelectedOpportunity(opportunity);
+    setIsLoadingHistory(true);
+    setHistoryData([]);
     setShowHistoryDialog(true);
-  }, []);
+    
+    try {
+      // Use the new comprehensive history API endpoint
+      const historyData = await getOpportunityHistory(opportunity.id);
+      const formattedHistory = Array.isArray(historyData) ? historyData : [];
+      
+      setHistoryData(formattedHistory);
+    } catch (error) {
+      console.error('Error fetching opportunity history:', error);
+      toast.error('Failed to load history data');
+      setHistoryData([]);
+    } finally {
+      setIsLoadingHistory(false);
+    }
+  }, [getOpportunityHistory]);
 
   const handleSendProposal = useCallback((opportunity: Opportunity) => {
     setSelectedOpportunity(opportunity);
@@ -1987,28 +2005,67 @@ export function Opportunities({
                 {selectedOpportunity?.lead_info?.company?.name}
               </DialogTitle>
               <DialogDescription>
-                Complete activity history for this opportunity
+                Complete activity and lead history for this opportunity
               </DialogDescription>
             </DialogHeader>
             <ScrollArea className="h-[60vh] w-full">
               <div className="space-y-4 pr-4">
-                {selectedOpportunity?.activities && selectedOpportunity.activities.length > 0 ? (
-                  selectedOpportunity.activities.map((activity) => (
-                    <div key={activity.id} className="p-3 bg-white rounded-lg border border-gray-200 shadow-sm">
-                      <div className="flex items-center justify-between mb-2">
-                        <div className="flex items-center gap-2">
-                          <span className="text-sm font-semibold text-gray-800">{activity.type_display}</span>
-                          <span className="text-xs text-gray-500">• {new Date(activity.date).toLocaleDateString()}</span>
+                {isLoadingHistory ? (
+                  <div className="flex items-center justify-center py-8">
+                    <RefreshCw className="h-6 w-6 animate-spin text-gray-400 mr-2" />
+                    <span className="text-gray-500">Loading history...</span>
+                  </div>
+                ) : historyData && historyData.length > 0 ? (
+                  historyData.map((historyItem) => (
+                    <div key={historyItem.id} className="border-l-4 border-blue-200 pl-4 py-3 bg-white rounded-lg border border-gray-200 shadow-sm">
+                      <div className="flex items-start justify-between mb-2">
+                        <div className="flex items-center gap-3">
+                          <div className="flex-shrink-0">
+                            {historyItem.history_type === 'activity' ? (
+                              <Activity className="h-4 w-4 text-blue-600" />
+                            ) : historyItem.icon === 'plus' ? (
+                              <Plus className="h-4 w-4 text-green-600" />
+                            ) : historyItem.icon === 'trending-up' ? (
+                              <TrendingUp className="h-4 w-4 text-blue-600" />
+                            ) : historyItem.icon === 'user' ? (
+                              <User className="h-4 w-4 text-purple-600" />
+                            ) : historyItem.icon === 'phone' ? (
+                              <Phone className="h-4 w-4 text-orange-600" />
+                            ) : historyItem.icon === 'mail' ? (
+                              <Mail className="h-4 w-4 text-red-600" />
+                            ) : historyItem.icon === 'file-text' ? (
+                              <FileText className="h-4 w-4 text-gray-600" />
+                            ) : (
+                              <Clock className="h-4 w-4 text-gray-600" />
+                            )}
+                          </div>
+                          <div className="flex-1">
+                            <h4 className="text-sm font-semibold text-gray-900 mb-1">
+                              {historyItem.action}
+                            </h4>
+                            <p className="text-sm text-gray-700 leading-relaxed">
+                              {historyItem.details}
+                            </p>
+                          </div>
                         </div>
-                        <span className="text-xs text-gray-500">By: {activity.created_by_name}</span>
                       </div>
-                      <p className="text-sm text-gray-700">{activity.description}</p>
+                      <div className="flex items-center justify-between text-xs text-gray-500 mt-2">
+                        <div className="flex items-center gap-4">
+                          <span className="flex items-center gap-1">
+                            <User className="h-3 w-3" />
+                            {historyItem.user_name}
+                          </span>
+                          <span>{historyItem.user_role}</span>
+                        </div>
+                        <span>{historyItem.formatted_timestamp}</span>
+                      </div>
                     </div>
                   ))
                 ) : (
                   <div className="text-center py-8 text-muted-foreground">
                     <Activity className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                    <p>No activity history available for this opportunity</p>
+                    <p className="text-lg font-medium mb-2">No history available</p>
+                    <p className="text-sm">No activity or history records found for this opportunity</p>
                   </div>
                 )}
               </div>
