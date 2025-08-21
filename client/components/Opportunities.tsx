@@ -343,13 +343,24 @@ const OpportunityCard = memo(
           </div>
         </div>
 
-        {/* Close Date */}
-        <div className="mb-3 p-2 bg-gray-50 rounded text-sm">
-          <span className="text-gray-500">Next Action:</span>
-          <span className="ml-1 text-gray-900">
-            {opportunity.next_steps ||
-              "Follow up on proposal review and feedback"}
-          </span>
+        {/* Next Action Section */}
+        <div className="mb-3">
+          <div className="flex items-start gap-2 mb-2">
+            <div className="w-2 h-2 bg-gray-400 rounded-full mt-2 flex-shrink-0"></div>
+            <div>
+              <span className="text-blue-600 font-medium text-sm">Next Action:</span>
+              <div className="text-blue-600 text-sm">
+                {opportunity.next_steps || "Contract terms discussion"}
+              </div>
+            </div>
+          </div>
+          
+          <div className="mt-3">
+            <div className="text-gray-900 font-medium text-sm mb-1">Notes:</div>
+            <div className="text-gray-600 text-sm">
+              {opportunity.description || "Focused on cost optimization across multiple manufacturing sites"}
+            </div>
+          </div>
         </div>
 
         {/* Tags/Badges */}
