@@ -550,7 +550,7 @@ const OpportunityCard = memo(
                 Close Deal
               </Button>
             )}
-            
+
           </div>
         </div>
       </div>
@@ -570,7 +570,8 @@ interface PipelineColumnProps {
   onViewHistory: (opportunity: Opportunity) => void;
   onSendProposal?: (opportunity: Opportunity) => void;
   onMoveToNegotiation?: (opportunity: Opportunity) => void;
-  onCloseDeal?: (opportunity: Opportunity) => void;
+  onCloseDealWon?: (opportunity: Opportunity) => void; // New prop
+  onCloseDealLost?: (opportunity: Opportunity) => void; // New prop
 }
 
 const PipelineColumn = memo(
@@ -583,7 +584,8 @@ const PipelineColumn = memo(
     onViewHistory,
     onSendProposal,
     onMoveToNegotiation,
-    onCloseDeal,
+    onCloseDealWon, // New prop
+    onCloseDealLost, // New prop
   }: PipelineColumnProps) => {
     const [{ isOver }, drop] = useDrop(() => ({
       accept: ItemTypes.OPPORTUNITY,
@@ -652,7 +654,7 @@ const PipelineColumn = memo(
                 onViewHistory={onViewHistory}
                 onSendProposal={onSendProposal}
                 onMoveToNegotiation={onMoveToNegotiation}
-                onCloseDeal={onCloseDeal}
+                onCloseDeal={stage.id === 'closed_won' ? onCloseDealWon : stage.id === 'closed_lost' ? onCloseDealLost : undefined} // Conditional rendering based on stage
               />
             ))}
 
@@ -976,16 +978,16 @@ export function Opportunities({
     setIsLoadingHistory(true);
     setHistoryData([]);
     setShowHistoryDialog(true);
-    
+
     try {
       // Use the new comprehensive history API endpoint
       const historyData = await getOpportunityHistory(opportunity.id);
-      
+
       // Ensure we have an array, even if empty
       const formattedHistory = Array.isArray(historyData) ? historyData : [];
-      
+
       setHistoryData(formattedHistory);
-      
+
       // Show success message if we got data, info if empty
       if (formattedHistory.length > 0) {
         console.log(`Loaded ${formattedHistory.length} history items`);
@@ -1032,7 +1034,8 @@ export function Opportunities({
     setTimeout(() => setSuccessMessage(""), 5000);
   }, []);
 
-  const handleCloseDeal = useCallback((opportunity: Opportunity) => {
+  // Placeholder for closing a deal (won)
+  const handleCloseDealWon = useCallback((opportunity: Opportunity) => {
     const updatedOpportunity = {
       ...opportunity,
       stage: "closed_won",
@@ -1050,6 +1053,30 @@ export function Opportunities({
     );
     setTimeout(() => setSuccessMessage(""), 5000);
   }, []);
+
+  // Placeholder for closing a deal (lost)
+  const handleCloseDealLost = useCallback((opportunity: Opportunity) => {
+    const updatedOpportunity = {
+      ...opportunity,
+      stage: "closed_lost",
+      probability: 0,
+      actual_close_date: new Date().toISOString().split("T")[0], // Or a specific lost date if available
+      updated_at: new Date().toISOString(),
+    };
+
+    setOpportunities((prev) =>
+      prev.map((opp) => (opp.id === opportunity.id ? updatedOpportunity : opp)),
+    );
+
+    setSuccessMessage(
+      `${opportunity.lead_info?.company?.name} deal has been marked as lost.`,
+    );
+    setTimeout(() => setSuccessMessage(""), 5000);
+  }, []);
+
+  // The original handleCloseDeal is now replaced by the specific won/lost handlers
+  // If you still need a generic one, you'd need to define its behavior.
+  // For now, we assume the stage is directly handled by the new specific handlers.
 
   const handleSaveEdit = useCallback(async () => {
     if (!selectedOpportunity) return;
@@ -1207,7 +1234,7 @@ export function Opportunities({
       console.log('File to upload:', proposalForm.attachedFile.name);
       // Here you would typically upload the file to your server
     }
-    
+
     setShowProposalDialog(false);
     setSuccessMessage(
       `Proposal sent to ${selectedOpportunity.lead_info?.company?.name} successfully`,
@@ -1531,7 +1558,7 @@ export function Opportunities({
                       onViewHistory={handleViewHistory}
                       onSendProposal={handleSendProposal}
                       onMoveToNegotiation={handleMoveToNegotiation}
-                      onCloseDeal={handleCloseDeal}
+                      onCloseDeal={handleCloseDealWon} // Use handleCloseDealWon for closed_won stage
                     />
                   ))}
                 </div>
@@ -1691,7 +1718,8 @@ export function Opportunities({
                   onViewHistory={handleViewHistory}
                   onSendProposal={handleSendProposal}
                   onMoveToNegotiation={handleMoveToNegotiation}
-                  onCloseDeal={handleCloseDeal}
+                  onCloseDealWon={handleCloseDealWon} // Pass handleCloseDealWon
+                  onCloseDealLost={handleCloseDealLost} // Pass handleCloseDealLost
                 />
               ))}
             </div>
@@ -2024,7 +2052,7 @@ export function Opportunities({
                   rows={3}
                 />
               </div>
-              
+
               {/* File Attachment Section */}
               <div>
                 <Label>Attach Supporting Documents</Label>
