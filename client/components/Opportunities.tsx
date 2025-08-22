@@ -545,6 +545,7 @@ const OpportunityCard = memo(
                 >
                   <Handshake className="h-3 w-3 mr-1" />
                   Close Deal
+                   <ChevronDown className="h-3 w-3 mr-1" />
                 </Button>
                 
                 {/* Hover dropdown - positioned below the button and centered */}
