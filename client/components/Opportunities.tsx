@@ -2102,7 +2102,7 @@ export function Opportunities({
               <Button
                 onClick={handleSaveProposal}
                 disabled={!proposalForm.title}
-                className="bg-blue-600 hover:bg-blue-700"
+                className="bg-orange-500 hover:bg-orange-600 text-white"
               >
                 <FileText className="h-4 w-4 mr-2" />
                 Send Proposal
