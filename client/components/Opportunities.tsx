@@ -547,55 +547,57 @@ const OpportunityCard = memo(
                   Close Deal
                 </Button>
                 
-                {/* Hover dropdown */}
-                <div className="absolute bottom-full right-0 mb-1 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
-                  <div className="bg-white border border-gray-200 rounded-lg shadow-lg overflow-hidden min-w-[140px]">
-                    <button
-                      className="w-full px-3 py-2 text-xs text-left hover:bg-green-50 flex items-center gap-2 text-green-700 font-medium"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        const updatedOpportunity = {
-                          ...opportunity,
-                          stage: "closed_won",
-                          probability: 100,
-                          actual_close_date: new Date().toISOString().split("T")[0],
-                          updated_at: new Date().toISOString(),
-                        };
-                        setOpportunities((prev) =>
-                          prev.map((opp) => (opp.id === opportunity.id ? updatedOpportunity : opp)),
-                        );
-                        setSuccessMessage(
-                          `${opportunity.lead_info?.company?.name} deal closed successfully! 🎉`,
-                        );
-                        setTimeout(() => setSuccessMessage(""), 5000);
-                      }}
-                    >
-                      <CheckCircle className="h-3 w-3" />
-                      Closed Won
-                    </button>
-                    <button
-                      className="w-full px-3 py-2 text-xs text-left hover:bg-red-50 flex items-center gap-2 text-red-700 font-medium border-t border-gray-100"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        const updatedOpportunity = {
-                          ...opportunity,
-                          stage: "closed_lost",
-                          probability: 0,
-                          actual_close_date: new Date().toISOString().split("T")[0],
-                          updated_at: new Date().toISOString(),
-                        };
-                        setOpportunities((prev) =>
-                          prev.map((opp) => (opp.id === opportunity.id ? updatedOpportunity : opp)),
-                        );
-                        setSuccessMessage(
-                          `${opportunity.lead_info?.company?.name} deal marked as closed lost`,
-                        );
-                        setTimeout(() => setSuccessMessage(""), 5000);
-                      }}
-                    >
-                      <AlertTriangle className="h-3 w-3" />
-                      Closed Lost
-                    </button>
+                {/* Hover dropdown - positioned below the button and centered */}
+                <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+                  <div className="bg-white border border-gray-200 rounded-lg shadow-xl overflow-hidden min-w-[160px]">
+                    <div className="p-1">
+                      <button
+                        className="w-full px-4 py-3 text-xs text-center hover:bg-green-50 flex items-center justify-center gap-2 text-green-700 font-medium rounded-md transition-colors duration-150"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          const updatedOpportunity = {
+                            ...opportunity,
+                            stage: "closed_won",
+                            probability: 100,
+                            actual_close_date: new Date().toISOString().split("T")[0],
+                            updated_at: new Date().toISOString(),
+                          };
+                          setOpportunities((prev) =>
+                            prev.map((opp) => (opp.id === opportunity.id ? updatedOpportunity : opp)),
+                          );
+                          setSuccessMessage(
+                            `${opportunity.lead_info?.company?.name} deal closed successfully! 🎉`,
+                          );
+                          setTimeout(() => setSuccessMessage(""), 5000);
+                        }}
+                      >
+                        <CheckCircle className="h-4 w-4" />
+                        Closed Won
+                      </button>
+                      <button
+                        className="w-full px-4 py-3 text-xs text-center hover:bg-red-50 flex items-center justify-center gap-2 text-red-700 font-medium rounded-md transition-colors duration-150 mt-1"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          const updatedOpportunity = {
+                            ...opportunity,
+                            stage: "closed_lost",
+                            probability: 0,
+                            actual_close_date: new Date().toISOString().split("T")[0],
+                            updated_at: new Date().toISOString(),
+                          };
+                          setOpportunities((prev) =>
+                            prev.map((opp) => (opp.id === opportunity.id ? updatedOpportunity : opp)),
+                          );
+                          setSuccessMessage(
+                            `${opportunity.lead_info?.company?.name} deal marked as closed lost`,
+                          );
+                          setTimeout(() => setSuccessMessage(""), 5000);
+                        }}
+                      >
+                        <AlertTriangle className="h-4 w-4" />
+                        Closed Lost
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
