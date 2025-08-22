@@ -533,7 +533,7 @@ const OpportunityCard = memo(
                 }}
               >
                 <ArrowRight className="h-3 w-3 mr-1" />
-                Move to Negotiation
+               Negotiate
               </Button>
             )}
 
@@ -550,6 +550,7 @@ const OpportunityCard = memo(
                 Close Deal
               </Button>
             )}
+            
           </div>
         </div>
       </div>
