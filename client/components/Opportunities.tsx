@@ -715,7 +715,10 @@ export function Opportunities({
     validityPeriod: "30",
     specialTerms: "",
     deliveryMethod: "email",
+    attachedFile: null,
   });
+
+  const [isDragging, setIsDragging] = useState(false);
 
   // Fetch opportunities data on component mount and when filters change
   useEffect(() => {
@@ -1005,6 +1008,7 @@ export function Opportunities({
       validityPeriod: "30",
       specialTerms: "",
       deliveryMethod: "email",
+      attachedFile: null,
     });
     setShowProposalDialog(true);
   }, []);
@@ -1164,16 +1168,51 @@ export function Opportunities({
     }
   }, [selectedOpportunity, activityForm, addOpportunityActivity, getOpportunities, filters, setOpportunities]);
 
+  const handleFileSelect = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      setProposalForm({ ...proposalForm, attachedFile: file });
+    }
+  }, [proposalForm]);
+
+  const handleFileDrop = useCallback((event: React.DragEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    setIsDragging(false);
+    const file = event.dataTransfer.files[0];
+    if (file) {
+      setProposalForm({ ...proposalForm, attachedFile: file });
+    }
+  }, [proposalForm]);
+
+  const handleDragOver = useCallback((event: React.DragEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    setIsDragging(true);
+  }, []);
+
+  const handleDragLeave = useCallback((event: React.DragEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    setIsDragging(false);
+  }, []);
+
+  const removeAttachedFile = useCallback(() => {
+    setProposalForm({ ...proposalForm, attachedFile: null });
+  }, [proposalForm]);
+
   const handleSaveProposal = useCallback(() => {
     if (!selectedOpportunity) return;
 
-    // In a real implementation, you would send this to the API
+    // In a real implementation, you would send this to the API including the file
+    if (proposalForm.attachedFile) {
+      console.log('File to upload:', proposalForm.attachedFile.name);
+      // Here you would typically upload the file to your server
+    }
+    
     setShowProposalDialog(false);
     setSuccessMessage(
       `Proposal sent to ${selectedOpportunity.lead_info?.company?.name} successfully`,
     );
     setTimeout(() => setSuccessMessage(""), 5000);
-  }, [selectedOpportunity]);
+  }, [selectedOpportunity, proposalForm.attachedFile]);
 
   // Drag and Drop Handler
   const handleDrop = useCallback(
@@ -1983,6 +2022,74 @@ export function Opportunities({
                   placeholder="Any special terms, conditions, or customizations for this proposal..."
                   rows={3}
                 />
+              </div>
+              
+              {/* File Attachment Section */}
+              <div>
+                <Label>Attach Supporting Documents</Label>
+                <div
+                  className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
+                    isDragging
+                      ? "border-blue-500 bg-blue-50"
+                      : "border-gray-300 hover:border-gray-400"
+                  }`}
+                  onDrop={handleFileDrop}
+                  onDragOver={handleDragOver}
+                  onDragLeave={handleDragLeave}
+                >
+                  {proposalForm.attachedFile ? (
+                    <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                      <div className="flex items-center gap-3">
+                        <FileText className="h-5 w-5 text-blue-600" />
+                        <div className="text-left">
+                          <p className="text-sm font-medium text-gray-900">
+                            {proposalForm.attachedFile.name}
+                          </p>
+                          <p className="text-xs text-gray-500">
+                            {(proposalForm.attachedFile.size / 1024 / 1024).toFixed(2)} MB
+                          </p>
+                        </div>
+                      </div>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={removeAttachedFile}
+                        className="h-8 w-8 p-0"
+                      >
+                        ×
+                      </Button>
+                    </div>
+                  ) : (
+                    <div>
+                      <FileText className="h-12 w-12 mx-auto mb-4 text-gray-400" />
+                      <div className="space-y-2">
+                        <p className="text-sm text-gray-600">
+                          Drag and drop your file here, or click to browse
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          PDF, DOC, DOCX, XLS, XLSX files up to 10MB
+                        </p>
+                      </div>
+                      <input
+                        type="file"
+                        id="proposal-file-input"
+                        className="hidden"
+                        accept=".pdf,.doc,.docx,.xls,.xlsx"
+                        onChange={handleFileSelect}
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="mt-4"
+                        onClick={() => document.getElementById('proposal-file-input')?.click()}
+                      >
+                        <Plus className="h-4 w-4 mr-2" />
+                        Browse Files
+                      </Button>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
             <DialogFooter>
