@@ -264,4 +264,971 @@ INSERT INTO public.api_opportunity (id, name, stage, probability, estimated_clos
 
 INSERT INTO public.api_contract (id, contract_number, title, contract_type, status, start_date, end_date, value, terms, renewal_terms, auto_renewal, notice_period_days, risk_score, created_at, updated_at, company_id, opportunity_id) VALUES (1, 'CNT-2024-1001', 'Corporate Travel Agreement - Global Finance Ltd', 'master_agreement', 'pending_signature', '2025-08-06', '2026-08-06', 884348.00, 'Standard corporate travel agreement terms and conditions', 'Auto-renewal for 12 months unless terminated with 30 days notice', true, 90, 8, '2025-08-06 07:44:47.957942+00', '2025-08-06 07:44:47.957952+00', 2, 1);
 INSERT INTO public.api_contract (id, contract_number, title, contract_type, status, start_date, end_date, value, terms, renewal_terms, auto_renewal, notice_period_days, risk_score, created_at, updated_at, company_id, opportunity_id) VALUES (2, 'CNT-2024-1002', 'Corporate Travel Agreement - HealthTech Innovations', 'corporate_travel', 'expired', '2025-08-06', '2026-08-06', 252496.00, 'Standard corporate travel agreement terms and conditions', 'Auto-renewal for 12 months unless terminated with 30 days notice', false, 60, 1, '2025-08-06 07:44:48.198567+00', '2025-08-06 07:44:48.19858+00', 3, 2);
-INSERT INTO public.api_contract (id, contract_number, title, contract_type, status, start_date, end_date, value, terms, renewal_terms, auto_renewal, notice_period_days, risk_score, created_at, updated_at, company_id, opportunity_id) VALUES (3, 'CNT-2024-1003', 'Corporate Travel Agreement - Manufacturing Plus', 'service_agreement', 'draft', '2025-08-06', '2026-08-06', 863696.00, 'Standard corporate travel agreement terms and conditions', 'Auto-renewal for 12 months unless terminated with 30 days notice', false, 90, 5, '2025-08-06 07:44:48.433497+00', '2025-08-06 07:4
+INSERT INTO public.api_contract (id, contract_number, title, contract_type, status, start_date, end_date, value, terms, renewal_terms, auto_renewal, notice_period_days, risk_score, created_at, updated_at, company_id, opportunity_id) VALUES (3, 'CNT-2024-1003', 'Corporate Travel Agreement - Manufacturing Plus', 'service_agreement', 'draft', '2025-08-06', '2026-08-06', 863696.00, 'Standard corporate travel agreement terms and conditions', 'Auto-renewal for 12 months unless terminated with 30 days notice', false, 90, 5, '2025-08-06 07:44:48.433497+00', '2025-08-06 07:44:48.433506+00', 4, 3);
+INSERT INTO public.api_contract (id, contract_number, title, contract_type, status, start_date, end_date, value, terms, renewal_terms, auto_renewal, notice_period_days, risk_score, created_at, updated_at, company_id, opportunity_id) VALUES (4, 'CNT-2024-1004', 'Corporate Travel Agreement - ConsultPro Services', 'corporate_travel', 'pending_signature', '2025-08-06', '2026-08-06', 414085.00, 'Standard corporate travel agreement terms and conditions', 'Auto-renewal for 12 months unless terminated with 30 days notice', false, 60, 2, '2025-08-06 07:44:48.668485+00', '2025-08-06 07:44:48.668498+00', 6, 4);
+INSERT INTO public.api_contract (id, contract_number, title, contract_type, status, start_date, end_date, value, terms, renewal_terms, auto_renewal, notice_period_days, risk_score, created_at, updated_at, company_id, opportunity_id) VALUES (5, 'CNT-2024-1005', 'Corporate Travel Agreement - TechCorp Solutions', 'corporate_travel', 'pending_signature', '2025-08-06', '2026-08-06', 433377.00, 'Standard corporate travel agreement terms and conditions', 'Auto-renewal for 12 months unless terminated with 30 days notice', false, 60, 3, '2025-08-06 07:44:48.903748+00', '2025-08-06 07:44:48.90376+00', 1, 5);
+INSERT INTO public.api_contract (id, contract_number, title, contract_type, status, start_date, end_date, value, terms, renewal_terms, auto_renewal, notice_period_days, risk_score, created_at, updated_at, company_id, opportunity_id) VALUES (6, 'CNT-2024-1006', 'Corporate Travel Agreement - Retail Dynamics', 'corporate_travel', 'terminated', '2025-08-06', '2026-08-06', 693476.00, 'Standard corporate travel agreement terms and conditions', 'Auto-renewal for 12 months unless terminated with 30 days notice', true, 60, 7, '2025-08-06 07:44:49.138422+00', '2025-08-06 07:44:49.138431+00', 5, 6);
+
+
+--
+-- Data for Name: api_contractbreach; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+
+
+--
+-- Data for Name: api_emailcampaign; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+
+
+--
+-- Data for Name: api_emailcampaign_target_leads; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+
+
+--
+-- Data for Name: api_leadhistory; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (1, 'creation', 'Lead created', 'Lead created from website source. Initial contact information collected for Global Finance Ltd.', 'plus', '{}', '2025-08-19 07:08:37.687307+00', 1, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (2, 'assignment', 'Lead assigned', 'Lead assigned to Jane Johnson for follow-up.', 'user', '{}', '2025-08-19 07:08:38.162833+00', 1, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (3, 'score_update', 'Lead score updated to 95', 'Lead score updated to 95 based on engagement metrics and profile analysis.', 'trending-up', '{}', '2025-08-19 07:08:38.398607+00', 1, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (4, 'contact_made', 'Initial contact made', 'Initial contact made with Robert. Outreach sent via email.', 'mail', '{}', '2025-08-19 07:08:38.872461+00', 1, 4);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (5, 'call_made', 'Discovery call completed', 'Scheduled and completed 30-minute discovery call. Discussed travel requirements and current pain points.', 'phone', '{}', '2025-08-19 07:08:39.107988+00', 1, 4);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (6, 'qualification', 'Lead qualified', 'Lead qualified based on budget (235387.00), authority, and timeline. Ready for proposal stage.', 'check-circle', '{}', '2025-08-19 07:08:39.343828+00', 1, 4);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (7, 'status_change', 'Status changed to Qualified', 'Lead status updated from contacted to qualified. Lead is now qualified.', 'check-circle', '{}', '2025-08-19 07:08:39.584234+00', 1, 4);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (8, 'note_added', 'Follow-up note added', 'Added follow-up notes regarding client requirements and next steps.', 'message-square', '{}', '2025-08-19 07:08:39.81983+00', 1, 4);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (9, 'creation', 'Lead created', 'Lead created from website source. Initial contact information collected for HealthTech Innovations.', 'plus', '{}', '2025-08-19 07:08:40.993722+00', 2, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (10, 'assignment', 'Lead assigned', 'Lead assigned to David Wilson for follow-up.', 'user', '{}', '2025-08-19 07:08:41.464831+00', 2, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (11, 'score_update', 'Lead score updated to 81', 'Lead score updated to 81 based on engagement metrics and profile analysis.', 'trending-up', '{}', '2025-08-19 07:08:41.700162+00', 2, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (12, 'contact_made', 'Initial contact made', 'Initial contact made with Robert. Outreach sent via email.', 'mail', '{}', '2025-08-19 07:08:42.170592+00', 2, 7);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (13, 'qualification', 'Lead qualified', 'Lead qualified and moved to proposal stage.', 'check-circle', '{}', '2025-08-19 07:08:42.405942+00', 2, 7);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (14, 'proposal_sent', 'Proposal sent', 'Comprehensive travel management proposal sent to decision maker.', 'file-text', '{}', '2025-08-19 07:08:42.641667+00', 2, 7);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (15, 'lost', 'Lead lost', 'Lead chose competitor solution. Opportunity closed as lost.', 'x', '{}', '2025-08-19 07:08:42.877288+00', 2, 7);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (16, 'status_change', 'Status changed to Lost', 'Lead status updated from proposal_sent to lost. Lead is now lost.', 'x', '{}', '2025-08-19 07:08:43.112843+00', 2, 7);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (17, 'creation', 'Lead created', 'Lead created from referral source. Initial contact information collected for HealthTech Innovations.', 'plus', '{}', '2025-08-19 07:08:44.285534+00', 3, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (18, 'assignment', 'Lead assigned', 'Lead assigned to John Smith for follow-up.', 'user', '{}', '2025-08-19 07:08:44.755891+00', 3, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (19, 'score_update', 'Lead score updated to 48', 'Lead score updated to 48 based on engagement metrics and profile analysis.', 'trending-up', '{}', '2025-08-19 07:08:44.991252+00', 3, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (20, 'contact_made', 'Initial contact made', 'Initial contact made with Amanda. Outreach sent via email.', 'mail', '{}', '2025-08-19 07:08:45.461502+00', 3, 3);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (21, 'qualification', 'Lead qualified', 'Lead qualified and moved to proposal stage.', 'check-circle', '{}', '2025-08-19 07:08:45.697093+00', 3, 3);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (22, 'proposal_sent', 'Proposal sent', 'Comprehensive travel management proposal sent to decision maker.', 'file-text', '{}', '2025-08-19 07:08:45.932701+00', 3, 3);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (23, 'status_change', 'Status changed to Proposal Sent', 'Lead status updated from qualified to proposal_sent. Lead is now proposal sent.', 'file-text', '{}', '2025-08-19 07:08:46.168846+00', 3, 3);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (24, 'note_added', 'Follow-up note added', 'Added follow-up notes regarding client requirements and next steps.', 'message-square', '{}', '2025-08-19 07:08:46.404722+00', 3, 3);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (25, 'creation', 'Lead created', 'Lead created from cold_outreach source. Initial contact information collected for Manufacturing Plus.', 'plus', '{}', '2025-08-19 07:08:47.577572+00', 4, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (26, 'assignment', 'Lead assigned', 'Lead assigned to John Smith for follow-up.', 'user', '{}', '2025-08-19 07:08:48.04769+00', 4, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (27, 'score_update', 'Lead score updated to 52', 'Lead score updated to 52 based on engagement metrics and profile analysis.', 'trending-up', '{}', '2025-08-19 07:08:48.283221+00', 4, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (28, 'contact_made', 'Initial contact made', 'Initial contact made with Jennifer. Outreach sent via email.', 'mail', '{}', '2025-08-19 07:08:48.753735+00', 4, 3);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (29, 'qualification', 'Lead qualified', 'Lead qualified and moved to proposal stage.', 'check-circle', '{}', '2025-08-19 07:08:48.989174+00', 4, 3);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (30, 'proposal_sent', 'Proposal sent', 'Comprehensive travel management proposal sent to decision maker.', 'file-text', '{}', '2025-08-19 07:08:49.224875+00', 4, 3);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (31, 'negotiation_started', 'Negotiation started', 'Client responded to proposal. Negotiating terms and pricing.', 'handshake', '{}', '2025-08-19 07:08:49.460278+00', 4, 3);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (32, 'status_change', 'Status changed to In Negotiation', 'Lead status updated from proposal_sent to negotiation. Lead is now in negotiation.', 'handshake', '{}', '2025-08-19 07:08:49.695662+00', 4, 3);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (33, 'note_added', 'Follow-up note added', 'Added follow-up notes regarding client requirements and next steps.', 'message-square', '{}', '2025-08-19 07:08:49.931166+00', 4, 3);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (34, 'creation', 'Lead created', 'Lead created from marketing source. Initial contact information collected for ConsultPro Services.', 'plus', '{}', '2025-08-19 07:08:51.103872+00', 5, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (35, 'assignment', 'Lead assigned', 'Lead assigned to Jane Johnson for follow-up.', 'user', '{}', '2025-08-19 07:08:51.57393+00', 5, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (36, 'score_update', 'Lead score updated to 9', 'Lead score updated to 9 based on engagement metrics and profile analysis.', 'trending-up', '{}', '2025-08-19 07:08:51.809731+00', 5, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (37, 'contact_made', 'Initial contact made', 'Initial contact made with Jennifer. Outreach sent via email.', 'mail', '{}', '2025-08-19 07:08:52.280097+00', 5, 4);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (38, 'status_change', 'Status changed to Contacted', 'Lead status updated from new to contacted. Lead is now contacted.', 'mail', '{}', '2025-08-19 07:08:52.51562+00', 5, 4);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (39, 'creation', 'Lead created', 'Lead created from marketing source. Initial contact information collected for Manufacturing Plus.', 'plus', '{}', '2025-08-19 07:08:53.688458+00', 6, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (40, 'assignment', 'Lead assigned', 'Lead assigned to Jane Johnson for follow-up.', 'user', '{}', '2025-08-19 07:08:54.158706+00', 6, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (41, 'score_update', 'Lead score updated to 98', 'Lead score updated to 98 based on engagement metrics and profile analysis.', 'trending-up', '{}', '2025-08-19 07:08:54.394191+00', 6, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (42, 'contact_made', 'Initial contact made', 'Initial contact made with Jennifer. Outreach sent via email.', 'mail', '{}', '2025-08-19 07:08:54.864654+00', 6, 4);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (43, 'qualification', 'Lead qualified', 'Lead qualified and moved to proposal stage.', 'check-circle', '{}', '2025-08-19 07:08:55.10058+00', 6, 4);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (44, 'proposal_sent', 'Proposal sent', 'Comprehensive travel management proposal sent to decision maker.', 'file-text', '{}', '2025-08-19 07:08:55.335994+00', 6, 4);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (45, 'lost', 'Lead lost', 'Lead chose competitor solution. Opportunity closed as lost.', 'x', '{}', '2025-08-19 07:08:55.571474+00', 6, 4);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (46, 'status_change', 'Status changed to Lost', 'Lead status updated from proposal_sent to lost. Lead is now lost.', 'x', '{}', '2025-08-19 07:08:55.806832+00', 6, 4);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (47, 'creation', 'Lead created', 'Lead created from corporate_search source. Initial contact information collected for TechCorp Solutions.', 'plus', '{}', '2025-08-19 07:08:56.979509+00', 7, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (48, 'assignment', 'Lead assigned', 'Lead assigned to Sarah Davis for follow-up.', 'user', '{}', '2025-08-19 07:08:57.454737+00', 7, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (49, 'score_update', 'Lead score updated to 7', 'Lead score updated to 7 based on engagement metrics and profile analysis.', 'trending-up', '{}', '2025-08-19 07:08:57.690215+00', 7, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (50, 'contact_made', 'Initial contact made', 'Initial contact made with Jennifer. Outreach sent via email.', 'mail', '{}', '2025-08-19 07:08:58.160643+00', 7, 6);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (51, 'call_made', 'Discovery call completed', 'Scheduled and completed 30-minute discovery call. Discussed travel requirements and current pain points.', 'phone', '{}', '2025-08-19 07:08:58.396023+00', 7, 6);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (52, 'qualification', 'Lead qualified', 'Lead qualified based on budget (331012.00), authority, and timeline. Ready for proposal stage.', 'check-circle', '{}', '2025-08-19 07:08:58.631474+00', 7, 6);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (53, 'status_change', 'Status changed to Qualified', 'Lead status updated from contacted to qualified. Lead is now qualified.', 'check-circle', '{}', '2025-08-19 07:08:58.866856+00', 7, 6);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (54, 'note_added', 'Follow-up note added', 'Added follow-up notes regarding client requirements and next steps.', 'message-square', '{}', '2025-08-19 07:08:59.102214+00', 7, 6);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (55, 'creation', 'Lead created', 'Lead created from referral source. Initial contact information collected for TechCorp Solutions.', 'plus', '{}', '2025-08-19 07:09:00.275077+00', 8, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (56, 'assignment', 'Lead assigned', 'Lead assigned to David Wilson for follow-up.', 'user', '{}', '2025-08-19 07:09:00.744988+00', 8, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (57, 'score_update', 'Lead score updated to 85', 'Lead score updated to 85 based on engagement metrics and profile analysis.', 'trending-up', '{}', '2025-08-19 07:09:00.980486+00', 8, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (58, 'creation', 'Lead created', 'Lead created from referral source. Initial contact information collected for Retail Dynamics.', 'plus', '{}', '2025-08-19 07:09:02.153216+00', 9, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (59, 'assignment', 'Lead assigned', 'Lead assigned to John Smith for follow-up.', 'user', '{}', '2025-08-19 07:09:02.626954+00', 9, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (60, 'score_update', 'Lead score updated to 45', 'Lead score updated to 45 based on engagement metrics and profile analysis.', 'trending-up', '{}', '2025-08-19 07:09:02.86254+00', 9, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (61, 'contact_made', 'Initial contact made', 'Initial contact made with James. Outreach sent via email.', 'mail', '{}', '2025-08-19 07:09:03.333819+00', 9, 3);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (62, 'call_made', 'Discovery call completed', 'Scheduled and completed 30-minute discovery call. Discussed travel requirements and current pain points.', 'phone', '{}', '2025-08-19 07:09:03.569549+00', 9, 3);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (63, 'qualification', 'Lead qualified', 'Lead qualified based on budget (130129.00), authority, and timeline. Ready for proposal stage.', 'check-circle', '{}', '2025-08-19 07:09:03.805082+00', 9, 3);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (64, 'status_change', 'Status changed to Qualified', 'Lead status updated from contacted to qualified. Lead is now qualified.', 'check-circle', '{}', '2025-08-19 07:09:04.040551+00', 9, 3);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (65, 'note_added', 'Follow-up note added', 'Added follow-up notes regarding client requirements and next steps.', 'message-square', '{}', '2025-08-19 07:09:04.275954+00', 9, 3);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (66, 'creation', 'Lead created', 'Lead created from website source. Initial contact information collected for Global Finance Ltd.', 'plus', '{}', '2025-08-19 07:09:05.449488+00', 10, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (67, 'assignment', 'Lead assigned', 'Lead assigned to David Wilson for follow-up.', 'user', '{}', '2025-08-19 07:09:05.919951+00', 10, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (68, 'score_update', 'Lead score updated to 39', 'Lead score updated to 39 based on engagement metrics and profile analysis.', 'trending-up', '{}', '2025-08-19 07:09:06.155612+00', 10, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (69, 'contact_made', 'Initial contact made', 'Initial contact made with James. Outreach sent via email.', 'mail', '{}', '2025-08-19 07:09:06.626074+00', 10, 7);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (70, 'qualification', 'Lead qualified', 'Lead qualified and moved to proposal stage.', 'check-circle', '{}', '2025-08-19 07:09:06.861621+00', 10, 7);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (71, 'proposal_sent', 'Proposal sent', 'Comprehensive travel management proposal sent to decision maker.', 'file-text', '{}', '2025-08-19 07:09:07.097366+00', 10, 7);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (72, 'status_change', 'Status changed to Proposal Sent', 'Lead status updated from qualified to proposal_sent. Lead is now proposal sent.', 'file-text', '{}', '2025-08-19 07:09:07.333012+00', 10, 7);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (73, 'note_added', 'Follow-up note added', 'Added follow-up notes regarding client requirements and next steps.', 'message-square', '{}', '2025-08-19 07:09:07.568758+00', 10, 7);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (74, 'creation', 'Lead created', 'Lead created from marketing source. Initial contact information collected for Global Finance Ltd.', 'plus', '{}', '2025-08-19 07:09:08.741433+00', 11, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (75, 'assignment', 'Lead assigned', 'Lead assigned to Jane Johnson for follow-up.', 'user', '{}', '2025-08-19 07:09:09.211723+00', 11, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (76, 'score_update', 'Lead score updated to 16', 'Lead score updated to 16 based on engagement metrics and profile analysis.', 'trending-up', '{}', '2025-08-19 07:09:09.447083+00', 11, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (77, 'contact_made', 'Initial contact made', 'Initial contact made with Sarah. Outreach sent via email.', 'mail', '{}', '2025-08-19 07:09:09.917417+00', 11, 4);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (78, 'qualification', 'Lead qualified', 'Lead qualified and moved to proposal stage.', 'check-circle', '{}', '2025-08-19 07:09:10.15289+00', 11, 4);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (79, 'proposal_sent', 'Proposal sent', 'Comprehensive travel management proposal sent to decision maker.', 'file-text', '{}', '2025-08-19 07:09:10.388611+00', 11, 4);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (80, 'status_change', 'Status changed to Proposal Sent', 'Lead status updated from qualified to proposal_sent. Lead is now proposal sent.', 'file-text', '{}', '2025-08-19 07:09:10.624019+00', 11, 4);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (81, 'note_added', 'Follow-up note added', 'Added follow-up notes regarding client requirements and next steps.', 'message-square', '{}', '2025-08-19 07:09:10.859547+00', 11, 4);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (82, 'creation', 'Lead created', 'Lead created from corporate_search source. Initial contact information collected for Manufacturing Plus.', 'plus', '{}', '2025-08-19 07:09:12.032515+00', 12, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (83, 'assignment', 'Lead assigned', 'Lead assigned to John Smith for follow-up.', 'user', '{}', '2025-08-19 07:09:12.502729+00', 12, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (84, 'score_update', 'Lead score updated to 23', 'Lead score updated to 23 based on engagement metrics and profile analysis.', 'trending-up', '{}', '2025-08-19 07:09:12.74034+00', 12, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (85, 'creation', 'Lead created', 'Lead created from referral source. Initial contact information collected for HealthTech Innovations.', 'plus', '{}', '2025-08-19 07:09:13.912879+00', 13, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (86, 'assignment', 'Lead assigned', 'Lead assigned to Mike Brown for follow-up.', 'user', '{}', '2025-08-19 07:09:14.382985+00', 13, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (87, 'score_update', 'Lead score updated to 94', 'Lead score updated to 94 based on engagement metrics and profile analysis.', 'trending-up', '{}', '2025-08-19 07:09:14.618922+00', 13, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (88, 'contact_made', 'Initial contact made', 'Initial contact made with Lisa. Outreach sent via email.', 'mail', '{}', '2025-08-19 07:09:15.089307+00', 13, 5);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (89, 'qualification', 'Lead qualified', 'Lead qualified and moved to proposal stage.', 'check-circle', '{}', '2025-08-19 07:09:15.32486+00', 13, 5);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (90, 'proposal_sent', 'Proposal sent', 'Comprehensive travel management proposal sent to decision maker.', 'file-text', '{}', '2025-08-19 07:09:15.560437+00', 13, 5);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (91, 'negotiation_started', 'Negotiation started', 'Client responded to proposal. Negotiating terms and pricing.', 'handshake', '{}', '2025-08-19 07:09:15.796171+00', 13, 5);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (92, 'status_change', 'Status changed to In Negotiation', 'Lead status updated from proposal_sent to negotiation. Lead is now in negotiation.', 'handshake', '{}', '2025-08-19 07:09:16.03166+00', 13, 5);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (93, 'note_added', 'Follow-up note added', 'Added follow-up notes regarding client requirements and next steps.', 'message-square', '{}', '2025-08-19 07:09:16.267294+00', 13, 5);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (94, 'creation', 'Lead created', 'Lead created from website source. Initial contact information collected for Retail Dynamics.', 'plus', '{}', '2025-08-19 07:09:17.442027+00', 14, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (95, 'assignment', 'Lead assigned', 'Lead assigned to David Wilson for follow-up.', 'user', '{}', '2025-08-19 07:09:17.912331+00', 14, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (96, 'score_update', 'Lead score updated to 88', 'Lead score updated to 88 based on engagement metrics and profile analysis.', 'trending-up', '{}', '2025-08-19 07:09:18.148071+00', 14, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (97, 'contact_made', 'Initial contact made', 'Initial contact made with Lisa. Outreach sent via email.', 'mail', '{}', '2025-08-19 07:09:18.61846+00', 14, 7);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (98, 'qualification', 'Lead qualified', 'Lead qualified and moved to proposal stage.', 'check-circle', '{}', '2025-08-19 07:09:18.853902+00', 14, 7);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (99, 'proposal_sent', 'Proposal sent', 'Comprehensive travel management proposal sent to decision maker.', 'file-text', '{}', '2025-08-19 07:09:19.089543+00', 14, 7);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (100, 'negotiation_started', 'Negotiation started', 'Client responded to proposal. Negotiating terms and pricing.', 'handshake', '{}', '2025-08-19 07:09:19.325237+00', 14, 7);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (101, 'status_change', 'Status changed to In Negotiation', 'Lead status updated from proposal_sent to negotiation. Lead is now in negotiation.', 'handshake', '{}', '2025-08-19 07:09:19.560792+00', 14, 7);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (102, 'note_added', 'Follow-up note added', 'Added follow-up notes regarding client requirements and next steps.', 'message-square', '{}', '2025-08-19 07:09:19.79649+00', 14, 7);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (103, 'creation', 'Lead created', 'Lead created from marketing source. Initial contact information collected for HealthTech Innovations.', 'plus', '{}', '2025-08-19 07:09:20.96944+00', 15, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (104, 'assignment', 'Lead assigned', 'Lead assigned to Jane Johnson for follow-up.', 'user', '{}', '2025-08-19 07:09:21.440182+00', 15, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (105, 'score_update', 'Lead score updated to 65', 'Lead score updated to 65 based on engagement metrics and profile analysis.', 'trending-up', '{}', '2025-08-19 07:09:21.675748+00', 15, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (106, 'contact_made', 'Initial contact made', 'Initial contact made with Amanda. Outreach sent via email.', 'mail', '{}', '2025-08-19 07:09:22.146574+00', 15, 4);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (107, 'qualification', 'Lead qualified', 'Lead qualified and moved to proposal stage.', 'check-circle', '{}', '2025-08-19 07:09:22.382288+00', 15, 4);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (108, 'proposal_sent', 'Proposal sent', 'Comprehensive travel management proposal sent to decision maker.', 'file-text', '{}', '2025-08-19 07:09:22.618429+00', 15, 4);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (109, 'status_change', 'Status changed to Proposal Sent', 'Lead status updated from qualified to proposal_sent. Lead is now proposal sent.', 'file-text', '{}', '2025-08-19 07:09:22.857134+00', 15, 4);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (110, 'note_added', 'Follow-up note added', 'Added follow-up notes regarding client requirements and next steps.', 'message-square', '{}', '2025-08-19 07:09:23.092651+00', 15, 4);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (111, 'creation', 'Lead created', 'Lead created from website source. Initial contact information collected for HealthTech Innovations.', 'plus', '{}', '2025-08-19 07:09:24.265405+00', 16, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (112, 'assignment', 'Lead assigned', 'Lead assigned to Jane Johnson for follow-up.', 'user', '{}', '2025-08-19 07:09:24.735713+00', 16, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (113, 'score_update', 'Lead score updated to 63', 'Lead score updated to 63 based on engagement metrics and profile analysis.', 'trending-up', '{}', '2025-08-19 07:09:24.971242+00', 16, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (114, 'contact_made', 'Initial contact made', 'Initial contact made with Michael. Outreach sent via email.', 'mail', '{}', '2025-08-19 07:09:25.44194+00', 16, 4);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (115, 'disqualification', 'Lead disqualified', 'Lead disqualified due to budget constraints or timeline mismatch. Moved to nurture campaign.', 'x-circle', '{}', '2025-08-19 07:09:25.677577+00', 16, 4);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (116, 'status_change', 'Status changed to Unqualified', 'Lead status updated from contacted to unqualified. Lead is now unqualified.', 'x-circle', '{}', '2025-08-19 07:09:25.913195+00', 16, 4);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (117, 'creation', 'Lead created', 'Lead created from marketing source. Initial contact information collected for Global Finance Ltd.', 'plus', '{}', '2025-08-19 07:09:27.085968+00', 17, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (118, 'assignment', 'Lead assigned', 'Lead assigned to Sarah Davis for follow-up.', 'user', '{}', '2025-08-19 07:09:27.556446+00', 17, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (119, 'score_update', 'Lead score updated to 28', 'Lead score updated to 28 based on engagement metrics and profile analysis.', 'trending-up', '{}', '2025-08-19 07:09:27.792071+00', 17, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (120, 'contact_made', 'Initial contact made', 'Initial contact made with Jennifer. Outreach sent via email.', 'mail', '{}', '2025-08-19 07:09:28.262752+00', 17, 6);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (121, 'status_change', 'Status changed to Contacted', 'Lead status updated from new to contacted. Lead is now contacted.', 'mail', '{}', '2025-08-19 07:09:28.498599+00', 17, 6);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (122, 'creation', 'Lead created', 'Lead created from referral source. Initial contact information collected for Retail Dynamics.', 'plus', '{}', '2025-08-19 07:09:29.671009+00', 18, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (123, 'assignment', 'Lead assigned', 'Lead assigned to John Smith for follow-up.', 'user', '{}', '2025-08-19 07:09:30.141001+00', 18, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (124, 'score_update', 'Lead score updated to 15', 'Lead score updated to 15 based on engagement metrics and profile analysis.', 'trending-up', '{}', '2025-08-19 07:09:30.376405+00', 18, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (125, 'contact_made', 'Initial contact made', 'Initial contact made with Sarah. Outreach sent via email.', 'mail', '{}', '2025-08-19 07:09:30.846664+00', 18, 3);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (126, 'qualification', 'Lead qualified', 'Lead qualified and moved to proposal stage.', 'check-circle', '{}', '2025-08-19 07:09:31.082059+00', 18, 3);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (127, 'proposal_sent', 'Proposal sent', 'Comprehensive travel management proposal sent to decision maker.', 'file-text', '{}', '2025-08-19 07:09:31.317707+00', 18, 3);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (128, 'negotiation_started', 'Negotiation completed', 'Successfully negotiated terms and pricing.', 'handshake', '{}', '2025-08-19 07:09:31.553473+00', 18, 3);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (129, 'won', 'Lead won!', 'Successfully closed deal! Contract signed for $275073.00.', 'trophy', '{}', '2025-08-19 07:09:31.788861+00', 18, 3);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (130, 'status_change', 'Status changed to Won', 'Lead status updated from negotiation to won. Lead is now won.', 'trophy', '{}', '2025-08-19 07:09:32.024289+00', 18, 3);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (131, 'note_added', 'Follow-up note added', 'Added follow-up notes regarding client requirements and next steps.', 'message-square', '{}', '2025-08-19 07:09:32.259992+00', 18, 3);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (132, 'creation', 'Lead created', 'Lead created from corporate_search source. Initial contact information collected for Retail Dynamics.', 'plus', '{}', '2025-08-19 07:09:33.433509+00', 19, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (133, 'assignment', 'Lead assigned', 'Lead assigned to Mike Brown for follow-up.', 'user', '{}', '2025-08-19 07:09:33.906161+00', 19, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (134, 'score_update', 'Lead score updated to 31', 'Lead score updated to 31 based on engagement metrics and profile analysis.', 'trending-up', '{}', '2025-08-19 07:09:34.141833+00', 19, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (135, 'contact_made', 'Initial contact made', 'Initial contact made with Sarah. Outreach sent via email.', 'mail', '{}', '2025-08-19 07:09:34.612359+00', 19, 5);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (136, 'qualification', 'Lead qualified', 'Lead qualified and moved to proposal stage.', 'check-circle', '{}', '2025-08-19 07:09:34.847903+00', 19, 5);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (137, 'proposal_sent', 'Proposal sent', 'Comprehensive travel management proposal sent to decision maker.', 'file-text', '{}', '2025-08-19 07:09:35.08342+00', 19, 5);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (138, 'negotiation_started', 'Negotiation completed', 'Successfully negotiated terms and pricing.', 'handshake', '{}', '2025-08-19 07:09:35.31891+00', 19, 5);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (139, 'won', 'Lead won!', 'Successfully closed deal! Contract signed for $111853.00.', 'trophy', '{}', '2025-08-19 07:09:35.554493+00', 19, 5);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (140, 'status_change', 'Status changed to Won', 'Lead status updated from negotiation to won. Lead is now won.', 'trophy', '{}', '2025-08-19 07:09:35.790009+00', 19, 5);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (141, 'note_added', 'Follow-up note added', 'Added follow-up notes regarding client requirements and next steps.', 'message-square', '{}', '2025-08-19 07:09:36.02565+00', 19, 5);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (142, 'creation', 'Lead created', 'Lead created from cold_outreach source. Initial contact information collected for Global Finance Ltd.', 'plus', '{}', '2025-08-19 07:09:37.198649+00', 20, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (143, 'assignment', 'Lead assigned', 'Lead assigned to David Wilson for follow-up.', 'user', '{}', '2025-08-19 07:09:37.669371+00', 20, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (144, 'score_update', 'Lead score updated to 50', 'Lead score updated to 50 based on engagement metrics and profile analysis.', 'trending-up', '{}', '2025-08-19 07:09:37.904783+00', 20, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (145, 'contact_made', 'Initial contact made', 'Initial contact made with David. Outreach sent via email.', 'mail', '{}', '2025-08-19 07:09:38.375518+00', 20, 7);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (146, 'qualification', 'Lead qualified', 'Lead qualified and moved to proposal stage.', 'check-circle', '{}', '2025-08-19 07:09:38.611056+00', 20, 7);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (147, 'proposal_sent', 'Proposal sent', 'Comprehensive travel management proposal sent to decision maker.', 'file-text', '{}', '2025-08-19 07:09:38.846776+00', 20, 7);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (148, 'negotiation_started', 'Negotiation started', 'Client responded to proposal. Negotiating terms and pricing.', 'handshake', '{}', '2025-08-19 07:09:39.082524+00', 20, 7);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (149, 'status_change', 'Status changed to In Negotiation', 'Lead status updated from proposal_sent to negotiation. Lead is now in negotiation.', 'handshake', '{}', '2025-08-19 07:09:39.318039+00', 20, 7);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (150, 'note_added', 'Follow-up note added', 'Added follow-up notes regarding client requirements and next steps.', 'message-square', '{}', '2025-08-19 07:09:39.553762+00', 20, 7);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (151, 'creation', 'Lead created', 'Lead created from marketing source. Initial contact information collected for ConsultPro Services.', 'plus', '{}', '2025-08-19 07:09:40.732274+00', 21, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (152, 'assignment', 'Lead assigned', 'Lead assigned to Mike Brown for follow-up.', 'user', '{}', '2025-08-19 07:09:41.202869+00', 21, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (153, 'score_update', 'Lead score updated to 13', 'Lead score updated to 13 based on engagement metrics and profile analysis.', 'trending-up', '{}', '2025-08-19 07:09:41.438492+00', 21, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (154, 'contact_made', 'Initial contact made', 'Initial contact made with Jennifer. Outreach sent via email.', 'mail', '{}', '2025-08-19 07:09:41.908741+00', 21, 5);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (155, 'qualification', 'Lead qualified', 'Lead qualified and moved to proposal stage.', 'check-circle', '{}', '2025-08-19 07:09:42.144473+00', 21, 5);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (156, 'proposal_sent', 'Proposal sent', 'Comprehensive travel management proposal sent to decision maker.', 'file-text', '{}', '2025-08-19 07:09:42.379974+00', 21, 5);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (157, 'status_change', 'Status changed to Proposal Sent', 'Lead status updated from qualified to proposal_sent. Lead is now proposal sent.', 'file-text', '{}', '2025-08-19 07:09:42.615425+00', 21, 5);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (158, 'note_added', 'Follow-up note added', 'Added follow-up notes regarding client requirements and next steps.', 'message-square', '{}', '2025-08-19 07:09:42.850919+00', 21, 5);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (159, 'creation', 'Lead created', 'Lead created from cold_outreach source. Initial contact information collected for Global Finance Ltd.', 'plus', '{}', '2025-08-19 07:09:44.023753+00', 22, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (160, 'assignment', 'Lead assigned', 'Lead assigned to David Wilson for follow-up.', 'user', '{}', '2025-08-19 07:09:44.494302+00', 22, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (161, 'score_update', 'Lead score updated to 55', 'Lead score updated to 55 based on engagement metrics and profile analysis.', 'trending-up', '{}', '2025-08-19 07:09:44.72985+00', 22, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (162, 'creation', 'Lead created', 'Lead created from cold_outreach source. Initial contact information collected for TechCorp Solutions.', 'plus', '{}', '2025-08-19 07:09:45.902903+00', 23, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (163, 'assignment', 'Lead assigned', 'Lead assigned to Sarah Davis for follow-up.', 'user', '{}', '2025-08-19 07:09:46.373316+00', 23, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (164, 'score_update', 'Lead score updated to 95', 'Lead score updated to 95 based on engagement metrics and profile analysis.', 'trending-up', '{}', '2025-08-19 07:09:46.609022+00', 23, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (165, 'contact_made', 'Initial contact made', 'Initial contact made with Michael. Outreach sent via email.', 'mail', '{}', '2025-08-19 07:09:47.079549+00', 23, 6);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (166, 'qualification', 'Lead qualified', 'Lead qualified and moved to proposal stage.', 'check-circle', '{}', '2025-08-19 07:09:47.315001+00', 23, 6);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (167, 'proposal_sent', 'Proposal sent', 'Comprehensive travel management proposal sent to decision maker.', 'file-text', '{}', '2025-08-19 07:09:47.550637+00', 23, 6);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (168, 'negotiation_started', 'Negotiation completed', 'Successfully negotiated terms and pricing.', 'handshake', '{}', '2025-08-19 07:09:47.787507+00', 23, 6);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (169, 'won', 'Lead won!', 'Successfully closed deal! Contract signed for $140882.00.', 'trophy', '{}', '2025-08-19 07:09:48.023003+00', 23, 6);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (170, 'status_change', 'Status changed to Won', 'Lead status updated from negotiation to won. Lead is now won.', 'trophy', '{}', '2025-08-19 07:09:48.258779+00', 23, 6);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (171, 'note_added', 'Follow-up note added', 'Added follow-up notes regarding client requirements and next steps.', 'message-square', '{}', '2025-08-19 07:09:48.49447+00', 23, 6);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (172, 'creation', 'Lead created', 'Lead created from cold_outreach source. Initial contact information collected for HealthTech Innovations.', 'plus', '{}', '2025-08-19 07:09:49.667462+00', 24, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (173, 'assignment', 'Lead assigned', 'Lead assigned to John Smith for follow-up.', 'user', '{}', '2025-08-19 07:09:50.137952+00', 24, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (174, 'score_update', 'Lead score updated to 65', 'Lead score updated to 65 based on engagement metrics and profile analysis.', 'trending-up', '{}', '2025-08-19 07:09:50.373587+00', 24, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (175, 'contact_made', 'Initial contact made', 'Initial contact made with Jennifer. Outreach sent via email.', 'mail', '{}', '2025-08-19 07:09:50.844047+00', 24, 3);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (176, 'qualification', 'Lead qualified', 'Lead qualified and moved to proposal stage.', 'check-circle', '{}', '2025-08-19 07:09:51.079767+00', 24, 3);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (177, 'proposal_sent', 'Proposal sent', 'Comprehensive travel management proposal sent to decision maker.', 'file-text', '{}', '2025-08-19 07:09:51.315223+00', 24, 3);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (178, 'negotiation_started', 'Negotiation started', 'Client responded to proposal. Negotiating terms and pricing.', 'handshake', '{}', '2025-08-19 07:09:51.550889+00', 24, 3);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (179, 'status_change', 'Status changed to In Negotiation', 'Lead status updated from proposal_sent to negotiation. Lead is now in negotiation.', 'handshake', '{}', '2025-08-19 07:09:51.786386+00', 24, 3);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (180, 'note_added', 'Follow-up note added', 'Added follow-up notes regarding client requirements and next steps.', 'message-square', '{}', '2025-08-19 07:09:52.022329+00', 24, 3);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (181, 'creation', 'Lead created', 'Lead created from marketing source. Initial contact information collected for HealthTech Innovations.', 'plus', '{}', '2025-08-19 07:09:53.195399+00', 25, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (182, 'assignment', 'Lead assigned', 'Lead assigned to Mike Brown for follow-up.', 'user', '{}', '2025-08-19 07:09:53.66558+00', 25, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (183, 'score_update', 'Lead score updated to 95', 'Lead score updated to 95 based on engagement metrics and profile analysis.', 'trending-up', '{}', '2025-08-19 07:09:53.90096+00', 25, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (184, 'contact_made', 'Initial contact made', 'Initial contact made with Amanda. Outreach sent via email.', 'mail', '{}', '2025-08-19 07:09:54.371574+00', 25, 5);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (185, 'disqualification', 'Lead disqualified', 'Lead disqualified due to budget constraints or timeline mismatch. Moved to nurture campaign.', 'x-circle', '{}', '2025-08-19 07:09:54.607042+00', 25, 5);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (186, 'status_change', 'Status changed to Unqualified', 'Lead status updated from contacted to unqualified. Lead is now unqualified.', 'x-circle', '{}', '2025-08-19 07:09:54.842639+00', 25, 5);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (187, 'creation', 'Lead created', 'Lead created from marketing source. Initial contact information collected for TechCorp Solutions.', 'plus', '{}', '2025-08-19 07:09:56.016366+00', 26, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (188, 'assignment', 'Lead assigned', 'Lead assigned to Jane Johnson for follow-up.', 'user', '{}', '2025-08-19 07:09:56.487058+00', 26, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (189, 'score_update', 'Lead score updated to 84', 'Lead score updated to 84 based on engagement metrics and profile analysis.', 'trending-up', '{}', '2025-08-19 07:09:56.722576+00', 26, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (190, 'contact_made', 'Initial contact made', 'Initial contact made with David. Outreach sent via email.', 'mail', '{}', '2025-08-19 07:09:57.193196+00', 26, 4);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (191, 'qualification', 'Lead qualified', 'Lead qualified and moved to proposal stage.', 'check-circle', '{}', '2025-08-19 07:09:57.428995+00', 26, 4);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (192, 'proposal_sent', 'Proposal sent', 'Comprehensive travel management proposal sent to decision maker.', 'file-text', '{}', '2025-08-19 07:09:57.664704+00', 26, 4);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (193, 'negotiation_started', 'Negotiation started', 'Client responded to proposal. Negotiating terms and pricing.', 'handshake', '{}', '2025-08-19 07:09:57.900247+00', 26, 4);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (194, 'status_change', 'Status changed to In Negotiation', 'Lead status updated from proposal_sent to negotiation. Lead is now in negotiation.', 'handshake', '{}', '2025-08-19 07:09:58.135831+00', 26, 4);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (195, 'note_added', 'Follow-up note added', 'Added follow-up notes regarding client requirements and next steps.', 'message-square', '{}', '2025-08-19 07:09:58.371608+00', 26, 4);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (196, 'creation', 'Lead created', 'Lead created from referral source. Initial contact information collected for ConsultPro Services.', 'plus', '{}', '2025-08-19 07:09:59.544086+00', 27, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (197, 'assignment', 'Lead assigned', 'Lead assigned to Sarah Davis for follow-up.', 'user', '{}', '2025-08-19 07:10:00.014264+00', 27, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (198, 'score_update', 'Lead score updated to 61', 'Lead score updated to 61 based on engagement metrics and profile analysis.', 'trending-up', '{}', '2025-08-19 07:10:00.249983+00', 27, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (199, 'contact_made', 'Initial contact made', 'Initial contact made with David. Outreach sent via email.', 'mail', '{}', '2025-08-19 07:10:00.720452+00', 27, 6);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (200, 'qualification', 'Lead qualified', 'Lead qualified and moved to proposal stage.', 'check-circle', '{}', '2025-08-19 07:10:00.955995+00', 27, 6);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (201, 'proposal_sent', 'Proposal sent', 'Comprehensive travel management proposal sent to decision maker.', 'file-text', '{}', '2025-08-19 07:10:01.191597+00', 27, 6);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (202, 'lost', 'Lead lost', 'Lead chose competitor solution. Opportunity closed as lost.', 'x', '{}', '2025-08-19 07:10:01.426928+00', 27, 6);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (203, 'status_change', 'Status changed to Lost', 'Lead status updated from proposal_sent to lost. Lead is now lost.', 'x', '{}', '2025-08-19 07:10:01.664636+00', 27, 6);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (204, 'creation', 'Lead created', 'Lead created from marketing source. Initial contact information collected for ConsultPro Services.', 'plus', '{}', '2025-08-19 07:10:02.838493+00', 28, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (205, 'assignment', 'Lead assigned', 'Lead assigned to Mike Brown for follow-up.', 'user', '{}', '2025-08-19 07:10:03.309528+00', 28, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (206, 'score_update', 'Lead score updated to 12', 'Lead score updated to 12 based on engagement metrics and profile analysis.', 'trending-up', '{}', '2025-08-19 07:10:03.544999+00', 28, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (207, 'contact_made', 'Initial contact made', 'Initial contact made with Jennifer. Outreach sent via email.', 'mail', '{}', '2025-08-19 07:10:04.015643+00', 28, 5);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (208, 'qualification', 'Lead qualified', 'Lead qualified and moved to proposal stage.', 'check-circle', '{}', '2025-08-19 07:10:04.251201+00', 28, 5);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (209, 'proposal_sent', 'Proposal sent', 'Comprehensive travel management proposal sent to decision maker.', 'file-text', '{}', '2025-08-19 07:10:04.486557+00', 28, 5);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (210, 'negotiation_started', 'Negotiation completed', 'Successfully negotiated terms and pricing.', 'handshake', '{}', '2025-08-19 07:10:04.722415+00', 28, 5);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (211, 'won', 'Lead won!', 'Successfully closed deal! Contract signed for $76612.00.', 'trophy', '{}', '2025-08-19 07:10:04.957849+00', 28, 5);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (212, 'status_change', 'Status changed to Won', 'Lead status updated from negotiation to won. Lead is now won.', 'trophy', '{}', '2025-08-19 07:10:05.193315+00', 28, 5);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (213, 'note_added', 'Follow-up note added', 'Added follow-up notes regarding client requirements and next steps.', 'message-square', '{}', '2025-08-19 07:10:05.430659+00', 28, 5);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (214, 'creation', 'Lead created', 'Lead created from cold_outreach source. Initial contact information collected for Global Finance Ltd.', 'plus', '{}', '2025-08-19 07:10:06.60473+00', 29, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (215, 'assignment', 'Lead assigned', 'Lead assigned to Mike Brown for follow-up.', 'user', '{}', '2025-08-19 07:10:07.075172+00', 29, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (216, 'score_update', 'Lead score updated to 20', 'Lead score updated to 20 based on engagement metrics and profile analysis.', 'trending-up', '{}', '2025-08-19 07:10:07.310673+00', 29, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (217, 'contact_made', 'Initial contact made', 'Initial contact made with Amanda. Outreach sent via email.', 'mail', '{}', '2025-08-19 07:10:07.781368+00', 29, 5);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (218, 'qualification', 'Lead qualified', 'Lead qualified and moved to proposal stage.', 'check-circle', '{}', '2025-08-19 07:10:08.016956+00', 29, 5);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (219, 'proposal_sent', 'Proposal sent', 'Comprehensive travel management proposal sent to decision maker.', 'file-text', '{}', '2025-08-19 07:10:08.252895+00', 29, 5);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (220, 'lost', 'Lead lost', 'Lead chose competitor solution. Opportunity closed as lost.', 'x', '{}', '2025-08-19 07:10:08.48865+00', 29, 5);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (221, 'status_change', 'Status changed to Lost', 'Lead status updated from proposal_sent to lost. Lead is now lost.', 'x', '{}', '2025-08-19 07:10:08.724994+00', 29, 5);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (222, 'creation', 'Lead created', 'Lead created from referral source. Initial contact information collected for Retail Dynamics.', 'plus', '{}', '2025-08-19 07:10:09.898222+00', 30, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (223, 'assignment', 'Lead assigned', 'Lead assigned to Mike Brown for follow-up.', 'user', '{}', '2025-08-19 07:10:10.368802+00', 30, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (224, 'score_update', 'Lead score updated to 95', 'Lead score updated to 95 based on engagement metrics and profile analysis.', 'trending-up', '{}', '2025-08-19 07:10:10.605585+00', 30, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (225, 'contact_made', 'Initial contact made', 'Initial contact made with Amanda. Outreach sent via email.', 'mail', '{}', '2025-08-19 07:10:11.076212+00', 30, 5);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (226, 'qualification', 'Lead qualified', 'Lead qualified and moved to proposal stage.', 'check-circle', '{}', '2025-08-19 07:10:11.311611+00', 30, 5);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (227, 'proposal_sent', 'Proposal sent', 'Comprehensive travel management proposal sent to decision maker.', 'file-text', '{}', '2025-08-19 07:10:11.547159+00', 30, 5);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (228, 'status_change', 'Status changed to Proposal Sent', 'Lead status updated from qualified to proposal_sent. Lead is now proposal sent.', 'file-text', '{}', '2025-08-19 07:10:11.782703+00', 30, 5);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (229, 'note_added', 'Follow-up note added', 'Added follow-up notes regarding client requirements and next steps.', 'message-square', '{}', '2025-08-19 07:10:12.018091+00', 30, 5);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (230, 'creation', 'Lead created', 'Lead created from marketing source. Initial contact information collected for ConsultPro Services.', 'plus', '{}', '2025-08-19 07:10:13.190272+00', 31, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (231, 'assignment', 'Lead assigned', 'Lead assigned to Jane Johnson for follow-up.', 'user', '{}', '2025-08-19 07:10:13.660579+00', 31, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (232, 'score_update', 'Lead score updated to 16', 'Lead score updated to 16 based on engagement metrics and profile analysis.', 'trending-up', '{}', '2025-08-19 07:10:13.895922+00', 31, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (233, 'contact_made', 'Initial contact made', 'Initial contact made with Amanda. Outreach sent via email.', 'mail', '{}', '2025-08-19 07:10:14.366063+00', 31, 4);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (234, 'qualification', 'Lead qualified', 'Lead qualified and moved to proposal stage.', 'check-circle', '{}', '2025-08-19 07:10:14.601712+00', 31, 4);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (235, 'proposal_sent', 'Proposal sent', 'Comprehensive travel management proposal sent to decision maker.', 'file-text', '{}', '2025-08-19 07:10:14.837211+00', 31, 4);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (236, 'lost', 'Lead lost', 'Lead chose competitor solution. Opportunity closed as lost.', 'x', '{}', '2025-08-19 07:10:15.073098+00', 31, 4);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (237, 'status_change', 'Status changed to Lost', 'Lead status updated from proposal_sent to lost. Lead is now lost.', 'x', '{}', '2025-08-19 07:10:15.308738+00', 31, 4);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (238, 'creation', 'Lead created', 'Lead created from referral source. Initial contact information collected for ConsultPro Services.', 'plus', '{}', '2025-08-19 07:10:16.481913+00', 32, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (239, 'assignment', 'Lead assigned', 'Lead assigned to Jane Johnson for follow-up.', 'user', '{}', '2025-08-19 07:10:16.952431+00', 32, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (240, 'score_update', 'Lead score updated to 76', 'Lead score updated to 76 based on engagement metrics and profile analysis.', 'trending-up', '{}', '2025-08-19 07:10:17.188366+00', 32, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (241, 'creation', 'Lead created', 'Lead created from marketing source. Initial contact information collected for Manufacturing Plus.', 'plus', '{}', '2025-08-19 07:10:18.361313+00', 33, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (242, 'assignment', 'Lead assigned', 'Lead assigned to Sarah Davis for follow-up.', 'user', '{}', '2025-08-19 07:10:18.831408+00', 33, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (243, 'score_update', 'Lead score updated to 39', 'Lead score updated to 39 based on engagement metrics and profile analysis.', 'trending-up', '{}', '2025-08-19 07:10:19.066741+00', 33, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (244, 'creation', 'Lead created', 'Lead created from marketing source. Initial contact information collected for Global Finance Ltd.', 'plus', '{}', '2025-08-19 07:10:20.239537+00', 34, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (245, 'assignment', 'Lead assigned', 'Lead assigned to Sarah Davis for follow-up.', 'user', '{}', '2025-08-19 07:10:20.709975+00', 34, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (246, 'score_update', 'Lead score updated to 73', 'Lead score updated to 73 based on engagement metrics and profile analysis.', 'trending-up', '{}', '2025-08-19 07:10:20.945509+00', 34, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (247, 'contact_made', 'Initial contact made', 'Initial contact made with James. Outreach sent via email.', 'mail', '{}', '2025-08-19 07:10:21.415907+00', 34, 6);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (248, 'qualification', 'Lead qualified', 'Lead qualified and moved to proposal stage.', 'check-circle', '{}', '2025-08-19 07:10:21.65126+00', 34, 6);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (249, 'proposal_sent', 'Proposal sent', 'Comprehensive travel management proposal sent to decision maker.', 'file-text', '{}', '2025-08-19 07:10:21.886969+00', 34, 6);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (250, 'status_change', 'Status changed to Proposal Sent', 'Lead status updated from qualified to proposal_sent. Lead is now proposal sent.', 'file-text', '{}', '2025-08-19 07:10:22.12304+00', 34, 6);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (251, 'note_added', 'Follow-up note added', 'Added follow-up notes regarding client requirements and next steps.', 'message-square', '{}', '2025-08-19 07:10:22.358946+00', 34, 6);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (252, 'creation', 'Lead created', 'Lead created from marketing source. Initial contact information collected for ConsultPro Services.', 'plus', '{}', '2025-08-19 07:10:23.531638+00', 35, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (253, 'assignment', 'Lead assigned', 'Lead assigned to John Smith for follow-up.', 'user', '{}', '2025-08-19 07:10:24.001941+00', 35, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (254, 'score_update', 'Lead score updated to 95', 'Lead score updated to 95 based on engagement metrics and profile analysis.', 'trending-up', '{}', '2025-08-19 07:10:24.237494+00', 35, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (255, 'creation', 'Lead created', 'Lead created from corporate_search source. Initial contact information collected for TechCorp Solutions.', 'plus', '{}', '2025-08-19 07:10:25.410563+00', 36, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (256, 'assignment', 'Lead assigned', 'Lead assigned to David Wilson for follow-up.', 'user', '{}', '2025-08-19 07:10:25.881237+00', 36, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (257, 'score_update', 'Lead score updated to 84', 'Lead score updated to 84 based on engagement metrics and profile analysis.', 'trending-up', '{}', '2025-08-19 07:10:26.117886+00', 36, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (258, 'contact_made', 'Initial contact made', 'Initial contact made with Michael. Outreach sent via email.', 'mail', '{}', '2025-08-19 07:10:26.588327+00', 36, 7);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (259, 'qualification', 'Lead qualified', 'Lead qualified and moved to proposal stage.', 'check-circle', '{}', '2025-08-19 07:10:26.823759+00', 36, 7);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (260, 'proposal_sent', 'Proposal sent', 'Comprehensive travel management proposal sent to decision maker.', 'file-text', '{}', '2025-08-19 07:10:27.059595+00', 36, 7);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (261, 'status_change', 'Status changed to Proposal Sent', 'Lead status updated from qualified to proposal_sent. Lead is now proposal sent.', 'file-text', '{}', '2025-08-19 07:10:27.294997+00', 36, 7);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (262, 'note_added', 'Follow-up note added', 'Added follow-up notes regarding client requirements and next steps.', 'message-square', '{}', '2025-08-19 07:10:27.530543+00', 36, 7);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (263, 'creation', 'Lead created', 'Lead created from referral source. Initial contact information collected for ConsultPro Services.', 'plus', '{}', '2025-08-19 07:10:28.703118+00', 37, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (264, 'assignment', 'Lead assigned', 'Lead assigned to John Smith for follow-up.', 'user', '{}', '2025-08-19 07:10:29.173778+00', 37, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (265, 'score_update', 'Lead score updated to 55', 'Lead score updated to 55 based on engagement metrics and profile analysis.', 'trending-up', '{}', '2025-08-19 07:10:29.409503+00', 37, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (266, 'contact_made', 'Initial contact made', 'Initial contact made with Robert. Outreach sent via email.', 'mail', '{}', '2025-08-19 07:10:29.879724+00', 37, 3);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (267, 'disqualification', 'Lead disqualified', 'Lead disqualified due to budget constraints or timeline mismatch. Moved to nurture campaign.', 'x-circle', '{}', '2025-08-19 07:10:30.129404+00', 37, 3);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (268, 'status_change', 'Status changed to Unqualified', 'Lead status updated from contacted to unqualified. Lead is now unqualified.', 'x-circle', '{}', '2025-08-19 07:10:30.36513+00', 37, 3);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (269, 'creation', 'Lead created', 'Lead created from corporate_search source. Initial contact information collected for Manufacturing Plus.', 'plus', '{}', '2025-08-19 07:10:31.537577+00', 38, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (270, 'assignment', 'Lead assigned', 'Lead assigned to Jane Johnson for follow-up.', 'user', '{}', '2025-08-19 07:10:32.008148+00', 38, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (271, 'score_update', 'Lead score updated to 43', 'Lead score updated to 43 based on engagement metrics and profile analysis.', 'trending-up', '{}', '2025-08-19 07:10:32.243847+00', 38, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (272, 'contact_made', 'Initial contact made', 'Initial contact made with Sarah. Outreach sent via email.', 'mail', '{}', '2025-08-19 07:10:32.714349+00', 38, 4);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (273, 'qualification', 'Lead qualified', 'Lead qualified and moved to proposal stage.', 'check-circle', '{}', '2025-08-19 07:10:32.949978+00', 38, 4);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (274, 'proposal_sent', 'Proposal sent', 'Comprehensive travel management proposal sent to decision maker.', 'file-text', '{}', '2025-08-19 07:10:33.185629+00', 38, 4);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (275, 'lost', 'Lead lost', 'Lead chose competitor solution. Opportunity closed as lost.', 'x', '{}', '2025-08-19 07:10:33.421058+00', 38, 4);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (276, 'status_change', 'Status changed to Lost', 'Lead status updated from proposal_sent to lost. Lead is now lost.', 'x', '{}', '2025-08-19 07:10:33.656479+00', 38, 4);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (277, 'creation', 'Lead created', 'Lead created from cold_outreach source. Initial contact information collected for TechCorp Solutions.', 'plus', '{}', '2025-08-19 07:10:34.829103+00', 39, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (278, 'assignment', 'Lead assigned', 'Lead assigned to Jane Johnson for follow-up.', 'user', '{}', '2025-08-19 07:10:35.299629+00', 39, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (279, 'score_update', 'Lead score updated to 98', 'Lead score updated to 98 based on engagement metrics and profile analysis.', 'trending-up', '{}', '2025-08-19 07:10:35.535165+00', 39, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (280, 'contact_made', 'Initial contact made', 'Initial contact made with Jennifer. Outreach sent via email.', 'mail', '{}', '2025-08-19 07:10:36.006874+00', 39, 4);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (281, 'qualification', 'Lead qualified', 'Lead qualified and moved to proposal stage.', 'check-circle', '{}', '2025-08-19 07:10:36.242433+00', 39, 4);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (282, 'proposal_sent', 'Proposal sent', 'Comprehensive travel management proposal sent to decision maker.', 'file-text', '{}', '2025-08-19 07:10:36.477905+00', 39, 4);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (283, 'status_change', 'Status changed to Proposal Sent', 'Lead status updated from qualified to proposal_sent. Lead is now proposal sent.', 'file-text', '{}', '2025-08-19 07:10:36.713626+00', 39, 4);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (284, 'note_added', 'Follow-up note added', 'Added follow-up notes regarding client requirements and next steps.', 'message-square', '{}', '2025-08-19 07:10:36.949705+00', 39, 4);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (285, 'creation', 'Lead created', 'Lead created from website source. Initial contact information collected for HealthTech Innovations.', 'plus', '{}', '2025-08-19 07:10:38.123449+00', 40, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (286, 'assignment', 'Lead assigned', 'Lead assigned to Jane Johnson for follow-up.', 'user', '{}', '2025-08-19 07:10:38.593824+00', 40, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (287, 'score_update', 'Lead score updated to 11', 'Lead score updated to 11 based on engagement metrics and profile analysis.', 'trending-up', '{}', '2025-08-19 07:10:38.829435+00', 40, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (288, 'contact_made', 'Initial contact made', 'Initial contact made with David. Outreach sent via email.', 'mail', '{}', '2025-08-19 07:10:39.300335+00', 40, 4);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (289, 'qualification', 'Lead qualified', 'Lead qualified and moved to proposal stage.', 'check-circle', '{}', '2025-08-19 07:10:39.536035+00', 40, 4);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (290, 'proposal_sent', 'Proposal sent', 'Comprehensive travel management proposal sent to decision maker.', 'file-text', '{}', '2025-08-19 07:10:39.771492+00', 40, 4);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (291, 'negotiation_started', 'Negotiation completed', 'Successfully negotiated terms and pricing.', 'handshake', '{}', '2025-08-19 07:10:40.007317+00', 40, 4);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (292, 'won', 'Lead won!', 'Successfully closed deal! Contract signed for $129373.00.', 'trophy', '{}', '2025-08-19 07:10:40.242975+00', 40, 4);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (293, 'status_change', 'Status changed to Won', 'Lead status updated from negotiation to won. Lead is now won.', 'trophy', '{}', '2025-08-19 07:10:40.478441+00', 40, 4);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (294, 'note_added', 'Follow-up note added', 'Added follow-up notes regarding client requirements and next steps.', 'message-square', '{}', '2025-08-19 07:10:40.713966+00', 40, 4);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (295, 'creation', 'Lead created', 'Lead created from cold_outreach source. Initial contact information collected for Manufacturing Plus.', 'plus', '{}', '2025-08-19 07:10:41.88738+00', 41, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (296, 'assignment', 'Lead assigned', 'Lead assigned to Sarah Davis for follow-up.', 'user', '{}', '2025-08-19 07:10:42.358073+00', 41, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (297, 'score_update', 'Lead score updated to 48', 'Lead score updated to 48 based on engagement metrics and profile analysis.', 'trending-up', '{}', '2025-08-19 07:10:42.593506+00', 41, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (298, 'contact_made', 'Initial contact made', 'Initial contact made with Sarah. Outreach sent via email.', 'mail', '{}', '2025-08-19 07:10:43.063821+00', 41, 6);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (299, 'qualification', 'Lead qualified', 'Lead qualified and moved to proposal stage.', 'check-circle', '{}', '2025-08-19 07:10:43.299342+00', 41, 6);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (300, 'proposal_sent', 'Proposal sent', 'Comprehensive travel management proposal sent to decision maker.', 'file-text', '{}', '2025-08-19 07:10:43.535286+00', 41, 6);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (301, 'negotiation_started', 'Negotiation completed', 'Successfully negotiated terms and pricing.', 'handshake', '{}', '2025-08-19 07:10:43.770856+00', 41, 6);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (302, 'won', 'Lead won!', 'Successfully closed deal! Contract signed for $122801.00.', 'trophy', '{}', '2025-08-19 07:10:44.006602+00', 41, 6);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (303, 'status_change', 'Status changed to Won', 'Lead status updated from negotiation to won. Lead is now won.', 'trophy', '{}', '2025-08-19 07:10:44.242142+00', 41, 6);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (304, 'note_added', 'Follow-up note added', 'Added follow-up notes regarding client requirements and next steps.', 'message-square', '{}', '2025-08-19 07:10:44.477601+00', 41, 6);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (305, 'creation', 'Lead created', 'Lead created from referral source. Initial contact information collected for Global Finance Ltd.', 'plus', '{}', '2025-08-19 07:10:45.657571+00', 42, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (306, 'assignment', 'Lead assigned', 'Lead assigned to John Smith for follow-up.', 'user', '{}', '2025-08-19 07:10:46.12824+00', 42, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (307, 'score_update', 'Lead score updated to 65', 'Lead score updated to 65 based on engagement metrics and profile analysis.', 'trending-up', '{}', '2025-08-19 07:10:46.363804+00', 42, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (308, 'contact_made', 'Initial contact made', 'Initial contact made with Robert. Outreach sent via email.', 'mail', '{}', '2025-08-19 07:10:46.834516+00', 42, 3);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (309, 'disqualification', 'Lead disqualified', 'Lead disqualified due to budget constraints or timeline mismatch. Moved to nurture campaign.', 'x-circle', '{}', '2025-08-19 07:10:47.070741+00', 42, 3);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (310, 'status_change', 'Status changed to Unqualified', 'Lead status updated from contacted to unqualified. Lead is now unqualified.', 'x-circle', '{}', '2025-08-19 07:10:47.306295+00', 42, 3);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (311, 'creation', 'Lead created', 'Lead created from corporate_search source. Initial contact information collected for Global Finance Ltd.', 'plus', '{}', '2025-08-19 07:10:48.478792+00', 43, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (312, 'assignment', 'Lead assigned', 'Lead assigned to Sarah Davis for follow-up.', 'user', '{}', '2025-08-19 07:10:48.949248+00', 43, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (313, 'score_update', 'Lead score updated to 68', 'Lead score updated to 68 based on engagement metrics and profile analysis.', 'trending-up', '{}', '2025-08-19 07:10:49.184814+00', 43, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (314, 'contact_made', 'Initial contact made', 'Initial contact made with Robert. Outreach sent via email.', 'mail', '{}', '2025-08-19 07:10:49.655307+00', 43, 6);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (315, 'call_made', 'Discovery call completed', 'Scheduled and completed 30-minute discovery call. Discussed travel requirements and current pain points.', 'phone', '{}', '2025-08-19 07:10:49.904319+00', 43, 6);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (316, 'qualification', 'Lead qualified', 'Lead qualified based on budget (445229.00), authority, and timeline. Ready for proposal stage.', 'check-circle', '{}', '2025-08-19 07:10:50.139769+00', 43, 6);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (317, 'status_change', 'Status changed to Qualified', 'Lead status updated from contacted to qualified. Lead is now qualified.', 'check-circle', '{}', '2025-08-19 07:10:50.37525+00', 43, 6);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (318, 'note_added', 'Follow-up note added', 'Added follow-up notes regarding client requirements and next steps.', 'message-square', '{}', '2025-08-19 07:10:50.610719+00', 43, 6);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (319, 'creation', 'Lead created', 'Lead created from website source. Initial contact information collected for Global Finance Ltd.', 'plus', '{}', '2025-08-19 07:10:51.784235+00', 44, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (320, 'assignment', 'Lead assigned', 'Lead assigned to David Wilson for follow-up.', 'user', '{}', '2025-08-19 07:10:52.254439+00', 44, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (321, 'score_update', 'Lead score updated to 63', 'Lead score updated to 63 based on engagement metrics and profile analysis.', 'trending-up', '{}', '2025-08-19 07:10:52.4902+00', 44, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (322, 'contact_made', 'Initial contact made', 'Initial contact made with David. Outreach sent via email.', 'mail', '{}', '2025-08-19 07:10:52.960399+00', 44, 7);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (323, 'qualification', 'Lead qualified', 'Lead qualified and moved to proposal stage.', 'check-circle', '{}', '2025-08-19 07:10:53.19585+00', 44, 7);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (324, 'proposal_sent', 'Proposal sent', 'Comprehensive travel management proposal sent to decision maker.', 'file-text', '{}', '2025-08-19 07:10:53.431235+00', 44, 7);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (325, 'status_change', 'Status changed to Proposal Sent', 'Lead status updated from qualified to proposal_sent. Lead is now proposal sent.', 'file-text', '{}', '2025-08-19 07:10:53.66666+00', 44, 7);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (326, 'note_added', 'Follow-up note added', 'Added follow-up notes regarding client requirements and next steps.', 'message-square', '{}', '2025-08-19 07:10:53.902426+00', 44, 7);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (327, 'creation', 'Lead created', 'Lead created from marketing source. Initial contact information collected for HealthTech Innovations.', 'plus', '{}', '2025-08-19 07:10:55.075669+00', 45, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (328, 'assignment', 'Lead assigned', 'Lead assigned to Sarah Davis for follow-up.', 'user', '{}', '2025-08-19 07:10:55.545652+00', 45, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (329, 'score_update', 'Lead score updated to 61', 'Lead score updated to 61 based on engagement metrics and profile analysis.', 'trending-up', '{}', '2025-08-19 07:10:55.781259+00', 45, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (330, 'contact_made', 'Initial contact made', 'Initial contact made with Sarah. Outreach sent via email.', 'mail', '{}', '2025-08-19 07:10:56.25164+00', 45, 6);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (331, 'qualification', 'Lead qualified', 'Lead qualified and moved to proposal stage.', 'check-circle', '{}', '2025-08-19 07:10:56.487386+00', 45, 6);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (332, 'proposal_sent', 'Proposal sent', 'Comprehensive travel management proposal sent to decision maker.', 'file-text', '{}', '2025-08-19 07:10:56.72304+00', 45, 6);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (333, 'status_change', 'Status changed to Proposal Sent', 'Lead status updated from qualified to proposal_sent. Lead is now proposal sent.', 'file-text', '{}', '2025-08-19 07:10:56.958915+00', 45, 6);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (334, 'note_added', 'Follow-up note added', 'Added follow-up notes regarding client requirements and next steps.', 'message-square', '{}', '2025-08-19 07:10:57.194565+00', 45, 6);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (335, 'creation', 'Lead created', 'Lead created from cold_outreach source. Initial contact information collected for Retail Dynamics.', 'plus', '{}', '2025-08-19 07:10:58.367292+00', 46, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (336, 'assignment', 'Lead assigned', 'Lead assigned to Sarah Davis for follow-up.', 'user', '{}', '2025-08-19 07:10:58.837642+00', 46, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (337, 'score_update', 'Lead score updated to 93', 'Lead score updated to 93 based on engagement metrics and profile analysis.', 'trending-up', '{}', '2025-08-19 07:10:59.073548+00', 46, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (338, 'contact_made', 'Initial contact made', 'Initial contact made with James. Outreach sent via email.', 'mail', '{}', '2025-08-19 07:10:59.544245+00', 46, 6);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (339, 'qualification', 'Lead qualified', 'Lead qualified and moved to proposal stage.', 'check-circle', '{}', '2025-08-19 07:10:59.779691+00', 46, 6);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (340, 'proposal_sent', 'Proposal sent', 'Comprehensive travel management proposal sent to decision maker.', 'file-text', '{}', '2025-08-19 07:11:00.015155+00', 46, 6);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (341, 'lost', 'Lead lost', 'Lead chose competitor solution. Opportunity closed as lost.', 'x', '{}', '2025-08-19 07:11:00.251069+00', 46, 6);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (342, 'status_change', 'Status changed to Lost', 'Lead status updated from proposal_sent to lost. Lead is now lost.', 'x', '{}', '2025-08-19 07:11:00.486731+00', 46, 6);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (343, 'creation', 'Lead created', 'Lead created from website source. Initial contact information collected for Retail Dynamics.', 'plus', '{}', '2025-08-19 07:11:01.65958+00', 47, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (344, 'assignment', 'Lead assigned', 'Lead assigned to John Smith for follow-up.', 'user', '{}', '2025-08-19 07:11:02.130056+00', 47, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (345, 'score_update', 'Lead score updated to 92', 'Lead score updated to 92 based on engagement metrics and profile analysis.', 'trending-up', '{}', '2025-08-19 07:11:02.365653+00', 47, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (346, 'contact_made', 'Initial contact made', 'Initial contact made with Jennifer. Outreach sent via email.', 'mail', '{}', '2025-08-19 07:11:02.836796+00', 47, 3);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (347, 'qualification', 'Lead qualified', 'Lead qualified and moved to proposal stage.', 'check-circle', '{}', '2025-08-19 07:11:03.072573+00', 47, 3);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (348, 'proposal_sent', 'Proposal sent', 'Comprehensive travel management proposal sent to decision maker.', 'file-text', '{}', '2025-08-19 07:11:03.308363+00', 47, 3);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (349, 'negotiation_started', 'Negotiation completed', 'Successfully negotiated terms and pricing.', 'handshake', '{}', '2025-08-19 07:11:03.544238+00', 47, 3);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (350, 'won', 'Lead won!', 'Successfully closed deal! Contract signed for $380041.00.', 'trophy', '{}', '2025-08-19 07:11:03.779914+00', 47, 3);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (351, 'status_change', 'Status changed to Won', 'Lead status updated from negotiation to won. Lead is now won.', 'trophy', '{}', '2025-08-19 07:11:04.01551+00', 47, 3);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (352, 'note_added', 'Follow-up note added', 'Added follow-up notes regarding client requirements and next steps.', 'message-square', '{}', '2025-08-19 07:11:04.252383+00', 47, 3);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (353, 'creation', 'Lead created', 'Lead created from referral source. Initial contact information collected for HealthTech Innovations.', 'plus', '{}', '2025-08-19 07:11:05.425646+00', 48, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (354, 'assignment', 'Lead assigned', 'Lead assigned to David Wilson for follow-up.', 'user', '{}', '2025-08-19 07:11:05.896068+00', 48, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (355, 'score_update', 'Lead score updated to 40', 'Lead score updated to 40 based on engagement metrics and profile analysis.', 'trending-up', '{}', '2025-08-19 07:11:06.131686+00', 48, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (356, 'contact_made', 'Initial contact made', 'Initial contact made with Sarah. Outreach sent via email.', 'mail', '{}', '2025-08-19 07:11:06.602065+00', 48, 7);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (357, 'qualification', 'Lead qualified', 'Lead qualified and moved to proposal stage.', 'check-circle', '{}', '2025-08-19 07:11:06.837678+00', 48, 7);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (358, 'proposal_sent', 'Proposal sent', 'Comprehensive travel management proposal sent to decision maker.', 'file-text', '{}', '2025-08-19 07:11:07.072938+00', 48, 7);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (359, 'status_change', 'Status changed to Proposal Sent', 'Lead status updated from qualified to proposal_sent. Lead is now proposal sent.', 'file-text', '{}', '2025-08-19 07:11:07.308599+00', 48, 7);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (360, 'note_added', 'Follow-up note added', 'Added follow-up notes regarding client requirements and next steps.', 'message-square', '{}', '2025-08-19 07:11:07.544343+00', 48, 7);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (361, 'creation', 'Lead created', 'Lead created from cold_outreach source. Initial contact information collected for ConsultPro Services.', 'plus', '{}', '2025-08-19 07:11:08.720717+00', 49, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (362, 'assignment', 'Lead assigned', 'Lead assigned to John Smith for follow-up.', 'user', '{}', '2025-08-19 07:11:09.191285+00', 49, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (363, 'score_update', 'Lead score updated to 42', 'Lead score updated to 42 based on engagement metrics and profile analysis.', 'trending-up', '{}', '2025-08-19 07:11:09.427141+00', 49, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (364, 'contact_made', 'Initial contact made', 'Initial contact made with David. Outreach sent via email.', 'mail', '{}', '2025-08-19 07:11:09.897391+00', 49, 3);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (365, 'qualification', 'Lead qualified', 'Lead qualified and moved to proposal stage.', 'check-circle', '{}', '2025-08-19 07:11:10.132887+00', 49, 3);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (366, 'proposal_sent', 'Proposal sent', 'Comprehensive travel management proposal sent to decision maker.', 'file-text', '{}', '2025-08-19 07:11:10.368444+00', 49, 3);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (367, 'lost', 'Lead lost', 'Lead chose competitor solution. Opportunity closed as lost.', 'x', '{}', '2025-08-19 07:11:10.603849+00', 49, 3);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (368, 'status_change', 'Status changed to Lost', 'Lead status updated from proposal_sent to lost. Lead is now lost.', 'x', '{}', '2025-08-19 07:11:10.839688+00', 49, 3);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (369, 'creation', 'Lead created', 'Lead created from marketing source. Initial contact information collected for Manufacturing Plus.', 'plus', '{}', '2025-08-19 07:11:12.0125+00', 50, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (370, 'assignment', 'Lead assigned', 'Lead assigned to David Wilson for follow-up.', 'user', '{}', '2025-08-19 07:11:12.482686+00', 50, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (371, 'score_update', 'Lead score updated to 57', 'Lead score updated to 57 based on engagement metrics and profile analysis.', 'trending-up', '{}', '2025-08-19 07:11:12.718268+00', 50, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (372, 'contact_made', 'Initial contact made', 'Initial contact made with Michael. Outreach sent via email.', 'mail', '{}', '2025-08-19 07:11:13.188601+00', 50, 7);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (373, 'disqualification', 'Lead disqualified', 'Lead disqualified due to budget constraints or timeline mismatch. Moved to nurture campaign.', 'x-circle', '{}', '2025-08-19 07:11:13.424182+00', 50, 7);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (374, 'status_change', 'Status changed to Unqualified', 'Lead status updated from contacted to unqualified. Lead is now unqualified.', 'x-circle', '{}', '2025-08-19 07:11:13.659749+00', 50, 7);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (375, 'creation', 'Lead created', 'Lead created from referral source. Initial contact information collected for ConsultPro Services.', 'plus', '{}', '2025-08-19 07:11:14.832572+00', 51, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (376, 'assignment', 'Lead assigned', 'Lead assigned to David Wilson for follow-up.', 'user', '{}', '2025-08-19 07:11:15.304638+00', 51, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (377, 'score_update', 'Lead score updated to 100', 'Lead score updated to 100 based on engagement metrics and profile analysis.', 'trending-up', '{}', '2025-08-19 07:11:15.541518+00', 51, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (378, 'contact_made', 'Initial contact made', 'Initial contact made with Sarah. Outreach sent via email.', 'mail', '{}', '2025-08-19 07:11:16.012214+00', 51, 7);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (379, 'disqualification', 'Lead disqualified', 'Lead disqualified due to budget constraints or timeline mismatch. Moved to nurture campaign.', 'x-circle', '{}', '2025-08-19 07:11:16.247634+00', 51, 7);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (380, 'status_change', 'Status changed to Unqualified', 'Lead status updated from contacted to unqualified. Lead is now unqualified.', 'x-circle', '{}', '2025-08-19 07:11:16.483167+00', 51, 7);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (381, 'creation', 'Lead created', 'Lead created from cold_outreach source. Initial contact information collected for TechCorp Solutions.', 'plus', '{}', '2025-08-19 07:11:17.656178+00', 52, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (382, 'assignment', 'Lead assigned', 'Lead assigned to Jane Johnson for follow-up.', 'user', '{}', '2025-08-19 07:11:18.12666+00', 52, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (383, 'score_update', 'Lead score updated to 41', 'Lead score updated to 41 based on engagement metrics and profile analysis.', 'trending-up', '{}', '2025-08-19 07:11:18.362361+00', 52, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (384, 'contact_made', 'Initial contact made', 'Initial contact made with David. Outreach sent via email.', 'mail', '{}', '2025-08-19 07:11:18.832622+00', 52, 4);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (385, 'status_change', 'Status changed to Contacted', 'Lead status updated from new to contacted. Lead is now contacted.', 'mail', '{}', '2025-08-19 07:11:19.068491+00', 52, 4);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (386, 'creation', 'Lead created', 'Lead created from website source. Initial contact information collected for HealthTech Innovations.', 'plus', '{}', '2025-08-19 07:11:20.241268+00', 53, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (387, 'assignment', 'Lead assigned', 'Lead assigned to Mike Brown for follow-up.', 'user', '{}', '2025-08-19 07:11:20.711426+00', 53, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (388, 'score_update', 'Lead score updated to 70', 'Lead score updated to 70 based on engagement metrics and profile analysis.', 'trending-up', '{}', '2025-08-19 07:11:20.947096+00', 53, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (389, 'contact_made', 'Initial contact made', 'Initial contact made with Michael. Outreach sent via email.', 'mail', '{}', '2025-08-19 07:11:21.417767+00', 53, 5);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (390, 'call_made', 'Discovery call completed', 'Scheduled and completed 30-minute discovery call. Discussed travel requirements and current pain points.', 'phone', '{}', '2025-08-19 07:11:21.653256+00', 53, 5);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (391, 'qualification', 'Lead qualified', 'Lead qualified based on budget (447617.00), authority, and timeline. Ready for proposal stage.', 'check-circle', '{}', '2025-08-19 07:11:21.888734+00', 53, 5);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (392, 'status_change', 'Status changed to Qualified', 'Lead status updated from contacted to qualified. Lead is now qualified.', 'check-circle', '{}', '2025-08-19 07:11:22.124477+00', 53, 5);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (393, 'note_added', 'Follow-up note added', 'Added follow-up notes regarding client requirements and next steps.', 'message-square', '{}', '2025-08-19 07:11:22.360413+00', 53, 5);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (394, 'creation', 'Lead created', 'Lead created from marketing source. Initial contact information collected for HealthTech Innovations.', 'plus', '{}', '2025-08-19 07:11:23.534431+00', 54, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (395, 'assignment', 'Lead assigned', 'Lead assigned to John Smith for follow-up.', 'user', '{}', '2025-08-19 07:11:24.004809+00', 54, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (396, 'score_update', 'Lead score updated to 67', 'Lead score updated to 67 based on engagement metrics and profile analysis.', 'trending-up', '{}', '2025-08-19 07:11:24.240615+00', 54, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (397, 'contact_made', 'Initial contact made', 'Initial contact made with James. Outreach sent via email.', 'mail', '{}', '2025-08-19 07:11:24.711232+00', 54, 3);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (398, 'qualification', 'Lead qualified', 'Lead qualified and moved to proposal stage.', 'check-circle', '{}', '2025-08-19 07:11:24.946799+00', 54, 3);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (399, 'proposal_sent', 'Proposal sent', 'Comprehensive travel management proposal sent to decision maker.', 'file-text', '{}', '2025-08-19 07:11:25.182349+00', 54, 3);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (400, 'negotiation_started', 'Negotiation completed', 'Successfully negotiated terms and pricing.', 'handshake', '{}', '2025-08-19 07:11:25.418235+00', 54, 3);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (401, 'won', 'Lead won!', 'Successfully closed deal! Contract signed for $475579.00.', 'trophy', '{}', '2025-08-19 07:11:25.653978+00', 54, 3);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (402, 'status_change', 'Status changed to Won', 'Lead status updated from negotiation to won. Lead is now won.', 'trophy', '{}', '2025-08-19 07:11:25.889889+00', 54, 3);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (403, 'note_added', 'Follow-up note added', 'Added follow-up notes regarding client requirements and next steps.', 'message-square', '{}', '2025-08-19 07:11:26.125574+00', 54, 3);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (404, 'creation', 'Lead created', 'Lead created from corporate_search source. Initial contact information collected for ConsultPro Services.', 'plus', '{}', '2025-08-19 07:11:27.298791+00', 55, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (405, 'assignment', 'Lead assigned', 'Lead assigned to Jane Johnson for follow-up.', 'user', '{}', '2025-08-19 07:11:27.769332+00', 55, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (406, 'score_update', 'Lead score updated to 30', 'Lead score updated to 30 based on engagement metrics and profile analysis.', 'trending-up', '{}', '2025-08-19 07:11:28.004695+00', 55, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (407, 'contact_made', 'Initial contact made', 'Initial contact made with Jennifer. Outreach sent via email.', 'mail', '{}', '2025-08-19 07:11:28.475538+00', 55, 4);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (408, 'status_change', 'Status changed to Contacted', 'Lead status updated from new to contacted. Lead is now contacted.', 'mail', '{}', '2025-08-19 07:11:28.711043+00', 55, 4);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (409, 'creation', 'Lead created', 'Lead created from referral source. Initial contact information collected for Retail Dynamics.', 'plus', '{}', '2025-08-19 07:11:29.891715+00', 56, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (410, 'assignment', 'Lead assigned', 'Lead assigned to Jane Johnson for follow-up.', 'user', '{}', '2025-08-19 07:11:30.364823+00', 56, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (411, 'score_update', 'Lead score updated to 46', 'Lead score updated to 46 based on engagement metrics and profile analysis.', 'trending-up', '{}', '2025-08-19 07:11:30.600453+00', 56, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (412, 'creation', 'Lead created', 'Lead created from referral source. Initial contact information collected for Global Finance Ltd.', 'plus', '{}', '2025-08-19 07:11:31.773779+00', 57, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (413, 'assignment', 'Lead assigned', 'Lead assigned to John Smith for follow-up.', 'user', '{}', '2025-08-19 07:11:32.243999+00', 57, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (414, 'score_update', 'Lead score updated to 48', 'Lead score updated to 48 based on engagement metrics and profile analysis.', 'trending-up', '{}', '2025-08-19 07:11:32.480087+00', 57, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (415, 'contact_made', 'Initial contact made', 'Initial contact made with Sarah. Outreach sent via email.', 'mail', '{}', '2025-08-19 07:11:32.951284+00', 57, 3);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (416, 'qualification', 'Lead qualified', 'Lead qualified and moved to proposal stage.', 'check-circle', '{}', '2025-08-19 07:11:33.186938+00', 57, 3);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (417, 'proposal_sent', 'Proposal sent', 'Comprehensive travel management proposal sent to decision maker.', 'file-text', '{}', '2025-08-19 07:11:33.422577+00', 57, 3);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (418, 'negotiation_started', 'Negotiation completed', 'Successfully negotiated terms and pricing.', 'handshake', '{}', '2025-08-19 07:11:33.657942+00', 57, 3);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (419, 'won', 'Lead won!', 'Successfully closed deal! Contract signed for $172788.00.', 'trophy', '{}', '2025-08-19 07:11:33.893682+00', 57, 3);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (420, 'status_change', 'Status changed to Won', 'Lead status updated from negotiation to won. Lead is now won.', 'trophy', '{}', '2025-08-19 07:11:34.129895+00', 57, 3);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (421, 'note_added', 'Follow-up note added', 'Added follow-up notes regarding client requirements and next steps.', 'message-square', '{}', '2025-08-19 07:11:34.365411+00', 57, 3);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (422, 'creation', 'Lead created', 'Lead created from website source. Initial contact information collected for TechCorp Solutions.', 'plus', '{}', '2025-08-19 07:11:35.538589+00', 58, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (423, 'assignment', 'Lead assigned', 'Lead assigned to Sarah Davis for follow-up.', 'user', '{}', '2025-08-19 07:11:36.009235+00', 58, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (424, 'score_update', 'Lead score updated to 56', 'Lead score updated to 56 based on engagement metrics and profile analysis.', 'trending-up', '{}', '2025-08-19 07:11:36.245048+00', 58, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (425, 'contact_made', 'Initial contact made', 'Initial contact made with Amanda. Outreach sent via email.', 'mail', '{}', '2025-08-19 07:11:36.715493+00', 58, 6);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (426, 'disqualification', 'Lead disqualified', 'Lead disqualified due to budget constraints or timeline mismatch. Moved to nurture campaign.', 'x-circle', '{}', '2025-08-19 07:11:36.950916+00', 58, 6);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (427, 'status_change', 'Status changed to Unqualified', 'Lead status updated from contacted to unqualified. Lead is now unqualified.', 'x-circle', '{}', '2025-08-19 07:11:37.186533+00', 58, 6);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (428, 'creation', 'Lead created', 'Lead created from referral source. Initial contact information collected for HealthTech Innovations.', 'plus', '{}', '2025-08-19 07:11:38.359843+00', 59, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (429, 'assignment', 'Lead assigned', 'Lead assigned to Mike Brown for follow-up.', 'user', '{}', '2025-08-19 07:11:38.830207+00', 59, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (430, 'score_update', 'Lead score updated to 27', 'Lead score updated to 27 based on engagement metrics and profile analysis.', 'trending-up', '{}', '2025-08-19 07:11:39.065622+00', 59, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (431, 'contact_made', 'Initial contact made', 'Initial contact made with Lisa. Outreach sent via email.', 'mail', '{}', '2025-08-19 07:11:39.535818+00', 59, 5);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (432, 'call_made', 'Discovery call completed', 'Scheduled and completed 30-minute discovery call. Discussed travel requirements and current pain points.', 'phone', '{}', '2025-08-19 07:11:39.771435+00', 59, 5);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (433, 'qualification', 'Lead qualified', 'Lead qualified based on budget (59583.00), authority, and timeline. Ready for proposal stage.', 'check-circle', '{}', '2025-08-19 07:11:40.007034+00', 59, 5);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (434, 'status_change', 'Status changed to Qualified', 'Lead status updated from contacted to qualified. Lead is now qualified.', 'check-circle', '{}', '2025-08-19 07:11:40.24278+00', 59, 5);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (435, 'note_added', 'Follow-up note added', 'Added follow-up notes regarding client requirements and next steps.', 'message-square', '{}', '2025-08-19 07:11:40.478416+00', 59, 5);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (436, 'creation', 'Lead created', 'Lead created from corporate_search source. Initial contact information collected for Manufacturing Plus.', 'plus', '{}', '2025-08-19 07:11:41.651879+00', 60, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (437, 'assignment', 'Lead assigned', 'Lead assigned to Sarah Davis for follow-up.', 'user', '{}', '2025-08-19 07:11:42.122375+00', 60, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (438, 'score_update', 'Lead score updated to 67', 'Lead score updated to 67 based on engagement metrics and profile analysis.', 'trending-up', '{}', '2025-08-19 07:11:42.357823+00', 60, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (439, 'contact_made', 'Initial contact made', 'Initial contact made with Jennifer. Outreach sent via email.', 'mail', '{}', '2025-08-19 07:11:42.831817+00', 60, 6);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (440, 'status_change', 'Status changed to Contacted', 'Lead status updated from new to contacted. Lead is now contacted.', 'mail', '{}', '2025-08-19 07:11:43.067404+00', 60, 6);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (441, 'creation', 'Lead created', 'Lead created from corporate_search source. Initial contact information collected for Infiniti software.', 'plus', '{}', '2025-08-19 07:11:44.240541+00', 68, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (442, 'score_update', 'Lead score updated to 91', 'Lead score updated to 91 based on engagement metrics and profile analysis.', 'trending-up', '{}', '2025-08-19 07:11:44.476226+00', 68, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (443, 'creation', 'Lead created', 'Lead created from corporate_search source. Initial contact information collected for TechCorp Solutions.', 'plus', '{}', '2025-08-19 07:11:45.657953+00', 66, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (444, 'score_update', 'Lead score updated to 94', 'Lead score updated to 94 based on engagement metrics and profile analysis.', 'trending-up', '{}', '2025-08-19 07:11:45.893823+00', 66, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (445, 'contact_made', 'Initial contact made', 'Initial contact made with Contact. Outreach sent via email.', 'mail', '{}', '2025-08-19 07:11:46.364689+00', 66, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (446, 'call_made', 'Discovery call completed', 'Scheduled and completed 30-minute discovery call. Discussed travel requirements and current pain points.', 'phone', '{}', '2025-08-19 07:11:46.600193+00', 66, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (447, 'qualification', 'Lead qualified', 'Lead qualified based on budget (2484189.00), authority, and timeline. Ready for proposal stage.', 'check-circle', '{}', '2025-08-19 07:11:46.836154+00', 66, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (448, 'status_change', 'Status changed to Qualified', 'Lead status updated from contacted to qualified. Lead is now qualified.', 'check-circle', '{}', '2025-08-19 07:11:47.071467+00', 66, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (449, 'note_added', 'Follow-up note added', 'Added follow-up notes regarding client requirements and next steps.', 'message-square', '{}', '2025-08-19 07:11:47.30681+00', 66, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (450, 'creation', 'Lead created', 'Lead created from corporate_search source. Initial contact information collected for EcoEnergy Solutions.', 'plus', '{}', '2025-08-19 07:11:48.480229+00', 69, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (451, 'score_update', 'Lead score updated to 93', 'Lead score updated to 93 based on engagement metrics and profile analysis.', 'trending-up', '{}', '2025-08-19 07:11:48.715943+00', 69, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (452, 'creation', 'Lead created', 'Lead created from Cold Call source. Initial contact information collected for Infiniti software.', 'plus', '{}', '2025-08-19 07:11:49.890013+00', 67, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (453, 'score_update', 'Lead score updated to 50', 'Lead score updated to 50 based on engagement metrics and profile analysis.', 'trending-up', '{}', '2025-08-19 07:11:50.125822+00', 67, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (454, 'contact_made', 'Initial contact made', 'Initial contact made with nagendran. Outreach sent via email.', 'mail', '{}', '2025-08-19 07:11:50.596431+00', 67, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (455, 'call_made', 'Discovery call completed', 'Scheduled and completed 30-minute discovery call. Discussed travel requirements and current pain points.', 'phone', '{}', '2025-08-19 07:11:50.831936+00', 67, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (456, 'qualification', 'Lead qualified', 'Lead qualified based on budget (1000.00), authority, and timeline. Ready for proposal stage.', 'check-circle', '{}', '2025-08-19 07:11:51.067498+00', 67, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (457, 'status_change', 'Status changed to Qualified', 'Lead status updated from contacted to qualified. Lead is now qualified.', 'check-circle', '{}', '2025-08-19 07:11:51.303222+00', 67, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (458, 'note_added', 'Follow-up note added', 'Added follow-up notes regarding client requirements and next steps.', 'message-square', '{}', '2025-08-19 07:11:51.538671+00', 67, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (459, 'creation', 'Lead created', 'Lead created from corporate_search source. Initial contact information collected for TechCorp Solutions.', 'plus', '{}', '2025-08-19 07:11:52.711545+00', 65, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (460, 'score_update', 'Lead score updated to 85', 'Lead score updated to 85 based on engagement metrics and profile analysis.', 'trending-up', '{}', '2025-08-19 07:11:52.946968+00', 65, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (461, 'contact_made', 'Initial contact made', 'Initial contact made with Contact. Outreach sent via email.', 'mail', '{}', '2025-08-19 07:11:53.417369+00', 65, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (462, 'call_made', 'Discovery call completed', 'Scheduled and completed 30-minute discovery call. Discussed travel requirements and current pain points.', 'phone', '{}', '2025-08-19 07:11:53.6529+00', 65, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (463, 'qualification', 'Lead qualified', 'Lead qualified based on budget (3461043.00), authority, and timeline. Ready for proposal stage.', 'check-circle', '{}', '2025-08-19 07:11:53.888572+00', 65, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (464, 'status_change', 'Status changed to Qualified', 'Lead status updated from contacted to qualified. Lead is now qualified.', 'check-circle', '{}', '2025-08-19 07:11:54.12528+00', 65, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (465, 'note_added', 'Follow-up note added', 'Added follow-up notes regarding client requirements and next steps.', 'message-square', '{}', '2025-08-19 07:11:54.360916+00', 65, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (466, 'creation', 'Lead created', 'Lead created from corporate_search source. Initial contact information collected for TechCorp Solutions.', 'plus', '{}', '2025-08-19 07:11:55.534284+00', 63, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (467, 'score_update', 'Lead score updated to 91', 'Lead score updated to 91 based on engagement metrics and profile analysis.', 'trending-up', '{}', '2025-08-19 07:11:55.769788+00', 63, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (468, 'contact_made', 'Initial contact made', 'Initial contact made with Contact. Outreach sent via email.', 'mail', '{}', '2025-08-19 07:11:56.240716+00', 63, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (469, 'disqualification', 'Lead disqualified', 'Lead disqualified due to budget constraints or timeline mismatch. Moved to nurture campaign.', 'x-circle', '{}', '2025-08-19 07:11:56.476456+00', 63, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (470, 'status_change', 'Status changed to Unqualified', 'Lead status updated from contacted to unqualified. Lead is now unqualified.', 'x-circle', '{}', '2025-08-19 07:11:56.711868+00', 63, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (471, 'creation', 'Lead created', 'Lead created from corporate_search source. Initial contact information collected for TechCorp Solutions.', 'plus', '{}', '2025-08-19 07:11:57.885509+00', 64, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (472, 'score_update', 'Lead score updated to 91', 'Lead score updated to 91 based on engagement metrics and profile analysis.', 'trending-up', '{}', '2025-08-19 07:11:58.121301+00', 64, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (473, 'contact_made', 'Initial contact made', 'Initial contact made with Contact. Outreach sent via email.', 'mail', '{}', '2025-08-19 07:11:58.591857+00', 64, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (474, 'call_made', 'Discovery call completed', 'Scheduled and completed 30-minute discovery call. Discussed travel requirements and current pain points.', 'phone', '{}', '2025-08-19 07:11:58.827417+00', 64, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (475, 'qualification', 'Lead qualified', 'Lead qualified based on budget (721224.00), authority, and timeline. Ready for proposal stage.', 'check-circle', '{}', '2025-08-19 07:11:59.062992+00', 64, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (476, 'status_change', 'Status changed to Qualified', 'Lead status updated from contacted to qualified. Lead is now qualified.', 'check-circle', '{}', '2025-08-19 07:11:59.298612+00', 64, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (477, 'note_added', 'Follow-up note added', 'Added follow-up notes regarding client requirements and next steps.', 'message-square', '{}', '2025-08-19 07:11:59.534138+00', 64, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (478, 'creation', 'Lead created', 'Lead created from corporate_search source. Initial contact information collected for nagendran.', 'plus', '{}', '2025-08-19 07:12:00.709312+00', 62, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (479, 'score_update', 'Lead score updated to 92', 'Lead score updated to 92 based on engagement metrics and profile analysis.', 'trending-up', '{}', '2025-08-19 07:12:00.944916+00', 62, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (480, 'contact_made', 'Initial contact made', 'Initial contact made with Contact. Outreach sent via email.', 'mail', '{}', '2025-08-19 07:12:01.41557+00', 62, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (481, 'qualification', 'Lead qualified', 'Lead qualified and moved to proposal stage.', 'check-circle', '{}', '2025-08-19 07:12:01.651433+00', 62, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (482, 'proposal_sent', 'Proposal sent', 'Comprehensive travel management proposal sent to decision maker.', 'file-text', '{}', '2025-08-19 07:12:01.886966+00', 62, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (483, 'negotiation_started', 'Negotiation completed', 'Successfully negotiated terms and pricing.', 'handshake', '{}', '2025-08-19 07:12:02.122536+00', 62, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (484, 'won', 'Lead won!', 'Successfully closed deal! Contract signed for $1436339.00.', 'trophy', '{}', '2025-08-19 07:12:02.358053+00', 62, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (485, 'status_change', 'Status changed to Won', 'Lead status updated from negotiation to won. Lead is now won.', 'trophy', '{}', '2025-08-19 07:12:02.593672+00', 62, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (486, 'note_added', 'Follow-up note added', 'Added follow-up notes regarding client requirements and next steps.', 'message-square', '{}', '2025-08-19 07:12:02.829458+00', 62, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (487, 'creation', 'Lead created', 'Lead created from Cold Call source. Initial contact information collected for muni.', 'plus', '{}', '2025-08-19 07:12:04.00252+00', 61, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (488, 'score_update', 'Lead score updated to 50', 'Lead score updated to 50 based on engagement metrics and profile analysis.', 'trending-up', '{}', '2025-08-19 07:12:04.238081+00', 61, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (489, 'contact_made', 'Initial contact made', 'Initial contact made with muni. Outreach sent via email.', 'mail', '{}', '2025-08-19 07:12:04.714365+00', 61, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (490, 'qualification', 'Lead qualified', 'Lead qualified and moved to proposal stage.', 'check-circle', '{}', '2025-08-19 07:12:04.949931+00', 61, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (491, 'proposal_sent', 'Proposal sent', 'Comprehensive travel management proposal sent to decision maker.', 'file-text', '{}', '2025-08-19 07:12:05.185429+00', 61, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (492, 'negotiation_started', 'Negotiation completed', 'Successfully negotiated terms and pricing.', 'handshake', '{}', '2025-08-19 07:12:05.420947+00', 61, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (493, 'won', 'Lead won!', 'Successfully closed deal! Contract signed for $55.00.', 'trophy', '{}', '2025-08-19 07:12:05.65658+00', 61, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (494, 'status_change', 'Status changed to Won', 'Lead status updated from negotiation to won. Lead is now won.', 'trophy', '{}', '2025-08-19 07:12:05.892032+00', 61, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (495, 'note_added', 'Follow-up note added', 'Added follow-up notes regarding client requirements and next steps.', 'message-square', '{}', '2025-08-19 07:12:06.127645+00', 61, 8);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (496, 'agent_assignment', 'Agent assigned: John Doe', 'Lead assigned to John Doe with high priority. Assignment notes: demo', 'user', '{"priority": "High Priority", "agent_name": "John Doe", "previous_agent": null, "assignment_notes": "demo"}', '2025-08-19 10:22:33.962438+00', 69, NULL);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (497, 'agent_reassignment', 'Agent reassigned from John Doe to John Doe', 'Lead reassigned from John Doe to John Doe with medium priority. Assignment notes: demo', 'user', '{"priority": "Medium Priority", "agent_name": "John Doe", "previous_agent": "John Doe", "assignment_notes": "demo"}', '2025-08-19 10:22:34.448963+00', 69, NULL);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (498, 'agent_reassignment', 'Agent reassigned from John Doe to Jane Smith', 'Lead reassigned from John Doe to Jane Smith with high priority.', 'user', '{"priority": "High Priority", "agent_name": "Jane Smith", "previous_agent": "John Doe", "assignment_notes": ""}', '2025-08-19 10:22:34.920772+00', 69, NULL);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (499, 'agent_reassignment', 'Agent reassigned from Jane Smith to Mike Johnson', 'Lead reassigned from Jane Smith to Mike Johnson with urgent. Assignment notes: new', 'user', '{"priority": "Urgent", "agent_name": "Mike Johnson", "previous_agent": "Jane Smith", "assignment_notes": "new"}', '2025-08-19 10:22:35.392837+00', 69, NULL);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (500, 'agent_assignment', 'Agent assigned: John Doe', 'Lead assigned to John Doe with high priority. Assignment notes: test', 'user', '{"priority": "High Priority", "agent_name": "John Doe", "previous_agent": null, "assignment_notes": "test"}', '2025-08-19 10:22:36.339135+00', 68, NULL);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (501, 'agent_reassignment', 'Agent reassigned from Mike Johnson to John Doe', 'Lead reassigned from Mike Johnson to John Doe with high priority. Assignment notes: nagu updates api', 'user', '{"priority": "High Priority", "agent_name": "John Doe", "previous_agent": "Mike Johnson", "assignment_notes": "nagu updates api"}', '2025-08-19 10:25:07.735196+00', 69, NULL);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (502, 'agent_reassignment', 'Agent reassigned from John Doe to Sarah Wilson', 'Lead reassigned from John Doe to Sarah Wilson with medium priority. Assignment notes: updated version', 'user', '{"priority": "Medium Priority", "agent_name": "Sarah Wilson", "previous_agent": "John Doe", "assignment_notes": "updated version"}', '2025-08-19 10:37:00.179452+00', 69, NULL);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (503, 'agent_reassignment', 'Agent reassigned from John Doe to Jane Smith', 'Lead reassigned from John Doe to Jane Smith with urgent. Assignment notes: nagu', 'user', '{"priority": "Urgent", "agent_name": "Jane Smith", "previous_agent": "John Doe", "assignment_notes": "nagu"}', '2025-08-19 14:25:49.645823+00', 68, NULL);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (504, 'agent_reassignment', 'Agent reassigned from Sarah Wilson to Mike Johnson', 'Lead reassigned from Sarah Wilson to Mike Johnson with medium priority.', 'user', '{"priority": "Medium Priority", "agent_name": "Mike Johnson", "previous_agent": "Sarah Wilson", "assignment_notes": ""}', '2025-08-21 10:54:19.467934+00', 69, NULL);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (505, 'creation', 'Lead created', 'Lead created from corporate_search source. Initial contact information collected for INIFNITI.', 'plus', '{}', '2025-08-22 06:42:38.092551+00', 70, NULL);
+INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, metadata, "timestamp", lead_id, user_id) VALUES (506, 'score_update', 'Lead score updated to 85', 'Lead score updated to 85 based on engagement metrics and profile analysis.', 'trending-up', '{}', '2025-08-22 06:42:38.575599+00', 70, NULL);
+
+
+--
+-- Data for Name: api_leadnote; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+INSERT INTO public.api_leadnote (id, note, next_action, urgency, created_at, updated_at, created_by_id, lead_id) VALUES (1, 'testing note', 'Follow up test', 'High', '2025-08-14 06:33:50.34293+00', '2025-08-14 06:33:50.34295+00', NULL, 68);
+INSERT INTO public.api_leadnote (id, note, next_action, urgency, created_at, updated_at, created_by_id, lead_id) VALUES (2, 'demo', 'Follow up test', 'high', '2025-08-19 07:19:21.428512+00', '2025-08-19 07:19:21.428529+00', NULL, 68);
+INSERT INTO public.api_leadnote (id, note, next_action, urgency, created_at, updated_at, created_by_id, lead_id) VALUES (3, 'hii', 'Follow up', 'medium', '2025-08-19 09:07:23.74955+00', '2025-08-19 09:07:23.749563+00', NULL, 69);
+INSERT INTO public.api_leadnote (id, note, next_action, urgency, created_at, updated_at, created_by_id, lead_id) VALUES (4, 'nagu', 'Follow up', 'medium', '2025-08-19 09:09:06.79834+00', '2025-08-19 09:09:06.798355+00', NULL, 69);
+INSERT INTO public.api_leadnote (id, note, next_action, urgency, created_at, updated_at, created_by_id, lead_id) VALUES (5, 'hiii', 'Follow up', 'medium', '2025-08-19 14:24:36.81328+00', '2025-08-19 14:24:36.813294+00', NULL, 69);
+
+
+--
+-- Data for Name: api_opportunityactivity; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+INSERT INTO public.api_opportunityactivity (id, type, description, date, created_at, created_by_id, opportunity_id) VALUES (1, 'meeting', 'muniraj', '2025-08-22', '2025-08-21 09:19:28.951788+00', NULL, 5);
+INSERT INTO public.api_opportunityactivity (id, type, description, date, created_at, created_by_id, opportunity_id) VALUES (2, 'email', 'sending a mail tothem', '2025-08-23', '2025-08-21 09:20:17.847963+00', NULL, 5);
+INSERT INTO public.api_opportunityactivity (id, type, description, date, created_at, created_by_id, opportunity_id) VALUES (3, 'negotiation', 'negotiated with them', '2025-08-30', '2025-08-21 09:20:41.213249+00', NULL, 5);
+INSERT INTO public.api_opportunityactivity (id, type, description, date, created_at, created_by_id, opportunity_id) VALUES (4, 'other', 'testing', '2025-09-04', '2025-08-21 09:26:18.007291+00', NULL, 5);
+INSERT INTO public.api_opportunityactivity (id, type, description, date, created_at, created_by_id, opportunity_id) VALUES (5, 'meeting', 'munirrrrrrr', '2025-08-21', '2025-08-21 09:29:09.824168+00', NULL, 31);
+INSERT INTO public.api_opportunityactivity (id, type, description, date, created_at, created_by_id, opportunity_id) VALUES (6, 'email', 'asdsafasdfsafd', '2025-08-21', '2025-08-21 09:39:15.996+00', NULL, 31);
+INSERT INTO public.api_opportunityactivity (id, type, description, date, created_at, created_by_id, opportunity_id) VALUES (7, 'proposal', 'munimuni', '2025-08-21', '2025-08-21 09:49:34.682926+00', NULL, 10);
+
+
+--
+-- Data for Name: api_revenueforecast; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+
+
+--
+-- Data for Name: api_supportticket; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+
+
+--
+-- Data for Name: api_traveloffer; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+
+
+--
+-- Data for Name: api_traveloffer_target_companies; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+
+
+--
+-- Data for Name: auth_group; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+
+
+--
+-- Data for Name: django_content_type; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+INSERT INTO public.django_content_type (id, app_label, model) VALUES (1, 'admin', 'logentry');
+INSERT INTO public.django_content_type (id, app_label, model) VALUES (2, 'auth', 'permission');
+INSERT INTO public.django_content_type (id, app_label, model) VALUES (3, 'auth', 'group');
+INSERT INTO public.django_content_type (id, app_label, model) VALUES (4, 'auth', 'user');
+INSERT INTO public.django_content_type (id, app_label, model) VALUES (5, 'contenttypes', 'contenttype');
+INSERT INTO public.django_content_type (id, app_label, model) VALUES (6, 'sessions', 'session');
+INSERT INTO public.django_content_type (id, app_label, model) VALUES (7, 'api', 'company');
+INSERT INTO public.django_content_type (id, app_label, model) VALUES (8, 'api', 'contact');
+INSERT INTO public.django_content_type (id, app_label, model) VALUES (9, 'api', 'lead');
+INSERT INTO public.django_content_type (id, app_label, model) VALUES (10, 'api', 'opportunity');
+INSERT INTO public.django_content_type (id, app_label, model) VALUES (11, 'api', 'contract');
+INSERT INTO public.django_content_type (id, app_label, model) VALUES (12, 'api', 'vendor');
+INSERT INTO public.django_content_type (id, app_label, model) VALUES (13, 'api', 'marketingcampaign');
+INSERT INTO public.django_content_type (id, app_label, model) VALUES (14, 'api', 'supportticket');
+INSERT INTO public.django_content_type (id, app_label, model) VALUES (15, 'api', 'revenueforecast');
+INSERT INTO public.django_content_type (id, app_label, model) VALUES (16, 'api', 'activitylog');
+INSERT INTO public.django_content_type (id, app_label, model) VALUES (17, 'api', 'contractbreach');
+INSERT INTO public.django_content_type (id, app_label, model) VALUES (18, 'api', 'emailcampaign');
+INSERT INTO public.django_content_type (id, app_label, model) VALUES (19, 'api', 'traveloffer');
+INSERT INTO public.django_content_type (id, app_label, model) VALUES (20, 'api', 'aiconversation');
+INSERT INTO public.django_content_type (id, app_label, model) VALUES (21, 'api', 'leadnote');
+INSERT INTO public.django_content_type (id, app_label, model) VALUES (22, 'api', 'leadhistory');
+INSERT INTO public.django_content_type (id, app_label, model) VALUES (23, 'api', 'opportunityactivity');
+
+
+--
+-- Data for Name: auth_permission; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (1, 'Can add log entry', 1, 'add_logentry');
+INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (2, 'Can change log entry', 1, 'change_logentry');
+INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (3, 'Can delete log entry', 1, 'delete_logentry');
+INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (4, 'Can view log entry', 1, 'view_logentry');
+INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (5, 'Can add permission', 2, 'add_permission');
+INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (6, 'Can change permission', 2, 'change_permission');
+INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (7, 'Can delete permission', 2, 'delete_permission');
+INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (8, 'Can view permission', 2, 'view_permission');
+INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (9, 'Can add group', 3, 'add_group');
+INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (10, 'Can change group', 3, 'change_group');
+INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (11, 'Can delete group', 3, 'delete_group');
+INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (12, 'Can view group', 3, 'view_group');
+INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (13, 'Can add user', 4, 'add_user');
+INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (14, 'Can change user', 4, 'change_user');
+INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (15, 'Can delete user', 4, 'delete_user');
+INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (16, 'Can view user', 4, 'view_user');
+INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (17, 'Can add content type', 5, 'add_contenttype');
+INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (18, 'Can change content type', 5, 'change_contenttype');
+INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (19, 'Can delete content type', 5, 'delete_contenttype');
+INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (20, 'Can view content type', 5, 'view_contenttype');
+INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (21, 'Can add session', 6, 'add_session');
+INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (22, 'Can change session', 6, 'change_session');
+INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (23, 'Can delete session', 6, 'delete_session');
+INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (24, 'Can view session', 6, 'view_session');
+INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (25, 'Can add company', 7, 'add_company');
+INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (26, 'Can change company', 7, 'change_company');
+INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (27, 'Can delete company', 7, 'delete_company');
+INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (28, 'Can view company', 7, 'view_company');
+INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (29, 'Can add contact', 8, 'add_contact');
+INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (30, 'Can change contact', 8, 'change_contact');
+INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (31, 'Can delete contact', 8, 'delete_contact');
+INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (32, 'Can view contact', 8, 'view_contact');
+INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (33, 'Can add lead', 9, 'add_lead');
+INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (34, 'Can change lead', 9, 'change_lead');
+INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (35, 'Can delete lead', 9, 'delete_lead');
+INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (36, 'Can view lead', 9, 'view_lead');
+INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (37, 'Can add opportunity', 10, 'add_opportunity');
+INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (38, 'Can change opportunity', 10, 'change_opportunity');
+INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (39, 'Can delete opportunity', 10, 'delete_opportunity');
+INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (40, 'Can view opportunity', 10, 'view_opportunity');
+INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (41, 'Can add contract', 11, 'add_contract');
+INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (42, 'Can change contract', 11, 'change_contract');
+INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (43, 'Can delete contract', 11, 'delete_contract');
+INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (44, 'Can view contract', 11, 'view_contract');
+INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (45, 'Can add vendor', 12, 'add_vendor');
+INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (46, 'Can change vendor', 12, 'change_vendor');
+INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (47, 'Can delete vendor', 12, 'delete_vendor');
+INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (48, 'Can view vendor', 12, 'view_vendor');
+INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (49, 'Can add marketing campaign', 13, 'add_marketingcampaign');
+INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (50, 'Can change marketing campaign', 13, 'change_marketingcampaign');
+INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (51, 'Can delete marketing campaign', 13, 'delete_marketingcampaign');
+INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (52, 'Can view marketing campaign', 13, 'view_marketingcampaign');
+INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (53, 'Can add support ticket', 14, 'add_supportticket');
+INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (54, 'Can change support ticket', 14, 'change_supportticket');
+INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (55, 'Can delete support ticket', 14, 'delete_supportticket');
+INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (56, 'Can view support ticket', 14, 'view_supportticket');
+INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (57, 'Can add revenue forecast', 15, 'add_revenueforecast');
+INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (58, 'Can change revenue forecast', 15, 'change_revenueforecast');
+INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (59, 'Can delete revenue forecast', 15, 'delete_revenueforecast');
+INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (60, 'Can view revenue forecast', 15, 'view_revenueforecast');
+INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (61, 'Can add activity log', 16, 'add_activitylog');
+INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (62, 'Can change activity log', 16, 'change_activitylog');
+INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (63, 'Can delete activity log', 16, 'delete_activitylog');
+INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (64, 'Can view activity log', 16, 'view_activitylog');
+INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (65, 'Can add contract breach', 17, 'add_contractbreach');
+INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (66, 'Can change contract breach', 17, 'change_contractbreach');
+INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (67, 'Can delete contract breach', 17, 'delete_contractbreach');
+INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (68, 'Can view contract breach', 17, 'view_contractbreach');
+INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (69, 'Can add email campaign', 18, 'add_emailcampaign');
+INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (70, 'Can change email campaign', 18, 'change_emailcampaign');
+INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (71, 'Can delete email campaign', 18, 'delete_emailcampaign');
+INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (72, 'Can view email campaign', 18, 'view_emailcampaign');
+INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (73, 'Can add travel offer', 19, 'add_traveloffer');
+INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (74, 'Can change travel offer', 19, 'change_traveloffer');
+INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (75, 'Can delete travel offer', 19, 'delete_traveloffer');
+INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (76, 'Can view travel offer', 19, 'view_traveloffer');
+INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (77, 'Can add ai conversation', 20, 'add_aiconversation');
+INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (78, 'Can change ai conversation', 20, 'change_aiconversation');
+INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (79, 'Can delete ai conversation', 20, 'delete_aiconversation');
+INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (80, 'Can view ai conversation', 20, 'view_aiconversation');
+INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (81, 'Can add lead note', 21, 'add_leadnote');
+INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (82, 'Can change lead note', 21, 'change_leadnote');
+INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (83, 'Can delete lead note', 21, 'delete_leadnote');
+INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (84, 'Can view lead note', 21, 'view_leadnote');
+INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (85, 'Can add lead history', 22, 'add_leadhistory');
+INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (86, 'Can change lead history', 22, 'change_leadhistory');
+INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (87, 'Can delete lead history', 22, 'delete_leadhistory');
+INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (88, 'Can view lead history', 22, 'view_leadhistory');
+INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (89, 'Can add opportunity activity', 23, 'add_opportunityactivity');
+INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (90, 'Can change opportunity activity', 23, 'change_opportunityactivity');
+INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (91, 'Can delete opportunity activity', 23, 'delete_opportunityactivity');
+INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (92, 'Can view opportunity activity', 23, 'view_opportunityactivity');
+
+
+--
+-- Data for Name: auth_group_permissions; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+
+
+--
+-- Data for Name: auth_user_groups; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+
+
+--
+-- Data for Name: auth_user_user_permissions; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+
+
+--
+-- Data for Name: django_admin_log; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+
+
+--
+-- Data for Name: django_migrations; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+INSERT INTO public.django_migrations (id, app, name, applied) VALUES (1, 'contenttypes', '0001_initial', '2025-08-06 06:34:15.826473+00');
+INSERT INTO public.django_migrations (id, app, name, applied) VALUES (2, 'auth', '0001_initial', '2025-08-06 06:34:24.906851+00');
+INSERT INTO public.django_migrations (id, app, name, applied) VALUES (3, 'admin', '0001_initial', '2025-08-06 06:34:27.531794+00');
+INSERT INTO public.django_migrations (id, app, name, applied) VALUES (4, 'admin', '0002_logentry_remove_auto_add', '2025-08-06 06:34:28.407274+00');
+INSERT INTO public.django_migrations (id, app, name, applied) VALUES (5, 'admin', '0003_logentry_add_action_flag_choices', '2025-08-06 06:34:29.573369+00');
+INSERT INTO public.django_migrations (id, app, name, applied) VALUES (6, 'contenttypes', '0002_remove_content_type_name', '2025-08-06 06:34:31.334302+00');
+INSERT INTO public.django_migrations (id, app, name, applied) VALUES (7, 'auth', '0002_alter_permission_name_max_length', '2025-08-06 06:34:32.790095+00');
+INSERT INTO public.django_migrations (id, app, name, applied) VALUES (8, 'auth', '0003_alter_user_email_max_length', '2025-08-06 06:34:34.245176+00');
+INSERT INTO public.django_migrations (id, app, name, applied) VALUES (9, 'auth', '0004_alter_user_username_opts', '2025-08-06 06:34:35.413894+00');
+INSERT INTO public.django_migrations (id, app, name, applied) VALUES (10, 'auth', '0005_alter_user_last_login_null', '2025-08-06 06:34:36.887317+00');
+INSERT INTO public.django_migrations (id, app, name, applied) VALUES (11, 'auth', '0006_require_contenttypes_0002', '2025-08-06 06:34:38.047416+00');
+INSERT INTO public.django_migrations (id, app, name, applied) VALUES (12, 'auth', '0007_alter_validators_add_error_messages', '2025-08-06 06:34:39.212501+00');
+INSERT INTO public.django_migrations (id, app, name, applied) VALUES (13, 'auth', '0008_alter_user_username_max_length', '2025-08-06 06:34:40.673662+00');
+INSERT INTO public.django_migrations (id, app, name, applied) VALUES (14, 'auth', '0009_alter_user_last_name_max_length', '2025-08-06 06:34:42.127861+00');
+INSERT INTO public.django_migrations (id, app, name, applied) VALUES (15, 'auth', '0010_alter_group_name_max_length', '2025-08-06 06:34:43.584119+00');
+INSERT INTO public.django_migrations (id, app, name, applied) VALUES (16, 'auth', '0011_update_proxy_permissions', '2025-08-06 06:34:44.759385+00');
+INSERT INTO public.django_migrations (id, app, name, applied) VALUES (17, 'auth', '0012_alter_user_first_name_max_length', '2025-08-06 06:34:46.217555+00');
+INSERT INTO public.django_migrations (id, app, name, applied) VALUES (18, 'sessions', '0001_initial', '2025-08-06 06:34:48.544057+00');
+INSERT INTO public.django_migrations (id, app, name, applied) VALUES (23, 'api', '0005_leadnote', '2025-08-11 07:07:09.223273+00');
+INSERT INTO public.django_migrations (id, app, name, applied) VALUES (25, 'api', '0001_initial', '2025-08-12 07:53:21.860806+00');
+INSERT INTO public.django_migrations (id, app, name, applied) VALUES (26, 'api', '0002_alter_company_size', '2025-08-12 07:53:22.594822+00');
+INSERT INTO public.django_migrations (id, app, name, applied) VALUES (27, 'api', '0003_alter_company_size', '2025-08-12 07:53:23.551321+00');
+INSERT INTO public.django_migrations (id, app, name, applied) VALUES (28, 'api', '0004_company_annual_travel_volume_company_company_type_and_more', '2025-08-12 12:59:56.473758+00');
+INSERT INTO public.django_migrations (id, app, name, applied) VALUES (29, 'api', '0005_create_leadnote_table', '2025-08-13 06:48:14.11942+00');
+INSERT INTO public.django_migrations (id, app, name, applied) VALUES (30, 'api', '0006_create_leadhistory_table', '2025-08-13 06:48:16.478013+00');
+INSERT INTO public.django_migrations (id, app, name, applied) VALUES (31, 'api', '0007_create_leadnote_table', '2025-08-13 06:48:17.256557+00');
+INSERT INTO public.django_migrations (id, app, name, applied) VALUES (32, 'api', '0008_create_leadhistory_table', '2025-08-13 06:48:18.294365+00');
+INSERT INTO public.django_migrations (id, app, name, applied) VALUES (33, 'api', '0009_lead_assigned_agent', '2025-08-18 13:08:48.20642+00');
+INSERT INTO public.django_migrations (id, app, name, applied) VALUES (34, 'api', '0010_opportunityactivity', '2025-08-21 09:18:45.353565+00');
+
+
+--
+-- Data for Name: django_session; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+
+
+--
+-- Name: api_activitylog_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.api_activitylog_id_seq', 1, false);
+
+
+--
+-- Name: api_aiconversation_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.api_aiconversation_id_seq', 1, false);
+
+
+--
+-- Name: api_company_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.api_company_id_seq', 23, true);
+
+
+--
+-- Name: api_contact_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.api_contact_id_seq', 21, true);
+
+
+--
+-- Name: api_contract_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.api_contract_id_seq', 7, true);
+
+
+--
+-- Name: api_contractbreach_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.api_contractbreach_id_seq', 1, false);
+
+
+--
+-- Name: api_emailcampaign_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.api_emailcampaign_id_seq', 1, false);
+
+
+--
+-- Name: api_emailcampaign_target_leads_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.api_emailcampaign_target_leads_id_seq', 1, false);
+
+
+--
+-- Name: api_lead_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.api_lead_id_seq', 73, true);
+
+
+--
+-- Name: api_leadhistory_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.api_leadhistory_id_seq', 506, true);
+
+
+--
+-- Name: api_leadnote_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.api_leadnote_id_seq', 5, true);
+
+
+--
+-- Name: api_opportunity_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.api_opportunity_id_seq', 38, true);
+
+
+--
+-- Name: api_opportunityactivity_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.api_opportunityactivity_id_seq', 7, true);
+
+
+--
+-- Name: api_revenueforecast_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.api_revenueforecast_id_seq', 1, false);
+
+
+--
+-- Name: api_supportticket_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.api_supportticket_id_seq', 1, false);
+
+
+--
+-- Name: api_traveloffer_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.api_traveloffer_id_seq', 1, false);
+
+
+--
+-- Name: api_traveloffer_target_companies_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.api_traveloffer_target_companies_id_seq', 1, false);
+
+
+--
+-- Name: auth_group_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.auth_group_id_seq', 1, false);
+
+
+--
+-- Name: auth_group_permissions_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.auth_group_permissions_id_seq', 1, false);
+
+
+--
+-- Name: auth_permission_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.auth_permission_id_seq', 92, true);
+
+
+--
+-- Name: auth_user_groups_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.auth_user_groups_id_seq', 1, false);
+
+
+--
+-- Name: auth_user_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.auth_user_id_seq', 8, true);
+
+
+--
+-- Name: auth_user_user_permissions_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.auth_user_user_permissions_id_seq', 1, false);
+
+
+--
+-- Name: django_admin_log_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.django_admin_log_id_seq', 1, false);
+
+
+--
+-- Name: django_content_type_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.django_content_type_id_seq', 23, true);
+
+
+--
+-- Name: django_migrations_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.django_migrations_id_seq', 34, true);
+
+
+--
+-- PostgreSQL database dump complete
+--
+
