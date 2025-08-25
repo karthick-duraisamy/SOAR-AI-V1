@@ -1935,6 +1935,154 @@ class DashboardAPIView(viewsets.ViewSet):
         return Response(overview_data)
 
 # Add the new endpoints
+# Helper functions for bulk upload
+def _map_industry(industry):
+    """Map industry values to model choices"""
+    industry_mapping = {
+        'technology': 'technology',
+        'tech': 'technology',
+        'finance': 'finance',
+        'finance & banking': 'finance',
+        'banking': 'finance',
+        'healthcare': 'healthcare',
+        'health': 'healthcare',
+        'manufacturing': 'manufacturing',
+        'retail': 'retail',
+        'consulting': 'consulting',
+        'telecommunications': 'telecommunications',
+        'telecom': 'telecommunications',
+        'energy': 'energy',
+        'energy & utilities': 'energy',
+        'utilities': 'energy',
+        'transportation': 'transportation',
+        'education': 'education',
+        'government': 'government',
+        'other': 'other'
+    }
+    return industry_mapping.get(industry.lower(), 'other')
+
+def _map_company_size(size):
+    """Map company size values to model choices"""
+    size_mapping = {
+        'startup': 'startup',
+        'startup (1-50)': 'startup',
+        'small': 'small',
+        'small (51-200)': 'small',
+        'medium': 'medium',
+        'medium (201-1000)': 'medium',
+        'large': 'large',
+        'large (1001-5000)': 'large',
+        'enterprise': 'enterprise',
+        'enterprise (5000+)': 'enterprise'
+    }
+    return size_mapping.get(size.lower(), 'medium')
+
+def _map_company_type(company_type):
+    """Map company type values to model choices"""
+    type_mapping = {
+        'corporation': 'corporation',
+        'llc': 'llc',
+        'partnership': 'partnership',
+        'nonprofit': 'nonprofit',
+        'non-profit': 'nonprofit'
+    }
+    return type_mapping.get(company_type.lower(), 'corporation')
+
+def _map_travel_frequency(frequency):
+    """Map travel frequency values to model choices"""
+    frequency_mapping = {
+        'daily': 'Daily',
+        'weekly': 'Weekly',
+        'monthly': 'Monthly',
+        'quarterly': 'Quarterly',
+        'bi-weekly': 'Bi-weekly'
+    }
+    return frequency_mapping.get(frequency.lower(), '')
+
+def _map_preferred_class(pref_class):
+    """Map preferred class values to model choices"""
+    class_mapping = {
+        'economy': 'Economy',
+        'economy plus': 'Economy Plus',
+        'business': 'Business',
+        'first': 'First',
+        'first class': 'First',
+        'business/first': 'Business/First'
+    }
+    return class_mapping.get(pref_class.lower(), '')
+
+def _map_credit_rating(rating):
+    """Map credit rating values to model choices"""
+    rating_mapping = {
+        'aaa': 'AAA',
+        'aa': 'AA',
+        'a': 'A',
+        'bbb': 'BBB',
+        'bb': 'BB'
+    }
+    return rating_mapping.get(rating.lower(), '')
+
+def _map_payment_terms(terms):
+    """Map payment terms values to model choices"""
+    terms_mapping = {
+        'net 15': 'Net 15',
+        'net 30': 'Net 30',
+        'net 45': 'Net 45',
+        'net 60': 'Net 60'
+    }
+    return terms_mapping.get(terms.lower(), '')
+
+def _map_sustainability(sustainability):
+    """Map sustainability values to model choices"""
+    sustainability_mapping = {
+        'very high': 'Very High',
+        'high': 'High',
+        'medium': 'Medium',
+        'low': 'Low'
+    }
+    return sustainability_mapping.get(sustainability.lower(), '')
+
+def _map_risk_level(risk):
+    """Map risk level values to model choices"""
+    risk_mapping = {
+        'very low': 'Very Low',
+        'low': 'Low',
+        'medium': 'Medium',
+        'high': 'High'
+    }
+    return risk_mapping.get(risk.lower(), '')
+
+def _map_expansion_plans(plans):
+    """Map expansion plans values to model choices"""
+    plans_mapping = {
+        'aggressive': 'Aggressive',
+        'moderate': 'Moderate',
+        'conservative': 'Conservative',
+        'rapid': 'Rapid',
+        'stable': 'Stable'
+    }
+    return plans_mapping.get(plans.lower(), '')
+
+def _safe_int(value):
+    """Safely convert value to integer"""
+    import pandas as pd
+    if pd.isna(value) or value == '':
+        return None
+    try:
+        return int(float(value))
+    except (ValueError, TypeError):
+        return None
+
+def _safe_decimal(value, multiplier=1):
+    """Safely convert value to decimal with optional multiplier"""
+    import pandas as pd
+    if pd.isna(value) or value == '':
+        return None
+    try:
+        return float(value) * multiplier
+    except (ValueError, TypeError):
+        return None
+
 @api_view(['POST'])
 def bulk_upload_companies(request):
     """Upload companies from Excel/CSV file"""
@@ -1980,13 +2128,20 @@ def bulk_upload_companies(request):
 
         # Validate required columns
         required_columns = [
-            'Company Name', 'Industry', 'Company Size Category', 'Location', 'Email'
+            'name', 'industry', 'size', 'location', 'email'
         ]
 
-        missing_columns = [col for col in required_columns if col not in df.columns]
+        # Check if the columns exist (case-insensitive)
+        df_columns = [col.lower() for col in df.columns]
+        missing_columns = []
+        
+        for required_col in required_columns:
+            if required_col not in df_columns:
+                missing_columns.append(required_col)
+        
         if missing_columns:
             return Response(
-                {'error': f'Missing required columns: {", ".join(missing_columns)}'},
+                {'error': f'Missing required columns: {", ".join(missing_columns)}. Found columns: {", ".join(df.columns)}'},
                 status=status.HTTP_400_BAD_REQUEST
             )
 
@@ -1997,44 +2152,48 @@ def bulk_upload_companies(request):
 
         for index, row in df.iterrows():
             try:
-                # Skip rows with empty required fields
-                if pd.isna(row['Company Name']) or not str(row['Company Name']).strip():
+                # Get company name (handle different column name formats)
+                company_name = None
+                for col in df.columns:
+                    if 'name' in col.lower():
+                        company_name = str(row[col]).strip() if not pd.isna(row[col]) else None
+                        break
+                
+                if not company_name or company_name == 'nan':
                     skipped_count += 1
                     continue
-
-                company_name = str(row['Company Name']).strip()
 
                 # Check if company already exists
                 if Company.objects.filter(name__iexact=company_name).exists():
                     skipped_count += 1
                     continue
 
-                # Map form fields to model fields
+                # Map form fields to model fields using helper functions
                 company_data = {
                     'name': company_name,
-                    'industry': self._map_industry(str(row.get('Industry', '')).strip()),
-                    'size': self._map_company_size(str(row.get('Company Size Category', '')).strip()),
-                    'location': str(row.get('Location', '')).strip(),
-                    'email': str(row.get('Email', '')).strip(),
-                    'phone': str(row.get('Phone', '')).strip(),
-                    'website': str(row.get('Website', '')).strip(),
-                    'company_type': self._map_company_type(str(row.get('Company Type', '')).strip()),
-                    'year_established': self._safe_int(row.get('Year Established')),
-                    'employee_count': self._safe_int(row.get('Number of Employees')),
-                    'annual_revenue': self._safe_decimal(row.get('Annual Revenue (Millions)'), multiplier=1000000),
-                    'travel_budget': self._safe_decimal(row.get('Annual Travel Budget (Millions)'), multiplier=1000000),
-                    'annual_travel_volume': str(row.get('Annual Travel Volume', '')).strip(),
-                    'travel_frequency': self._map_travel_frequency(str(row.get('Travel Frequency', '')).strip()),
-                    'preferred_class': self._map_preferred_class(str(row.get('Preferred Class', '')).strip()),
-                    'credit_rating': self._map_credit_rating(str(row.get('Credit Rating', '')).strip()),
-                    'payment_terms': self._map_payment_terms(str(row.get('Payment Terms', '')).strip()),
-                    'sustainability_focus': self._map_sustainability(str(row.get('Sustainability Focus', '')).strip()),
-                    'risk_level': self._map_risk_level(str(row.get('Risk Level', '')).strip()),
-                    'expansion_plans': self._map_expansion_plans(str(row.get('Expansion Plans', '')).strip()),
-                    'specialties': str(row.get('Specialties (comma-separated)', '')).strip(),
-                    'technology_integration': str(row.get('Technology Integration (comma-separated)', '')).strip(),
-                    'current_airlines': str(row.get('Current Airlines (comma-separated)', '')).strip(),
-                    'description': str(row.get('Notes', '')).strip(),
+                    'industry': _map_industry(str(row.get('industry', '')).strip()),
+                    'size': _map_company_size(str(row.get('size', '')).strip()),
+                    'location': str(row.get('location', '')).strip(),
+                    'email': str(row.get('email', '')).strip(),
+                    'phone': str(row.get('phone', '')).strip(),
+                    'website': str(row.get('website', '')).strip(),
+                    'company_type': _map_company_type(str(row.get('company_type', '')).strip()),
+                    'year_established': _safe_int(row.get('year_established')),
+                    'employee_count': _safe_int(row.get('employee_count')),
+                    'annual_revenue': _safe_decimal(row.get('annual_revenue')),
+                    'travel_budget': _safe_decimal(row.get('travel_budget')),
+                    'annual_travel_volume': str(row.get('annual_travel_volume', '')).strip(),
+                    'travel_frequency': _map_travel_frequency(str(row.get('travel_frequency', '')).strip()),
+                    'preferred_class': _map_preferred_class(str(row.get('preferred_class', '')).strip()),
+                    'credit_rating': _map_credit_rating(str(row.get('credit_rating', '')).strip()),
+                    'payment_terms': _map_payment_terms(str(row.get('payment_terms', '')).strip()),
+                    'sustainability_focus': _map_sustainability(str(row.get('sustainability_focus', '')).strip()),
+                    'risk_level': _map_risk_level(str(row.get('risk_level', '')).strip()),
+                    'expansion_plans': _map_expansion_plans(str(row.get('expansion_plans', '')).strip()),
+                    'specialties': str(row.get('specialties', '')).strip(),
+                    'technology_integration': str(row.get('technology_integration', '')).strip(),
+                    'current_airlines': str(row.get('current_airlines', '')).strip(),
+                    'description': str(row.get('description', '')).strip(),
                     'is_active': True
                 }
 
