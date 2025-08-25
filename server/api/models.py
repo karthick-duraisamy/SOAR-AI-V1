@@ -117,6 +117,7 @@ class Company(models.Model):
     description = models.TextField(blank=True)  # This will be used for additional notes
 
     is_active = models.BooleanField(default=True)
+    move_as_lead = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

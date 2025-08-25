@@ -85,6 +85,7 @@ const transformCompanyData = (company) => {
   return {
     id: company.id,
     name: company.name,
+    move_as_lead: company.move_as_lead || false,
     type: getCompanyTypeDisplay(company.company_type || company.size),
     industry: getIndustryDisplay(company.industry),
     location: company.location,
@@ -392,14 +393,11 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
   // Function to check if companies exist as leads
   const checkCompaniesLeadStatus = useCallback(async (companies) => {
     try {
-      const companyNames = companies.map(company => company.name);
-      const leadStatus = await companyApi.checkLeadsStatus(companyNames);
-      
-      // Update state with companies that already exist as leads
+      // Check move_as_lead flag directly from company data
       const existingLeads = new Set();
-      Object.entries(leadStatus).forEach(([companyName, isLead]) => {
-        if (isLead) {
-          existingLeads.add(companyName);
+      companies.forEach(company => {
+        if (company.move_as_lead) {
+          existingLeads.add(company.name);
         }
       });
       
@@ -408,7 +406,7 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
       console.error('Error checking lead status:', error);
       // Don't show error to user as this is not critical functionality
     }
-  }, [companyApi]);
+  }, []);
 
   // Load companies on component mount - use a separate effect with direct API call
   useEffect(() => {
@@ -644,6 +642,13 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
 
       // Call the API to create the lead
       const createdLead = await companyApi.createLead(leadData);
+
+      // Mark the company as moved to lead via API
+      try {
+        await companyApi.markCompanyAsMovedToLead(corporate.id);
+      } catch (error) {
+        console.warn('Failed to mark company flag, but lead was created successfully:', error);
+      }
 
       // Add to moved leads tracking
       setMovedAsLeadIds(prev => new Set([...prev, corporate.id]));
@@ -1202,7 +1207,7 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
                       View Full Profile
                     </Button>
 
-                    {movedAsLeadIds.has(corporate.id) || existingLeadCompanies.has(corporate.name) ? (
+                    {corporate.move_as_lead || movedAsLeadIds.has(corporate.id) || existingLeadCompanies.has(corporate.name) ? (
                       <span className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-green-800 bg-green-100 border border-green-200 rounded-md">
                         <CheckCircle2 className="h-4 w-4 mr-2 text-green-600" />
                         Already moved to Lead

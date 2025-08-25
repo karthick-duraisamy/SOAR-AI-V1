@@ -240,6 +240,35 @@ export const useCompanyApi = () => {
     }
   }, [setLoading, setError]);
 
+  // Mark company as moved to lead
+  const markCompanyAsMovedToLead = useCallback(async (companyId: number) => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const response: AxiosResponse<any> = await axios.post(
+        `${API_BASE_URL}/companies/${companyId}/mark_as_moved_to_lead/`,
+        {},
+        {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+
+      return response.data;
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.error || 
+                          error.response?.data?.detail || 
+                          error.message || 
+                          'Failed to mark company as moved to lead';
+      setError(errorMessage);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  }, [setLoading, setError]);
+
   return {
     ...state,
     searchCompanies,
@@ -250,5 +279,6 @@ export const useCompanyApi = () => {
     deleteCompany,
     createLead,
     checkLeadsStatus,
+    markCompanyAsMovedToLead,
   };
 };

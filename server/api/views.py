@@ -193,6 +193,24 @@ class CompanyViewSet(viewsets.ModelViewSet):
         
         return Response(lead_status)
 
+    @action(detail=True, methods=['post'])
+    def mark_as_moved_to_lead(self, request, pk=None):
+        """Mark a company as moved to lead"""
+        try:
+            company = self.get_object()
+            company.move_as_lead = True
+            company.save()
+            
+            return Response({
+                'message': f'{company.name} has been marked as moved to lead',
+                'move_as_lead': True
+            })
+        except Exception as e:
+            return Response(
+                {'error': f'Failed to mark company as moved to lead: {str(e)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
 class ContactViewSet(viewsets.ModelViewSet):
     queryset = Contact.objects.all()
     serializer_class = ContactSerializer
@@ -252,6 +270,10 @@ class LeadViewSet(viewsets.ModelViewSet):
                 next_action=data.get('next_action', ''),
                 next_action_date=data.get('next_action_date')
             )
+
+            # Mark company as moved to lead
+            company.move_as_lead = True
+            company.save()
 
             # Create initial history entry
             create_lead_history(
