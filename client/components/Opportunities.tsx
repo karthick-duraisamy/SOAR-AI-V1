@@ -775,7 +775,7 @@ export function Opportunities({
     corporateContact: "",
     airlineAccountManager: "",
     expectedCloseDate: "",
-    
+
     // Volume Commitment
     annualBookingVolume: "",
     projectedSpend: "",
@@ -784,7 +784,7 @@ export function Opportunities({
     domesticBusiness: 25,
     international: 15,
     travelFrequency: "monthly",
-    
+
     // Discount/Offer Terms
     baseDiscount: "",
     routeDiscounts: [
@@ -796,19 +796,19 @@ export function Opportunities({
       loungeAccess: false
     },
     volumeIncentives: "",
-    
+
     // Financial & Contract Terms
     contractDuration: "24",
     autoRenewal: true,
     paymentTerms: "net_30",
     settlementType: "bsp",
-    
+
     // Negotiation Strategy
     airlineConcessions: "",
     corporateCommitments: "",
     internalNotes: "",
     priorityLevel: "medium",
-    
+
     // Approvals Workflow
     discountApprovalRequired: false,
     revenueManagerAssigned: "",
@@ -1115,7 +1115,7 @@ export function Opportunities({
 
   const handleMoveToNegotiation = useCallback((opportunity: Opportunity) => {
     setSelectedOpportunity(opportunity);
-    
+
     // Pre-populate form with opportunity data
     setNegotiationForm({
       ...negotiationForm,
@@ -1125,7 +1125,7 @@ export function Opportunities({
       expectedCloseDate: opportunity.estimated_close_date,
       corporateCommitments: `Annual volume commitment based on ${opportunity.lead_info?.company?.employee_count || 'N/A'} employees. Projected spend: ${formatCurrency(opportunity.value)}.`
     });
-    
+
     setShowNegotiationDialog(true);
   }, [negotiationForm, formatCurrency]);
 
@@ -1145,7 +1145,7 @@ export function Opportunities({
     const message = status === "closed_won" 
       ? `${opportunity.lead_info?.company?.name} deal closed successfully! 🎉`
       : `${opportunity.lead_info?.company?.name} deal marked as closed lost`;
-    
+
     setSuccessMessage(message);
     setTimeout(() => setSuccessMessage(""), 5000);
   }, []);
@@ -1376,7 +1376,7 @@ export function Opportunities({
 
   const handleSaveNegotiationDraft = useCallback(() => {
     if (!selectedOpportunity) return;
-    
+
     console.log("Saving negotiation draft:", negotiationForm);
     toast.success("Negotiation draft saved successfully!");
   }, [selectedOpportunity, negotiationForm]);
@@ -1418,10 +1418,10 @@ export function Opportunities({
 
   const handleGenerateRevisedProposal = useCallback(() => {
     if (!selectedOpportunity) return;
-    
+
     console.log("Generating revised proposal with negotiation terms:", negotiationForm);
     toast.success("Revised proposal generated and sent!");
-    
+
     setShowNegotiationDialog(false);
   }, [selectedOpportunity, negotiationForm]);
 
@@ -2486,11 +2486,11 @@ export function Opportunities({
                 <div className="space-y-8">
                   {/* Deal Overview Section */}
                   <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
-                    <div className="flex items-center gap-2 mb-4">
+                    <div className="flex items-center gap-3 mb-6">
                       <Target className="h-5 w-5 text-blue-600" />
                       <h3 className="text-lg font-semibold text-blue-900">Deal Overview</h3>
                     </div>
-                    
+
                     <div className="grid grid-cols-2 gap-6">
                       <div className="flex justify-between">
                         <div>
@@ -2521,7 +2521,7 @@ export function Opportunities({
                       <FileText className="h-5 w-5 text-gray-600" />
                       <h3 className="text-lg font-semibold text-gray-900">Deal Context</h3>
                     </div>
-                    
+
                     <div className="grid grid-cols-2 gap-6">
                       <div>
                         <Label htmlFor="dealTitle" className="text-sm font-medium">Deal Title *</Label>
@@ -2580,7 +2580,7 @@ export function Opportunities({
                       <DollarSign className="h-5 w-5 text-green-600" />
                       <h3 className="text-lg font-semibold text-green-900">Financial Terms</h3>
                     </div>
-                    
+
                     <div className="grid grid-cols-2 gap-6">
                       <div className="flex justify-between">
                         <div>
@@ -2736,7 +2736,7 @@ export function Opportunities({
                       <FileText className="h-5 w-5 text-purple-600" />
                       <h3 className="text-lg font-semibold text-purple-900">Contract Terms</h3>
                     </div>
-                    
+
                     <div className="mb-4">
                       <p className="text-sm text-purple-700 mb-2">Current Terms</p>
                       <p className="text-sm text-purple-900 bg-white p-3 rounded border">
@@ -2951,7 +2951,7 @@ export function Opportunities({
                         />
                       </div>
 
-                      <div className="grid grid-cols-2 gap-4">
+                      <div className="grid grid-cols-2 gap-6">
                         <div>
                           <Label className="text-sm font-medium text-orange-700">Negotiation Urgency</Label>
                           <Select defaultValue="medium">
