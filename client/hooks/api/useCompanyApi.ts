@@ -269,6 +269,37 @@ export const useCompanyApi = () => {
     }
   }, [setLoading, setError]);
 
+  // Upload companies from Excel/CSV file
+  const uploadCompanies = useCallback(async (formData: FormData) => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const response: AxiosResponse<any> = await axios.post(
+        `${API_BASE_URL}/companies/upload/`,
+        formData,
+        {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        }
+      );
+
+      setData(response.data);
+      return response.data;
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.error || 
+                          error.response?.data?.message || 
+                          error.response?.data?.detail || 
+                          error.message || 
+                          'Failed to upload companies';
+      setError(errorMessage);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  }, [setLoading, setError, setData]);
+
   return {
     ...state,
     searchCompanies,
@@ -280,5 +311,6 @@ export const useCompanyApi = () => {
     createLead,
     checkLeadsStatus,
     markCompanyAsMovedToLead,
+    uploadCompanies,
   };
 };

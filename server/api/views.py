@@ -211,6 +211,285 @@ class CompanyViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
+    @action(detail=False, methods=['post'])
+    def upload(self, request):
+        """Upload companies from Excel/CSV file"""
+        import pandas as pd
+        import io
+        
+        try:
+            if 'file' not in request.FILES:
+                return Response(
+                    {'error': 'No file provided'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            
+            uploaded_file = request.FILES['file']
+            
+            # Validate file type
+            allowed_extensions = ['.xlsx', '.xls', '.csv']
+            file_extension = uploaded_file.name.lower().split('.')[-1]
+            if f'.{file_extension}' not in allowed_extensions:
+                return Response(
+                    {'error': 'Invalid file type. Please upload Excel (.xlsx, .xls) or CSV (.csv) files only.'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            
+            # Validate file size (10MB limit)
+            if uploaded_file.size > 10 * 1024 * 1024:
+                return Response(
+                    {'error': 'File size exceeds 10MB limit'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            
+            # Read the file
+            try:
+                if file_extension == 'csv':
+                    df = pd.read_csv(io.BytesIO(uploaded_file.read()))
+                else:
+                    df = pd.read_excel(io.BytesIO(uploaded_file.read()))
+            except Exception as e:
+                return Response(
+                    {'error': f'Failed to read file: {str(e)}'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            
+            # Validate required columns
+            required_columns = [
+                'Company Name', 'Industry', 'Company Size Category', 'Location', 'Email'
+            ]
+            
+            missing_columns = [col for col in required_columns if col not in df.columns]
+            if missing_columns:
+                return Response(
+                    {'error': f'Missing required columns: {", ".join(missing_columns)}'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            
+            # Process the data
+            created_count = 0
+            skipped_count = 0
+            errors = []
+            
+            for index, row in df.iterrows():
+                try:
+                    # Skip rows with empty required fields
+                    if pd.isna(row['Company Name']) or not str(row['Company Name']).strip():
+                        skipped_count += 1
+                        continue
+                    
+                    company_name = str(row['Company Name']).strip()
+                    
+                    # Check if company already exists
+                    if Company.objects.filter(name__iexact=company_name).exists():
+                        skipped_count += 1
+                        continue
+                    
+                    # Map form fields to model fields
+                    company_data = {
+                        'name': company_name,
+                        'industry': self._map_industry(str(row.get('Industry', '')).strip()),
+                        'size': self._map_company_size(str(row.get('Company Size Category', '')).strip()),
+                        'location': str(row.get('Location', '')).strip(),
+                        'email': str(row.get('Email', '')).strip(),
+                        'phone': str(row.get('Phone', '')).strip(),
+                        'website': str(row.get('Website', '')).strip(),
+                        'company_type': self._map_company_type(str(row.get('Company Type', '')).strip()),
+                        'year_established': self._safe_int(row.get('Year Established')),
+                        'employee_count': self._safe_int(row.get('Number of Employees')),
+                        'annual_revenue': self._safe_decimal(row.get('Annual Revenue (Millions)'), multiplier=1000000),
+                        'travel_budget': self._safe_decimal(row.get('Annual Travel Budget (Millions)'), multiplier=1000000),
+                        'annual_travel_volume': str(row.get('Annual Travel Volume', '')).strip(),
+                        'travel_frequency': self._map_travel_frequency(str(row.get('Travel Frequency', '')).strip()),
+                        'preferred_class': self._map_preferred_class(str(row.get('Preferred Class', '')).strip()),
+                        'credit_rating': self._map_credit_rating(str(row.get('Credit Rating', '')).strip()),
+                        'payment_terms': self._map_payment_terms(str(row.get('Payment Terms', '')).strip()),
+                        'sustainability_focus': self._map_sustainability(str(row.get('Sustainability Focus', '')).strip()),
+                        'risk_level': self._map_risk_level(str(row.get('Risk Level', '')).strip()),
+                        'expansion_plans': self._map_expansion_plans(str(row.get('Expansion Plans', '')).strip()),
+                        'specialties': str(row.get('Specialties (comma-separated)', '')).strip(),
+                        'technology_integration': str(row.get('Technology Integration (comma-separated)', '')).strip(),
+                        'current_airlines': str(row.get('Current Airlines (comma-separated)', '')).strip(),
+                        'description': str(row.get('Notes', '')).strip(),
+                        'is_active': True
+                    }
+                    
+                    # Remove empty strings and None values
+                    company_data = {k: v for k, v in company_data.items() if v not in ['', None, 'nan']}
+                    
+                    # Create the company
+                    Company.objects.create(**company_data)
+                    created_count += 1
+                    
+                except Exception as e:
+                    errors.append(f'Row {index + 2}: {str(e)}')
+                    continue
+            
+            response_data = {
+                'success': True,
+                'message': f'Upload completed successfully',
+                'created_count': created_count,
+                'skipped_count': skipped_count,
+                'total_rows': len(df)
+            }
+            
+            if errors:
+                response_data['errors'] = errors[:10]  # Limit to first 10 errors
+                response_data['total_errors'] = len(errors)
+            
+            return Response(response_data, status=status.HTTP_201_CREATED)
+            
+        except Exception as e:
+            return Response(
+                {'error': f'Upload failed: {str(e)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+    
+    def _map_industry(self, industry):
+        """Map industry values to model choices"""
+        industry_mapping = {
+            'technology': 'technology',
+            'tech': 'technology',
+            'finance': 'finance',
+            'finance & banking': 'finance',
+            'banking': 'finance',
+            'healthcare': 'healthcare',
+            'health': 'healthcare',
+            'manufacturing': 'manufacturing',
+            'retail': 'retail',
+            'consulting': 'consulting',
+            'telecommunications': 'telecommunications',
+            'telecom': 'telecommunications',
+            'energy': 'energy',
+            'energy & utilities': 'energy',
+            'utilities': 'energy',
+            'transportation': 'transportation',
+            'education': 'education',
+            'government': 'government',
+            'other': 'other'
+        }
+        return industry_mapping.get(industry.lower(), 'other')
+    
+    def _map_company_size(self, size):
+        """Map company size values to model choices"""
+        size_mapping = {
+            'startup': 'startup',
+            'startup (1-50)': 'startup',
+            'small': 'small',
+            'small (51-200)': 'small',
+            'medium': 'medium',
+            'medium (201-1000)': 'medium',
+            'large': 'large',
+            'large (1001-5000)': 'large',
+            'enterprise': 'enterprise',
+            'enterprise (5000+)': 'enterprise'
+        }
+        return size_mapping.get(size.lower(), 'medium')
+    
+    def _map_company_type(self, company_type):
+        """Map company type values to model choices"""
+        type_mapping = {
+            'corporation': 'corporation',
+            'llc': 'llc',
+            'partnership': 'partnership',
+            'nonprofit': 'nonprofit',
+            'non-profit': 'nonprofit'
+        }
+        return type_mapping.get(company_type.lower(), 'corporation')
+    
+    def _map_travel_frequency(self, frequency):
+        """Map travel frequency values to model choices"""
+        frequency_mapping = {
+            'daily': 'Daily',
+            'weekly': 'Weekly',
+            'monthly': 'Monthly',
+            'quarterly': 'Quarterly',
+            'bi-weekly': 'Bi-weekly'
+        }
+        return frequency_mapping.get(frequency.lower(), '')
+    
+    def _map_preferred_class(self, pref_class):
+        """Map preferred class values to model choices"""
+        class_mapping = {
+            'economy': 'Economy',
+            'economy plus': 'Economy Plus',
+            'business': 'Business',
+            'first': 'First',
+            'first class': 'First',
+            'business/first': 'Business/First'
+        }
+        return class_mapping.get(pref_class.lower(), '')
+    
+    def _map_credit_rating(self, rating):
+        """Map credit rating values to model choices"""
+        rating_mapping = {
+            'aaa': 'AAA',
+            'aa': 'AA',
+            'a': 'A',
+            'bbb': 'BBB',
+            'bb': 'BB'
+        }
+        return rating_mapping.get(rating.lower(), '')
+    
+    def _map_payment_terms(self, terms):
+        """Map payment terms values to model choices"""
+        terms_mapping = {
+            'net 15': 'Net 15',
+            'net 30': 'Net 30',
+            'net 45': 'Net 45',
+            'net 60': 'Net 60'
+        }
+        return terms_mapping.get(terms.lower(), '')
+    
+    def _map_sustainability(self, sustainability):
+        """Map sustainability values to model choices"""
+        sustainability_mapping = {
+            'very high': 'Very High',
+            'high': 'High',
+            'medium': 'Medium',
+            'low': 'Low'
+        }
+        return sustainability_mapping.get(sustainability.lower(), '')
+    
+    def _map_risk_level(self, risk):
+        """Map risk level values to model choices"""
+        risk_mapping = {
+            'very low': 'Very Low',
+            'low': 'Low',
+            'medium': 'Medium',
+            'high': 'High'
+        }
+        return risk_mapping.get(risk.lower(), '')
+    
+    def _map_expansion_plans(self, plans):
+        """Map expansion plans values to model choices"""
+        plans_mapping = {
+            'aggressive': 'Aggressive',
+            'moderate': 'Moderate',
+            'conservative': 'Conservative',
+            'rapid': 'Rapid',
+            'stable': 'Stable'
+        }
+        return plans_mapping.get(plans.lower(), '')
+    
+    def _safe_int(self, value):
+        """Safely convert value to integer"""
+        if pd.isna(value) or value == '':
+            return None
+        try:
+            return int(float(value))
+        except (ValueError, TypeError):
+            return None
+    
+    def _safe_decimal(self, value, multiplier=1):
+        """Safely convert value to decimal with optional multiplier"""
+        if pd.isna(value) or value == '':
+            return None
+        try:
+            return float(value) * multiplier
+        except (ValueError, TypeError):
+            return None
+
 class ContactViewSet(viewsets.ModelViewSet):
     queryset = Contact.objects.all()
     serializer_class = ContactSerializer

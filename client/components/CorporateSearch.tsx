@@ -93,6 +93,7 @@ import {
   ArrowUpDown,
   ArrowUp,
   ArrowDown,
+  Upload, // Import Upload icon
 } from "lucide-react";
 
 // Import useDebounce hook
@@ -435,6 +436,75 @@ export function CorporateSearch({
   const [selectedCorporateForMove, setSelectedCorporateForMove] =
     useState(null);
   const [isMovingAsLead, setIsMovingAsLead] = useState(false);
+
+  // Upload Company states
+  const [showUploadCompanyDialog, setShowUploadCompanyDialog] = useState(false);
+  const [uploadFile, setUploadFile] = useState(null);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadError, setUploadError] = useState('');
+  const [uploadSuccess, setUploadSuccess] = useState('');
+
+  // Function to handle file upload
+  const handleFileUpload = (event) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      setUploadFile(file);
+      setUploadError(''); // Clear previous errors
+      setUploadSuccess(''); // Clear previous success messages
+    }
+  };
+
+  // Function to download the sample Excel template
+  const downloadSampleTemplate = () => {
+    // In a real application, you would fetch this from a URL or generate it
+    // For now, let's assume it's a static file or a placeholder
+    const link = document.createElement('a');
+    link.href = '/path/to/your/sample-company-template.xlsx'; // Replace with actual path
+    link.setAttribute('download', 'sample-company-template.xlsx');
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+  };
+
+  // Function to handle the upload process
+  const handleUpload = async () => {
+    if (!uploadFile) {
+      setUploadError('Please select a file to upload.');
+      return;
+    }
+
+    setIsUploading(true);
+    setUploadProgress(0);
+    setUploadError('');
+    setUploadSuccess('');
+
+    try {
+      const formData = new FormData();
+      formData.append('companies', uploadFile); // 'companies' should match the expected field name on the backend
+
+      const response = await companyApi.uploadCompanies(formData, (progressEvent) => {
+        const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+        setUploadProgress(percentCompleted);
+      });
+
+      // Assuming the API returns success information
+      if (response.success) {
+        setUploadSuccess(`Upload successful! ${response.message || ''}`);
+        // Optionally, refresh the company list
+        loadCompanies({});
+      } else {
+        // Handle validation errors or other issues reported by the API
+        setUploadError(`Upload failed: ${response.errors?.join(', ') || response.message || 'Unknown error'}`);
+      }
+    } catch (error) {
+      console.error('Error uploading file:', error);
+      setUploadError(`Upload failed: ${error.message || 'Please check the file format and content.'}`);
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
 
   const loadCompanies = useCallback(async (filters = {}) => {
     setIsLoading(true);
@@ -957,13 +1027,16 @@ export function CorporateSearch({
             </p>
           </div>
         </div>
-        <Button
-          onClick={() => setShowAddCompanyDialog(true)}
-          className="cls-addcomapany"
-        >
-          <Plus className="h-4 w-4 mr-2" />
-          Add Company
-        </Button>
+        <div className="flex gap-3">
+          <Button onClick={() => setShowAddCompanyDialog(true)} className="cls-addcomapany">
+            <Plus className="h-4 w-4 mr-2" />
+            Add Company
+          </Button>
+          <Button onClick={() => setShowUploadCompanyDialog(true)} className="bg-green-500 hover:bg-green-600 text-white">
+            <Upload className="h-4 w-4 mr-2" />
+            Upload Company
+          </Button>
+        </div>
       </div>
 
       {/* Filters Section */}
@@ -2614,6 +2687,119 @@ export function CorporateSearch({
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Upload Company Dialog */}
+      <Dialog open={showUploadCompanyDialog} onOpenChange={setShowUploadCompanyDialog}>
+        <DialogContent className="max-w-xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Upload className="h-5 w-5 text-green-600" />
+              Upload Companies via Excel
+            </DialogTitle>
+            <DialogDescription>
+              Download a template, fill it with company data, and upload it here.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-4">
+            {/* Download Template Button */}
+            <Button
+              variant="outline"
+              onClick={downloadSampleTemplate}
+              className="w-full border-gray-300 text-gray-700 flex items-center justify-center"
+            >
+              <FileText className="h-4 w-4 mr-2" />
+              Download Sample Excel Template
+            </Button>
+
+            {/* File Upload Area */}
+            <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+              <Input
+                type="file"
+                accept=".xlsx, .xls"
+                onChange={handleFileUpload}
+                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+              />
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Drag and drop your Excel file here
+              </label>
+              <p className="text-xs text-gray-500 mb-4">
+                Supports .xlsx and .xls formats.
+              </p>
+              {uploadFile && (
+                <p className="text-sm text-gray-800 font-medium">
+                  Selected File: {uploadFile.name}
+                </p>
+              )}
+            </div>
+
+            {/* Upload Progress and Error/Success Messages */}
+            {isUploading && (
+              <div className="mt-4">
+                <Label className="text-sm font-medium text-gray-700 mb-2 block">
+                  Upload Progress
+                </Label>
+                <Progress value={uploadProgress} className="h-2" />
+                <p className="text-sm text-center mt-1">
+                  {uploadProgress}% uploaded
+                </p>
+              </div>
+            )}
+
+            {uploadError && (
+              <Alert className="bg-red-50 border-red-200 mt-4">
+                <AlertCircle className="h-4 w-4 text-red-500" />
+                <AlertDescription className="text-red-800">
+                  {uploadError}
+                </AlertDescription>
+              </Alert>
+            )}
+
+            {uploadSuccess && (
+              <Alert className="bg-green-50 border-green-200 mt-4">
+                <CheckCircle className="h-4 w-4 text-green-500" />
+                <AlertDescription className="text-green-800">
+                  {uploadSuccess}
+                </AlertDescription>
+              </Alert>
+            )}
+          </div>
+
+          <DialogFooter className="flex gap-2 pt-6 border-t border-gray-300">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowUploadCompanyDialog(false);
+                setUploadFile(null); // Clear selected file
+                setUploadProgress(0);
+                setUploadError('');
+                setUploadSuccess('');
+              }}
+              className="text-gray-600 border-gray-300"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleUpload}
+              disabled={!uploadFile || isUploading}
+              className="bg-green-500 hover:bg-green-600 text-white"
+            >
+              {isUploading ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                  Uploading...
+                </>
+              ) : (
+                <>
+                  <Save className="h-4 w-4 mr-2" />
+                  Save
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {/* Move as Lead Confirmation Dialog */}
       <Dialog
         open={showMoveAsLeadDialog}
