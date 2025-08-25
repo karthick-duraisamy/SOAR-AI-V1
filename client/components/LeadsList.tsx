@@ -594,10 +594,10 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
   const [isLoadingHistory, setIsLoadingHistory] = useState(false); // Loading state for history fetch
   const [filters, setFilters] = useState({
     status: initialFilters?.status || 'all',
-    industry: 'all',
-    score: 'all',
-    engagement: 'all',
-    search: ''
+    industry: initialFilters?.industry || 'all',
+    score: initialFilters?.score || 'all',
+    engagement: initialFilters?.engagement || 'all',
+    search: initialFilters?.search || ''
   });
 
   // Pagination state
@@ -732,6 +732,7 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
     fetchLeads();
   }, []); // Empty dependency array for initial mount
 
+  // Initialize filters from props on mount
   useEffect(() => {
     if (initialFilters) {
       setFilters(prev => ({
@@ -739,7 +740,7 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
         ...initialFilters
       }));
 
-      if (initialFilters.newLead) {
+      if (initialFilters.newLead && leads.length > 0) {
         // Logic to handle a new lead created from an external source (like a form submission)
         // This part assumes the lead data is already structured.
         const newLead = {
@@ -789,17 +790,20 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
         setTimeout(() => setSuccessMessage(''), 5000);
       }
     }
-  }, [initialFilters, leads]); // Dependency array includes initialFilters and leads for newLead logic
+  }, [initialFilters]); // Remove leads dependency to prevent infinite loops
 
-  // Refetch data when filters change (with debouncing)
+  // Refetch data when filters change (with debouncing) - but only after initial mount
   useEffect(() => {
-    const timeoutId = setTimeout(() => {
-      if (!loading) { // Don't refetch if already loading
-        fetchLeads();
-      }
-    }, 300); // 300ms debounce
+    // Skip the first render to avoid double API call on mount
+    if (leads.length > 0) {
+      const timeoutId = setTimeout(() => {
+        if (!loading) { // Don't refetch if already loading
+          fetchLeads();
+        }
+      }, 300); // 300ms debounce
 
-    return () => clearTimeout(timeoutId);
+      return () => clearTimeout(timeoutId);
+    }
   }, [filters.search, filters.status, filters.industry, filters.score, filters.engagement]);
 
   const getStatusBadgeStyle = (status: string) => {
