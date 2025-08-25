@@ -742,6 +742,8 @@ export function Opportunities({
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
   const [isSavingEdit, setIsSavingEdit] = useState(false);
   const [isSavingActivity, setIsSavingActivity] = useState(false);
+  const [showNegotiationDialog, setShowNegotiationDialog] = useState(false);
+  const [isSavingNegotiation, setIsSavingNegotiation] = useState(false);
 
   const [editForm, setEditForm] = useState({
     stage: "",
@@ -765,6 +767,52 @@ export function Opportunities({
     specialTerms: "",
     deliveryMethod: "email",
     attachedFile: null,
+  });
+
+  const [negotiationForm, setNegotiationForm] = useState({
+    // Header Section
+    dealTitle: "",
+    corporateContact: "",
+    airlineAccountManager: "",
+    expectedCloseDate: "",
+    
+    // Volume Commitment
+    annualBookingVolume: "",
+    projectedSpend: "",
+    preferredRoutes: "",
+    domesticEconomy: 60,
+    domesticBusiness: 25,
+    international: 15,
+    travelFrequency: "monthly",
+    
+    // Discount/Offer Terms
+    baseDiscount: "",
+    routeDiscounts: [
+      { route: "", discount: "", conditions: "" }
+    ],
+    loyaltyBenefits: {
+      extraMiles: false,
+      priorityBoarding: false,
+      loungeAccess: false
+    },
+    volumeIncentives: "",
+    
+    // Financial & Contract Terms
+    contractDuration: "24",
+    autoRenewal: true,
+    paymentTerms: "net_30",
+    settlementType: "bsp",
+    
+    // Negotiation Strategy
+    airlineConcessions: "",
+    corporateCommitments: "",
+    internalNotes: "",
+    priorityLevel: "medium",
+    
+    // Approvals Workflow
+    discountApprovalRequired: false,
+    revenueManagerAssigned: "",
+    legalApprovalRequired: false
   });
 
   const [isDragging, setIsDragging] = useState(false);
@@ -1066,22 +1114,20 @@ export function Opportunities({
   }, []);
 
   const handleMoveToNegotiation = useCallback((opportunity: Opportunity) => {
-    const updatedOpportunity = {
-      ...opportunity,
-      stage: "negotiation",
-      probability: 80,
-      updated_at: new Date().toISOString(),
-    };
-
-    setOpportunities((prev) =>
-      prev.map((opp) => (opp.id === opportunity.id ? updatedOpportunity : opp)),
-    );
-
-    setSuccessMessage(
-      `${opportunity.lead_info?.company?.name} opportunity moved to Negotiation stage`,
-    );
-    setTimeout(() => setSuccessMessage(""), 5000);
-  }, []);
+    setSelectedOpportunity(opportunity);
+    
+    // Pre-populate form with opportunity data
+    setNegotiationForm({
+      ...negotiationForm,
+      dealTitle: `${opportunity.lead_info?.company?.name} Corporate Travel Agreement`,
+      corporateContact: `${opportunity.lead_info?.contact?.first_name} ${opportunity.lead_info?.contact?.last_name}`,
+      airlineAccountManager: "Current User", // In real app, get from auth
+      expectedCloseDate: opportunity.estimated_close_date,
+      corporateCommitments: `Annual volume commitment based on ${opportunity.lead_info?.company?.employee_count || 'N/A'} employees. Projected spend: ${formatCurrency(opportunity.value)}.`
+    });
+    
+    setShowNegotiationDialog(true);
+  }, [negotiationForm, formatCurrency]);
 
   const handleCloseDeal = useCallback((opportunity: Opportunity, status: string) => {
     const updatedOpportunity = {
@@ -1327,6 +1373,84 @@ export function Opportunities({
     );
     setTimeout(() => setSuccessMessage(""), 5000);
   }, [selectedOpportunity, proposalForm.attachedFile]);
+
+  const handleSaveNegotiationDraft = useCallback(() => {
+    if (!selectedOpportunity) return;
+    
+    console.log("Saving negotiation draft:", negotiationForm);
+    toast.success("Negotiation draft saved successfully!");
+  }, [selectedOpportunity, negotiationForm]);
+
+  const handleStartNegotiation = useCallback(() => {
+    if (!selectedOpportunity) return;
+
+    // Validate required fields
+    if (!negotiationForm.dealTitle || !negotiationForm.expectedCloseDate) {
+      toast.error("Please fill in all required fields");
+      return;
+    }
+
+    setIsSavingNegotiation(true);
+
+    // Move opportunity to negotiation stage
+    const updatedOpportunity = {
+      ...selectedOpportunity,
+      stage: "negotiation",
+      probability: 80,
+      updated_at: new Date().toISOString(),
+    };
+
+    setOpportunities((prev) =>
+      prev.map((opp) => 
+        opp.id === selectedOpportunity.id ? updatedOpportunity : opp
+      ),
+    );
+
+    setTimeout(() => {
+      setIsSavingNegotiation(false);
+      setShowNegotiationDialog(false);
+      setSuccessMessage(
+        `Negotiation started with ${selectedOpportunity.lead_info?.company?.name}`,
+      );
+      setTimeout(() => setSuccessMessage(""), 5000);
+    }, 1000);
+  }, [selectedOpportunity, negotiationForm]);
+
+  const handleGenerateRevisedProposal = useCallback(() => {
+    if (!selectedOpportunity) return;
+    
+    console.log("Generating revised proposal with negotiation terms:", negotiationForm);
+    toast.success("Revised proposal generated and sent!");
+    
+    setShowNegotiationDialog(false);
+  }, [selectedOpportunity, negotiationForm]);
+
+  const addRouteDiscount = useCallback(() => {
+    setNegotiationForm({
+      ...negotiationForm,
+      routeDiscounts: [
+        ...negotiationForm.routeDiscounts,
+        { route: "", discount: "", conditions: "" }
+      ]
+    });
+  }, [negotiationForm]);
+
+  const removeRouteDiscount = useCallback((index: number) => {
+    const newRouteDiscounts = negotiationForm.routeDiscounts.filter((_, i) => i !== index);
+    setNegotiationForm({
+      ...negotiationForm,
+      routeDiscounts: newRouteDiscounts
+    });
+  }, [negotiationForm]);
+
+  const updateRouteDiscount = useCallback((index: number, field: string, value: string) => {
+    const newRouteDiscounts = [...negotiationForm.routeDiscounts];
+    newRouteDiscounts[index] = { ...newRouteDiscounts[index], [field]: value };
+    setNegotiationForm({
+      ...negotiationForm,
+      routeDiscounts: newRouteDiscounts
+    });
+  }, [negotiationForm]);
 
   // Drag and Drop Handler
   const handleDrop = useCallback(
@@ -2337,6 +2461,709 @@ export function Opportunities({
             <DialogFooter>
               <Button onClick={() => setShowHistoryDialog(false)}>Close</Button>
             </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Negotiation Dialog */}
+        <Dialog open={showNegotiationDialog} onOpenChange={setShowNegotiationDialog}>
+          <DialogContent className="max-w-5xl max-h-[95vh] p-0">
+            <div className="flex flex-col h-full">
+              {/* Header */}
+              <div className="bg-gradient-to-r from-purple-600 to-blue-600 text-white p-6 rounded-t-lg">
+                <DialogHeader>
+                  <DialogTitle className="flex items-center gap-3 text-xl">
+                    <Handshake className="h-6 w-6" />
+                    Contract Negotiation - {selectedOpportunity?.lead_info?.company?.name}
+                  </DialogTitle>
+                  <DialogDescription className="text-purple-100 mt-2">
+                    Negotiate contract terms, adjust pricing, and prepare revised proposal for {selectedOpportunity?.lead_info?.contact?.first_name} {selectedOpportunity?.lead_info?.contact?.last_name}
+                  </DialogDescription>
+                </DialogHeader>
+              </div>
+
+              {/* Scrollable Content */}
+              <ScrollArea className="flex-1 px-6 py-4">
+                <div className="space-y-8">
+                  {/* Deal Overview Section */}
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
+                    <div className="flex items-center gap-2 mb-4">
+                      <Target className="h-5 w-5 text-blue-600" />
+                      <h3 className="text-lg font-semibold text-blue-900">Deal Overview</h3>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-6">
+                      <div className="flex justify-between">
+                        <div>
+                          <p className="text-sm text-blue-700">Current Probability</p>
+                          <p className="text-lg font-bold text-blue-900">{selectedOpportunity?.probability}%</p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-blue-700">Expected Close</p>
+                          <p className="text-lg font-bold text-blue-900">{selectedOpportunity?.estimated_close_date}</p>
+                        </div>
+                      </div>
+                      <div className="flex justify-between">
+                        <div>
+                          <p className="text-sm text-blue-700">Decision Maker</p>
+                          <p className="text-lg font-bold text-blue-900">Yes</p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-blue-700">Industry</p>
+                          <p className="text-lg font-bold text-blue-900">{selectedOpportunity?.lead_info?.company?.industry}</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Header Section */}
+                  <div className="space-y-6">
+                    <div className="flex items-center gap-2 mb-4">
+                      <FileText className="h-5 w-5 text-gray-600" />
+                      <h3 className="text-lg font-semibold text-gray-900">Deal Context</h3>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-6">
+                      <div>
+                        <Label htmlFor="dealTitle" className="text-sm font-medium">Deal Title *</Label>
+                        <Input
+                          id="dealTitle"
+                          value={negotiationForm.dealTitle}
+                          onChange={(e) => setNegotiationForm({...negotiationForm, dealTitle: e.target.value})}
+                          placeholder="Enter deal title..."
+                          className="mt-1"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="corporateContact" className="text-sm font-medium">Corporate Contact</Label>
+                        <Input
+                          id="corporateContact"
+                          value={negotiationForm.corporateContact}
+                          onChange={(e) => setNegotiationForm({...negotiationForm, corporateContact: e.target.value})}
+                          placeholder="Primary contact name..."
+                          className="mt-1"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="accountManager" className="text-sm font-medium">Airline Account Manager</Label>
+                        <Input
+                          id="accountManager"
+                          value={negotiationForm.airlineAccountManager}
+                          onChange={(e) => setNegotiationForm({...negotiationForm, airlineAccountManager: e.target.value})}
+                          placeholder="Account manager name..."
+                          className="mt-1"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="expectedClose" className="text-sm font-medium">Expected Close Date</Label>
+                        <Input
+                          id="expectedClose"
+                          type="date"
+                          value={negotiationForm.expectedCloseDate}
+                          onChange={(e) => setNegotiationForm({...negotiationForm, expectedCloseDate: e.target.value})}
+                          className="mt-1"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="bg-gray-50 p-4 rounded-lg">
+                      <p className="text-sm font-medium text-gray-700 mb-1">Deal Stage</p>
+                      <div className="flex items-center gap-2">
+                        <Badge className="bg-purple-100 text-purple-800">Negotiation</Badge>
+                        <span className="text-sm text-gray-500">Active negotiation phase</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Financial Terms Section */}
+                  <div className="bg-green-50 border border-green-200 rounded-lg p-6">
+                    <div className="flex items-center gap-2 mb-4">
+                      <DollarSign className="h-5 w-5 text-green-600" />
+                      <h3 className="text-lg font-semibold text-green-900">Financial Terms</h3>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-6">
+                      <div className="flex justify-between">
+                        <div>
+                          <p className="text-sm text-green-700">Current Deal Value</p>
+                          <p className="text-lg font-bold text-green-900">{formatCurrency(selectedOpportunity?.value)}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-green-700">Proposed Deal Value *</p>
+                          <Input
+                            type="number"
+                            value={negotiationForm.projectedSpend}
+                            onChange={(e) => setNegotiationForm({...negotiationForm, projectedSpend: e.target.value})}
+                            placeholder="450000"
+                            className="mt-1 w-32"
+                          />
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <Label className="text-sm font-medium text-green-700">Payment Terms</Label>
+                          <Select
+                            value={negotiationForm.paymentTerms}
+                            onValueChange={(value) => setNegotiationForm({...negotiationForm, paymentTerms: value})}
+                          >
+                            <SelectTrigger className="mt-1">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="net_30">Net 30</SelectItem>
+                              <SelectItem value="net_45">Net 45</SelectItem>
+                              <SelectItem value="custom">Custom</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div>
+                          <Label className="text-sm font-medium text-green-700">Implementation Timeline</Label>
+                          <Select
+                            value={negotiationForm.contractDuration}
+                            onValueChange={(value) => setNegotiationForm({...negotiationForm, contractDuration: value})}
+                          >
+                            <SelectTrigger className="mt-1">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="12">30 days</SelectItem>
+                              <SelectItem value="24">60 days</SelectItem>
+                              <SelectItem value="36">90 days</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Volume Commitment Section */}
+                  <div className="space-y-6">
+                    <div className="flex items-center gap-2 mb-4">
+                      <BarChart3 className="h-5 w-5 text-gray-600" />
+                      <h3 className="text-lg font-semibold text-gray-900">Volume Commitment (Corporate Side)</h3>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-6">
+                      <div>
+                        <Label htmlFor="annualVolume" className="text-sm font-medium">Annual Booking Volume</Label>
+                        <Input
+                          id="annualVolume"
+                          type="number"
+                          value={negotiationForm.annualBookingVolume}
+                          onChange={(e) => setNegotiationForm({...negotiationForm, annualBookingVolume: e.target.value})}
+                          placeholder="Enter annual bookings..."
+                          className="mt-1"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="travelFrequency" className="text-sm font-medium">Travel Frequency Commitment</Label>
+                        <Select
+                          value={negotiationForm.travelFrequency}
+                          onValueChange={(value) => setNegotiationForm({...negotiationForm, travelFrequency: value})}
+                        >
+                          <SelectTrigger className="mt-1">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="monthly">Monthly</SelectItem>
+                            <SelectItem value="quarterly">Quarterly</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="col-span-2">
+                        <Label htmlFor="preferredRoutes" className="text-sm font-medium">Preferred Routes / Hubs</Label>
+                        <Input
+                          id="preferredRoutes"
+                          value={negotiationForm.preferredRoutes}
+                          onChange={(e) => setNegotiationForm({...negotiationForm, preferredRoutes: e.target.value})}
+                          placeholder="e.g., JFK-LAX, SFO-CHI, NYC-LON..."
+                          className="mt-1"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <Label className="text-sm font-medium mb-3 block">Cabin Class Mix (%)</Label>
+                      <div className="grid grid-cols-3 gap-4">
+                        <div>
+                          <Label className="text-xs text-gray-600">Domestic Economy</Label>
+                          <div className="flex items-center gap-2 mt-1">
+                            <Input
+                              type="range"
+                              min="0"
+                              max="100"
+                              value={negotiationForm.domesticEconomy}
+                              onChange={(e) => setNegotiationForm({...negotiationForm, domesticEconomy: parseInt(e.target.value)})}
+                              className="flex-1"
+                            />
+                            <span className="text-sm font-medium w-12">{negotiationForm.domesticEconomy}%</span>
+                          </div>
+                        </div>
+                        <div>
+                          <Label className="text-xs text-gray-600">Business</Label>
+                          <div className="flex items-center gap-2 mt-1">
+                            <Input
+                              type="range"
+                              min="0"
+                              max="100"
+                              value={negotiationForm.domesticBusiness}
+                              onChange={(e) => setNegotiationForm({...negotiationForm, domesticBusiness: parseInt(e.target.value)})}
+                              className="flex-1"
+                            />
+                            <span className="text-sm font-medium w-12">{negotiationForm.domesticBusiness}%</span>
+                          </div>
+                        </div>
+                        <div>
+                          <Label className="text-xs text-gray-600">International</Label>
+                          <div className="flex items-center gap-2 mt-1">
+                            <Input
+                              type="range"
+                              min="0"
+                              max="100"
+                              value={negotiationForm.international}
+                              onChange={(e) => setNegotiationForm({...negotiationForm, international: parseInt(e.target.value)})}
+                              className="flex-1"
+                            />
+                            <span className="text-sm font-medium w-12">{negotiationForm.international}%</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Contract Terms Section */}
+                  <div className="bg-purple-50 border border-purple-200 rounded-lg p-6">
+                    <div className="flex items-center gap-2 mb-4">
+                      <FileText className="h-5 w-5 text-purple-600" />
+                      <h3 className="text-lg font-semibold text-purple-900">Contract Terms</h3>
+                    </div>
+                    
+                    <div className="mb-4">
+                      <p className="text-sm text-purple-700 mb-2">Current Terms</p>
+                      <p className="text-sm text-purple-900 bg-white p-3 rounded border">
+                        Standard travel management contract for {selectedOpportunity?.lead_info?.company?.name}
+                      </p>
+                    </div>
+
+                    <div>
+                      <Label htmlFor="proposedChanges" className="text-sm font-medium text-purple-700">Proposed Terms Changes</Label>
+                      <Textarea
+                        id="proposedChanges"
+                        placeholder="Enter proposed changes to contract terms..."
+                        className="mt-1"
+                        rows={3}
+                      />
+                    </div>
+
+                    <div className="mt-4">
+                      <Label className="text-sm font-medium text-purple-700">Renewal Terms</Label>
+                      <Select defaultValue="12_months">
+                        <SelectTrigger className="mt-1">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="12_months">12 months with auto-renewal</SelectItem>
+                          <SelectItem value="24_months">24 months with auto-renewal</SelectItem>
+                          <SelectItem value="36_months">36 months with auto-renewal</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  {/* Discount/Offer Terms Section */}
+                  <div className="space-y-6">
+                    <div className="flex items-center gap-2 mb-4">
+                      <Gift className="h-5 w-5 text-gray-600" />
+                      <h3 className="text-lg font-semibold text-gray-900">Discount / Offer Terms (Airline Side)</h3>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-6">
+                      <div>
+                        <Label htmlFor="baseDiscount" className="text-sm font-medium">Base Discount Offered (%)</Label>
+                        <Input
+                          id="baseDiscount"
+                          type="number"
+                          min="0"
+                          max="100"
+                          value={negotiationForm.baseDiscount}
+                          onChange={(e) => setNegotiationForm({...negotiationForm, baseDiscount: e.target.value})}
+                          placeholder="Enter base discount percentage..."
+                          className="mt-1"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="settlementType" className="text-sm font-medium">Settlement Type</Label>
+                        <Select
+                          value={negotiationForm.settlementType}
+                          onValueChange={(value) => setNegotiationForm({...negotiationForm, settlementType: value})}
+                        >
+                          <SelectTrigger className="mt-1">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="bsp">BSP</SelectItem>
+                            <SelectItem value="direct_billing">Direct Billing</SelectItem>
+                            <SelectItem value="corporate_card">Corporate Card</SelectItem>
+                            <SelectItem value="wallet">Wallet</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+
+                    <div>
+                      <div className="flex items-center justify-between mb-3">
+                        <Label className="text-sm font-medium">Route-Specific Discounts</Label>
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="outline"
+                          onClick={addRouteDiscount}
+                          className="h-8 px-3"
+                        >
+                          <Plus className="h-3 w-3 mr-1" />
+                          Add Route
+                        </Button>
+                      </div>
+                      <div className="space-y-3">
+                        {negotiationForm.routeDiscounts.map((route, index) => (
+                          <div key={index} className="grid grid-cols-4 gap-3 items-end">
+                            <div>
+                              <Label className="text-xs text-gray-600">Route</Label>
+                              <Input
+                                placeholder="e.g., JFK-LAX"
+                                value={route.route}
+                                onChange={(e) => updateRouteDiscount(index, 'route', e.target.value)}
+                                className="mt-1"
+                              />
+                            </div>
+                            <div>
+                              <Label className="text-xs text-gray-600">Discount %</Label>
+                              <Input
+                                type="number"
+                                placeholder="15"
+                                value={route.discount}
+                                onChange={(e) => updateRouteDiscount(index, 'discount', e.target.value)}
+                                className="mt-1"
+                              />
+                            </div>
+                            <div>
+                              <Label className="text-xs text-gray-600">Conditions</Label>
+                              <Input
+                                placeholder="Min 50 bookings/year"
+                                value={route.conditions}
+                                onChange={(e) => updateRouteDiscount(index, 'conditions', e.target.value)}
+                                className="mt-1"
+                              />
+                            </div>
+                            <Button
+                              type="button"
+                              size="sm"
+                              variant="outline"
+                              onClick={() => removeRouteDiscount(index)}
+                              className="h-9 w-9 p-0"
+                            >
+                              ×
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div>
+                      <Label className="text-sm font-medium mb-3 block">Loyalty Program Benefits</Label>
+                      <div className="grid grid-cols-3 gap-4">
+                        <label className="flex items-center space-x-2">
+                          <input
+                            type="checkbox"
+                            checked={negotiationForm.loyaltyBenefits.extraMiles}
+                            onChange={(e) => setNegotiationForm({
+                              ...negotiationForm,
+                              loyaltyBenefits: { ...negotiationForm.loyaltyBenefits, extraMiles: e.target.checked }
+                            })}
+                            className="rounded"
+                          />
+                          <span className="text-sm">Extra Miles</span>
+                        </label>
+                        <label className="flex items-center space-x-2">
+                          <input
+                            type="checkbox"
+                            checked={negotiationForm.loyaltyBenefits.priorityBoarding}
+                            onChange={(e) => setNegotiationForm({
+                              ...negotiationForm,
+                              loyaltyBenefits: { ...negotiationForm.loyaltyBenefits, priorityBoarding: e.target.checked }
+                            })}
+                            className="rounded"
+                          />
+                          <span className="text-sm">Priority Boarding</span>
+                        </label>
+                        <label className="flex items-center space-x-2">
+                          <input
+                            type="checkbox"
+                            checked={negotiationForm.loyaltyBenefits.loungeAccess}
+                            onChange={(e) => setNegotiationForm({
+                              ...negotiationForm,
+                              loyaltyBenefits: { ...negotiationForm.loyaltyBenefits, loungeAccess: e.target.checked }
+                            })}
+                            className="rounded"
+                          />
+                          <span className="text-sm">Lounge Access</span>
+                        </label>
+                      </div>
+                    </div>
+
+                    <div>
+                      <Label htmlFor="volumeIncentives" className="text-sm font-medium">Incentives for Exceeding Volume</Label>
+                      <Textarea
+                        id="volumeIncentives"
+                        value={negotiationForm.volumeIncentives}
+                        onChange={(e) => setNegotiationForm({...negotiationForm, volumeIncentives: e.target.value})}
+                        placeholder="Describe additional incentives for volume overachievement..."
+                        className="mt-1"
+                        rows={3}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Negotiation Strategy Section */}
+                  <div className="bg-orange-50 border border-orange-200 rounded-lg p-6">
+                    <div className="flex items-center gap-2 mb-4">
+                      <Target className="h-5 w-5 text-orange-600" />
+                      <h3 className="text-lg font-semibold text-orange-900">Negotiation Strategy</h3>
+                    </div>
+
+                    <div className="space-y-4">
+                      <div>
+                        <Label htmlFor="concessions" className="text-sm font-medium text-orange-700">Concessions Offered</Label>
+                        <Textarea
+                          id="concessions"
+                          placeholder="List any concessions or additional value you're offering..."
+                          className="mt-1"
+                          rows={3}
+                        />
+                      </div>
+
+                      <div>
+                        <Label htmlFor="counterOffer" className="text-sm font-medium text-orange-700">Counter-Offer Reasoning</Label>
+                        <Textarea
+                          id="counterOffer"
+                          placeholder="Explain the reasoning behind your counter-offer..."
+                          className="mt-1"
+                          rows={3}
+                        />
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <Label className="text-sm font-medium text-orange-700">Negotiation Urgency</Label>
+                          <Select defaultValue="medium">
+                            <SelectTrigger className="mt-1">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="high">Medium - Standard timeline</SelectItem>
+                              <SelectItem value="medium">High - Urgent</SelectItem>
+                              <SelectItem value="low">Low - Flexible</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="flex items-center space-x-2 mt-6">
+                          <input type="checkbox" className="rounded" />
+                          <span className="text-sm text-orange-700">Management approval required</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Communication & Notes Section */}
+                  <div className="space-y-6">
+                    <div className="flex items-center gap-2 mb-4">
+                      <MessageCircle className="h-5 w-5 text-gray-600" />
+                      <h3 className="text-lg font-semibold text-gray-900">Communication & Notes</h3>
+                    </div>
+
+                    <div className="space-y-4">
+                      <div>
+                        <Label htmlFor="corporateCommitments" className="text-sm font-medium">Commitments by Corporate (readonly)</Label>
+                        <Textarea
+                          id="corporateCommitments"
+                          value={negotiationForm.corporateCommitments}
+                          readOnly
+                          className="mt-1 bg-gray-50"
+                          rows={3}
+                        />
+                      </div>
+
+                      <div>
+                        <Label htmlFor="clientNotes" className="text-sm font-medium">Negotiation Notes (Client Communication)</Label>
+                        <Textarea
+                          id="clientNotes"
+                          placeholder="Notes to include in communication with client..."
+                          className="mt-1"
+                          rows={3}
+                        />
+                      </div>
+
+                      <div>
+                        <Label htmlFor="internalNotes" className="text-sm font-medium">Internal Notes (Private)</Label>
+                        <Textarea
+                          id="internalNotes"
+                          value={negotiationForm.internalNotes}
+                          onChange={(e) => setNegotiationForm({...negotiationForm, internalNotes: e.target.value})}
+                          placeholder="Internal notes for sales team reference..."
+                          className="mt-1"
+                          rows={3}
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Approvals Workflow Section */}
+                  <div className="space-y-6">
+                    <div className="flex items-center gap-2 mb-4">
+                      <CheckCircle className="h-5 w-5 text-gray-600" />
+                      <h3 className="text-lg font-semibold text-gray-900">Approvals Workflow</h3>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-6">
+                      <div>
+                        <Label className="text-sm font-medium">Contract Duration</Label>
+                        <div className="flex gap-4 mt-2">
+                          <label className="flex items-center space-x-2">
+                            <input
+                              type="radio"
+                              name="contractDuration"
+                              value="12"
+                              checked={negotiationForm.contractDuration === "12"}
+                              onChange={(e) => setNegotiationForm({...negotiationForm, contractDuration: e.target.value})}
+                            />
+                            <span className="text-sm">12 months</span>
+                          </label>
+                          <label className="flex items-center space-x-2">
+                            <input
+                              type="radio"
+                              name="contractDuration"
+                              value="24"
+                              checked={negotiationForm.contractDuration === "24"}
+                              onChange={(e) => setNegotiationForm({...negotiationForm, contractDuration: e.target.value})}
+                            />
+                            <span className="text-sm">24 months</span>
+                          </label>
+                          <label className="flex items-center space-x-2">
+                            <input
+                              type="radio"
+                              name="contractDuration"
+                              value="36"
+                              checked={negotiationForm.contractDuration === "36"}
+                              onChange={(e) => setNegotiationForm({...negotiationForm, contractDuration: e.target.value})}
+                            />
+                            <span className="text-sm">36 months</span>
+                          </label>
+                        </div>
+                      </div>
+                      <div>
+                        <Label className="text-sm font-medium">Priority Level</Label>
+                        <Select
+                          value={negotiationForm.priorityLevel}
+                          onValueChange={(value) => setNegotiationForm({...negotiationForm, priorityLevel: value})}
+                        >
+                          <SelectTrigger className="mt-1">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="high">High</SelectItem>
+                            <SelectItem value="medium">Medium</SelectItem>
+                            <SelectItem value="low">Low</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+
+                    <div className="space-y-4">
+                      <label className="flex items-center space-x-2">
+                        <input
+                          type="checkbox"
+                          checked={negotiationForm.discountApprovalRequired}
+                          onChange={(e) => setNegotiationForm({...negotiationForm, discountApprovalRequired: e.target.checked})}
+                          className="rounded"
+                        />
+                        <span className="text-sm font-medium">Discount Approval Required?</span>
+                        <span className="text-xs text-gray-500">(auto-checked if discount > threshold)</span>
+                      </label>
+
+                      <div>
+                        <Label htmlFor="revenueManager" className="text-sm font-medium">Revenue Manager Assigned</Label>
+                        <Select
+                          value={negotiationForm.revenueManagerAssigned}
+                          onValueChange={(value) => setNegotiationForm({...negotiationForm, revenueManagerAssigned: value})}
+                        >
+                          <SelectTrigger className="mt-1">
+                            <SelectValue placeholder="Select revenue manager..." />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="manager_1">Sarah Johnson</SelectItem>
+                            <SelectItem value="manager_2">Mike Chen</SelectItem>
+                            <SelectItem value="manager_3">Lisa Rodriguez</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <label className="flex items-center space-x-2">
+                        <input
+                          type="checkbox"
+                          checked={negotiationForm.legalApprovalRequired}
+                          onChange={(e) => setNegotiationForm({...negotiationForm, legalApprovalRequired: e.target.checked})}
+                          className="rounded"
+                        />
+                        <span className="text-sm font-medium">Legal/Compliance Approval Required</span>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              </ScrollArea>
+
+              {/* Sticky Footer */}
+              <div className="border-t bg-white px-6 py-4">
+                <div className="flex justify-between items-center">
+                  <div className="flex gap-3">
+                    <Button
+                      variant="outline"
+                      onClick={handleSaveNegotiationDraft}
+                      className="border-gray-300"
+                    >
+                      <FileText className="h-4 w-4 mr-2" />
+                      Save Draft
+                    </Button>
+                    <Button
+                      onClick={handleGenerateRevisedProposal}
+                      className="bg-blue-600 hover:bg-blue-700 text-white"
+                    >
+                      <FileText className="h-4 w-4 mr-2" />
+                      Generate Revised Proposal
+                    </Button>
+                  </div>
+                  <div className="flex gap-3">
+                    <Button
+                      variant="outline"
+                      onClick={() => setShowNegotiationDialog(false)}
+                      className="border-red-300 text-red-600 hover:bg-red-50"
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      onClick={handleStartNegotiation}
+                      disabled={isSavingNegotiation}
+                      className="bg-purple-600 hover:bg-purple-700 text-white min-w-[140px]"
+                    >
+                      {isSavingNegotiation ? (
+                        <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                      ) : (
+                        <Handshake className="h-4 w-4 mr-2" />
+                      )}
+                      {isSavingNegotiation ? "Starting..." : "Start Negotiation"}
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </div>
           </DialogContent>
         </Dialog>
       </div>
