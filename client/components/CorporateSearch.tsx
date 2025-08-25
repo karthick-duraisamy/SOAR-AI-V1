@@ -2713,19 +2713,32 @@ export function CorporateSearch({
             </Button>
 
             {/* File Upload Area */}
-            <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
-              <Input
-                type="file"
-                accept=".xlsx, .xls"
-                onChange={handleFileUpload}
-                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-              />
+            <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center relative">
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Drag and drop your Excel file here
               </label>
               <p className="text-xs text-gray-500 mb-4">
-                Supports .xlsx and .xls formats.
+                Supports .xlsx and .xls formats. Or click below to browse files.
               </p>
+              
+              <div className="mb-4">
+                <Button
+                  variant="outline"
+                  onClick={() => document.getElementById('file-upload-input')?.click()}
+                  className="border-gray-300"
+                >
+                  <Upload className="h-4 w-4 mr-2" />
+                  Browse Files
+                </Button>
+                <Input
+                  id="file-upload-input"
+                  type="file"
+                  accept=".xlsx, .xls"
+                  onChange={handleFileUpload}
+                  className="hidden"
+                />
+              </div>
+              
               {uploadFile && (
                 <p className="text-sm text-gray-800 font-medium">
                   Selected File: {uploadFile.name}
