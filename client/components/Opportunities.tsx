@@ -740,6 +740,8 @@ export function Opportunities({
   });
   const [historyData, setHistoryData] = useState<any[]>([]);
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
+  const [isSavingEdit, setIsSavingEdit] = useState(false);
+  const [isSavingActivity, setIsSavingActivity] = useState(false);
 
   const [editForm, setEditForm] = useState({
     stage: "",
@@ -1134,6 +1136,8 @@ export function Opportunities({
       description: editForm.description || "",
     };
 
+    setIsSavingEdit(true);
+
     try {
       console.log("Updating opportunity with data:", updateData);
 
@@ -1189,6 +1193,8 @@ export function Opportunities({
       } catch (refreshError) {
         console.error("Error refreshing opportunities:", refreshError);
       }
+    } finally {
+      setIsSavingEdit(false);
     }
   }, [
     selectedOpportunity,
@@ -1205,6 +1211,8 @@ export function Opportunities({
       toast.error("Activity description is required");
       return;
     }
+
+    setIsSavingActivity(true);
 
     try {
       // Add user information to the activity data
@@ -1236,6 +1244,8 @@ export function Opportunities({
     } catch (error) {
       console.error("Error saving activity:", error);
       toast.error("Failed to save activity. Please try again.");
+    } finally {
+      setIsSavingActivity(false);
     }
   }, [
     selectedOpportunity,
@@ -1935,15 +1945,21 @@ export function Opportunities({
               <Button
                 variant="outline"
                 onClick={() => setShowEditDialog(false)}
+                disabled={isSavingEdit}
               >
                 Cancel
               </Button>
               <Button
                 onClick={handleSaveEdit}
+                disabled={isSavingEdit}
                 className="bg-orange-500 hover:bg-orange-600 text-white"
               >
-                <CheckCircle className="h-4 w-4 mr-2" />
-                Save Changes
+                {isSavingEdit ? (
+                  <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <CheckCircle className="h-4 w-4 mr-2" />
+                )}
+                {isSavingEdit ? "Saving..." : "Save Changes"}
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -2014,15 +2030,21 @@ export function Opportunities({
               <Button
                 variant="outline"
                 onClick={() => setShowActivityDialog(false)}
+                disabled={isSavingActivity}
               >
                 Cancel
               </Button>
               <Button
                 onClick={handleSaveActivity}
+                disabled={isSavingActivity}
                 className="bg-orange-500 hover:bg-orange-600 text-white rounded-md "
               >
-                <Plus className="h-4 w-4 mr-2" />
-                Add Activity
+                {isSavingActivity ? (
+                  <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <Plus className="h-4 w-4 mr-2" />
+                )}
+                {isSavingActivity ? "Adding..." : "Add Activity"}
               </Button>
             </DialogFooter>
           </DialogContent>
