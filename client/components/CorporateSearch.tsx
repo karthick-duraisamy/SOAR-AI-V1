@@ -1165,30 +1165,32 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
                       View Full Profile
                     </Button>
 
-                    <Button 
-                      variant="outline"
-                      size="sm" 
-                      onClick={() => handleMoveAsLead(corporate)}
-                      disabled={movedAsLeadIds.has(corporate.id) || isMovingAsLead}
-                      className="border-gray-300 cls-addcomapany"
-                    >
-                      {isMovingAsLead && selectedCorporateForMove?.id === corporate.id ? (
-                        <>
-                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-orange-500 mr-2"></div>
-                          Moving...
-                        </>
-                      ) : movedAsLeadIds.has(corporate.id) ? (
-                        <>
-                          <CheckCircle2 className="h-4 w-4 mr-2 text-green-600" />
-                          Moved as Lead
-                        </>
-                      ) : (
-                        <>
-                          <UserPlus className="h-4 w-4 mr-2" />
-                          Move as Lead
-                        </>
-                      )}
-                    </Button>
+                    {movedAsLeadIds.has(corporate.id) ? (
+                      <span className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-green-800 bg-green-100 border border-green-200 rounded-md">
+                        <CheckCircle2 className="h-4 w-4 mr-2 text-green-600" />
+                        Already moved to Lead
+                      </span>
+                    ) : (
+                      <Button 
+                        variant="outline"
+                        size="sm" 
+                        onClick={() => handleMoveAsLead(corporate)}
+                        disabled={isMovingAsLead}
+                        className="border-gray-300 cls-addcomapany"
+                      >
+                        {isMovingAsLead && selectedCorporateForMove?.id === corporate.id ? (
+                          <>
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-orange-500 mr-2"></div>
+                            Moving...
+                          </>
+                        ) : (
+                          <>
+                            <UserPlus className="h-4 w-4 mr-2" />
+                            Move as Lead
+                          </>
+                        )}
+                      </Button>
+                    )}
 
                     <Button variant="outline" size="sm" className="border-gray-300" onClick={() => handleContactCorporate(corporate)}
 >
