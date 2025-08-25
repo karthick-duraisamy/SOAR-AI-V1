@@ -214,6 +214,32 @@ export const useCompanyApi = () => {
     }
   }, [setLoading, setError, setData]);
 
+  // Check if companies have been moved to leads
+  const checkLeadsStatus = useCallback(async (companyNames: string[]) => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const response: AxiosResponse<{[key: string]: boolean}> = await axios.post(
+        `${API_BASE_URL}/companies/check_leads_status/`,
+        { company_names: companyNames },
+        {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+
+      return response.data;
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.message || error.message || 'Failed to check leads status';
+      setError(errorMessage);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  }, [setLoading, setError]);
+
   return {
     ...state,
     searchCompanies,
@@ -223,5 +249,6 @@ export const useCompanyApi = () => {
     updateCompany,
     deleteCompany,
     createLead,
+    checkLeadsStatus,
   };
 };

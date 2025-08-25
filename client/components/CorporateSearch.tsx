@@ -321,6 +321,7 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
 
   const [selectedCorporate, setSelectedCorporate] = useState(null);
   const [movedAsLeadIds, setMovedAsLeadIds] = useState(new Set());
+  const [existingLeadCompanies, setExistingLeadCompanies] = useState(new Set());
   const [successMessage, setSuccessMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -374,6 +375,11 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
       console.log(companies,'companies')
       setFilteredCorporates(transformedCompanies);
       applyFiltersAndSort(transformedCompanies);
+      
+      // Check which companies already exist as leads
+      if (transformedCompanies.length > 0) {
+        await checkCompaniesLeadStatus(transformedCompanies);
+      }
     } catch (error) {
       console.error('Error loading companies:', error);
       setError('Failed to load companies. Please try again.');
@@ -382,6 +388,27 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
       setIsLoading(false);
     }
   }, []); // Remove companyApi dependency to prevent recreation
+
+  // Function to check if companies exist as leads
+  const checkCompaniesLeadStatus = useCallback(async (companies) => {
+    try {
+      const companyNames = companies.map(company => company.name);
+      const leadStatus = await companyApi.checkLeadsStatus(companyNames);
+      
+      // Update state with companies that already exist as leads
+      const existingLeads = new Set();
+      Object.entries(leadStatus).forEach(([companyName, isLead]) => {
+        if (isLead) {
+          existingLeads.add(companyName);
+        }
+      });
+      
+      setExistingLeadCompanies(existingLeads);
+    } catch (error) {
+      console.error('Error checking lead status:', error);
+      // Don't show error to user as this is not critical functionality
+    }
+  }, [companyApi]);
 
   // Load companies on component mount - use a separate effect with direct API call
   useEffect(() => {
@@ -429,6 +456,11 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
       const transformedCompanies = companies.map(transformCompanyData);
       setFilteredCorporates(transformedCompanies);
       applyFiltersAndSort(transformedCompanies);
+      
+      // Check which companies already exist as leads
+      if (transformedCompanies.length > 0) {
+        await checkCompaniesLeadStatus(transformedCompanies);
+      }
     } catch (error) {
       console.error('Error searching companies:', error);
       setError('Search failed. Please try again.');
@@ -561,6 +593,10 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
     setSortOrder('asc');
     setCurrentPage(1);
 
+    // Reset existing leads state
+    setExistingLeadCompanies(new Set());
+    setMovedAsLeadIds(new Set());
+
     // Reload companies with no filters
     loadCompanies({});
   };
@@ -611,6 +647,7 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
 
       // Add to moved leads tracking
       setMovedAsLeadIds(prev => new Set([...prev, corporate.id]));
+      setExistingLeadCompanies(prev => new Set([...prev, corporate.name]));
 
       // Show success message
       setSuccessMessage(`${corporate.name} has been successfully moved to leads management`);
@@ -1165,7 +1202,7 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
                       View Full Profile
                     </Button>
 
-                    {movedAsLeadIds.has(corporate.id) ? (
+                    {movedAsLeadIds.has(corporate.id) || existingLeadCompanies.has(corporate.name) ? (
                       <span className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-green-800 bg-green-100 border border-green-200 rounded-md">
                         <CheckCircle2 className="h-4 w-4 mr-2 text-green-600" />
                         Already moved to Lead

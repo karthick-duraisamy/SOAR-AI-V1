@@ -173,6 +173,26 @@ class CompanyViewSet(viewsets.ModelViewSet):
         }
         return Response(stats)
 
+    @action(detail=False, methods=['post'])
+    def check_leads_status(self, request):
+        """Check if companies have been moved to leads"""
+        company_names = request.data.get('company_names', [])
+        
+        if not company_names:
+            return Response({'error': 'No company names provided'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Find companies that exist as leads
+        existing_leads = Lead.objects.select_related('company').filter(
+            company__name__in=company_names
+        ).values_list('company__name', flat=True)
+        
+        # Create a mapping of company name to lead status
+        lead_status = {}
+        for name in company_names:
+            lead_status[name] = name in existing_leads
+        
+        return Response(lead_status)
+
 class ContactViewSet(viewsets.ModelViewSet):
     queryset = Contact.objects.all()
     serializer_class = ContactSerializer
