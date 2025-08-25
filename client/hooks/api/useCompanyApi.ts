@@ -1,4 +1,3 @@
-
 import { useState, useCallback } from 'react';
 import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
 
@@ -203,9 +202,9 @@ export const useCompanyApi = () => {
       setData(response.data);
       return response.data;
     } catch (error: any) {
-      const errorMessage = error.response?.data?.error || 
-                          error.response?.data?.detail || 
-                          error.message || 
+      const errorMessage = error.response?.data?.error ||
+                          error.response?.data?.detail ||
+                          error.message ||
                           'Failed to create lead';
       setError(errorMessage);
       throw error;
@@ -258,9 +257,9 @@ export const useCompanyApi = () => {
 
       return response.data;
     } catch (error: any) {
-      const errorMessage = error.response?.data?.error || 
-                          error.response?.data?.detail || 
-                          error.message || 
+      const errorMessage = error.response?.data?.error ||
+                          error.response?.data?.detail ||
+                          error.message ||
                           'Failed to mark company as moved to lead';
       setError(errorMessage);
       throw error;
@@ -288,10 +287,10 @@ export const useCompanyApi = () => {
       setData(response.data);
       return response.data;
     } catch (error: any) {
-      const errorMessage = error.response?.data?.error || 
-                          error.response?.data?.message || 
-                          error.response?.data?.detail || 
-                          error.message || 
+      const errorMessage = error.response?.data?.error ||
+                          error.response?.data?.message ||
+                          error.response?.data?.detail ||
+                          error.message ||
                           'Failed to upload companies';
       setError(errorMessage);
       throw error;
@@ -299,6 +298,44 @@ export const useCompanyApi = () => {
       setLoading(false);
     }
   }, [setLoading, setError, setData]);
+
+  const bulkUploadCompanies = async (file: File) => {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const response = await fetch(`${API_BASE_URL}/companies/bulk-upload/`, {
+      method: 'POST',
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'Upload failed');
+    }
+
+    return response.json();
+  };
+
+  const downloadSampleExcel = async () => {
+    const response = await fetch(`${API_BASE_URL}/companies/download-sample/`, {
+      method: 'GET',
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to download sample file');
+    }
+
+    // Create blob and download
+    const blob = await response.blob();
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `corporate_data_sample_${new Date().toISOString().split('T')[0]}.xlsx`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+  };
 
   return {
     ...state,
@@ -312,5 +349,7 @@ export const useCompanyApi = () => {
     checkLeadsStatus,
     markCompanyAsMovedToLead,
     uploadCompanies,
+    bulkUploadCompanies,
+    downloadSampleExcel,
   };
 };

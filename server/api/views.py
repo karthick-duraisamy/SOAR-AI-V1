@@ -177,20 +177,20 @@ class CompanyViewSet(viewsets.ModelViewSet):
     def check_leads_status(self, request):
         """Check if companies have been moved to leads"""
         company_names = request.data.get('company_names', [])
-        
+
         if not company_names:
             return Response({'error': 'No company names provided'}, status=status.HTTP_400_BAD_REQUEST)
-        
+
         # Find companies that exist as leads
         existing_leads = Lead.objects.select_related('company').filter(
             company__name__in=company_names
         ).values_list('company__name', flat=True)
-        
+
         # Create a mapping of company name to lead status
         lead_status = {}
         for name in company_names:
             lead_status[name] = name in existing_leads
-        
+
         return Response(lead_status)
 
     @action(detail=True, methods=['post'])
@@ -200,7 +200,7 @@ class CompanyViewSet(viewsets.ModelViewSet):
             company = self.get_object()
             company.move_as_lead = True
             company.save()
-            
+
             return Response({
                 'message': f'{company.name} has been marked as moved to lead',
                 'move_as_lead': True
@@ -216,16 +216,16 @@ class CompanyViewSet(viewsets.ModelViewSet):
         """Upload companies from Excel/CSV file"""
         import pandas as pd
         import io
-        
+
         try:
             if 'file' not in request.FILES:
                 return Response(
                     {'error': 'No file provided'},
                     status=status.HTTP_400_BAD_REQUEST
                 )
-            
+
             uploaded_file = request.FILES['file']
-            
+
             # Validate file type
             allowed_extensions = ['.xlsx', '.xls', '.csv']
             file_extension = uploaded_file.name.lower().split('.')[-1]
@@ -234,14 +234,14 @@ class CompanyViewSet(viewsets.ModelViewSet):
                     {'error': 'Invalid file type. Please upload Excel (.xlsx, .xls) or CSV (.csv) files only.'},
                     status=status.HTTP_400_BAD_REQUEST
                 )
-            
+
             # Validate file size (10MB limit)
             if uploaded_file.size > 10 * 1024 * 1024:
                 return Response(
                     {'error': 'File size exceeds 10MB limit'},
                     status=status.HTTP_400_BAD_REQUEST
                 )
-            
+
             # Read the file
             try:
                 if file_extension == 'csv':
@@ -253,38 +253,38 @@ class CompanyViewSet(viewsets.ModelViewSet):
                     {'error': f'Failed to read file: {str(e)}'},
                     status=status.HTTP_400_BAD_REQUEST
                 )
-            
+
             # Validate required columns
             required_columns = [
                 'Company Name', 'Industry', 'Company Size Category', 'Location', 'Email'
             ]
-            
+
             missing_columns = [col for col in required_columns if col not in df.columns]
             if missing_columns:
                 return Response(
                     {'error': f'Missing required columns: {", ".join(missing_columns)}'},
                     status=status.HTTP_400_BAD_REQUEST
                 )
-            
+
             # Process the data
             created_count = 0
             skipped_count = 0
             errors = []
-            
+
             for index, row in df.iterrows():
                 try:
                     # Skip rows with empty required fields
                     if pd.isna(row['Company Name']) or not str(row['Company Name']).strip():
                         skipped_count += 1
                         continue
-                    
+
                     company_name = str(row['Company Name']).strip()
-                    
+
                     # Check if company already exists
                     if Company.objects.filter(name__iexact=company_name).exists():
                         skipped_count += 1
                         continue
-                    
+
                     # Map form fields to model fields
                     company_data = {
                         'name': company_name,
@@ -313,18 +313,18 @@ class CompanyViewSet(viewsets.ModelViewSet):
                         'description': str(row.get('Notes', '')).strip(),
                         'is_active': True
                     }
-                    
+
                     # Remove empty strings and None values
                     company_data = {k: v for k, v in company_data.items() if v not in ['', None, 'nan']}
-                    
+
                     # Create the company
                     Company.objects.create(**company_data)
                     created_count += 1
-                    
+
                 except Exception as e:
                     errors.append(f'Row {index + 2}: {str(e)}')
                     continue
-            
+
             response_data = {
                 'success': True,
                 'message': f'Upload completed successfully',
@@ -332,19 +332,19 @@ class CompanyViewSet(viewsets.ModelViewSet):
                 'skipped_count': skipped_count,
                 'total_rows': len(df)
             }
-            
+
             if errors:
                 response_data['errors'] = errors[:10]  # Limit to first 10 errors
                 response_data['total_errors'] = len(errors)
-            
+
             return Response(response_data, status=status.HTTP_201_CREATED)
-            
+
         except Exception as e:
             return Response(
                 {'error': f'Upload failed: {str(e)}'},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
-    
+
     def _map_industry(self, industry):
         """Map industry values to model choices"""
         industry_mapping = {
@@ -369,7 +369,7 @@ class CompanyViewSet(viewsets.ModelViewSet):
             'other': 'other'
         }
         return industry_mapping.get(industry.lower(), 'other')
-    
+
     def _map_company_size(self, size):
         """Map company size values to model choices"""
         size_mapping = {
@@ -385,7 +385,7 @@ class CompanyViewSet(viewsets.ModelViewSet):
             'enterprise (5000+)': 'enterprise'
         }
         return size_mapping.get(size.lower(), 'medium')
-    
+
     def _map_company_type(self, company_type):
         """Map company type values to model choices"""
         type_mapping = {
@@ -396,7 +396,7 @@ class CompanyViewSet(viewsets.ModelViewSet):
             'non-profit': 'nonprofit'
         }
         return type_mapping.get(company_type.lower(), 'corporation')
-    
+
     def _map_travel_frequency(self, frequency):
         """Map travel frequency values to model choices"""
         frequency_mapping = {
@@ -407,7 +407,7 @@ class CompanyViewSet(viewsets.ModelViewSet):
             'bi-weekly': 'Bi-weekly'
         }
         return frequency_mapping.get(frequency.lower(), '')
-    
+
     def _map_preferred_class(self, pref_class):
         """Map preferred class values to model choices"""
         class_mapping = {
@@ -419,7 +419,7 @@ class CompanyViewSet(viewsets.ModelViewSet):
             'business/first': 'Business/First'
         }
         return class_mapping.get(pref_class.lower(), '')
-    
+
     def _map_credit_rating(self, rating):
         """Map credit rating values to model choices"""
         rating_mapping = {
@@ -430,7 +430,7 @@ class CompanyViewSet(viewsets.ModelViewSet):
             'bb': 'BB'
         }
         return rating_mapping.get(rating.lower(), '')
-    
+
     def _map_payment_terms(self, terms):
         """Map payment terms values to model choices"""
         terms_mapping = {
@@ -440,7 +440,7 @@ class CompanyViewSet(viewsets.ModelViewSet):
             'net 60': 'Net 60'
         }
         return terms_mapping.get(terms.lower(), '')
-    
+
     def _map_sustainability(self, sustainability):
         """Map sustainability values to model choices"""
         sustainability_mapping = {
@@ -450,7 +450,7 @@ class CompanyViewSet(viewsets.ModelViewSet):
             'low': 'Low'
         }
         return sustainability_mapping.get(sustainability.lower(), '')
-    
+
     def _map_risk_level(self, risk):
         """Map risk level values to model choices"""
         risk_mapping = {
@@ -460,7 +460,7 @@ class CompanyViewSet(viewsets.ModelViewSet):
             'high': 'High'
         }
         return risk_mapping.get(risk.lower(), '')
-    
+
     def _map_expansion_plans(self, plans):
         """Map expansion plans values to model choices"""
         plans_mapping = {
@@ -471,7 +471,7 @@ class CompanyViewSet(viewsets.ModelViewSet):
             'stable': 'Stable'
         }
         return plans_mapping.get(plans.lower(), '')
-    
+
     def _safe_int(self, value):
         """Safely convert value to integer"""
         if pd.isna(value) or value == '':
@@ -480,7 +480,7 @@ class CompanyViewSet(viewsets.ModelViewSet):
             return int(float(value))
         except (ValueError, TypeError):
             return None
-    
+
     def _safe_decimal(self, value, multiplier=1):
         """Safely convert value to decimal with optional multiplier"""
         if pd.isna(value) or value == '':
@@ -1362,20 +1362,20 @@ class OpportunityViewSet(viewsets.ModelViewSet):
         try:
             instance = self.get_object()
             serializer = self.get_serializer(instance, data=request.data, partial=True)
-            
+
             if serializer.is_valid():
                 serializer.save()
                 return Response(serializer.data)
             else:
                 print(f"Validation errors: {serializer.errors}")
                 return Response(
-                    {'error': 'Validation failed', 'details': serializer.errors}, 
+                    {'error': 'Validation failed', 'details': serializer.errors},
                     status=status.HTTP_400_BAD_REQUEST
                 )
         except Exception as e:
             print(f"Error updating opportunity: {str(e)}")
             return Response(
-                {'error': f'Update failed: {str(e)}'}, 
+                {'error': f'Update failed: {str(e)}'},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
@@ -1384,24 +1384,24 @@ class OpportunityViewSet(viewsets.ModelViewSet):
         """Add activity to opportunity"""
         try:
             opportunity = self.get_object()
-            
+
             activity_data = {
                 'opportunity': opportunity.id,
                 'type': request.data.get('type', 'call'),
                 'description': request.data.get('description', ''),
                 'date': request.data.get('date', timezone.now().date()),
             }
-            
+
             activity_serializer = OpportunityActivitySerializer(data=activity_data)
             if activity_serializer.is_valid():
                 # Save with user information
                 activity = activity_serializer.save(
                     created_by=request.user if request.user.is_authenticated else None
                 )
-                
+
                 # Return the activity with updated serializer data including user info
                 response_data = OpportunityActivitySerializer(activity).data
-                
+
                 return Response({
                     'message': f'Activity added to {opportunity.name}',
                     'activity': response_data
@@ -1411,7 +1411,7 @@ class OpportunityViewSet(viewsets.ModelViewSet):
                     'error': 'Invalid activity data',
                     'details': activity_serializer.errors
                 }, status=status.HTTP_400_BAD_REQUEST)
-                
+
         except Exception as e:
             print(f"Error adding activity: {str(e)}")
             return Response({
@@ -1436,11 +1436,11 @@ class OpportunityViewSet(viewsets.ModelViewSet):
         """Get comprehensive history for opportunity including lead history"""
         try:
             opportunity = self.get_object()
-            
+
             # Get opportunity activities
             activities = opportunity.activities.all().order_by('-created_at')
             history_items = []
-            
+
             # Format activities as history items
             for activity in activities:
                 try:
@@ -1450,10 +1450,10 @@ class OpportunityViewSet(viewsets.ModelViewSet):
                         user_name = f"{activity.created_by.first_name} {activity.created_by.last_name}".strip()
                         if not user_name:
                             user_name = activity.created_by.username
-                    
+
                     # Format timestamp safely
                     formatted_timestamp = activity.created_at.strftime('%m/%d/%Y at %I:%M:%S %p') if activity.created_at else 'Unknown'
-                    
+
                     history_items.append({
                         'id': f"activity_{activity.id}",
                         'history_type': 'activity',
@@ -1469,7 +1469,7 @@ class OpportunityViewSet(viewsets.ModelViewSet):
                 except Exception as activity_error:
                     print(f"Error processing activity {activity.id}: {activity_error}")
                     continue
-            
+
             # If opportunity is linked to a lead, get lead history
             if hasattr(opportunity, 'lead') and opportunity.lead:
                 try:
@@ -1484,15 +1484,15 @@ class OpportunityViewSet(viewsets.ModelViewSet):
                                 if not user_name:
                                     user_name = history.user.username
                                 user_role = 'Sales Manager' if history.user.is_staff else 'Sales Representative'
-                            
+
                             # Handle metadata safely
                             metadata = {}
                             if hasattr(history, 'metadata') and history.metadata:
                                 metadata = history.metadata
-                            
+
                             # Format timestamp
                             formatted_timestamp = history.timestamp.strftime('%m/%d/%Y at %I:%M:%S %p') if history.timestamp else 'Unknown'
-                            
+
                             history_items.append({
                                 'id': f"lead_history_{history.id}",
                                 'history_type': history.history_type,
@@ -1510,15 +1510,15 @@ class OpportunityViewSet(viewsets.ModelViewSet):
                             continue
                 except Exception as lead_history_error:
                     print(f"Error fetching lead history: {lead_history_error}")
-            
+
             # Sort by timestamp (newest first)
             try:
                 history_items.sort(key=lambda x: x['timestamp'] if x['timestamp'] else '', reverse=True)
             except Exception as sort_error:
                 print(f"Error sorting history items: {sort_error}")
-            
+
             return Response(history_items)
-            
+
         except Exception as e:
             print(f"Error in opportunity history endpoint: {str(e)}")
             return Response({
@@ -1620,10 +1620,10 @@ class OpportunityActivityViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         queryset = self.queryset
         opportunity_id = self.request.query_params.get('opportunity_id', None)
-        
+
         if opportunity_id:
             queryset = queryset.filter(opportunity_id=opportunity_id)
-            
+
         return queryset.order_by('-date', '-created_at')
 
     def perform_create(self, serializer):
@@ -1936,38 +1936,639 @@ class DashboardAPIView(viewsets.ViewSet):
 
 # Add the new endpoints
 @api_view(['POST'])
-def lead_pipeline_stats(request):
-    """Get lead pipeline statistics"""
+def bulk_upload_companies(request):
+    """Upload companies from Excel/CSV file"""
+    import pandas as pd
+    import io
+
     try:
-        # Get count of leads by status
-        total_leads = Lead.objects.count()
-        qualified_leads = Lead.objects.filter(status='qualified').count()
-        unqualified_leads = Lead.objects.filter(status='unqualified').count()
-        new_leads = Lead.objects.filter(status='new').count()
-        contacted_leads = Lead.objects.filter(status='contacted').count()
+        if 'file' not in request.FILES:
+            return Response(
+                {'error': 'No file provided'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
-        # Calculate conversion rate
-        conversion_rate = (qualified_leads / total_leads * 100) if total_leads > 0 else 0
+        uploaded_file = request.FILES['file']
 
-        # Get average score
-        avg_score = Lead.objects.aggregate(avg_score=Avg('score'))['avg_score'] or 0
+        # Validate file type
+        allowed_extensions = ['.xlsx', '.xls', '.csv']
+        file_extension = uploaded_file.name.lower().split('.')[-1]
+        if f'.{file_extension}' not in allowed_extensions:
+            return Response(
+                {'error': 'Invalid file type. Please upload Excel (.xlsx, .xls) or CSV (.csv) files only.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
-        return Response({
-            'total_leads': total_leads,
-            'qualified_leads': qualified_leads,
-            'unqualified_leads': unqualified_leads,
-            'new_leads': new_leads,
-            'contacted_leads': contacted_leads,
-            'conversion_rate': round(conversion_rate, 2),
-            'average_score': round(avg_score, 2)
-        })
+        # Validate file size (10MB limit)
+        if uploaded_file.size > 10 * 1024 * 1024:
+            return Response(
+                {'error': 'File size exceeds 10MB limit'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Read the file
+        try:
+            if file_extension == 'csv':
+                df = pd.read_csv(io.BytesIO(uploaded_file.read()))
+            else:
+                df = pd.read_excel(io.BytesIO(uploaded_file.read()))
+        except Exception as e:
+            return Response(
+                {'error': f'Failed to read file: {str(e)}'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Validate required columns
+        required_columns = [
+            'Company Name', 'Industry', 'Company Size Category', 'Location', 'Email'
+        ]
+
+        missing_columns = [col for col in required_columns if col not in df.columns]
+        if missing_columns:
+            return Response(
+                {'error': f'Missing required columns: {", ".join(missing_columns)}'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Process the data
+        created_count = 0
+        skipped_count = 0
+        errors = []
+
+        for index, row in df.iterrows():
+            try:
+                # Skip rows with empty required fields
+                if pd.isna(row['Company Name']) or not str(row['Company Name']).strip():
+                    skipped_count += 1
+                    continue
+
+                company_name = str(row['Company Name']).strip()
+
+                # Check if company already exists
+                if Company.objects.filter(name__iexact=company_name).exists():
+                    skipped_count += 1
+                    continue
+
+                # Map form fields to model fields
+                company_data = {
+                    'name': company_name,
+                    'industry': self._map_industry(str(row.get('Industry', '')).strip()),
+                    'size': self._map_company_size(str(row.get('Company Size Category', '')).strip()),
+                    'location': str(row.get('Location', '')).strip(),
+                    'email': str(row.get('Email', '')).strip(),
+                    'phone': str(row.get('Phone', '')).strip(),
+                    'website': str(row.get('Website', '')).strip(),
+                    'company_type': self._map_company_type(str(row.get('Company Type', '')).strip()),
+                    'year_established': self._safe_int(row.get('Year Established')),
+                    'employee_count': self._safe_int(row.get('Number of Employees')),
+                    'annual_revenue': self._safe_decimal(row.get('Annual Revenue (Millions)'), multiplier=1000000),
+                    'travel_budget': self._safe_decimal(row.get('Annual Travel Budget (Millions)'), multiplier=1000000),
+                    'annual_travel_volume': str(row.get('Annual Travel Volume', '')).strip(),
+                    'travel_frequency': self._map_travel_frequency(str(row.get('Travel Frequency', '')).strip()),
+                    'preferred_class': self._map_preferred_class(str(row.get('Preferred Class', '')).strip()),
+                    'credit_rating': self._map_credit_rating(str(row.get('Credit Rating', '')).strip()),
+                    'payment_terms': self._map_payment_terms(str(row.get('Payment Terms', '')).strip()),
+                    'sustainability_focus': self._map_sustainability(str(row.get('Sustainability Focus', '')).strip()),
+                    'risk_level': self._map_risk_level(str(row.get('Risk Level', '')).strip()),
+                    'expansion_plans': self._map_expansion_plans(str(row.get('Expansion Plans', '')).strip()),
+                    'specialties': str(row.get('Specialties (comma-separated)', '')).strip(),
+                    'technology_integration': str(row.get('Technology Integration (comma-separated)', '')).strip(),
+                    'current_airlines': str(row.get('Current Airlines (comma-separated)', '')).strip(),
+                    'description': str(row.get('Notes', '')).strip(),
+                    'is_active': True
+                }
+
+                # Remove empty strings and None values
+                company_data = {k: v for k, v in company_data.items() if v not in ['', None, 'nan']}
+
+                # Create the company
+                Company.objects.create(**company_data)
+                created_count += 1
+
+            except Exception as e:
+                errors.append(f'Row {index + 2}: {str(e)}')
+                continue
+
+        response_data = {
+            'success': True,
+            'message': f'Upload completed successfully',
+            'created_count': created_count,
+            'skipped_count': skipped_count,
+            'total_rows': len(df)
+        }
+
+        if errors:
+            response_data['errors'] = errors[:10]  # Limit to first 10 errors
+            response_data['total_errors'] = len(errors)
+
+        return Response(response_data, status=status.HTTP_201_CREATED)
+
     except Exception as e:
         return Response(
-            {'error': str(e)},
+            {'error': f'Upload failed: {str(e)}'},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
 
-@csrf_exempt
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def download_sample_excel(request):
+    """
+    Generate and return a sample Excel file with dummy corporate data
+    """
+    try:
+        # Sample data that matches the Company model fields
+        sample_data = [
+            {
+                'name': 'TechCorp Solutions',
+                'company_type': 'corporation',
+                'industry': 'technology',
+                'location': 'San Francisco, CA',
+                'email': 'contact@techcorp.com',
+                'phone': '+1-555-0123',
+                'website': 'https://techcorp.com',
+                'employee_count': 500,
+                'annual_revenue': 50000000,
+                'year_established': 2010,
+                'size': 'medium',
+                'credit_rating': 'AA',
+                'payment_terms': 'Net 30',
+                'travel_budget': 2000000,
+                'annual_travel_volume': '$2M annually',
+                'travel_frequency': 'Weekly',
+                'preferred_class': 'Business',
+                'sustainability_focus': 'High',
+                'risk_level': 'Low',
+                'current_airlines': 'United, Delta, American',
+                'expansion_plans': 'Aggressive',
+                'specialties': 'AI, Machine Learning, Cloud Computing',
+                'technology_integration': 'Advanced CRM, API Integration, Mobile Apps',
+                'description': 'Leading technology solutions provider specializing in enterprise software and cloud services.'
+            },
+            {
+                'name': 'Global Manufacturing Inc',
+                'company_type': 'corporation',
+                'industry': 'manufacturing',
+                'location': 'Detroit, MI',
+                'email': 'info@globalmanuf.com',
+                'phone': '+1-555-0456',
+                'website': 'https://globalmanuf.com',
+                'employee_count': 1200,
+                'annual_revenue': 120000000,
+                'year_established': 1995,
+                'size': 'large',
+                'credit_rating': 'AAA',
+                'payment_terms': 'Net 45',
+                'travel_budget': 5000000,
+                'annual_travel_volume': '$5M annually',
+                'travel_frequency': 'Monthly',
+                'preferred_class': 'Economy Plus',
+                'sustainability_focus': 'Very High',
+                'risk_level': 'Very Low',
+                'current_airlines': 'Southwest, JetBlue',
+                'expansion_plans': 'Moderate',
+                'specialties': 'Automotive Parts, Industrial Equipment, Supply Chain',
+                'technology_integration': 'ERP Systems, IoT Sensors, Automation',
+                'description': 'Leading manufacturer of automotive components and industrial equipment with global operations.'
+            },
+            {
+                'name': 'HealthCare Partners LLC',
+                'company_type': 'llc',
+                'industry': 'healthcare',
+                'location': 'Boston, MA',
+                'email': 'contact@healthpartners.com',
+                'phone': '+1-555-0789',
+                'website': 'https://healthpartners.com',
+                'employee_count': 300,
+                'annual_revenue': 25000000,
+                'year_established': 2005,
+                'size': 'medium',
+                'credit_rating': 'A',
+                'payment_terms': 'Net 30',
+                'travel_budget': 800000,
+                'annual_travel_volume': '$800K annually',
+                'travel_frequency': 'Bi-weekly',
+                'preferred_class': 'Economy',
+                'sustainability_focus': 'Medium',
+                'risk_level': 'Medium',
+                'current_airlines': 'Delta, American',
+                'expansion_plans': 'Conservative',
+                'specialties': 'Medical Devices, Patient Care, Telemedicine',
+                'technology_integration': 'EMR Systems, Patient Portals, Telehealth',
+                'description': 'Healthcare services provider focused on innovative patient care and medical technology solutions.'
+            },
+            {
+                'name': 'Financial Advisors Group',
+                'company_type': 'partnership',
+                'industry': 'finance',
+                'location': 'New York, NY',
+                'email': 'info@finadvgroup.com',
+                'phone': '+1-555-0321',
+                'website': 'https://finadvgroup.com',
+                'employee_count': 150,
+                'annual_revenue': 35000000,
+                'year_established': 2000,
+                'size': 'small',
+                'credit_rating': 'BBB',
+                'payment_terms': 'Net 15',
+                'travel_budget': 1200000,
+                'annual_travel_volume': '$1.2M annually',
+                'travel_frequency': 'Daily',
+                'preferred_class': 'First',
+                'sustainability_focus': 'Low',
+                'risk_level': 'High',
+                'current_airlines': 'United, Delta',
+                'expansion_plans': 'Rapid',
+                'specialties': 'Investment Banking, Portfolio Management, Risk Assessment',
+                'technology_integration': 'Trading Platforms, Risk Analytics, Mobile Banking',
+                'description': 'Premier financial advisory firm providing comprehensive investment and wealth management services.'
+            },
+            {
+                'name': 'Green Energy Solutions',
+                'company_type': 'corporation',
+                'industry': 'energy',
+                'location': 'Austin, TX',
+                'email': 'contact@greenenergy.com',
+                'phone': '+1-555-0654',
+                'website': 'https://greenenergy.com',
+                'employee_count': 800,
+                'annual_revenue': 75000000,
+                'year_established': 2012,
+                'size': 'large',
+                'credit_rating': 'AA',
+                'payment_terms': 'Net 60',
+                'travel_budget': 3000000,
+                'annual_travel_volume': '$3M annually',
+                'travel_frequency': 'Quarterly',
+                'preferred_class': 'Business/First',
+                'sustainability_focus': 'Very High',
+                'risk_level': 'Low',
+                'current_airlines': 'Southwest, United',
+                'expansion_plans': 'Aggressive',
+                'specialties': 'Solar Power, Wind Energy, Battery Storage, Grid Solutions',
+                'technology_integration': 'Smart Grid, IoT Monitoring, AI Optimization',
+                'description': 'Leading renewable energy company specializing in solar and wind power solutions for commercial and residential markets.'
+            }
+        ]
+
+        # Create DataFrame
+        df = pd.DataFrame(sample_data)
+
+        # Create Excel file in memory
+        output = io.BytesIO()
+        with pd.ExcelWriter(output, engine='openpyxl') as writer:
+            df.to_excel(writer, sheet_name='Corporate Data Sample', index=False)
+
+            # Get the workbook and worksheet to add some formatting
+            workbook = writer.book
+            worksheet = writer.sheets['Corporate Data Sample']
+
+            # Auto-adjust column widths
+            for col in worksheet.columns:
+                max_length = 0
+                column = col[0].column_letter
+                for cell in col:
+                    try:
+                        if len(str(cell.value)) > max_length:
+                            max_length = len(str(cell.value))
+                    except:
+                        pass
+                adjusted_width = min(max_length + 2, 50)
+                worksheet.column_dimensions[column].width = adjusted_width
+
+        output.seek(0)
+
+        # Create response
+        response = HttpResponse(
+            output.getvalue(),
+            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
+        response['Content-Disposition'] = f'attachment; filename="corporate_data_sample_{datetime.now().strftime("%Y%m%d")}.xlsx"'
+
+        return response
+
+    except Exception as e:
+        return Response(
+            {'error': f'Failed to generate sample file: {str(e)}'},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+
+@api_view(['POST'])
+def bulk_upload_companies(request):
+    """Upload companies from Excel/CSV file"""
+    import pandas as pd
+    import io
+
+    try:
+        if 'file' not in request.FILES:
+            return Response(
+                {'error': 'No file provided'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        uploaded_file = request.FILES['file']
+
+        # Validate file type
+        allowed_extensions = ['.xlsx', '.xls', '.csv']
+        file_extension = uploaded_file.name.lower().split('.')[-1]
+        if f'.{file_extension}' not in allowed_extensions:
+            return Response(
+                {'error': 'Invalid file type. Please upload Excel (.xlsx, .xls) or CSV (.csv) files only.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Validate file size (10MB limit)
+        if uploaded_file.size > 10 * 1024 * 1024:
+            return Response(
+                {'error': 'File size exceeds 10MB limit'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Read the file
+        try:
+            if file_extension == 'csv':
+                df = pd.read_csv(io.BytesIO(uploaded_file.read()))
+            else:
+                df = pd.read_excel(io.BytesIO(uploaded_file.read()))
+        except Exception as e:
+            return Response(
+                {'error': f'Failed to read file: {str(e)}'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Validate required columns
+        required_columns = [
+            'Company Name', 'Industry', 'Company Size Category', 'Location', 'Email'
+        ]
+
+        missing_columns = [col for col in required_columns if col not in df.columns]
+        if missing_columns:
+            return Response(
+                {'error': f'Missing required columns: {", ".join(missing_columns)}'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Process the data
+        created_count = 0
+        skipped_count = 0
+        errors = []
+
+        for index, row in df.iterrows():
+            try:
+                # Skip rows with empty required fields
+                if pd.isna(row['Company Name']) or not str(row['Company Name']).strip():
+                    skipped_count += 1
+                    continue
+
+                company_name = str(row['Company Name']).strip()
+
+                # Check if company already exists
+                if Company.objects.filter(name__iexact=company_name).exists():
+                    skipped_count += 1
+                    continue
+
+                # Map form fields to model fields
+                company_data = {
+                    'name': company_name,
+                    'industry': self._map_industry(str(row.get('Industry', '')).strip()),
+                    'size': self._map_company_size(str(row.get('Company Size Category', '')).strip()),
+                    'location': str(row.get('Location', '')).strip(),
+                    'email': str(row.get('Email', '')).strip(),
+                    'phone': str(row.get('Phone', '')).strip(),
+                    'website': str(row.get('Website', '')).strip(),
+                    'company_type': self._map_company_type(str(row.get('Company Type', '')).strip()),
+                    'year_established': self._safe_int(row.get('Year Established')),
+                    'employee_count': self._safe_int(row.get('Number of Employees')),
+                    'annual_revenue': self._safe_decimal(row.get('Annual Revenue (Millions)'), multiplier=1000000),
+                    'travel_budget': self._safe_decimal(row.get('Annual Travel Budget (Millions)'), multiplier=1000000),
+                    'annual_travel_volume': str(row.get('Annual Travel Volume', '')).strip(),
+                    'travel_frequency': self._map_travel_frequency(str(row.get('Travel Frequency', '')).strip()),
+                    'preferred_class': self._map_preferred_class(str(row.get('Preferred Class', '')).strip()),
+                    'credit_rating': self._map_credit_rating(str(row.get('Credit Rating', '')).strip()),
+                    'payment_terms': self._map_payment_terms(str(row.get('Payment Terms', '')).strip()),
+                    'sustainability_focus': self._map_sustainability(str(row.get('Sustainability Focus', '')).strip()),
+                    'risk_level': self._map_risk_level(str(row.get('Risk Level', '')).strip()),
+                    'expansion_plans': self._map_expansion_plans(str(row.get('Expansion Plans', '')).strip()),
+                    'specialties': str(row.get('Specialties (comma-separated)', '')).strip(),
+                    'technology_integration': str(row.get('Technology Integration (comma-separated)', '')).strip(),
+                    'current_airlines': str(row.get('Current Airlines (comma-separated)', '')).strip(),
+                    'description': str(row.get('Notes', '')).strip(),
+                    'is_active': True
+                }
+
+                # Remove empty strings and None values
+                company_data = {k: v for k, v in company_data.items() if v not in ['', None, 'nan']}
+
+                # Create the company
+                Company.objects.create(**company_data)
+                created_count += 1
+
+            except Exception as e:
+                errors.append(f'Row {index + 2}: {str(e)}')
+                continue
+
+        response_data = {
+            'success': True,
+            'message': f'Upload completed successfully',
+            'created_count': created_count,
+            'skipped_count': skipped_count,
+            'total_rows': len(df)
+        }
+
+        if errors:
+            response_data['errors'] = errors[:10]  # Limit to first 10 errors
+            response_data['total_errors'] = len(errors)
+
+        return Response(response_data, status=status.HTTP_201_CREATED)
+
+    except Exception as e:
+        return Response(
+            {'error': f'Upload failed: {str(e)}'},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def download_sample_excel(request):
+    """
+    Generate and return a sample Excel file with dummy corporate data
+    """
+    try:
+        # Sample data that matches the Company model fields
+        sample_data = [
+            {
+                'name': 'TechCorp Solutions',
+                'company_type': 'corporation',
+                'industry': 'technology',
+                'location': 'San Francisco, CA',
+                'email': 'contact@techcorp.com',
+                'phone': '+1-555-0123',
+                'website': 'https://techcorp.com',
+                'employee_count': 500,
+                'annual_revenue': 50000000,
+                'year_established': 2010,
+                'size': 'medium',
+                'credit_rating': 'AA',
+                'payment_terms': 'Net 30',
+                'travel_budget': 2000000,
+                'annual_travel_volume': '$2M annually',
+                'travel_frequency': 'Weekly',
+                'preferred_class': 'Business',
+                'sustainability_focus': 'High',
+                'risk_level': 'Low',
+                'current_airlines': 'United, Delta, American',
+                'expansion_plans': 'Aggressive',
+                'specialties': 'AI, Machine Learning, Cloud Computing',
+                'technology_integration': 'Advanced CRM, API Integration, Mobile Apps',
+                'description': 'Leading technology solutions provider specializing in enterprise software and cloud services.'
+            },
+            {
+                'name': 'Global Manufacturing Inc',
+                'company_type': 'corporation',
+                'industry': 'manufacturing',
+                'location': 'Detroit, MI',
+                'email': 'info@globalmanuf.com',
+                'phone': '+1-555-0456',
+                'website': 'https://globalmanuf.com',
+                'employee_count': 1200,
+                'annual_revenue': 120000000,
+                'year_established': 1995,
+                'size': 'large',
+                'credit_rating': 'AAA',
+                'payment_terms': 'Net 45',
+                'travel_budget': 5000000,
+                'annual_travel_volume': '$5M annually',
+                'travel_frequency': 'Monthly',
+                'preferred_class': 'Economy Plus',
+                'sustainability_focus': 'Very High',
+                'risk_level': 'Very Low',
+                'current_airlines': 'Southwest, JetBlue',
+                'expansion_plans': 'Moderate',
+                'specialties': 'Automotive Parts, Industrial Equipment, Supply Chain',
+                'technology_integration': 'ERP Systems, IoT Sensors, Automation',
+                'description': 'Leading manufacturer of automotive components and industrial equipment with global operations.'
+            },
+            {
+                'name': 'HealthCare Partners LLC',
+                'company_type': 'llc',
+                'industry': 'healthcare',
+                'location': 'Boston, MA',
+                'email': 'contact@healthpartners.com',
+                'phone': '+1-555-0789',
+                'website': 'https://healthpartners.com',
+                'employee_count': 300,
+                'annual_revenue': 25000000,
+                'year_established': 2005,
+                'size': 'medium',
+                'credit_rating': 'A',
+                'payment_terms': 'Net 30',
+                'travel_budget': 800000,
+                'annual_travel_volume': '$800K annually',
+                'travel_frequency': 'Bi-weekly',
+                'preferred_class': 'Economy',
+                'sustainability_focus': 'Medium',
+                'risk_level': 'Medium',
+                'current_airlines': 'Delta, American',
+                'expansion_plans': 'Conservative',
+                'specialties': 'Medical Devices, Patient Care, Telemedicine',
+                'technology_integration': 'EMR Systems, Patient Portals, Telehealth',
+                'description': 'Healthcare services provider focused on innovative patient care and medical technology solutions.'
+            },
+            {
+                'name': 'Financial Advisors Group',
+                'company_type': 'partnership',
+                'industry': 'finance',
+                'location': 'New York, NY',
+                'email': 'info@finadvgroup.com',
+                'phone': '+1-555-0321',
+                'website': 'https://finadvgroup.com',
+                'employee_count': 150,
+                'annual_revenue': 35000000,
+                'year_established': 2000,
+                'size': 'small',
+                'credit_rating': 'BBB',
+                'payment_terms': 'Net 15',
+                'travel_budget': 1200000,
+                'annual_travel_volume': '$1.2M annually',
+                'travel_frequency': 'Daily',
+                'preferred_class': 'First',
+                'sustainability_focus': 'Low',
+                'risk_level': 'High',
+                'current_airlines': 'United, Delta',
+                'expansion_plans': 'Rapid',
+                'specialties': 'Investment Banking, Portfolio Management, Risk Assessment',
+                'technology_integration': 'Trading Platforms, Risk Analytics, Mobile Banking',
+                'description': 'Premier financial advisory firm providing comprehensive investment and wealth management services.'
+            },
+            {
+                'name': 'Green Energy Solutions',
+                'company_type': 'corporation',
+                'industry': 'energy',
+                'location': 'Austin, TX',
+                'email': 'contact@greenenergy.com',
+                'phone': '+1-555-0654',
+                'website': 'https://greenenergy.com',
+                'employee_count': 800,
+                'annual_revenue': 75000000,
+                'year_established': 2012,
+                'size': 'large',
+                'credit_rating': 'AA',
+                'payment_terms': 'Net 60',
+                'travel_budget': 3000000,
+                'annual_travel_volume': '$3M annually',
+                'travel_frequency': 'Quarterly',
+                'preferred_class': 'Business/First',
+                'sustainability_focus': 'Very High',
+                'risk_level': 'Low',
+                'current_airlines': 'Southwest, United',
+                'expansion_plans': 'Aggressive',
+                'specialties': 'Solar Power, Wind Energy, Battery Storage, Grid Solutions',
+                'technology_integration': 'Smart Grid, IoT Monitoring, AI Optimization',
+                'description': 'Leading renewable energy company specializing in solar and wind power solutions for commercial and residential markets.'
+            }
+        ]
+
+        # Create DataFrame
+        df = pd.DataFrame(sample_data)
+
+        # Create Excel file in memory
+        output = io.BytesIO()
+        with pd.ExcelWriter(output, engine='openpyxl') as writer:
+            df.to_excel(writer, sheet_name='Corporate Data Sample', index=False)
+
+            # Get the workbook and worksheet to add some formatting
+            workbook = writer.book
+            worksheet = writer.sheets['Corporate Data Sample']
+
+            # Auto-adjust column widths
+            for col in worksheet.columns:
+                max_length = 0
+                column = col[0].column_letter
+                for cell in col:
+                    try:
+                        if len(str(cell.value)) > max_length:
+                            max_length = len(str(cell.value))
+                    except:
+                        pass
+                adjusted_width = min(max_length + 2, 50)
+                worksheet.column_dimensions[column].width = adjusted_width
+
+        output.seek(0)
+
+        # Create response
+        response = HttpResponse(
+            output.getvalue(),
+            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
+        response['Content-Disposition'] = f'attachment; filename="corporate_data_sample_{datetime.now().strftime("%Y%m%d")}.xlsx"'
+
+        return response
+
+    except Exception as e:
+        return Response(
+            {'error': f'Failed to generate sample file: {str(e)}'},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+
 @api_view(['GET', 'POST'])
 @permission_classes([AllowAny])
 def lead_stats(request):

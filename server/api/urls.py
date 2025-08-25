@@ -32,5 +32,7 @@ urlpatterns = [
     path('leads/recent-activity/', recent_activity, name='recent_activity'),
     path('leads/top-leads/', top_leads, name='top_leads'),
     path('leads/pipeline-stats/', lead_pipeline_stats, name='lead_pipeline_stats'),
+    path('companies/bulk-upload/', views.bulk_upload_companies, name='bulk_upload_companies'),
+    path('companies/download-sample/', views.download_sample_excel, name='download_sample_excel'),
     path('', include(router.urls)),
 ]

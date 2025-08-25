@@ -99,6 +99,9 @@ import {
 // Import useDebounce hook
 import { useDebounce } from "../hooks/useDebounce";
 
+// Import toast for notifications
+import { toast } from "sonner";
+
 // API utility functions
 
 const transformCompanyData = (company) => {
@@ -356,7 +359,7 @@ export function CorporateSearch({
   const debouncedSearchParams = useDebounce(searchParams, 500); // 500ms debounce delay
 
   // Initialize company API hook
-  const companyApi = useCompanyApi();
+  const { searchCompanies, addCompany, moveToLead, bulkUploadCompanies, downloadSampleExcel } = useCompanyApi();
 
   const [filteredCorporates, setFilteredCorporates] = useState([]);
   const [displayedCorporates, setDisplayedCorporates] = useState([]);
@@ -456,15 +459,14 @@ export function CorporateSearch({
   };
 
   // Function to download the sample Excel template
-  const downloadSampleTemplate = () => {
-    // In a real application, you would fetch this from a URL or generate it
-    // For now, let's assume it's a static file or a placeholder
-    const link = document.createElement('a');
-    link.href = '/path/to/your/sample-company-template.xlsx'; // Replace with actual path
-    link.setAttribute('download', 'sample-company-template.xlsx');
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
+  const handleDownloadSample = async () => {
+    try {
+      await downloadSampleExcel();
+      toast.success('Sample template downloaded successfully');
+    } catch (error) {
+      console.error('Download failed:', error);
+      toast.error('Failed to download sample template');
+    }
   };
 
   // Function to handle the upload process
@@ -483,7 +485,7 @@ export function CorporateSearch({
       const formData = new FormData();
       formData.append('companies', uploadFile); // 'companies' should match the expected field name on the backend
 
-      const response = await companyApi.uploadCompanies(formData, (progressEvent) => {
+      const response = await bulkUploadCompanies(formData, (progressEvent) => { // Use bulkUploadCompanies from useCompanyApi
         const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
         setUploadProgress(percentCompleted);
       });
@@ -511,7 +513,7 @@ export function CorporateSearch({
     setError("");
 
     try {
-      const companies = await companyApi.searchCompanies(filters);
+      const companies = await searchCompanies(filters); // Use searchCompanies from useCompanyApi
       const transformedCompanies = companies.map(transformCompanyData);
       console.log(companies, "companies");
       setFilteredCorporates(transformedCompanies);
@@ -555,7 +557,7 @@ export function CorporateSearch({
       setError("");
 
       try {
-        const companies = await companyApi.searchCompanies({});
+        const companies = await searchCompanies({}); // Use searchCompanies from useCompanyApi
         const transformedCompanies = companies.map(transformCompanyData);
         setFilteredCorporates(transformedCompanies);
         applyFiltersAndSort(transformedCompanies);
@@ -590,7 +592,7 @@ export function CorporateSearch({
       };
 
       // Call the API directly instead of through loadCompanies to avoid dependency issues
-      const companies = await companyApi.searchCompanies(mergedFilters);
+      const companies = await searchCompanies(mergedFilters); // Use searchCompanies from useCompanyApi
       const transformedCompanies = companies.map(transformCompanyData);
       setFilteredCorporates(transformedCompanies);
       applyFiltersAndSort(transformedCompanies);
@@ -795,7 +797,7 @@ export function CorporateSearch({
       };
 
       // Call the API to create the lead
-      const createdLead = await companyApi.createLead(leadData);
+      const createdLead = await moveToLead(leadData); // Use moveToLead from useCompanyApi
 
       // Mark the company as moved to lead via API
       try {
@@ -877,21 +879,21 @@ export function CorporateSearch({
           : null, // Convert millions to actual amount
         annual_travel_volume: newCompany.annualTravelVolume,
         travel_frequency: newCompany.travelFrequency,
-        preferred_class: newCompany.preferredClass,
-        sustainability_focus: newCompany.sustainabilityFocus,
-        risk_level: newCompany.riskLevel,
-        current_airlines: newCompany.currentAirlines,
+        preferredClass: newCompany.preferredClass,
+        sustainabilityFocus: newCompany.sustainabilityFocus,
+        riskLevel: newCompany.riskLevel,
+        currentAirlines: newCompany.currentAirlines,
 
         // Additional Info
-        expansion_plans: newCompany.expansionPlans,
+        expansionPlans: newCompany.expansionPlans,
         specialties: newCompany.specialties,
-        technology_integration: newCompany.technologyIntegration,
+        technologyIntegration: newCompany.technologyIntegration,
         description: newCompany.notes || "",
       };
 
       console.log("Sending company data:", companyData);
 
-      const savedCompany = await companyApi.createCompany(companyData);
+      const savedCompany = await addCompany(companyData); // Use addCompany from useCompanyApi
 
       // Reset form
       setNewCompany({
@@ -928,7 +930,7 @@ export function CorporateSearch({
 
       // Refresh the companies list to show the new company
       try {
-        const companies = await companyApi.searchCompanies(searchParams);
+        const companies = await searchCompanies(searchParams); // Use searchCompanies from useCompanyApi
         const transformedCompanies = companies.map(transformCompanyData);
         setFilteredCorporates(transformedCompanies);
         applyFiltersAndSort(transformedCompanies);
@@ -1922,6 +1924,7 @@ export function CorporateSearch({
                         <SelectItem value="aa">AA</SelectItem>
                         <SelectItem value="a">A</SelectItem>
                         <SelectItem value="bbb">BBB</SelectItem>
+                        <SelectItem value="bb">BB</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -2705,7 +2708,7 @@ export function CorporateSearch({
             {/* Download Template Button */}
             <Button
               variant="outline"
-              onClick={downloadSampleTemplate}
+              onClick={handleDownloadSample}
               className="w-full border-gray-300 text-gray-700 flex items-center justify-center"
             >
               <FileText className="h-4 w-4 mr-2" />
@@ -2720,7 +2723,7 @@ export function CorporateSearch({
               <p className="text-xs text-gray-500 mb-4">
                 Supports .xlsx and .xls formats. Or click below to browse files.
               </p>
-              
+
               <div className="mb-4">
                 <Button
                   variant="outline"
@@ -2738,7 +2741,7 @@ export function CorporateSearch({
                   className="hidden"
                 />
               </div>
-              
+
               {uploadFile && (
                 <p className="text-sm text-gray-800 font-medium">
                   Selected File: {uploadFile.name}
