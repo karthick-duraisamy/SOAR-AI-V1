@@ -252,7 +252,8 @@ CREATE TABLE public.api_company (
     sustainability_focus character varying(20) NOT NULL,
     technology_integration text NOT NULL,
     travel_frequency character varying(20) NOT NULL,
-    year_established integer
+    year_established integer,
+    move_as_lead boolean NOT NULL
 );
 
 

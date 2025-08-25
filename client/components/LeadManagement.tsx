@@ -384,7 +384,7 @@ export function LeadManagement({ onNavigate }: LeadManagementProps) {
                 <CardDescription className="text-gray-500 mt-1">Latest lead interactions and status changes</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
+                <div className="space-y-4  max-h-[60vh] overflow-y-auto">
                   {isLoading ? (
                     <>
                       {[...Array(4)].map((_, index) => (
@@ -600,13 +600,16 @@ export function LeadManagement({ onNavigate }: LeadManagementProps) {
             <UserX className="h-4 w-4 text-red-600" />
             <AlertDescription className="text-red-800">
               You have {leadStats?.unqualified || 0} unqualified leads that may need attention.
-              <Button variant="link" className="p-0 ml-1 text-red-700 hover:text-red-800" onClick={() => onNavigate('leads-list',{
-                search: "",
-                status: "unqualified",
-                industry: "",
-                score: "",
-                engagement: ""
-              })}>
+              <Button variant="link" className="p-0 ml-1 text-red-700 hover:text-red-800" onClick={() => { 
+                const filters = {
+                  search: "",
+                  status: "unqualified",
+                  industry: "",
+                  score: "",
+                  engagement: ""
+                };
+                onNavigate('leads-list', filters);
+              }}>
                 Review unqualified leads &rarr;
               </Button>
             </AlertDescription>

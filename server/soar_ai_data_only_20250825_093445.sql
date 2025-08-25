@@ -5,8 +5,6 @@
 -- Dumped from database version 16.9
 -- Dumped by pg_dump version 16.9
 
--- Started on 2025-08-25 09:16:25 UTC
-
 SET statement_timeout = 0;
 SET lock_timeout = 0;
 SET idle_in_transaction_session_timeout = 0;
@@ -18,1074 +16,61 @@ SET xmloption = content;
 SET client_min_messages = warning;
 SET row_security = off;
 
-ALTER TABLE IF EXISTS ONLY public.django_admin_log DROP CONSTRAINT IF EXISTS django_admin_log_user_id_c564eba6_fk_auth_user_id;
-ALTER TABLE IF EXISTS ONLY public.django_admin_log DROP CONSTRAINT IF EXISTS django_admin_log_content_type_id_c4bce8eb_fk_django_co;
-ALTER TABLE IF EXISTS ONLY public.auth_user_user_permissions DROP CONSTRAINT IF EXISTS auth_user_user_permissions_user_id_a95ead1b_fk_auth_user_id;
-ALTER TABLE IF EXISTS ONLY public.auth_user_user_permissions DROP CONSTRAINT IF EXISTS auth_user_user_permi_permission_id_1fbb5f2c_fk_auth_perm;
-ALTER TABLE IF EXISTS ONLY public.auth_user_groups DROP CONSTRAINT IF EXISTS auth_user_groups_user_id_6a12ed8b_fk_auth_user_id;
-ALTER TABLE IF EXISTS ONLY public.auth_user_groups DROP CONSTRAINT IF EXISTS auth_user_groups_group_id_97559544_fk_auth_group_id;
-ALTER TABLE IF EXISTS ONLY public.auth_permission DROP CONSTRAINT IF EXISTS auth_permission_content_type_id_2f476e4b_fk_django_co;
-ALTER TABLE IF EXISTS ONLY public.auth_group_permissions DROP CONSTRAINT IF EXISTS auth_group_permissions_group_id_b120cbf9_fk_auth_group_id;
-ALTER TABLE IF EXISTS ONLY public.auth_group_permissions DROP CONSTRAINT IF EXISTS auth_group_permissio_permission_id_84c5c92e_fk_auth_perm;
-ALTER TABLE IF EXISTS ONLY public.api_traveloffer_target_companies DROP CONSTRAINT IF EXISTS api_traveloffer_targ_traveloffer_id_f5ff6ed7_fk_api_trave;
-ALTER TABLE IF EXISTS ONLY public.api_traveloffer_target_companies DROP CONSTRAINT IF EXISTS api_traveloffer_targ_company_id_b7ac8b17_fk_api_compa;
-ALTER TABLE IF EXISTS ONLY public.api_traveloffer DROP CONSTRAINT IF EXISTS api_traveloffer_created_by_id_8302f089_fk_auth_user_id;
-ALTER TABLE IF EXISTS ONLY public.api_supportticket DROP CONSTRAINT IF EXISTS api_supportticket_contact_id_f88e966f_fk_api_contact_id;
-ALTER TABLE IF EXISTS ONLY public.api_supportticket DROP CONSTRAINT IF EXISTS api_supportticket_company_id_37091f98_fk_api_company_id;
-ALTER TABLE IF EXISTS ONLY public.api_supportticket DROP CONSTRAINT IF EXISTS api_supportticket_assigned_to_id_58ef3c94_fk_auth_user_id;
-ALTER TABLE IF EXISTS ONLY public.api_opportunityactivity DROP CONSTRAINT IF EXISTS api_opportunityactivity_created_by_id_145d5cd4_fk_auth_user_id;
-ALTER TABLE IF EXISTS ONLY public.api_opportunityactivity DROP CONSTRAINT IF EXISTS api_opportunityactiv_opportunity_id_4ca456a3_fk_api_oppor;
-ALTER TABLE IF EXISTS ONLY public.api_opportunity DROP CONSTRAINT IF EXISTS api_opportunity_lead_id_18545556_fk_api_lead_id;
-ALTER TABLE IF EXISTS ONLY public.api_leadnote DROP CONSTRAINT IF EXISTS api_leadnote_lead_id_b0673144_fk_api_lead_id;
-ALTER TABLE IF EXISTS ONLY public.api_leadnote DROP CONSTRAINT IF EXISTS api_leadnote_created_by_id_1d483ee9_fk_auth_user_id;
-ALTER TABLE IF EXISTS ONLY public.api_leadhistory DROP CONSTRAINT IF EXISTS api_leadhistory_user_id_ecc34f8a_fk_auth_user_id;
-ALTER TABLE IF EXISTS ONLY public.api_leadhistory DROP CONSTRAINT IF EXISTS api_leadhistory_lead_id_7e0a62f4_fk_api_lead_id;
-ALTER TABLE IF EXISTS ONLY public.api_lead DROP CONSTRAINT IF EXISTS api_lead_contact_id_dc816d20_fk_api_contact_id;
-ALTER TABLE IF EXISTS ONLY public.api_lead DROP CONSTRAINT IF EXISTS api_lead_company_id_be70c00a_fk_api_company_id;
-ALTER TABLE IF EXISTS ONLY public.api_lead DROP CONSTRAINT IF EXISTS api_lead_assigned_to_id_f0f68950_fk_auth_user_id;
-ALTER TABLE IF EXISTS ONLY public.api_emailcampaign_target_leads DROP CONSTRAINT IF EXISTS api_emailcampaign_target_leads_lead_id_5af85417_fk_api_lead_id;
-ALTER TABLE IF EXISTS ONLY public.api_emailcampaign_target_leads DROP CONSTRAINT IF EXISTS api_emailcampaign_ta_emailcampaign_id_214b3ace_fk_api_email;
-ALTER TABLE IF EXISTS ONLY public.api_contractbreach DROP CONSTRAINT IF EXISTS api_contractbreach_contract_id_27a736ec_fk_api_contract_id;
-ALTER TABLE IF EXISTS ONLY public.api_contract DROP CONSTRAINT IF EXISTS api_contract_opportunity_id_da447352_fk_api_opportunity_id;
-ALTER TABLE IF EXISTS ONLY public.api_contract DROP CONSTRAINT IF EXISTS api_contract_company_id_e37b23ce_fk_api_company_id;
-ALTER TABLE IF EXISTS ONLY public.api_contact DROP CONSTRAINT IF EXISTS api_contact_company_id_f4d09d00_fk_api_company_id;
-ALTER TABLE IF EXISTS ONLY public.api_aiconversation DROP CONSTRAINT IF EXISTS api_aiconversation_user_id_1a71143d_fk_auth_user_id;
-ALTER TABLE IF EXISTS ONLY public.api_activitylog DROP CONSTRAINT IF EXISTS api_activitylog_user_id_460724d0_fk_auth_user_id;
-DROP INDEX IF EXISTS public.django_session_session_key_c0390e0f_like;
-DROP INDEX IF EXISTS public.django_session_expire_date_a5c62663;
-DROP INDEX IF EXISTS public.django_admin_log_user_id_c564eba6;
-DROP INDEX IF EXISTS public.django_admin_log_content_type_id_c4bce8eb;
-DROP INDEX IF EXISTS public.auth_user_username_6821ab7c_like;
-DROP INDEX IF EXISTS public.auth_user_user_permissions_user_id_a95ead1b;
-DROP INDEX IF EXISTS public.auth_user_user_permissions_permission_id_1fbb5f2c;
-DROP INDEX IF EXISTS public.auth_user_groups_user_id_6a12ed8b;
-DROP INDEX IF EXISTS public.auth_user_groups_group_id_97559544;
-DROP INDEX IF EXISTS public.auth_permission_content_type_id_2f476e4b;
-DROP INDEX IF EXISTS public.auth_group_permissions_permission_id_84c5c92e;
-DROP INDEX IF EXISTS public.auth_group_permissions_group_id_b120cbf9;
-DROP INDEX IF EXISTS public.auth_group_name_a6ea08ec_like;
-DROP INDEX IF EXISTS public.api_traveloffer_target_companies_traveloffer_id_f5ff6ed7;
-DROP INDEX IF EXISTS public.api_traveloffer_target_companies_company_id_b7ac8b17;
-DROP INDEX IF EXISTS public.api_traveloffer_created_by_id_8302f089;
-DROP INDEX IF EXISTS public.api_supportticket_ticket_number_e2907423_like;
-DROP INDEX IF EXISTS public.api_supportticket_contact_id_f88e966f;
-DROP INDEX IF EXISTS public.api_supportticket_company_id_37091f98;
-DROP INDEX IF EXISTS public.api_supportticket_assigned_to_id_58ef3c94;
-DROP INDEX IF EXISTS public.api_opportunityactivity_opportunity_id_4ca456a3;
-DROP INDEX IF EXISTS public.api_opportunityactivity_created_by_id_145d5cd4;
-DROP INDEX IF EXISTS public.api_leadnote_lead_id_b0673144;
-DROP INDEX IF EXISTS public.api_leadnote_created_by_id_1d483ee9;
-DROP INDEX IF EXISTS public.api_leadhistory_user_id_ecc34f8a;
-DROP INDEX IF EXISTS public.api_leadhistory_lead_id_7e0a62f4;
-DROP INDEX IF EXISTS public.api_lead_contact_id_dc816d20;
-DROP INDEX IF EXISTS public.api_lead_company_id_be70c00a;
-DROP INDEX IF EXISTS public.api_lead_assigned_to_id_f0f68950;
-DROP INDEX IF EXISTS public.api_emailcampaign_target_leads_lead_id_5af85417;
-DROP INDEX IF EXISTS public.api_emailcampaign_target_leads_emailcampaign_id_214b3ace;
-DROP INDEX IF EXISTS public.api_contractbreach_contract_id_27a736ec;
-DROP INDEX IF EXISTS public.api_contract_contract_number_f1accfc0_like;
-DROP INDEX IF EXISTS public.api_contract_company_id_e37b23ce;
-DROP INDEX IF EXISTS public.api_contact_company_id_f4d09d00;
-DROP INDEX IF EXISTS public.api_aiconversation_user_id_1a71143d;
-DROP INDEX IF EXISTS public.api_activitylog_user_id_460724d0;
-ALTER TABLE IF EXISTS ONLY public.django_session DROP CONSTRAINT IF EXISTS django_session_pkey;
-ALTER TABLE IF EXISTS ONLY public.django_migrations DROP CONSTRAINT IF EXISTS django_migrations_pkey;
-ALTER TABLE IF EXISTS ONLY public.django_content_type DROP CONSTRAINT IF EXISTS django_content_type_pkey;
-ALTER TABLE IF EXISTS ONLY public.django_content_type DROP CONSTRAINT IF EXISTS django_content_type_app_label_model_76bd3d3b_uniq;
-ALTER TABLE IF EXISTS ONLY public.django_admin_log DROP CONSTRAINT IF EXISTS django_admin_log_pkey;
-ALTER TABLE IF EXISTS ONLY public.auth_user DROP CONSTRAINT IF EXISTS auth_user_username_key;
-ALTER TABLE IF EXISTS ONLY public.auth_user_user_permissions DROP CONSTRAINT IF EXISTS auth_user_user_permissions_user_id_permission_id_14a6b632_uniq;
-ALTER TABLE IF EXISTS ONLY public.auth_user_user_permissions DROP CONSTRAINT IF EXISTS auth_user_user_permissions_pkey;
-ALTER TABLE IF EXISTS ONLY public.auth_user DROP CONSTRAINT IF EXISTS auth_user_pkey;
-ALTER TABLE IF EXISTS ONLY public.auth_user_groups DROP CONSTRAINT IF EXISTS auth_user_groups_user_id_group_id_94350c0c_uniq;
-ALTER TABLE IF EXISTS ONLY public.auth_user_groups DROP CONSTRAINT IF EXISTS auth_user_groups_pkey;
-ALTER TABLE IF EXISTS ONLY public.auth_permission DROP CONSTRAINT IF EXISTS auth_permission_pkey;
-ALTER TABLE IF EXISTS ONLY public.auth_permission DROP CONSTRAINT IF EXISTS auth_permission_content_type_id_codename_01ab375a_uniq;
-ALTER TABLE IF EXISTS ONLY public.auth_group DROP CONSTRAINT IF EXISTS auth_group_pkey;
-ALTER TABLE IF EXISTS ONLY public.auth_group_permissions DROP CONSTRAINT IF EXISTS auth_group_permissions_pkey;
-ALTER TABLE IF EXISTS ONLY public.auth_group_permissions DROP CONSTRAINT IF EXISTS auth_group_permissions_group_id_permission_id_0cd325b0_uniq;
-ALTER TABLE IF EXISTS ONLY public.auth_group DROP CONSTRAINT IF EXISTS auth_group_name_key;
-ALTER TABLE IF EXISTS ONLY public.api_traveloffer_target_companies DROP CONSTRAINT IF EXISTS api_traveloffer_target_companies_pkey;
-ALTER TABLE IF EXISTS ONLY public.api_traveloffer_target_companies DROP CONSTRAINT IF EXISTS api_traveloffer_target_c_traveloffer_id_company_i_79bd13d8_uniq;
-ALTER TABLE IF EXISTS ONLY public.api_traveloffer DROP CONSTRAINT IF EXISTS api_traveloffer_pkey;
-ALTER TABLE IF EXISTS ONLY public.api_supportticket DROP CONSTRAINT IF EXISTS api_supportticket_ticket_number_key;
-ALTER TABLE IF EXISTS ONLY public.api_supportticket DROP CONSTRAINT IF EXISTS api_supportticket_pkey;
-ALTER TABLE IF EXISTS ONLY public.api_revenueforecast DROP CONSTRAINT IF EXISTS api_revenueforecast_pkey;
-ALTER TABLE IF EXISTS ONLY public.api_opportunityactivity DROP CONSTRAINT IF EXISTS api_opportunityactivity_pkey;
-ALTER TABLE IF EXISTS ONLY public.api_opportunity DROP CONSTRAINT IF EXISTS api_opportunity_pkey;
-ALTER TABLE IF EXISTS ONLY public.api_opportunity DROP CONSTRAINT IF EXISTS api_opportunity_lead_id_key;
-ALTER TABLE IF EXISTS ONLY public.api_leadnote DROP CONSTRAINT IF EXISTS api_leadnote_pkey;
-ALTER TABLE IF EXISTS ONLY public.api_leadhistory DROP CONSTRAINT IF EXISTS api_leadhistory_pkey;
-ALTER TABLE IF EXISTS ONLY public.api_lead DROP CONSTRAINT IF EXISTS api_lead_pkey;
-ALTER TABLE IF EXISTS ONLY public.api_emailcampaign_target_leads DROP CONSTRAINT IF EXISTS api_emailcampaign_target_leads_pkey;
-ALTER TABLE IF EXISTS ONLY public.api_emailcampaign_target_leads DROP CONSTRAINT IF EXISTS api_emailcampaign_target_emailcampaign_id_lead_id_be87f6f2_uniq;
-ALTER TABLE IF EXISTS ONLY public.api_emailcampaign DROP CONSTRAINT IF EXISTS api_emailcampaign_pkey;
-ALTER TABLE IF EXISTS ONLY public.api_contractbreach DROP CONSTRAINT IF EXISTS api_contractbreach_pkey;
-ALTER TABLE IF EXISTS ONLY public.api_contract DROP CONSTRAINT IF EXISTS api_contract_pkey;
-ALTER TABLE IF EXISTS ONLY public.api_contract DROP CONSTRAINT IF EXISTS api_contract_opportunity_id_key;
-ALTER TABLE IF EXISTS ONLY public.api_contract DROP CONSTRAINT IF EXISTS api_contract_contract_number_key;
-ALTER TABLE IF EXISTS ONLY public.api_contact DROP CONSTRAINT IF EXISTS api_contact_pkey;
-ALTER TABLE IF EXISTS ONLY public.api_company DROP CONSTRAINT IF EXISTS api_company_pkey;
-ALTER TABLE IF EXISTS ONLY public.api_aiconversation DROP CONSTRAINT IF EXISTS api_aiconversation_session_id_key;
-ALTER TABLE IF EXISTS ONLY public.api_aiconversation DROP CONSTRAINT IF EXISTS api_aiconversation_pkey;
-ALTER TABLE IF EXISTS ONLY public.api_activitylog DROP CONSTRAINT IF EXISTS api_activitylog_pkey;
-DROP TABLE IF EXISTS public.django_session;
-DROP TABLE IF EXISTS public.django_migrations;
-DROP TABLE IF EXISTS public.django_content_type;
-DROP TABLE IF EXISTS public.django_admin_log;
-DROP TABLE IF EXISTS public.auth_user_user_permissions;
-DROP TABLE IF EXISTS public.auth_user_groups;
-DROP TABLE IF EXISTS public.auth_user;
-DROP TABLE IF EXISTS public.auth_permission;
-DROP TABLE IF EXISTS public.auth_group_permissions;
-DROP TABLE IF EXISTS public.auth_group;
-DROP TABLE IF EXISTS public.api_traveloffer_target_companies;
-DROP TABLE IF EXISTS public.api_traveloffer;
-DROP TABLE IF EXISTS public.api_supportticket;
-DROP TABLE IF EXISTS public.api_revenueforecast;
-DROP TABLE IF EXISTS public.api_opportunityactivity;
-DROP TABLE IF EXISTS public.api_opportunity;
-DROP TABLE IF EXISTS public.api_leadnote;
-DROP TABLE IF EXISTS public.api_leadhistory;
-DROP TABLE IF EXISTS public.api_lead;
-DROP TABLE IF EXISTS public.api_emailcampaign_target_leads;
-DROP TABLE IF EXISTS public.api_emailcampaign;
-DROP TABLE IF EXISTS public.api_contractbreach;
-DROP TABLE IF EXISTS public.api_contract;
-DROP TABLE IF EXISTS public.api_contact;
-DROP TABLE IF EXISTS public.api_company;
-DROP TABLE IF EXISTS public.api_aiconversation;
-DROP TABLE IF EXISTS public.api_activitylog;
-SET default_tablespace = '';
-
-SET default_table_access_method = heap;
-
---
--- TOC entry 261 (class 1259 OID 32884)
--- Name: api_activitylog; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.api_activitylog (
-    id bigint NOT NULL,
-    action_type character varying(20) NOT NULL,
-    action character varying(255) NOT NULL,
-    entity_type character varying(100) NOT NULL,
-    entity_id integer NOT NULL,
-    details jsonb NOT NULL,
-    ip_address inet,
-    "timestamp" timestamp with time zone NOT NULL,
-    user_id integer NOT NULL
-);
-
-
---
--- TOC entry 260 (class 1259 OID 32883)
--- Name: api_activitylog_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-ALTER TABLE public.api_activitylog ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY (
-    SEQUENCE NAME public.api_activitylog_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1
-);
-
-
---
--- TOC entry 259 (class 1259 OID 32874)
--- Name: api_aiconversation; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.api_aiconversation (
-    id bigint NOT NULL,
-    session_id uuid NOT NULL,
-    query text NOT NULL,
-    response text NOT NULL,
-    context jsonb NOT NULL,
-    entities_mentioned jsonb NOT NULL,
-    actions_suggested jsonb NOT NULL,
-    created_at timestamp with time zone NOT NULL,
-    user_id integer NOT NULL
-);
-
-
---
--- TOC entry 258 (class 1259 OID 32873)
--- Name: api_aiconversation_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-ALTER TABLE public.api_aiconversation ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY (
-    SEQUENCE NAME public.api_aiconversation_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1
-);
-
-
---
--- TOC entry 235 (class 1259 OID 32769)
--- Name: api_company; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.api_company (
-    id bigint NOT NULL,
-    name character varying(255) NOT NULL,
-    industry character varying(50) NOT NULL,
-    size character varying(20) NOT NULL,
-    location character varying(255) NOT NULL,
-    website character varying(200),
-    annual_revenue numeric(15,2),
-    employee_count integer,
-    travel_budget numeric(12,2),
-    description text NOT NULL,
-    is_active boolean NOT NULL,
-    created_at timestamp with time zone NOT NULL,
-    updated_at timestamp with time zone NOT NULL,
-    annual_travel_volume character varying(100) NOT NULL,
-    company_type character varying(50) NOT NULL,
-    credit_rating character varying(10) NOT NULL,
-    current_airlines text NOT NULL,
-    email character varying(254) NOT NULL,
-    expansion_plans character varying(20) NOT NULL,
-    payment_terms character varying(20) NOT NULL,
-    phone character varying(20) NOT NULL,
-    preferred_class character varying(20) NOT NULL,
-    risk_level character varying(20) NOT NULL,
-    specialties text NOT NULL,
-    sustainability_focus character varying(20) NOT NULL,
-    technology_integration text NOT NULL,
-    travel_frequency character varying(20) NOT NULL,
-    year_established integer
-);
-
-
---
--- TOC entry 234 (class 1259 OID 32768)
--- Name: api_company_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-ALTER TABLE public.api_company ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY (
-    SEQUENCE NAME public.api_company_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1
-);
-
-
---
--- TOC entry 237 (class 1259 OID 32777)
--- Name: api_contact; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.api_contact (
-    id bigint NOT NULL,
-    first_name character varying(100) NOT NULL,
-    last_name character varying(100) NOT NULL,
-    email character varying(254) NOT NULL,
-    phone character varying(20) NOT NULL,
-    "position" character varying(100) NOT NULL,
-    department character varying(20) NOT NULL,
-    is_decision_maker boolean NOT NULL,
-    linkedin_profile character varying(200) NOT NULL,
-    notes text NOT NULL,
-    created_at timestamp with time zone NOT NULL,
-    updated_at timestamp with time zone NOT NULL,
-    company_id bigint NOT NULL
-);
-
-
---
--- TOC entry 236 (class 1259 OID 32776)
--- Name: api_contact_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-ALTER TABLE public.api_contact ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY (
-    SEQUENCE NAME public.api_contact_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1
-);
-
-
---
--- TOC entry 239 (class 1259 OID 32785)
--- Name: api_contract; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.api_contract (
-    id bigint NOT NULL,
-    contract_number character varying(50) NOT NULL,
-    title character varying(255) NOT NULL,
-    contract_type character varying(30) NOT NULL,
-    status character varying(20) NOT NULL,
-    start_date date NOT NULL,
-    end_date date NOT NULL,
-    value numeric(12,2) NOT NULL,
-    terms text NOT NULL,
-    renewal_terms text NOT NULL,
-    auto_renewal boolean NOT NULL,
-    notice_period_days integer NOT NULL,
-    risk_score integer NOT NULL,
-    created_at timestamp with time zone NOT NULL,
-    updated_at timestamp with time zone NOT NULL,
-    company_id bigint NOT NULL,
-    opportunity_id bigint
-);
-
-
---
--- TOC entry 238 (class 1259 OID 32784)
--- Name: api_contract_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-ALTER TABLE public.api_contract ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY (
-    SEQUENCE NAME public.api_contract_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1
-);
-
-
---
--- TOC entry 257 (class 1259 OID 32859)
--- Name: api_contractbreach; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.api_contractbreach (
-    id bigint NOT NULL,
-    breach_type character varying(20) NOT NULL,
-    severity character varying(10) NOT NULL,
-    description text NOT NULL,
-    detected_date timestamp with time zone NOT NULL,
-    resolved_date timestamp with time zone,
-    is_resolved boolean NOT NULL,
-    financial_impact numeric(10,2),
-    resolution_notes text NOT NULL,
-    contract_id bigint NOT NULL
-);
-
-
---
--- TOC entry 256 (class 1259 OID 32858)
--- Name: api_contractbreach_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-ALTER TABLE public.api_contractbreach ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY (
-    SEQUENCE NAME public.api_contractbreach_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1
-);
-
-
---
--- TOC entry 253 (class 1259 OID 32845)
--- Name: api_emailcampaign; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.api_emailcampaign (
-    id bigint NOT NULL,
-    name character varying(255) NOT NULL,
-    description text NOT NULL,
-    campaign_type character varying(20) NOT NULL,
-    status character varying(20) NOT NULL,
-    subject_line character varying(255) NOT NULL,
-    email_content text NOT NULL,
-    scheduled_date timestamp with time zone,
-    sent_date timestamp with time zone,
-    emails_sent integer NOT NULL,
-    emails_opened integer NOT NULL,
-    emails_clicked integer NOT NULL,
-    created_at timestamp with time zone NOT NULL,
-    updated_at timestamp with time zone NOT NULL
-);
-
-
---
--- TOC entry 252 (class 1259 OID 32844)
--- Name: api_emailcampaign_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-ALTER TABLE public.api_emailcampaign ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY (
-    SEQUENCE NAME public.api_emailcampaign_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1
-);
-
-
---
--- TOC entry 255 (class 1259 OID 32853)
--- Name: api_emailcampaign_target_leads; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.api_emailcampaign_target_leads (
-    id bigint NOT NULL,
-    emailcampaign_id bigint NOT NULL,
-    lead_id bigint NOT NULL
-);
-
-
---
--- TOC entry 254 (class 1259 OID 32852)
--- Name: api_emailcampaign_target_leads_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-ALTER TABLE public.api_emailcampaign_target_leads ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY (
-    SEQUENCE NAME public.api_emailcampaign_target_leads_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1
-);
-
-
---
--- TOC entry 241 (class 1259 OID 32795)
--- Name: api_lead; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.api_lead (
-    id bigint NOT NULL,
-    status character varying(20) NOT NULL,
-    source character varying(20) NOT NULL,
-    priority character varying(10) NOT NULL,
-    score integer NOT NULL,
-    estimated_value numeric(12,2),
-    notes text NOT NULL,
-    next_action character varying(255) NOT NULL,
-    next_action_date timestamp with time zone,
-    created_at timestamp with time zone NOT NULL,
-    updated_at timestamp with time zone NOT NULL,
-    assigned_to_id integer,
-    company_id bigint NOT NULL,
-    contact_id bigint NOT NULL,
-    assigned_agent character varying(255)
-);
-
-
---
--- TOC entry 240 (class 1259 OID 32794)
--- Name: api_lead_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-ALTER TABLE public.api_lead ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY (
-    SEQUENCE NAME public.api_lead_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1
-);
-
-
---
--- TOC entry 265 (class 1259 OID 90134)
--- Name: api_leadhistory; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.api_leadhistory (
-    id bigint NOT NULL,
-    history_type character varying(255) NOT NULL,
-    action character varying(255) NOT NULL,
-    details text NOT NULL,
-    icon character varying(20) NOT NULL,
-    metadata jsonb NOT NULL,
-    "timestamp" timestamp with time zone NOT NULL,
-    lead_id bigint NOT NULL,
-    user_id integer
-);
-
-
---
--- TOC entry 264 (class 1259 OID 90133)
--- Name: api_leadhistory_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-ALTER TABLE public.api_leadhistory ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY (
-    SEQUENCE NAME public.api_leadhistory_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1
-);
-
-
---
--- TOC entry 263 (class 1259 OID 90114)
--- Name: api_leadnote; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.api_leadnote (
-    id bigint NOT NULL,
-    note text NOT NULL,
-    next_action character varying(255) NOT NULL,
-    urgency character varying(10) NOT NULL,
-    created_at timestamp with time zone NOT NULL,
-    updated_at timestamp with time zone NOT NULL,
-    created_by_id integer,
-    lead_id bigint NOT NULL
-);
-
-
---
--- TOC entry 262 (class 1259 OID 90113)
--- Name: api_leadnote_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-ALTER TABLE public.api_leadnote ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY (
-    SEQUENCE NAME public.api_leadnote_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1
-);
-
-
---
--- TOC entry 251 (class 1259 OID 32835)
--- Name: api_opportunity; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.api_opportunity (
-    id bigint NOT NULL,
-    name character varying(255) NOT NULL,
-    stage character varying(20) NOT NULL,
-    probability integer NOT NULL,
-    estimated_close_date date NOT NULL,
-    actual_close_date date,
-    value numeric(12,2) NOT NULL,
-    description text NOT NULL,
-    next_steps text NOT NULL,
-    created_at timestamp with time zone NOT NULL,
-    updated_at timestamp with time zone NOT NULL,
-    lead_id bigint NOT NULL
-);
-
-
---
--- TOC entry 250 (class 1259 OID 32834)
--- Name: api_opportunity_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-ALTER TABLE public.api_opportunity ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY (
-    SEQUENCE NAME public.api_opportunity_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1
-);
-
-
---
--- TOC entry 267 (class 1259 OID 155649)
--- Name: api_opportunityactivity; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.api_opportunityactivity (
-    id bigint NOT NULL,
-    type character varying(20) NOT NULL,
-    description text NOT NULL,
-    date date NOT NULL,
-    created_at timestamp with time zone NOT NULL,
-    created_by_id integer,
-    opportunity_id bigint NOT NULL
-);
-
-
---
--- TOC entry 266 (class 1259 OID 155648)
--- Name: api_opportunityactivity_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-ALTER TABLE public.api_opportunityactivity ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY (
-    SEQUENCE NAME public.api_opportunityactivity_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1
-);
-
-
---
--- TOC entry 243 (class 1259 OID 32803)
--- Name: api_revenueforecast; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.api_revenueforecast (
-    id bigint NOT NULL,
-    period_type character varying(15) NOT NULL,
-    period character varying(20) NOT NULL,
-    forecasted_revenue numeric(15,2) NOT NULL,
-    actual_revenue numeric(15,2),
-    confidence_level integer NOT NULL,
-    factors jsonb NOT NULL,
-    notes text NOT NULL,
-    created_at timestamp with time zone NOT NULL,
-    updated_at timestamp with time zone NOT NULL
-);
-
-
---
--- TOC entry 242 (class 1259 OID 32802)
--- Name: api_revenueforecast_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-ALTER TABLE public.api_revenueforecast ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY (
-    SEQUENCE NAME public.api_revenueforecast_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1
-);
-
-
---
--- TOC entry 249 (class 1259 OID 32825)
--- Name: api_supportticket; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.api_supportticket (
-    id bigint NOT NULL,
-    ticket_number character varying(20) NOT NULL,
-    subject character varying(255) NOT NULL,
-    description text NOT NULL,
-    category character varying(15) NOT NULL,
-    priority character varying(10) NOT NULL,
-    status character varying(15) NOT NULL,
-    resolution_notes text NOT NULL,
-    satisfaction_rating integer,
-    created_at timestamp with time zone NOT NULL,
-    updated_at timestamp with time zone NOT NULL,
-    resolved_at timestamp with time zone,
-    assigned_to_id integer,
-    company_id bigint NOT NULL,
-    contact_id bigint NOT NULL
-);
-
-
---
--- TOC entry 248 (class 1259 OID 32824)
--- Name: api_supportticket_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-ALTER TABLE public.api_supportticket ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY (
-    SEQUENCE NAME public.api_supportticket_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1
-);
-
-
---
--- TOC entry 245 (class 1259 OID 32811)
--- Name: api_traveloffer; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.api_traveloffer (
-    id bigint NOT NULL,
-    title character varying(255) NOT NULL,
-    description text NOT NULL,
-    offer_type character varying(20) NOT NULL,
-    status character varying(15) NOT NULL,
-    discount_percentage numeric(5,2),
-    base_price numeric(10,2) NOT NULL,
-    discounted_price numeric(10,2),
-    valid_from timestamp with time zone NOT NULL,
-    valid_until timestamp with time zone NOT NULL,
-    terms_conditions text NOT NULL,
-    bookings_count integer NOT NULL,
-    revenue_generated numeric(12,2) NOT NULL,
-    created_at timestamp with time zone NOT NULL,
-    updated_at timestamp with time zone NOT NULL,
-    created_by_id integer
-);
-
-
---
--- TOC entry 244 (class 1259 OID 32810)
--- Name: api_traveloffer_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-ALTER TABLE public.api_traveloffer ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY (
-    SEQUENCE NAME public.api_traveloffer_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1
-);
-
-
---
--- TOC entry 247 (class 1259 OID 32819)
--- Name: api_traveloffer_target_companies; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.api_traveloffer_target_companies (
-    id bigint NOT NULL,
-    traveloffer_id bigint NOT NULL,
-    company_id bigint NOT NULL
-);
-
-
---
--- TOC entry 246 (class 1259 OID 32818)
--- Name: api_traveloffer_target_companies_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-ALTER TABLE public.api_traveloffer_target_companies ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY (
-    SEQUENCE NAME public.api_traveloffer_target_companies_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1
-);
-
-
---
--- TOC entry 222 (class 1259 OID 24599)
--- Name: auth_group; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.auth_group (
-    id integer NOT NULL,
-    name character varying(150) NOT NULL
-);
-
-
---
--- TOC entry 221 (class 1259 OID 24598)
--- Name: auth_group_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-ALTER TABLE public.auth_group ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY (
-    SEQUENCE NAME public.auth_group_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1
-);
-
-
---
--- TOC entry 224 (class 1259 OID 24607)
--- Name: auth_group_permissions; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.auth_group_permissions (
-    id bigint NOT NULL,
-    group_id integer NOT NULL,
-    permission_id integer NOT NULL
-);
-
-
---
--- TOC entry 223 (class 1259 OID 24606)
--- Name: auth_group_permissions_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-ALTER TABLE public.auth_group_permissions ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY (
-    SEQUENCE NAME public.auth_group_permissions_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1
-);
-
-
---
--- TOC entry 220 (class 1259 OID 24593)
--- Name: auth_permission; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.auth_permission (
-    id integer NOT NULL,
-    name character varying(255) NOT NULL,
-    content_type_id integer NOT NULL,
-    codename character varying(100) NOT NULL
-);
-
-
---
--- TOC entry 219 (class 1259 OID 24592)
--- Name: auth_permission_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-ALTER TABLE public.auth_permission ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY (
-    SEQUENCE NAME public.auth_permission_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1
-);
-
-
---
--- TOC entry 226 (class 1259 OID 24613)
--- Name: auth_user; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.auth_user (
-    id integer NOT NULL,
-    password character varying(128) NOT NULL,
-    last_login timestamp with time zone,
-    is_superuser boolean NOT NULL,
-    username character varying(150) NOT NULL,
-    first_name character varying(150) NOT NULL,
-    last_name character varying(150) NOT NULL,
-    email character varying(254) NOT NULL,
-    is_staff boolean NOT NULL,
-    is_active boolean NOT NULL,
-    date_joined timestamp with time zone NOT NULL
-);
-
-
---
--- TOC entry 228 (class 1259 OID 24621)
--- Name: auth_user_groups; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.auth_user_groups (
-    id bigint NOT NULL,
-    user_id integer NOT NULL,
-    group_id integer NOT NULL
-);
-
-
---
--- TOC entry 227 (class 1259 OID 24620)
--- Name: auth_user_groups_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-ALTER TABLE public.auth_user_groups ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY (
-    SEQUENCE NAME public.auth_user_groups_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1
-);
-
-
---
--- TOC entry 225 (class 1259 OID 24612)
--- Name: auth_user_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-ALTER TABLE public.auth_user ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY (
-    SEQUENCE NAME public.auth_user_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1
-);
-
-
---
--- TOC entry 230 (class 1259 OID 24627)
--- Name: auth_user_user_permissions; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.auth_user_user_permissions (
-    id bigint NOT NULL,
-    user_id integer NOT NULL,
-    permission_id integer NOT NULL
-);
-
-
---
--- TOC entry 229 (class 1259 OID 24626)
--- Name: auth_user_user_permissions_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-ALTER TABLE public.auth_user_user_permissions ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY (
-    SEQUENCE NAME public.auth_user_user_permissions_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1
-);
-
-
---
--- TOC entry 232 (class 1259 OID 24685)
--- Name: django_admin_log; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.django_admin_log (
-    id integer NOT NULL,
-    action_time timestamp with time zone NOT NULL,
-    object_id text,
-    object_repr character varying(200) NOT NULL,
-    action_flag smallint NOT NULL,
-    change_message text NOT NULL,
-    content_type_id integer,
-    user_id integer NOT NULL,
-    CONSTRAINT django_admin_log_action_flag_check CHECK ((action_flag >= 0))
-);
-
-
---
--- TOC entry 231 (class 1259 OID 24684)
--- Name: django_admin_log_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-ALTER TABLE public.django_admin_log ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY (
-    SEQUENCE NAME public.django_admin_log_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1
-);
-
-
---
--- TOC entry 218 (class 1259 OID 24585)
--- Name: django_content_type; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.django_content_type (
-    id integer NOT NULL,
-    app_label character varying(100) NOT NULL,
-    model character varying(100) NOT NULL
-);
-
-
---
--- TOC entry 217 (class 1259 OID 24584)
--- Name: django_content_type_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-ALTER TABLE public.django_content_type ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY (
-    SEQUENCE NAME public.django_content_type_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1
-);
-
-
---
--- TOC entry 216 (class 1259 OID 24577)
--- Name: django_migrations; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.django_migrations (
-    id bigint NOT NULL,
-    app character varying(255) NOT NULL,
-    name character varying(255) NOT NULL,
-    applied timestamp with time zone NOT NULL
-);
-
-
---
--- TOC entry 215 (class 1259 OID 24576)
--- Name: django_migrations_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-ALTER TABLE public.django_migrations ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY (
-    SEQUENCE NAME public.django_migrations_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1
-);
-
-
 --
--- TOC entry 233 (class 1259 OID 24713)
--- Name: django_session; Type: TABLE; Schema: public; Owner: -
+-- Data for Name: auth_user; Type: TABLE DATA; Schema: public; Owner: -
 --
 
-CREATE TABLE public.django_session (
-    session_key character varying(40) NOT NULL,
-    session_data text NOT NULL,
-    expire_date timestamp with time zone NOT NULL
-);
+INSERT INTO public.auth_user (id, password, last_login, is_superuser, username, first_name, last_name, email, is_staff, is_active, date_joined) VALUES (1, '!bLN8o8e3ZBuT1TRTso9vvUV7HYrphSJucHem8yxx', NULL, true, 'admin', '', '', 'admin@example.com', true, true, '2025-08-06 06:37:23.333557+00');
+INSERT INTO public.auth_user (id, password, last_login, is_superuser, username, first_name, last_name, email, is_staff, is_active, date_joined) VALUES (3, '', NULL, false, 'user1', 'John', 'Smith', 'user1@soar-ai.com', false, true, '2025-08-06 07:24:45.104845+00');
+INSERT INTO public.auth_user (id, password, last_login, is_superuser, username, first_name, last_name, email, is_staff, is_active, date_joined) VALUES (4, '', NULL, false, 'user2', 'Jane', 'Johnson', 'user2@soar-ai.com', false, true, '2025-08-06 07:24:46.054165+00');
+INSERT INTO public.auth_user (id, password, last_login, is_superuser, username, first_name, last_name, email, is_staff, is_active, date_joined) VALUES (5, '', NULL, false, 'user3', 'Mike', 'Brown', 'user3@soar-ai.com', false, true, '2025-08-06 07:24:46.988532+00');
+INSERT INTO public.auth_user (id, password, last_login, is_superuser, username, first_name, last_name, email, is_staff, is_active, date_joined) VALUES (6, '', NULL, false, 'user4', 'Sarah', 'Davis', 'user4@soar-ai.com', false, true, '2025-08-06 07:24:47.923234+00');
+INSERT INTO public.auth_user (id, password, last_login, is_superuser, username, first_name, last_name, email, is_staff, is_active, date_joined) VALUES (7, '', NULL, false, 'user5', 'David', 'Wilson', 'user5@soar-ai.com', false, true, '2025-08-06 07:24:48.857783+00');
+INSERT INTO public.auth_user (id, password, last_login, is_superuser, username, first_name, last_name, email, is_staff, is_active, date_joined) VALUES (8, '', NULL, false, 'system', 'System', 'User', 'system@company.com', false, true, '2025-08-12 05:17:41.323561+00');
 
 
 --
--- TOC entry 3651 (class 0 OID 32884)
--- Dependencies: 261
 -- Data for Name: api_activitylog; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 
 
 --
--- TOC entry 3649 (class 0 OID 32874)
--- Dependencies: 259
 -- Data for Name: api_aiconversation; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 
 
 --
--- TOC entry 3625 (class 0 OID 32769)
--- Dependencies: 235
 -- Data for Name: api_company; Type: TABLE DATA; Schema: public; Owner: -
 --
 
-INSERT INTO public.api_company (id, name, industry, size, location, website, annual_revenue, employee_count, travel_budget, description, is_active, created_at, updated_at, annual_travel_volume, company_type, credit_rating, current_airlines, email, expansion_plans, payment_terms, phone, preferred_class, risk_level, specialties, sustainability_focus, technology_integration, travel_frequency, year_established) VALUES (2, 'Global Finance Ltd', 'finance', 'enterprise', 'New York, NY', 'https://globalfinance.com', 200000000.00, 2000, 5000000.00, 'International financial services company', true, '2025-08-06 07:44:30.621697+00', '2025-08-06 07:44:30.621797+00', '', '', '', '', '', '', '', '', '', '', '', '', '', '', NULL);
-INSERT INTO public.api_company (id, name, industry, size, location, website, annual_revenue, employee_count, travel_budget, description, is_active, created_at, updated_at, annual_travel_volume, company_type, credit_rating, current_airlines, email, expansion_plans, payment_terms, phone, preferred_class, risk_level, specialties, sustainability_focus, technology_integration, travel_frequency, year_established) VALUES (3, 'HealthTech Innovations', 'healthcare', 'medium', 'Boston, MA', 'https://healthtech.com', 25000000.00, 200, 800000.00, 'Healthcare technology and services', true, '2025-08-06 07:44:31.556545+00', '2025-08-06 07:44:31.55656+00', '', '', '', '', '', '', '', '', '', '', '', '', '', '', NULL);
-INSERT INTO public.api_company (id, name, industry, size, location, website, annual_revenue, employee_count, travel_budget, description, is_active, created_at, updated_at, annual_travel_volume, company_type, credit_rating, current_airlines, email, expansion_plans, payment_terms, phone, preferred_class, risk_level, specialties, sustainability_focus, technology_integration, travel_frequency, year_established) VALUES (4, 'Manufacturing Plus', 'manufacturing', 'large', 'Detroit, MI', 'https://mfgplus.com', 75000000.00, 800, 1500000.00, 'Advanced manufacturing solutions', true, '2025-08-06 07:44:32.491473+00', '2025-08-06 07:44:32.491492+00', '', '', '', '', '', '', '', '', '', '', '', '', '', '', NULL);
-INSERT INTO public.api_company (id, name, industry, size, location, website, annual_revenue, employee_count, travel_budget, description, is_active, created_at, updated_at, annual_travel_volume, company_type, credit_rating, current_airlines, email, expansion_plans, payment_terms, phone, preferred_class, risk_level, specialties, sustainability_focus, technology_integration, travel_frequency, year_established) VALUES (5, 'Retail Dynamics', 'retail', 'enterprise', 'Chicago, IL', 'https://retaildyn.com', 150000000.00, 1500, 3000000.00, 'Multi-channel retail operations', true, '2025-08-06 07:44:33.426666+00', '2025-08-06 07:44:33.426682+00', '', '', '', '', '', '', '', '', '', '', '', '', '', '', NULL);
-INSERT INTO public.api_company (id, name, industry, size, location, website, annual_revenue, employee_count, travel_budget, description, is_active, created_at, updated_at, annual_travel_volume, company_type, credit_rating, current_airlines, email, expansion_plans, payment_terms, phone, preferred_class, risk_level, specialties, sustainability_focus, technology_integration, travel_frequency, year_established) VALUES (6, 'ConsultPro Services', 'consulting', 'medium', 'Washington, DC', 'https://consultpro.com', 30000000.00, 150, 1200000.00, 'Strategic business consulting', true, '2025-08-06 07:44:34.361818+00', '2025-08-06 07:44:34.361835+00', '', '', '', '', '', '', '', '', '', '', '', '', '', '', NULL);
-INSERT INTO public.api_company (id, name, industry, size, location, website, annual_revenue, employee_count, travel_budget, description, is_active, created_at, updated_at, annual_travel_volume, company_type, credit_rating, current_airlines, email, expansion_plans, payment_terms, phone, preferred_class, risk_level, specialties, sustainability_focus, technology_integration, travel_frequency, year_established) VALUES (7, 'test1', 'retail', 'small', 'test', '', 33.00, 3333, NULL, '', true, '2025-08-06 10:00:19.539757+00', '2025-08-06 10:00:19.539778+00', '', '', '', '', '', '', '', '', '', '', '', '', '', '', NULL);
-INSERT INTO public.api_company (id, name, industry, size, location, website, annual_revenue, employee_count, travel_budget, description, is_active, created_at, updated_at, annual_travel_volume, company_type, credit_rating, current_airlines, email, expansion_plans, payment_terms, phone, preferred_class, risk_level, specialties, sustainability_focus, technology_integration, travel_frequency, year_established) VALUES (8, 'TechCorp International', 'technology', 'enterprise', 'San Francisco, USA', 'https://techcorp.com', 50000000.00, 2500, 2500000.00, 'Enterprise Software, Cloud Solutions, AI/ML Services', true, '2025-08-06 12:17:25.898459+00', '2025-08-06 12:17:25.898476+00', '', '', '', '', '', '', '', '', '', '', '', '', '', '', NULL);
-INSERT INTO public.api_company (id, name, industry, size, location, website, annual_revenue, employee_count, travel_budget, description, is_active, created_at, updated_at, annual_travel_volume, company_type, credit_rating, current_airlines, email, expansion_plans, payment_terms, phone, preferred_class, risk_level, specialties, sustainability_focus, technology_integration, travel_frequency, year_established) VALUES (9, 'Global Manufacturing Ltd', 'manufacturing', 'large', 'Detroit, USA', 'https://globalmanufacturing.com', 75000000.00, 5000, 1800000.00, 'Automotive Parts, Supply Chain, Quality Control', true, '2025-08-06 12:17:26.893589+00', '2025-08-06 12:17:26.893605+00', '', '', '', '', '', '', '', '', '', '', '', '', '', '', NULL);
-INSERT INTO public.api_company (id, name, industry, size, location, website, annual_revenue, employee_count, travel_budget, description, is_active, created_at, updated_at, annual_travel_volume, company_type, credit_rating, current_airlines, email, expansion_plans, payment_terms, phone, preferred_class, risk_level, specialties, sustainability_focus, technology_integration, travel_frequency, year_established) VALUES (10, 'Sunrise Financial Services', 'finance', 'large', 'New York, USA', 'https://sunrisefinancial.com', 120000000.00, 1200, 3200000.00, 'Investment Banking, Wealth Management, Corporate Finance', true, '2025-08-06 12:17:27.874708+00', '2025-08-06 12:17:27.874726+00', '', '', '', '', '', '', '', '', '', '', '', '', '', '', NULL);
-INSERT INTO public.api_company (id, name, industry, size, location, website, annual_revenue, employee_count, travel_budget, description, is_active, created_at, updated_at, annual_travel_volume, company_type, credit_rating, current_airlines, email, expansion_plans, payment_terms, phone, preferred_class, risk_level, specialties, sustainability_focus, technology_integration, travel_frequency, year_established) VALUES (11, 'EcoEnergy Solutions', 'energy', 'medium', 'Austin, USA', 'https://ecoenergy.com', 25000000.00, 800, 1200000.00, 'Solar Energy, Wind Power, Sustainability Consulting', true, '2025-08-06 12:17:28.855689+00', '2025-08-06 12:17:28.855707+00', '', '', '', '', '', '', '', '', '', '', '', '', '', '', NULL);
-INSERT INTO public.api_company (id, name, industry, size, location, website, annual_revenue, employee_count, travel_budget, description, is_active, created_at, updated_at, annual_travel_volume, company_type, credit_rating, current_airlines, email, expansion_plans, payment_terms, phone, preferred_class, risk_level, specialties, sustainability_focus, technology_integration, travel_frequency, year_established) VALUES (12, 'RetailMax Corporation', 'retail', 'large', 'Chicago, USA', 'https://retailmax.com', 200000000.00, 15000, 5000000.00, 'Retail Chain Management, E-commerce, Supply Chain', true, '2025-08-06 12:17:30.08161+00', '2025-08-06 12:17:30.081623+00', '', '', '', '', '', '', '', '', '', '', '', '', '', '', NULL);
-INSERT INTO public.api_company (id, name, industry, size, location, website, annual_revenue, employee_count, travel_budget, description, is_active, created_at, updated_at, annual_travel_volume, company_type, credit_rating, current_airlines, email, expansion_plans, payment_terms, phone, preferred_class, risk_level, specialties, sustainability_focus, technology_integration, travel_frequency, year_established) VALUES (13, 'TeleConnect Systems', 'telecommunications', 'large', 'Seattle, USA', 'https://teleconnect.com', 85000000.00, 3500, 2800000.00, '5G Infrastructure, Network Solutions, IoT Connectivity', true, '2025-08-06 12:17:31.308227+00', '2025-08-06 12:17:31.308244+00', '', '', '', '', '', '', '', '', '', '', '', '', '', '', NULL);
-INSERT INTO public.api_company (id, name, industry, size, location, website, annual_revenue, employee_count, travel_budget, description, is_active, created_at, updated_at, annual_travel_volume, company_type, credit_rating, current_airlines, email, expansion_plans, payment_terms, phone, preferred_class, risk_level, specialties, sustainability_focus, technology_integration, travel_frequency, year_established) VALUES (14, 'LogisticsPro International', 'transportation', 'large', 'Memphis, USA', 'https://logisticspro.com', 95000000.00, 4200, 3500000.00, 'Global Logistics, Freight Management, Supply Chain Optimization', true, '2025-08-06 12:17:32.288558+00', '2025-08-06 12:17:32.288573+00', '', '', '', '', '', '', '', '', '', '', '', '', '', '', NULL);
-INSERT INTO public.api_company (id, name, industry, size, location, website, annual_revenue, employee_count, travel_budget, description, is_active, created_at, updated_at, annual_travel_volume, company_type, credit_rating, current_airlines, email, expansion_plans, payment_terms, phone, preferred_class, risk_level, specialties, sustainability_focus, technology_integration, travel_frequency, year_established) VALUES (15, 'EduTech Learning', 'education', 'medium', 'Cambridge, USA', 'https://edutech.com', 18000000.00, 600, 800000.00, 'Online Learning Platforms, Educational Software, Training Solutions', true, '2025-08-06 12:17:33.269736+00', '2025-08-06 12:17:33.269752+00', '', '', '', '', '', '', '', '', '', '', '', '', '', '', NULL);
-INSERT INTO public.api_company (id, name, industry, size, location, website, annual_revenue, employee_count, travel_budget, description, is_active, created_at, updated_at, annual_travel_volume, company_type, credit_rating, current_airlines, email, expansion_plans, payment_terms, phone, preferred_class, risk_level, specialties, sustainability_focus, technology_integration, travel_frequency, year_established) VALUES (16, 'Innovation Startup Hub', 'technology', 'startup', 'Palo Alto, USA', 'https://innovationstartup.com', 2500000.00, 45, 250000.00, 'AI Startup, Machine Learning, SaaS Products', true, '2025-08-06 12:17:34.254702+00', '2025-08-06 12:17:34.254718+00', '', '', '', '', '', '', '', '', '', '', '', '', '', '', NULL);
-INSERT INTO public.api_company (id, name, industry, size, location, website, annual_revenue, employee_count, travel_budget, description, is_active, created_at, updated_at, annual_travel_volume, company_type, credit_rating, current_airlines, email, expansion_plans, payment_terms, phone, preferred_class, risk_level, specialties, sustainability_focus, technology_integration, travel_frequency, year_established) VALUES (17, 'GreenCorp Utilities', 'energy', 'large', 'Portland, USA', 'https://greencorp.com', 110000000.00, 2800, 2200000.00, 'Renewable Energy, Smart Grid Technology, Energy Storage', true, '2025-08-06 12:17:35.236993+00', '2025-08-06 12:17:35.237006+00', '', '', '', '', '', '', '', '', '', '', '', '', '', '', NULL);
-INSERT INTO public.api_company (id, name, industry, size, location, website, annual_revenue, employee_count, travel_budget, description, is_active, created_at, updated_at, annual_travel_volume, company_type, credit_rating, current_airlines, email, expansion_plans, payment_terms, phone, preferred_class, risk_level, specialties, sustainability_focus, technology_integration, travel_frequency, year_established) VALUES (18, 'INIFNITI', 'technology', 'medium', 'CHENNAI', 'https://scrumtool.infinitisoftware.net/dashboard/dashboardView', 500.00, 350, 25.00, 'We are providing a travel solutions for the Airlines', true, '2025-08-07 12:10:41.542185+00', '2025-08-07 12:10:41.542212+00', '', '', '', '', '', '', '', '', '', '', '', '', '', '', NULL);
-INSERT INTO public.api_company (id, name, industry, size, location, website, annual_revenue, employee_count, travel_budget, description, is_active, created_at, updated_at, annual_travel_volume, company_type, credit_rating, current_airlines, email, expansion_plans, payment_terms, phone, preferred_class, risk_level, specialties, sustainability_focus, technology_integration, travel_frequency, year_established) VALUES (19, 'muniraj', 'retail', 'enterprise', 'chennai', 'https://muniraj.com', 100000000.00, 8000, 40000000.00, 'testing by the muniraj', true, '2025-08-07 12:39:56.700924+00', '2025-08-07 12:39:56.700951+00', '9000', 'corporation', 'BBB', 'Indigo,Airindia,southwest', 'muniraj@infinitisoftware.net', 'Aggressive', 'Net 45', '999999999', 'Economy Plus', 'Very Low', 'React,Angular,Php,Python', 'High', 'API,Mobile,website', 'Daily', 2000);
-INSERT INTO public.api_company (id, name, industry, size, location, website, annual_revenue, employee_count, travel_budget, description, is_active, created_at, updated_at, annual_travel_volume, company_type, credit_rating, current_airlines, email, expansion_plans, payment_terms, phone, preferred_class, risk_level, specialties, sustainability_focus, technology_integration, travel_frequency, year_established) VALUES (20, 'nagendran', 'finance', 'medium', 'chennai', 'https://tailwindcss.com/', 150000000.00, 10000, 50000000.00, 'Only for testing purpose', true, '2025-08-07 13:25:30.764624+00', '2025-08-07 13:25:30.76464+00', '2500', 'partnership', 'AAA', 'spicejet,air-india,Indigo', 'nagendran.g@infinitisoftware.net', 'Moderate', 'Net 60', '9845984598', 'Business/First', 'High', 'web-application,Android-app,crmtool', 'High', 'Java,python,React,typescript,Angular', 'Bi-weekly', 2022);
-INSERT INTO public.api_company (id, name, industry, size, location, website, annual_revenue, employee_count, travel_budget, description, is_active, created_at, updated_at, annual_travel_volume, company_type, credit_rating, current_airlines, email, expansion_plans, payment_terms, phone, preferred_class, risk_level, specialties, sustainability_focus, technology_integration, travel_frequency, year_established) VALUES (1, 'TechCorp Solutions', 'technology', 'large', 'San Francisco, CA', 'https://techcorp.com', 50000000.00, 500, 2000000.00, 'Leading technology solutions provider', true, '2025-08-06 07:44:29.683758+00', '2025-08-06 07:44:29.68378+00', '50', '', '', '', '', '', '', '', '', '', '', '', '', '', NULL);
-INSERT INTO public.api_company (id, name, industry, size, location, website, annual_revenue, employee_count, travel_budget, description, is_active, created_at, updated_at, annual_travel_volume, company_type, credit_rating, current_airlines, email, expansion_plans, payment_terms, phone, preferred_class, risk_level, specialties, sustainability_focus, technology_integration, travel_frequency, year_established) VALUES (21, 'muni', 'Financial Services', 'medium', 'checnnai', NULL, 33.00, NULL, 55.00, '', true, '2025-08-08 09:53:04.165619+00', '2025-08-08 09:53:04.165635+00', '800', '', '', '', '', '', '', '', '', '', '', '', '', '', NULL);
-INSERT INTO public.api_company (id, name, industry, size, location, website, annual_revenue, employee_count, travel_budget, description, is_active, created_at, updated_at, annual_travel_volume, company_type, credit_rating, current_airlines, email, expansion_plans, payment_terms, phone, preferred_class, risk_level, specialties, sustainability_focus, technology_integration, travel_frequency, year_established) VALUES (22, 'Infiniti software', 'Banking', 'medium', 'chennai', NULL, 40.00, NULL, 1000.00, '', true, '2025-08-13 06:01:10.619668+00', '2025-08-13 06:01:10.619687+00', '', '', '', '', '', '', '', '', '', '', '', '', '', '', NULL);
-INSERT INTO public.api_company (id, name, industry, size, location, website, annual_revenue, employee_count, travel_budget, description, is_active, created_at, updated_at, annual_travel_volume, company_type, credit_rating, current_airlines, email, expansion_plans, payment_terms, phone, preferred_class, risk_level, specialties, sustainability_focus, technology_integration, travel_frequency, year_established) VALUES (23, 'Infiniti pro', 'telecommunications', 'small', 'chennai', 'https://github.com/Infifrontend/soar-ai', 33000000.00, 333, 333000000.00, 'Airline innovation', true, '2025-08-14 06:31:17.292813+00', '2025-08-14 06:31:17.29283+00', '3333', 'llc', 'BBB', 'indigo,airasia', 'muniraj@infinitisoftware.net', 'Conservative', 'Net 60', '987654322', 'Economy Plus', 'Low', 'innovation,airlinesolutions', 'High', 'React,Angular', 'Weekly', 2005);
+INSERT INTO public.api_company (id, name, industry, size, location, website, annual_revenue, employee_count, travel_budget, description, is_active, created_at, updated_at, annual_travel_volume, company_type, credit_rating, current_airlines, email, expansion_plans, payment_terms, phone, preferred_class, risk_level, specialties, sustainability_focus, technology_integration, travel_frequency, year_established, move_as_lead) VALUES (2, 'Global Finance Ltd', 'finance', 'enterprise', 'New York, NY', 'https://globalfinance.com', 200000000.00, 2000, 5000000.00, 'International financial services company', true, '2025-08-06 07:44:30.621697+00', '2025-08-06 07:44:30.621797+00', '', '', '', '', '', '', '', '', '', '', '', '', '', '', NULL, false);
+INSERT INTO public.api_company (id, name, industry, size, location, website, annual_revenue, employee_count, travel_budget, description, is_active, created_at, updated_at, annual_travel_volume, company_type, credit_rating, current_airlines, email, expansion_plans, payment_terms, phone, preferred_class, risk_level, specialties, sustainability_focus, technology_integration, travel_frequency, year_established, move_as_lead) VALUES (3, 'HealthTech Innovations', 'healthcare', 'medium', 'Boston, MA', 'https://healthtech.com', 25000000.00, 200, 800000.00, 'Healthcare technology and services', true, '2025-08-06 07:44:31.556545+00', '2025-08-06 07:44:31.55656+00', '', '', '', '', '', '', '', '', '', '', '', '', '', '', NULL, false);
+INSERT INTO public.api_company (id, name, industry, size, location, website, annual_revenue, employee_count, travel_budget, description, is_active, created_at, updated_at, annual_travel_volume, company_type, credit_rating, current_airlines, email, expansion_plans, payment_terms, phone, preferred_class, risk_level, specialties, sustainability_focus, technology_integration, travel_frequency, year_established, move_as_lead) VALUES (4, 'Manufacturing Plus', 'manufacturing', 'large', 'Detroit, MI', 'https://mfgplus.com', 75000000.00, 800, 1500000.00, 'Advanced manufacturing solutions', true, '2025-08-06 07:44:32.491473+00', '2025-08-06 07:44:32.491492+00', '', '', '', '', '', '', '', '', '', '', '', '', '', '', NULL, false);
+INSERT INTO public.api_company (id, name, industry, size, location, website, annual_revenue, employee_count, travel_budget, description, is_active, created_at, updated_at, annual_travel_volume, company_type, credit_rating, current_airlines, email, expansion_plans, payment_terms, phone, preferred_class, risk_level, specialties, sustainability_focus, technology_integration, travel_frequency, year_established, move_as_lead) VALUES (5, 'Retail Dynamics', 'retail', 'enterprise', 'Chicago, IL', 'https://retaildyn.com', 150000000.00, 1500, 3000000.00, 'Multi-channel retail operations', true, '2025-08-06 07:44:33.426666+00', '2025-08-06 07:44:33.426682+00', '', '', '', '', '', '', '', '', '', '', '', '', '', '', NULL, false);
+INSERT INTO public.api_company (id, name, industry, size, location, website, annual_revenue, employee_count, travel_budget, description, is_active, created_at, updated_at, annual_travel_volume, company_type, credit_rating, current_airlines, email, expansion_plans, payment_terms, phone, preferred_class, risk_level, specialties, sustainability_focus, technology_integration, travel_frequency, year_established, move_as_lead) VALUES (6, 'ConsultPro Services', 'consulting', 'medium', 'Washington, DC', 'https://consultpro.com', 30000000.00, 150, 1200000.00, 'Strategic business consulting', true, '2025-08-06 07:44:34.361818+00', '2025-08-06 07:44:34.361835+00', '', '', '', '', '', '', '', '', '', '', '', '', '', '', NULL, false);
+INSERT INTO public.api_company (id, name, industry, size, location, website, annual_revenue, employee_count, travel_budget, description, is_active, created_at, updated_at, annual_travel_volume, company_type, credit_rating, current_airlines, email, expansion_plans, payment_terms, phone, preferred_class, risk_level, specialties, sustainability_focus, technology_integration, travel_frequency, year_established, move_as_lead) VALUES (7, 'test1', 'retail', 'small', 'test', '', 33.00, 3333, NULL, '', true, '2025-08-06 10:00:19.539757+00', '2025-08-06 10:00:19.539778+00', '', '', '', '', '', '', '', '', '', '', '', '', '', '', NULL, false);
+INSERT INTO public.api_company (id, name, industry, size, location, website, annual_revenue, employee_count, travel_budget, description, is_active, created_at, updated_at, annual_travel_volume, company_type, credit_rating, current_airlines, email, expansion_plans, payment_terms, phone, preferred_class, risk_level, specialties, sustainability_focus, technology_integration, travel_frequency, year_established, move_as_lead) VALUES (8, 'TechCorp International', 'technology', 'enterprise', 'San Francisco, USA', 'https://techcorp.com', 50000000.00, 2500, 2500000.00, 'Enterprise Software, Cloud Solutions, AI/ML Services', true, '2025-08-06 12:17:25.898459+00', '2025-08-06 12:17:25.898476+00', '', '', '', '', '', '', '', '', '', '', '', '', '', '', NULL, false);
+INSERT INTO public.api_company (id, name, industry, size, location, website, annual_revenue, employee_count, travel_budget, description, is_active, created_at, updated_at, annual_travel_volume, company_type, credit_rating, current_airlines, email, expansion_plans, payment_terms, phone, preferred_class, risk_level, specialties, sustainability_focus, technology_integration, travel_frequency, year_established, move_as_lead) VALUES (9, 'Global Manufacturing Ltd', 'manufacturing', 'large', 'Detroit, USA', 'https://globalmanufacturing.com', 75000000.00, 5000, 1800000.00, 'Automotive Parts, Supply Chain, Quality Control', true, '2025-08-06 12:17:26.893589+00', '2025-08-06 12:17:26.893605+00', '', '', '', '', '', '', '', '', '', '', '', '', '', '', NULL, false);
+INSERT INTO public.api_company (id, name, industry, size, location, website, annual_revenue, employee_count, travel_budget, description, is_active, created_at, updated_at, annual_travel_volume, company_type, credit_rating, current_airlines, email, expansion_plans, payment_terms, phone, preferred_class, risk_level, specialties, sustainability_focus, technology_integration, travel_frequency, year_established, move_as_lead) VALUES (10, 'Sunrise Financial Services', 'finance', 'large', 'New York, USA', 'https://sunrisefinancial.com', 120000000.00, 1200, 3200000.00, 'Investment Banking, Wealth Management, Corporate Finance', true, '2025-08-06 12:17:27.874708+00', '2025-08-06 12:17:27.874726+00', '', '', '', '', '', '', '', '', '', '', '', '', '', '', NULL, false);
+INSERT INTO public.api_company (id, name, industry, size, location, website, annual_revenue, employee_count, travel_budget, description, is_active, created_at, updated_at, annual_travel_volume, company_type, credit_rating, current_airlines, email, expansion_plans, payment_terms, phone, preferred_class, risk_level, specialties, sustainability_focus, technology_integration, travel_frequency, year_established, move_as_lead) VALUES (11, 'EcoEnergy Solutions', 'energy', 'medium', 'Austin, USA', 'https://ecoenergy.com', 25000000.00, 800, 1200000.00, 'Solar Energy, Wind Power, Sustainability Consulting', true, '2025-08-06 12:17:28.855689+00', '2025-08-06 12:17:28.855707+00', '', '', '', '', '', '', '', '', '', '', '', '', '', '', NULL, false);
+INSERT INTO public.api_company (id, name, industry, size, location, website, annual_revenue, employee_count, travel_budget, description, is_active, created_at, updated_at, annual_travel_volume, company_type, credit_rating, current_airlines, email, expansion_plans, payment_terms, phone, preferred_class, risk_level, specialties, sustainability_focus, technology_integration, travel_frequency, year_established, move_as_lead) VALUES (12, 'RetailMax Corporation', 'retail', 'large', 'Chicago, USA', 'https://retailmax.com', 200000000.00, 15000, 5000000.00, 'Retail Chain Management, E-commerce, Supply Chain', true, '2025-08-06 12:17:30.08161+00', '2025-08-06 12:17:30.081623+00', '', '', '', '', '', '', '', '', '', '', '', '', '', '', NULL, false);
+INSERT INTO public.api_company (id, name, industry, size, location, website, annual_revenue, employee_count, travel_budget, description, is_active, created_at, updated_at, annual_travel_volume, company_type, credit_rating, current_airlines, email, expansion_plans, payment_terms, phone, preferred_class, risk_level, specialties, sustainability_focus, technology_integration, travel_frequency, year_established, move_as_lead) VALUES (13, 'TeleConnect Systems', 'telecommunications', 'large', 'Seattle, USA', 'https://teleconnect.com', 85000000.00, 3500, 2800000.00, '5G Infrastructure, Network Solutions, IoT Connectivity', true, '2025-08-06 12:17:31.308227+00', '2025-08-06 12:17:31.308244+00', '', '', '', '', '', '', '', '', '', '', '', '', '', '', NULL, false);
+INSERT INTO public.api_company (id, name, industry, size, location, website, annual_revenue, employee_count, travel_budget, description, is_active, created_at, updated_at, annual_travel_volume, company_type, credit_rating, current_airlines, email, expansion_plans, payment_terms, phone, preferred_class, risk_level, specialties, sustainability_focus, technology_integration, travel_frequency, year_established, move_as_lead) VALUES (14, 'LogisticsPro International', 'transportation', 'large', 'Memphis, USA', 'https://logisticspro.com', 95000000.00, 4200, 3500000.00, 'Global Logistics, Freight Management, Supply Chain Optimization', true, '2025-08-06 12:17:32.288558+00', '2025-08-06 12:17:32.288573+00', '', '', '', '', '', '', '', '', '', '', '', '', '', '', NULL, false);
+INSERT INTO public.api_company (id, name, industry, size, location, website, annual_revenue, employee_count, travel_budget, description, is_active, created_at, updated_at, annual_travel_volume, company_type, credit_rating, current_airlines, email, expansion_plans, payment_terms, phone, preferred_class, risk_level, specialties, sustainability_focus, technology_integration, travel_frequency, year_established, move_as_lead) VALUES (15, 'EduTech Learning', 'education', 'medium', 'Cambridge, USA', 'https://edutech.com', 18000000.00, 600, 800000.00, 'Online Learning Platforms, Educational Software, Training Solutions', true, '2025-08-06 12:17:33.269736+00', '2025-08-06 12:17:33.269752+00', '', '', '', '', '', '', '', '', '', '', '', '', '', '', NULL, false);
+INSERT INTO public.api_company (id, name, industry, size, location, website, annual_revenue, employee_count, travel_budget, description, is_active, created_at, updated_at, annual_travel_volume, company_type, credit_rating, current_airlines, email, expansion_plans, payment_terms, phone, preferred_class, risk_level, specialties, sustainability_focus, technology_integration, travel_frequency, year_established, move_as_lead) VALUES (16, 'Innovation Startup Hub', 'technology', 'startup', 'Palo Alto, USA', 'https://innovationstartup.com', 2500000.00, 45, 250000.00, 'AI Startup, Machine Learning, SaaS Products', true, '2025-08-06 12:17:34.254702+00', '2025-08-06 12:17:34.254718+00', '', '', '', '', '', '', '', '', '', '', '', '', '', '', NULL, false);
+INSERT INTO public.api_company (id, name, industry, size, location, website, annual_revenue, employee_count, travel_budget, description, is_active, created_at, updated_at, annual_travel_volume, company_type, credit_rating, current_airlines, email, expansion_plans, payment_terms, phone, preferred_class, risk_level, specialties, sustainability_focus, technology_integration, travel_frequency, year_established, move_as_lead) VALUES (17, 'GreenCorp Utilities', 'energy', 'large', 'Portland, USA', 'https://greencorp.com', 110000000.00, 2800, 2200000.00, 'Renewable Energy, Smart Grid Technology, Energy Storage', true, '2025-08-06 12:17:35.236993+00', '2025-08-06 12:17:35.237006+00', '', '', '', '', '', '', '', '', '', '', '', '', '', '', NULL, false);
+INSERT INTO public.api_company (id, name, industry, size, location, website, annual_revenue, employee_count, travel_budget, description, is_active, created_at, updated_at, annual_travel_volume, company_type, credit_rating, current_airlines, email, expansion_plans, payment_terms, phone, preferred_class, risk_level, specialties, sustainability_focus, technology_integration, travel_frequency, year_established, move_as_lead) VALUES (18, 'INIFNITI', 'technology', 'medium', 'CHENNAI', 'https://scrumtool.infinitisoftware.net/dashboard/dashboardView', 500.00, 350, 25.00, 'We are providing a travel solutions for the Airlines', true, '2025-08-07 12:10:41.542185+00', '2025-08-07 12:10:41.542212+00', '', '', '', '', '', '', '', '', '', '', '', '', '', '', NULL, false);
+INSERT INTO public.api_company (id, name, industry, size, location, website, annual_revenue, employee_count, travel_budget, description, is_active, created_at, updated_at, annual_travel_volume, company_type, credit_rating, current_airlines, email, expansion_plans, payment_terms, phone, preferred_class, risk_level, specialties, sustainability_focus, technology_integration, travel_frequency, year_established, move_as_lead) VALUES (19, 'muniraj', 'retail', 'enterprise', 'chennai', 'https://muniraj.com', 100000000.00, 8000, 40000000.00, 'testing by the muniraj', true, '2025-08-07 12:39:56.700924+00', '2025-08-07 12:39:56.700951+00', '9000', 'corporation', 'BBB', 'Indigo,Airindia,southwest', 'muniraj@infinitisoftware.net', 'Aggressive', 'Net 45', '999999999', 'Economy Plus', 'Very Low', 'React,Angular,Php,Python', 'High', 'API,Mobile,website', 'Daily', 2000, false);
+INSERT INTO public.api_company (id, name, industry, size, location, website, annual_revenue, employee_count, travel_budget, description, is_active, created_at, updated_at, annual_travel_volume, company_type, credit_rating, current_airlines, email, expansion_plans, payment_terms, phone, preferred_class, risk_level, specialties, sustainability_focus, technology_integration, travel_frequency, year_established, move_as_lead) VALUES (1, 'TechCorp Solutions', 'technology', 'large', 'San Francisco, CA', 'https://techcorp.com', 50000000.00, 500, 2000000.00, 'Leading technology solutions provider', true, '2025-08-06 07:44:29.683758+00', '2025-08-06 07:44:29.68378+00', '50', '', '', '', '', '', '', '', '', '', '', '', '', '', NULL, false);
+INSERT INTO public.api_company (id, name, industry, size, location, website, annual_revenue, employee_count, travel_budget, description, is_active, created_at, updated_at, annual_travel_volume, company_type, credit_rating, current_airlines, email, expansion_plans, payment_terms, phone, preferred_class, risk_level, specialties, sustainability_focus, technology_integration, travel_frequency, year_established, move_as_lead) VALUES (21, 'muni', 'Financial Services', 'medium', 'checnnai', NULL, 33.00, NULL, 55.00, '', true, '2025-08-08 09:53:04.165619+00', '2025-08-08 09:53:04.165635+00', '800', '', '', '', '', '', '', '', '', '', '', '', '', '', NULL, false);
+INSERT INTO public.api_company (id, name, industry, size, location, website, annual_revenue, employee_count, travel_budget, description, is_active, created_at, updated_at, annual_travel_volume, company_type, credit_rating, current_airlines, email, expansion_plans, payment_terms, phone, preferred_class, risk_level, specialties, sustainability_focus, technology_integration, travel_frequency, year_established, move_as_lead) VALUES (22, 'Infiniti software', 'Banking', 'medium', 'chennai', NULL, 40.00, NULL, 1000.00, '', true, '2025-08-13 06:01:10.619668+00', '2025-08-13 06:01:10.619687+00', '', '', '', '', '', '', '', '', '', '', '', '', '', '', NULL, false);
+INSERT INTO public.api_company (id, name, industry, size, location, website, annual_revenue, employee_count, travel_budget, description, is_active, created_at, updated_at, annual_travel_volume, company_type, credit_rating, current_airlines, email, expansion_plans, payment_terms, phone, preferred_class, risk_level, specialties, sustainability_focus, technology_integration, travel_frequency, year_established, move_as_lead) VALUES (23, 'Infiniti pro', 'telecommunications', 'small', 'chennai', 'https://github.com/Infifrontend/soar-ai', 33000000.00, 333, 333000000.00, 'Airline innovation', true, '2025-08-14 06:31:17.292813+00', '2025-08-14 06:31:17.29283+00', '3333', 'llc', 'BBB', 'indigo,airasia', 'muniraj@infinitisoftware.net', 'Conservative', 'Net 60', '987654322', 'Economy Plus', 'Low', 'innovation,airlinesolutions', 'High', 'React,Angular', 'Weekly', 2005, false);
+INSERT INTO public.api_company (id, name, industry, size, location, website, annual_revenue, employee_count, travel_budget, description, is_active, created_at, updated_at, annual_travel_volume, company_type, credit_rating, current_airlines, email, expansion_plans, payment_terms, phone, preferred_class, risk_level, specialties, sustainability_focus, technology_integration, travel_frequency, year_established, move_as_lead) VALUES (20, 'nagendran', 'finance', 'medium', 'chennai', 'https://tailwindcss.com/', 150000000.00, 10000, 50000000.00, 'Only for testing purpose', true, '2025-08-07 13:25:30.764624+00', '2025-08-07 13:25:30.76464+00', '2500', 'partnership', 'AAA', 'spicejet,air-india,Indigo', 'nagendran.g@infinitisoftware.net', 'Moderate', 'Net 60', '9845984598', 'Business/First', 'High', 'web-application,Android-app,crmtool', 'High', 'Java,python,React,typescript,Angular', 'Bi-weekly', 2022, true);
 
 
 --
--- TOC entry 3627 (class 0 OID 32777)
--- Dependencies: 237
 -- Data for Name: api_contact; Type: TABLE DATA; Schema: public; Owner: -
 --
 
@@ -1113,46 +98,6 @@ INSERT INTO public.api_contact (id, first_name, last_name, email, phone, "positi
 
 
 --
--- TOC entry 3629 (class 0 OID 32785)
--- Dependencies: 239
--- Data for Name: api_contract; Type: TABLE DATA; Schema: public; Owner: -
---
-
-INSERT INTO public.api_contract (id, contract_number, title, contract_type, status, start_date, end_date, value, terms, renewal_terms, auto_renewal, notice_period_days, risk_score, created_at, updated_at, company_id, opportunity_id) VALUES (1, 'CNT-2024-1001', 'Corporate Travel Agreement - Global Finance Ltd', 'master_agreement', 'pending_signature', '2025-08-06', '2026-08-06', 884348.00, 'Standard corporate travel agreement terms and conditions', 'Auto-renewal for 12 months unless terminated with 30 days notice', true, 90, 8, '2025-08-06 07:44:47.957942+00', '2025-08-06 07:44:47.957952+00', 2, 1);
-INSERT INTO public.api_contract (id, contract_number, title, contract_type, status, start_date, end_date, value, terms, renewal_terms, auto_renewal, notice_period_days, risk_score, created_at, updated_at, company_id, opportunity_id) VALUES (2, 'CNT-2024-1002', 'Corporate Travel Agreement - HealthTech Innovations', 'corporate_travel', 'expired', '2025-08-06', '2026-08-06', 252496.00, 'Standard corporate travel agreement terms and conditions', 'Auto-renewal for 12 months unless terminated with 30 days notice', false, 60, 1, '2025-08-06 07:44:48.198567+00', '2025-08-06 07:44:48.19858+00', 3, 2);
-INSERT INTO public.api_contract (id, contract_number, title, contract_type, status, start_date, end_date, value, terms, renewal_terms, auto_renewal, notice_period_days, risk_score, created_at, updated_at, company_id, opportunity_id) VALUES (3, 'CNT-2024-1003', 'Corporate Travel Agreement - Manufacturing Plus', 'service_agreement', 'draft', '2025-08-06', '2026-08-06', 863696.00, 'Standard corporate travel agreement terms and conditions', 'Auto-renewal for 12 months unless terminated with 30 days notice', false, 90, 5, '2025-08-06 07:44:48.433497+00', '2025-08-06 07:44:48.433506+00', 4, 3);
-INSERT INTO public.api_contract (id, contract_number, title, contract_type, status, start_date, end_date, value, terms, renewal_terms, auto_renewal, notice_period_days, risk_score, created_at, updated_at, company_id, opportunity_id) VALUES (4, 'CNT-2024-1004', 'Corporate Travel Agreement - ConsultPro Services', 'corporate_travel', 'pending_signature', '2025-08-06', '2026-08-06', 414085.00, 'Standard corporate travel agreement terms and conditions', 'Auto-renewal for 12 months unless terminated with 30 days notice', false, 60, 2, '2025-08-06 07:44:48.668485+00', '2025-08-06 07:44:48.668498+00', 6, 4);
-INSERT INTO public.api_contract (id, contract_number, title, contract_type, status, start_date, end_date, value, terms, renewal_terms, auto_renewal, notice_period_days, risk_score, created_at, updated_at, company_id, opportunity_id) VALUES (5, 'CNT-2024-1005', 'Corporate Travel Agreement - TechCorp Solutions', 'corporate_travel', 'pending_signature', '2025-08-06', '2026-08-06', 433377.00, 'Standard corporate travel agreement terms and conditions', 'Auto-renewal for 12 months unless terminated with 30 days notice', false, 60, 3, '2025-08-06 07:44:48.903748+00', '2025-08-06 07:44:48.90376+00', 1, 5);
-INSERT INTO public.api_contract (id, contract_number, title, contract_type, status, start_date, end_date, value, terms, renewal_terms, auto_renewal, notice_period_days, risk_score, created_at, updated_at, company_id, opportunity_id) VALUES (6, 'CNT-2024-1006', 'Corporate Travel Agreement - Retail Dynamics', 'corporate_travel', 'terminated', '2025-08-06', '2026-08-06', 693476.00, 'Standard corporate travel agreement terms and conditions', 'Auto-renewal for 12 months unless terminated with 30 days notice', true, 60, 7, '2025-08-06 07:44:49.138422+00', '2025-08-06 07:44:49.138431+00', 5, 6);
-
-
---
--- TOC entry 3647 (class 0 OID 32859)
--- Dependencies: 257
--- Data for Name: api_contractbreach; Type: TABLE DATA; Schema: public; Owner: -
---
-
-
-
---
--- TOC entry 3643 (class 0 OID 32845)
--- Dependencies: 253
--- Data for Name: api_emailcampaign; Type: TABLE DATA; Schema: public; Owner: -
---
-
-
-
---
--- TOC entry 3645 (class 0 OID 32853)
--- Dependencies: 255
--- Data for Name: api_emailcampaign_target_leads; Type: TABLE DATA; Schema: public; Owner: -
---
-
-
-
---
--- TOC entry 3631 (class 0 OID 32795)
--- Dependencies: 241
 -- Data for Name: api_lead; Type: TABLE DATA; Schema: public; Owner: -
 --
 
@@ -1261,8 +206,89 @@ INSERT INTO public.api_lead (id, status, source, priority, score, estimated_valu
 
 
 --
--- TOC entry 3655 (class 0 OID 90134)
--- Dependencies: 265
+-- Data for Name: api_opportunity; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+INSERT INTO public.api_opportunity (id, name, stage, probability, estimated_close_date, actual_close_date, value, description, next_steps, created_at, updated_at, lead_id) VALUES (2, 'Travel Services Opportunity - HealthTech Innovations', 'negotiation', 47, '2025-12-05', NULL, 252496.00, 'Corporate travel services opportunity with HealthTech Innovations', 'Prepare detailed proposal and schedule presentation', '2025-08-06 07:44:46.314879+00', '2025-08-06 07:44:46.314893+00', 3);
+INSERT INTO public.api_opportunity (id, name, stage, probability, estimated_close_date, actual_close_date, value, description, next_steps, created_at, updated_at, lead_id) VALUES (3, 'Travel Services Opportunity - Manufacturing Plus', 'closed_lost', 16, '2025-10-31', NULL, 863696.00, 'Corporate travel services opportunity with Manufacturing Plus', 'Prepare detailed proposal and schedule presentation', '2025-08-06 07:44:46.549573+00', '2025-08-06 07:44:46.549586+00', 4);
+INSERT INTO public.api_opportunity (id, name, stage, probability, estimated_close_date, actual_close_date, value, description, next_steps, created_at, updated_at, lead_id) VALUES (4, 'Travel Services Opportunity - ConsultPro Services', 'closed_won', 14, '2025-12-09', NULL, 414085.00, 'Corporate travel services opportunity with ConsultPro Services', 'Prepare detailed proposal and schedule presentation', '2025-08-06 07:44:46.78439+00', '2025-08-06 07:44:46.7844+00', 5);
+INSERT INTO public.api_opportunity (id, name, stage, probability, estimated_close_date, actual_close_date, value, description, next_steps, created_at, updated_at, lead_id) VALUES (6, 'Travel Services Opportunity - Retail Dynamics', 'discovery', 25, '2026-01-27', NULL, 693476.00, 'Corporate travel services opportunity with Retail Dynamics', 'Prepare detailed proposal and schedule presentation', '2025-08-06 07:44:47.253797+00', '2025-08-06 07:44:47.253811+00', 9);
+INSERT INTO public.api_opportunity (id, name, stage, probability, estimated_close_date, actual_close_date, value, description, next_steps, created_at, updated_at, lead_id) VALUES (7, 'Travel Services Opportunity - Global Finance Ltd', 'discovery', 49, '2025-10-20', NULL, 482255.00, 'Corporate travel services opportunity with Global Finance Ltd', 'Prepare detailed proposal and schedule presentation', '2025-08-06 07:44:47.488425+00', '2025-08-06 07:44:47.488439+00', 10);
+INSERT INTO public.api_opportunity (id, name, stage, probability, estimated_close_date, actual_close_date, value, description, next_steps, created_at, updated_at, lead_id) VALUES (8, 'Travel Services Opportunity - Global Finance Ltd', 'proposal', 75, '2026-01-15', NULL, 430439.00, 'Corporate travel services opportunity with Global Finance Ltd', 'Prepare detailed proposal and schedule presentation', '2025-08-06 07:44:47.722855+00', '2025-08-06 07:44:47.722865+00', 11);
+INSERT INTO public.api_opportunity (id, name, stage, probability, estimated_close_date, actual_close_date, value, description, next_steps, created_at, updated_at, lead_id) VALUES (9, 'Travel Services Opportunity - Global Finance Ltd', 'negotiation', 58, '2025-11-08', NULL, 880738.00, 'Corporate travel services opportunity with Global Finance Ltd', 'Prepare detailed proposal and schedule presentation', '2025-08-06 07:45:37.715565+00', '2025-08-06 07:45:37.715577+00', 17);
+INSERT INTO public.api_opportunity (id, name, stage, probability, estimated_close_date, actual_close_date, value, description, next_steps, created_at, updated_at, lead_id) VALUES (11, 'Travel Services Opportunity - Retail Dynamics', 'closed_won', 35, '2025-09-14', NULL, 968480.00, 'Corporate travel services opportunity with Retail Dynamics', 'Prepare detailed proposal and schedule presentation', '2025-08-06 07:45:38.186387+00', '2025-08-06 07:45:38.186397+00', 19);
+INSERT INTO public.api_opportunity (id, name, stage, probability, estimated_close_date, actual_close_date, value, description, next_steps, created_at, updated_at, lead_id) VALUES (12, 'Travel Services Opportunity - Global Finance Ltd', 'closed_won', 19, '2025-10-27', NULL, 813625.00, 'Corporate travel services opportunity with Global Finance Ltd', 'Prepare detailed proposal and schedule presentation', '2025-08-06 07:45:38.421154+00', '2025-08-06 07:45:38.421167+00', 20);
+INSERT INTO public.api_opportunity (id, name, stage, probability, estimated_close_date, actual_close_date, value, description, next_steps, created_at, updated_at, lead_id) VALUES (13, 'Travel Services Opportunity - ConsultPro Services', 'closed_won', 17, '2025-10-26', NULL, 391712.00, 'Corporate travel services opportunity with ConsultPro Services', 'Prepare detailed proposal and schedule presentation', '2025-08-06 07:45:38.65563+00', '2025-08-06 07:45:38.655639+00', 21);
+INSERT INTO public.api_opportunity (id, name, stage, probability, estimated_close_date, actual_close_date, value, description, next_steps, created_at, updated_at, lead_id) VALUES (14, 'Travel Services Opportunity - TechCorp Solutions', 'negotiation', 78, '2025-09-15', NULL, 243296.00, 'Corporate travel services opportunity with TechCorp Solutions', 'Prepare detailed proposal and schedule presentation', '2025-08-06 07:45:38.890919+00', '2025-08-06 07:45:38.890928+00', 23);
+INSERT INTO public.api_opportunity (id, name, stage, probability, estimated_close_date, actual_close_date, value, description, next_steps, created_at, updated_at, lead_id) VALUES (15, 'Travel Services Opportunity - HealthTech Innovations', 'negotiation', 25, '2025-12-31', NULL, 749762.00, 'Corporate travel services opportunity with HealthTech Innovations', 'Prepare detailed proposal and schedule presentation', '2025-08-06 07:45:39.125355+00', '2025-08-06 07:45:39.125364+00', 24);
+INSERT INTO public.api_opportunity (id, name, stage, probability, estimated_close_date, actual_close_date, value, description, next_steps, created_at, updated_at, lead_id) VALUES (16, 'Travel Services Opportunity - TechCorp Solutions', 'closed_won', 12, '2025-11-01', NULL, 144770.00, 'Corporate travel services opportunity with TechCorp Solutions', 'Prepare detailed proposal and schedule presentation', '2025-08-06 07:45:39.359834+00', '2025-08-06 07:45:39.359843+00', 26);
+INSERT INTO public.api_opportunity (id, name, stage, probability, estimated_close_date, actual_close_date, value, description, next_steps, created_at, updated_at, lead_id) VALUES (17, 'Travel Services Opportunity - Global Finance Ltd', 'closed_won', 41, '2025-11-26', NULL, 358864.00, 'Corporate travel services opportunity with Global Finance Ltd', 'Prepare detailed proposal and schedule presentation', '2025-08-06 07:47:03.845637+00', '2025-08-06 07:47:03.84565+00', 34);
+INSERT INTO public.api_opportunity (id, name, stage, probability, estimated_close_date, actual_close_date, value, description, next_steps, created_at, updated_at, lead_id) VALUES (18, 'Travel Services Opportunity - TechCorp Solutions', 'closed_won', 43, '2026-01-04', NULL, 940373.00, 'Corporate travel services opportunity with TechCorp Solutions', 'Prepare detailed proposal and schedule presentation', '2025-08-06 07:47:04.084066+00', '2025-08-06 07:47:04.084075+00', 36);
+INSERT INTO public.api_opportunity (id, name, stage, probability, estimated_close_date, actual_close_date, value, description, next_steps, created_at, updated_at, lead_id) VALUES (19, 'Travel Services Opportunity - TechCorp Solutions', 'proposal', 18, '2025-10-29', NULL, 601150.00, 'Corporate travel services opportunity with TechCorp Solutions', 'Prepare detailed proposal and schedule presentation', '2025-08-06 07:47:04.320698+00', '2025-08-06 07:47:04.320767+00', 39);
+INSERT INTO public.api_opportunity (id, name, stage, probability, estimated_close_date, actual_close_date, value, description, next_steps, created_at, updated_at, lead_id) VALUES (20, 'Travel Services Opportunity - HealthTech Innovations', 'closed_lost', 29, '2025-12-14', NULL, 424110.00, 'Corporate travel services opportunity with HealthTech Innovations', 'Prepare detailed proposal and schedule presentation', '2025-08-06 07:47:04.560486+00', '2025-08-06 07:47:04.5605+00', 40);
+INSERT INTO public.api_opportunity (id, name, stage, probability, estimated_close_date, actual_close_date, value, description, next_steps, created_at, updated_at, lead_id) VALUES (21, 'Travel Services Opportunity - Manufacturing Plus', 'closed_won', 50, '2025-10-04', NULL, 806918.00, 'Corporate travel services opportunity with Manufacturing Plus', 'Prepare detailed proposal and schedule presentation', '2025-08-06 07:47:04.797008+00', '2025-08-06 07:47:04.797017+00', 41);
+INSERT INTO public.api_opportunity (id, name, stage, probability, estimated_close_date, actual_close_date, value, description, next_steps, created_at, updated_at, lead_id) VALUES (22, 'Travel Services Opportunity - Global Finance Ltd', 'discovery', 66, '2025-09-06', NULL, 389245.00, 'Corporate travel services opportunity with Global Finance Ltd', 'Prepare detailed proposal and schedule presentation', '2025-08-06 07:47:05.033412+00', '2025-08-06 07:47:05.033422+00', 43);
+INSERT INTO public.api_opportunity (id, name, stage, probability, estimated_close_date, actual_close_date, value, description, next_steps, created_at, updated_at, lead_id) VALUES (23, 'Travel Services Opportunity - Global Finance Ltd', 'negotiation', 70, '2025-12-31', NULL, 413775.00, 'Corporate travel services opportunity with Global Finance Ltd', 'Prepare detailed proposal and schedule presentation', '2025-08-06 07:47:05.269967+00', '2025-08-06 07:47:05.269983+00', 44);
+INSERT INTO public.api_opportunity (id, name, stage, probability, estimated_close_date, actual_close_date, value, description, next_steps, created_at, updated_at, lead_id) VALUES (24, 'Travel Services Opportunity - HealthTech Innovations', 'proposal', 43, '2025-12-11', NULL, 856388.00, 'Corporate travel services opportunity with HealthTech Innovations', 'Prepare detailed proposal and schedule presentation', '2025-08-06 07:47:05.507883+00', '2025-08-06 07:47:05.507893+00', 45);
+INSERT INTO public.api_opportunity (id, name, stage, probability, estimated_close_date, actual_close_date, value, description, next_steps, created_at, updated_at, lead_id) VALUES (25, 'Travel Services Opportunity - Retail Dynamics', 'discovery', 54, '2025-09-09', NULL, 309026.00, 'Corporate travel services opportunity with Retail Dynamics', 'Prepare detailed proposal and schedule presentation', '2025-08-06 07:48:29.618259+00', '2025-08-06 07:48:29.618269+00', 47);
+INSERT INTO public.api_opportunity (id, name, stage, probability, estimated_close_date, actual_close_date, value, description, next_steps, created_at, updated_at, lead_id) VALUES (26, 'Travel Services Opportunity - HealthTech Innovations', 'closed_lost', 64, '2025-10-14', NULL, 921382.00, 'Corporate travel services opportunity with HealthTech Innovations', 'Prepare detailed proposal and schedule presentation', '2025-08-06 07:48:29.854813+00', '2025-08-06 07:48:29.854825+00', 48);
+INSERT INTO public.api_opportunity (id, name, stage, probability, estimated_close_date, actual_close_date, value, description, next_steps, created_at, updated_at, lead_id) VALUES (28, 'Travel Services Opportunity - HealthTech Innovations', 'discovery', 12, '2025-09-30', NULL, 695467.00, 'Corporate travel services opportunity with HealthTech Innovations', 'Prepare detailed proposal and schedule presentation', '2025-08-06 07:48:30.325885+00', '2025-08-06 07:48:30.325894+00', 53);
+INSERT INTO public.api_opportunity (id, name, stage, probability, estimated_close_date, actual_close_date, value, description, next_steps, created_at, updated_at, lead_id) VALUES (29, 'Travel Services Opportunity - HealthTech Innovations', 'negotiation', 21, '2025-11-23', NULL, 754013.00, 'Corporate travel services opportunity with HealthTech Innovations', 'Prepare detailed proposal and schedule presentation', '2025-08-06 07:48:30.561134+00', '2025-08-06 07:48:30.561143+00', 54);
+INSERT INTO public.api_opportunity (id, name, stage, probability, estimated_close_date, actual_close_date, value, description, next_steps, created_at, updated_at, lead_id) VALUES (30, 'Travel Services Opportunity - ConsultPro Services', 'closed_won', 81, '2025-09-15', NULL, 281210.00, 'Corporate travel services opportunity with ConsultPro Services', 'Prepare detailed proposal and schedule presentation', '2025-08-06 07:48:30.79634+00', '2025-08-06 07:48:30.79635+00', 55);
+INSERT INTO public.api_opportunity (id, name, stage, probability, estimated_close_date, actual_close_date, value, description, next_steps, created_at, updated_at, lead_id) VALUES (1, 'Travel Services Opportunity - Global Finance Ltd', 'negotiation', 23, '2026-01-16', NULL, 884348.00, 'demo ', 'Prepare detailed proposal and schedule presentation', '2025-08-06 07:44:46.077375+00', '2025-08-06 07:44:46.077389+00', 1);
+INSERT INTO public.api_opportunity (id, name, stage, probability, estimated_close_date, actual_close_date, value, description, next_steps, created_at, updated_at, lead_id) VALUES (27, 'Travel Services Opportunity - TechCorp Solutions', 'negotiation', 79, '2025-11-23', NULL, 989784.00, 'Corporate travel services opportunity with TechCorp Solutions', 'Prepare detailed proposal and schedule presentation', '2025-08-06 07:48:30.090308+00', '2025-08-13 12:32:27.857942+00', 52);
+INSERT INTO public.api_opportunity (id, name, stage, probability, estimated_close_date, actual_close_date, value, description, next_steps, created_at, updated_at, lead_id) VALUES (10, 'Travel Services Opportunity - Retail Dynamics', 'negotiation', 80, '2025-09-11', NULL, 499971.00, 'Corporate travel services opportunity with Retail Dynamics', 'Prepare detailed proposal and schedule presentation', '2025-08-06 07:45:37.951783+00', '2025-08-22 10:49:42.039365+00', 18);
+INSERT INTO public.api_opportunity (id, name, stage, probability, estimated_close_date, actual_close_date, value, description, next_steps, created_at, updated_at, lead_id) VALUES (32, 'Travel Services Opportunity - HealthTech Innovations', 'closed_lost', 51, '2025-12-18', NULL, 223403.00, 'Corporate travel services opportunity with HealthTech Innovations', 'Prepare detailed proposal and schedule presentation', '2025-08-06 07:48:31.269323+00', '2025-08-06 07:48:31.269337+00', 59);
+INSERT INTO public.api_opportunity (id, name, stage, probability, estimated_close_date, actual_close_date, value, description, next_steps, created_at, updated_at, lead_id) VALUES (33, 'Infiniti software - Corporate Travel Solution', 'negotiation', 65, '2025-09-12', NULL, 250000.00, 'Opportunity created from qualified lead. demo check
+
+[2025-08-13 06:53] Disqualified: ', 'Send initial proposal and schedule presentation', '2025-08-13 07:40:33.780447+00', '2025-08-13 12:01:33.755377+00', 67);
+INSERT INTO public.api_opportunity (id, name, stage, probability, estimated_close_date, actual_close_date, value, description, next_steps, created_at, updated_at, lead_id) VALUES (34, 'nagendran - Corporate Travel Solution', 'proposal', 65, '2025-09-12', NULL, 1436339.00, 'Opportunity created from qualified lead. Moved from corporate search. AI Score: 92. Established company with consistent business patterns. Good candidate for long-term contracts.. Specialties: web-application, Android-app, crmtool. Travel Frequency: Bi-weekly. Preferred Class: Business/First.
+
+[2025-08-11 10:01] Disqualified: checking this 
+
+[2025-08-11 10:04] Disqualified: testing nagedran corporate
+zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz
+
+[2025-08-11 13:09] Disqualified: ', 'Send initial proposal and schedule presentation', '2025-08-13 12:22:47.244172+00', '2025-08-13 12:22:47.244184+00', 62);
+INSERT INTO public.api_opportunity (id, name, stage, probability, estimated_close_date, actual_close_date, value, description, next_steps, created_at, updated_at, lead_id) VALUES (35, 'muni - Corporate Travel Solution', 'proposal', 65, '2025-09-12', NULL, 55.00, 'Opportunity created from qualified lead. 55ttrreeeee', 'Send initial proposal and schedule presentation', '2025-08-13 12:29:06.359255+00', '2025-08-13 12:29:06.359273+00', 61);
+INSERT INTO public.api_opportunity (id, name, stage, probability, estimated_close_date, actual_close_date, value, description, next_steps, created_at, updated_at, lead_id) VALUES (36, 'TechCorp Solutions - Corporate Travel Solution', 'proposal', 65, '2025-09-19', NULL, 721224.00, 'Opportunity created from qualified lead. Moved from corporate search. AI Score: 91. Established company with consistent business patterns. Good candidate for long-term contracts.. Specialties: Business Services, Corporate Solutions. Travel Frequency: Weekly. Preferred Class: Business/First.', 'Send initial proposal and schedule presentation', '2025-08-20 06:38:11.339182+00', '2025-08-20 06:38:11.339194+00', 64);
+INSERT INTO public.api_opportunity (id, name, stage, probability, estimated_close_date, actual_close_date, value, description, next_steps, created_at, updated_at, lead_id) VALUES (37, 'TechCorp Solutions - Corporate Travel Solution', 'proposal', 65, '2025-09-19', NULL, 2484189.00, 'Opportunity created from qualified lead. Moved from corporate search. AI Score: 94. High-potential corporate client with strong growth indicators. Excellent opportunity for partnership.. Specialties: Business Services, Corporate Solutions. Travel Frequency: Monthly. Preferred Class: First.', 'Send initial proposal and schedule presentation', '2025-08-20 06:49:21.786946+00', '2025-08-20 06:49:21.786965+00', 66);
+INSERT INTO public.api_opportunity (id, name, stage, probability, estimated_close_date, actual_close_date, value, description, next_steps, created_at, updated_at, lead_id) VALUES (31, 'Travel Services Opportunity - Global Finance Ltd', 'discovery', 88, '2025-12-01', NULL, 167105.00, 'Corporate travel services opportunity with Global Finance Ltdxxxxxxxxxxxx', 'Prepare detailed proposal and schedule presentationddddddddd', '2025-08-06 07:48:31.031574+00', '2025-08-21 10:50:55.806474+00', 57);
+INSERT INTO public.api_opportunity (id, name, stage, probability, estimated_close_date, actual_close_date, value, description, next_steps, created_at, updated_at, lead_id) VALUES (38, 'TechCorp Solutions - Corporate Travel Solution', 'proposal', 65, '2025-09-21', NULL, 3461043.00, 'Opportunity created from qualified lead. Moved from corporate search. AI Score: 85. Premium client with sophisticated requirements. Focus on high-service offerings.. Specialties: Business Services, Corporate Solutions. Travel Frequency: Weekly. Preferred Class: Business.', 'Send initial proposal and schedule presentation', '2025-08-22 07:08:47.590268+00', '2025-08-22 07:08:47.590281+00', 65);
+INSERT INTO public.api_opportunity (id, name, stage, probability, estimated_close_date, actual_close_date, value, description, next_steps, created_at, updated_at, lead_id) VALUES (5, 'Travel Services Opportunity - TechCorp Solutions', 'closed_lost', 99, '2025-10-05', NULL, 6666666.00, 'Corporate travel services opportunity with TechCorpdd', 'Prepare detailed proposal and schedule presentationzzzzzzzzzzzzz', '2025-08-06 07:44:47.019117+00', '2025-08-22 07:13:35.159763+00', 7);
+
+
+--
+-- Data for Name: api_contract; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+INSERT INTO public.api_contract (id, contract_number, title, contract_type, status, start_date, end_date, value, terms, renewal_terms, auto_renewal, notice_period_days, risk_score, created_at, updated_at, company_id, opportunity_id) VALUES (1, 'CNT-2024-1001', 'Corporate Travel Agreement - Global Finance Ltd', 'master_agreement', 'pending_signature', '2025-08-06', '2026-08-06', 884348.00, 'Standard corporate travel agreement terms and conditions', 'Auto-renewal for 12 months unless terminated with 30 days notice', true, 90, 8, '2025-08-06 07:44:47.957942+00', '2025-08-06 07:44:47.957952+00', 2, 1);
+INSERT INTO public.api_contract (id, contract_number, title, contract_type, status, start_date, end_date, value, terms, renewal_terms, auto_renewal, notice_period_days, risk_score, created_at, updated_at, company_id, opportunity_id) VALUES (2, 'CNT-2024-1002', 'Corporate Travel Agreement - HealthTech Innovations', 'corporate_travel', 'expired', '2025-08-06', '2026-08-06', 252496.00, 'Standard corporate travel agreement terms and conditions', 'Auto-renewal for 12 months unless terminated with 30 days notice', false, 60, 1, '2025-08-06 07:44:48.198567+00', '2025-08-06 07:44:48.19858+00', 3, 2);
+INSERT INTO public.api_contract (id, contract_number, title, contract_type, status, start_date, end_date, value, terms, renewal_terms, auto_renewal, notice_period_days, risk_score, created_at, updated_at, company_id, opportunity_id) VALUES (3, 'CNT-2024-1003', 'Corporate Travel Agreement - Manufacturing Plus', 'service_agreement', 'draft', '2025-08-06', '2026-08-06', 863696.00, 'Standard corporate travel agreement terms and conditions', 'Auto-renewal for 12 months unless terminated with 30 days notice', false, 90, 5, '2025-08-06 07:44:48.433497+00', '2025-08-06 07:44:48.433506+00', 4, 3);
+INSERT INTO public.api_contract (id, contract_number, title, contract_type, status, start_date, end_date, value, terms, renewal_terms, auto_renewal, notice_period_days, risk_score, created_at, updated_at, company_id, opportunity_id) VALUES (4, 'CNT-2024-1004', 'Corporate Travel Agreement - ConsultPro Services', 'corporate_travel', 'pending_signature', '2025-08-06', '2026-08-06', 414085.00, 'Standard corporate travel agreement terms and conditions', 'Auto-renewal for 12 months unless terminated with 30 days notice', false, 60, 2, '2025-08-06 07:44:48.668485+00', '2025-08-06 07:44:48.668498+00', 6, 4);
+INSERT INTO public.api_contract (id, contract_number, title, contract_type, status, start_date, end_date, value, terms, renewal_terms, auto_renewal, notice_period_days, risk_score, created_at, updated_at, company_id, opportunity_id) VALUES (5, 'CNT-2024-1005', 'Corporate Travel Agreement - TechCorp Solutions', 'corporate_travel', 'pending_signature', '2025-08-06', '2026-08-06', 433377.00, 'Standard corporate travel agreement terms and conditions', 'Auto-renewal for 12 months unless terminated with 30 days notice', false, 60, 3, '2025-08-06 07:44:48.903748+00', '2025-08-06 07:44:48.90376+00', 1, 5);
+INSERT INTO public.api_contract (id, contract_number, title, contract_type, status, start_date, end_date, value, terms, renewal_terms, auto_renewal, notice_period_days, risk_score, created_at, updated_at, company_id, opportunity_id) VALUES (6, 'CNT-2024-1006', 'Corporate Travel Agreement - Retail Dynamics', 'corporate_travel', 'terminated', '2025-08-06', '2026-08-06', 693476.00, 'Standard corporate travel agreement terms and conditions', 'Auto-renewal for 12 months unless terminated with 30 days notice', true, 60, 7, '2025-08-06 07:44:49.138422+00', '2025-08-06 07:44:49.138431+00', 5, 6);
+
+
+--
+-- Data for Name: api_contractbreach; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+
+
+--
+-- Data for Name: api_emailcampaign; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+
+
+--
+-- Data for Name: api_emailcampaign_target_leads; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+
+
+--
 -- Data for Name: api_leadhistory; Type: TABLE DATA; Schema: public; Owner: -
 --
 
@@ -1775,8 +801,6 @@ INSERT INTO public.api_leadhistory (id, history_type, action, details, icon, met
 
 
 --
--- TOC entry 3653 (class 0 OID 90114)
--- Dependencies: 263
 -- Data for Name: api_leadnote; Type: TABLE DATA; Schema: public; Owner: -
 --
 
@@ -1788,63 +812,6 @@ INSERT INTO public.api_leadnote (id, note, next_action, urgency, created_at, upd
 
 
 --
--- TOC entry 3641 (class 0 OID 32835)
--- Dependencies: 251
--- Data for Name: api_opportunity; Type: TABLE DATA; Schema: public; Owner: -
---
-
-INSERT INTO public.api_opportunity (id, name, stage, probability, estimated_close_date, actual_close_date, value, description, next_steps, created_at, updated_at, lead_id) VALUES (2, 'Travel Services Opportunity - HealthTech Innovations', 'negotiation', 47, '2025-12-05', NULL, 252496.00, 'Corporate travel services opportunity with HealthTech Innovations', 'Prepare detailed proposal and schedule presentation', '2025-08-06 07:44:46.314879+00', '2025-08-06 07:44:46.314893+00', 3);
-INSERT INTO public.api_opportunity (id, name, stage, probability, estimated_close_date, actual_close_date, value, description, next_steps, created_at, updated_at, lead_id) VALUES (3, 'Travel Services Opportunity - Manufacturing Plus', 'closed_lost', 16, '2025-10-31', NULL, 863696.00, 'Corporate travel services opportunity with Manufacturing Plus', 'Prepare detailed proposal and schedule presentation', '2025-08-06 07:44:46.549573+00', '2025-08-06 07:44:46.549586+00', 4);
-INSERT INTO public.api_opportunity (id, name, stage, probability, estimated_close_date, actual_close_date, value, description, next_steps, created_at, updated_at, lead_id) VALUES (4, 'Travel Services Opportunity - ConsultPro Services', 'closed_won', 14, '2025-12-09', NULL, 414085.00, 'Corporate travel services opportunity with ConsultPro Services', 'Prepare detailed proposal and schedule presentation', '2025-08-06 07:44:46.78439+00', '2025-08-06 07:44:46.7844+00', 5);
-INSERT INTO public.api_opportunity (id, name, stage, probability, estimated_close_date, actual_close_date, value, description, next_steps, created_at, updated_at, lead_id) VALUES (6, 'Travel Services Opportunity - Retail Dynamics', 'discovery', 25, '2026-01-27', NULL, 693476.00, 'Corporate travel services opportunity with Retail Dynamics', 'Prepare detailed proposal and schedule presentation', '2025-08-06 07:44:47.253797+00', '2025-08-06 07:44:47.253811+00', 9);
-INSERT INTO public.api_opportunity (id, name, stage, probability, estimated_close_date, actual_close_date, value, description, next_steps, created_at, updated_at, lead_id) VALUES (7, 'Travel Services Opportunity - Global Finance Ltd', 'discovery', 49, '2025-10-20', NULL, 482255.00, 'Corporate travel services opportunity with Global Finance Ltd', 'Prepare detailed proposal and schedule presentation', '2025-08-06 07:44:47.488425+00', '2025-08-06 07:44:47.488439+00', 10);
-INSERT INTO public.api_opportunity (id, name, stage, probability, estimated_close_date, actual_close_date, value, description, next_steps, created_at, updated_at, lead_id) VALUES (8, 'Travel Services Opportunity - Global Finance Ltd', 'proposal', 75, '2026-01-15', NULL, 430439.00, 'Corporate travel services opportunity with Global Finance Ltd', 'Prepare detailed proposal and schedule presentation', '2025-08-06 07:44:47.722855+00', '2025-08-06 07:44:47.722865+00', 11);
-INSERT INTO public.api_opportunity (id, name, stage, probability, estimated_close_date, actual_close_date, value, description, next_steps, created_at, updated_at, lead_id) VALUES (9, 'Travel Services Opportunity - Global Finance Ltd', 'negotiation', 58, '2025-11-08', NULL, 880738.00, 'Corporate travel services opportunity with Global Finance Ltd', 'Prepare detailed proposal and schedule presentation', '2025-08-06 07:45:37.715565+00', '2025-08-06 07:45:37.715577+00', 17);
-INSERT INTO public.api_opportunity (id, name, stage, probability, estimated_close_date, actual_close_date, value, description, next_steps, created_at, updated_at, lead_id) VALUES (11, 'Travel Services Opportunity - Retail Dynamics', 'closed_won', 35, '2025-09-14', NULL, 968480.00, 'Corporate travel services opportunity with Retail Dynamics', 'Prepare detailed proposal and schedule presentation', '2025-08-06 07:45:38.186387+00', '2025-08-06 07:45:38.186397+00', 19);
-INSERT INTO public.api_opportunity (id, name, stage, probability, estimated_close_date, actual_close_date, value, description, next_steps, created_at, updated_at, lead_id) VALUES (12, 'Travel Services Opportunity - Global Finance Ltd', 'closed_won', 19, '2025-10-27', NULL, 813625.00, 'Corporate travel services opportunity with Global Finance Ltd', 'Prepare detailed proposal and schedule presentation', '2025-08-06 07:45:38.421154+00', '2025-08-06 07:45:38.421167+00', 20);
-INSERT INTO public.api_opportunity (id, name, stage, probability, estimated_close_date, actual_close_date, value, description, next_steps, created_at, updated_at, lead_id) VALUES (13, 'Travel Services Opportunity - ConsultPro Services', 'closed_won', 17, '2025-10-26', NULL, 391712.00, 'Corporate travel services opportunity with ConsultPro Services', 'Prepare detailed proposal and schedule presentation', '2025-08-06 07:45:38.65563+00', '2025-08-06 07:45:38.655639+00', 21);
-INSERT INTO public.api_opportunity (id, name, stage, probability, estimated_close_date, actual_close_date, value, description, next_steps, created_at, updated_at, lead_id) VALUES (14, 'Travel Services Opportunity - TechCorp Solutions', 'negotiation', 78, '2025-09-15', NULL, 243296.00, 'Corporate travel services opportunity with TechCorp Solutions', 'Prepare detailed proposal and schedule presentation', '2025-08-06 07:45:38.890919+00', '2025-08-06 07:45:38.890928+00', 23);
-INSERT INTO public.api_opportunity (id, name, stage, probability, estimated_close_date, actual_close_date, value, description, next_steps, created_at, updated_at, lead_id) VALUES (15, 'Travel Services Opportunity - HealthTech Innovations', 'negotiation', 25, '2025-12-31', NULL, 749762.00, 'Corporate travel services opportunity with HealthTech Innovations', 'Prepare detailed proposal and schedule presentation', '2025-08-06 07:45:39.125355+00', '2025-08-06 07:45:39.125364+00', 24);
-INSERT INTO public.api_opportunity (id, name, stage, probability, estimated_close_date, actual_close_date, value, description, next_steps, created_at, updated_at, lead_id) VALUES (16, 'Travel Services Opportunity - TechCorp Solutions', 'closed_won', 12, '2025-11-01', NULL, 144770.00, 'Corporate travel services opportunity with TechCorp Solutions', 'Prepare detailed proposal and schedule presentation', '2025-08-06 07:45:39.359834+00', '2025-08-06 07:45:39.359843+00', 26);
-INSERT INTO public.api_opportunity (id, name, stage, probability, estimated_close_date, actual_close_date, value, description, next_steps, created_at, updated_at, lead_id) VALUES (17, 'Travel Services Opportunity - Global Finance Ltd', 'closed_won', 41, '2025-11-26', NULL, 358864.00, 'Corporate travel services opportunity with Global Finance Ltd', 'Prepare detailed proposal and schedule presentation', '2025-08-06 07:47:03.845637+00', '2025-08-06 07:47:03.84565+00', 34);
-INSERT INTO public.api_opportunity (id, name, stage, probability, estimated_close_date, actual_close_date, value, description, next_steps, created_at, updated_at, lead_id) VALUES (18, 'Travel Services Opportunity - TechCorp Solutions', 'closed_won', 43, '2026-01-04', NULL, 940373.00, 'Corporate travel services opportunity with TechCorp Solutions', 'Prepare detailed proposal and schedule presentation', '2025-08-06 07:47:04.084066+00', '2025-08-06 07:47:04.084075+00', 36);
-INSERT INTO public.api_opportunity (id, name, stage, probability, estimated_close_date, actual_close_date, value, description, next_steps, created_at, updated_at, lead_id) VALUES (19, 'Travel Services Opportunity - TechCorp Solutions', 'proposal', 18, '2025-10-29', NULL, 601150.00, 'Corporate travel services opportunity with TechCorp Solutions', 'Prepare detailed proposal and schedule presentation', '2025-08-06 07:47:04.320698+00', '2025-08-06 07:47:04.320767+00', 39);
-INSERT INTO public.api_opportunity (id, name, stage, probability, estimated_close_date, actual_close_date, value, description, next_steps, created_at, updated_at, lead_id) VALUES (20, 'Travel Services Opportunity - HealthTech Innovations', 'closed_lost', 29, '2025-12-14', NULL, 424110.00, 'Corporate travel services opportunity with HealthTech Innovations', 'Prepare detailed proposal and schedule presentation', '2025-08-06 07:47:04.560486+00', '2025-08-06 07:47:04.5605+00', 40);
-INSERT INTO public.api_opportunity (id, name, stage, probability, estimated_close_date, actual_close_date, value, description, next_steps, created_at, updated_at, lead_id) VALUES (21, 'Travel Services Opportunity - Manufacturing Plus', 'closed_won', 50, '2025-10-04', NULL, 806918.00, 'Corporate travel services opportunity with Manufacturing Plus', 'Prepare detailed proposal and schedule presentation', '2025-08-06 07:47:04.797008+00', '2025-08-06 07:47:04.797017+00', 41);
-INSERT INTO public.api_opportunity (id, name, stage, probability, estimated_close_date, actual_close_date, value, description, next_steps, created_at, updated_at, lead_id) VALUES (22, 'Travel Services Opportunity - Global Finance Ltd', 'discovery', 66, '2025-09-06', NULL, 389245.00, 'Corporate travel services opportunity with Global Finance Ltd', 'Prepare detailed proposal and schedule presentation', '2025-08-06 07:47:05.033412+00', '2025-08-06 07:47:05.033422+00', 43);
-INSERT INTO public.api_opportunity (id, name, stage, probability, estimated_close_date, actual_close_date, value, description, next_steps, created_at, updated_at, lead_id) VALUES (23, 'Travel Services Opportunity - Global Finance Ltd', 'negotiation', 70, '2025-12-31', NULL, 413775.00, 'Corporate travel services opportunity with Global Finance Ltd', 'Prepare detailed proposal and schedule presentation', '2025-08-06 07:47:05.269967+00', '2025-08-06 07:47:05.269983+00', 44);
-INSERT INTO public.api_opportunity (id, name, stage, probability, estimated_close_date, actual_close_date, value, description, next_steps, created_at, updated_at, lead_id) VALUES (24, 'Travel Services Opportunity - HealthTech Innovations', 'proposal', 43, '2025-12-11', NULL, 856388.00, 'Corporate travel services opportunity with HealthTech Innovations', 'Prepare detailed proposal and schedule presentation', '2025-08-06 07:47:05.507883+00', '2025-08-06 07:47:05.507893+00', 45);
-INSERT INTO public.api_opportunity (id, name, stage, probability, estimated_close_date, actual_close_date, value, description, next_steps, created_at, updated_at, lead_id) VALUES (25, 'Travel Services Opportunity - Retail Dynamics', 'discovery', 54, '2025-09-09', NULL, 309026.00, 'Corporate travel services opportunity with Retail Dynamics', 'Prepare detailed proposal and schedule presentation', '2025-08-06 07:48:29.618259+00', '2025-08-06 07:48:29.618269+00', 47);
-INSERT INTO public.api_opportunity (id, name, stage, probability, estimated_close_date, actual_close_date, value, description, next_steps, created_at, updated_at, lead_id) VALUES (26, 'Travel Services Opportunity - HealthTech Innovations', 'closed_lost', 64, '2025-10-14', NULL, 921382.00, 'Corporate travel services opportunity with HealthTech Innovations', 'Prepare detailed proposal and schedule presentation', '2025-08-06 07:48:29.854813+00', '2025-08-06 07:48:29.854825+00', 48);
-INSERT INTO public.api_opportunity (id, name, stage, probability, estimated_close_date, actual_close_date, value, description, next_steps, created_at, updated_at, lead_id) VALUES (28, 'Travel Services Opportunity - HealthTech Innovations', 'discovery', 12, '2025-09-30', NULL, 695467.00, 'Corporate travel services opportunity with HealthTech Innovations', 'Prepare detailed proposal and schedule presentation', '2025-08-06 07:48:30.325885+00', '2025-08-06 07:48:30.325894+00', 53);
-INSERT INTO public.api_opportunity (id, name, stage, probability, estimated_close_date, actual_close_date, value, description, next_steps, created_at, updated_at, lead_id) VALUES (29, 'Travel Services Opportunity - HealthTech Innovations', 'negotiation', 21, '2025-11-23', NULL, 754013.00, 'Corporate travel services opportunity with HealthTech Innovations', 'Prepare detailed proposal and schedule presentation', '2025-08-06 07:48:30.561134+00', '2025-08-06 07:48:30.561143+00', 54);
-INSERT INTO public.api_opportunity (id, name, stage, probability, estimated_close_date, actual_close_date, value, description, next_steps, created_at, updated_at, lead_id) VALUES (30, 'Travel Services Opportunity - ConsultPro Services', 'closed_won', 81, '2025-09-15', NULL, 281210.00, 'Corporate travel services opportunity with ConsultPro Services', 'Prepare detailed proposal and schedule presentation', '2025-08-06 07:48:30.79634+00', '2025-08-06 07:48:30.79635+00', 55);
-INSERT INTO public.api_opportunity (id, name, stage, probability, estimated_close_date, actual_close_date, value, description, next_steps, created_at, updated_at, lead_id) VALUES (1, 'Travel Services Opportunity - Global Finance Ltd', 'negotiation', 23, '2026-01-16', NULL, 884348.00, 'demo ', 'Prepare detailed proposal and schedule presentation', '2025-08-06 07:44:46.077375+00', '2025-08-06 07:44:46.077389+00', 1);
-INSERT INTO public.api_opportunity (id, name, stage, probability, estimated_close_date, actual_close_date, value, description, next_steps, created_at, updated_at, lead_id) VALUES (27, 'Travel Services Opportunity - TechCorp Solutions', 'negotiation', 79, '2025-11-23', NULL, 989784.00, 'Corporate travel services opportunity with TechCorp Solutions', 'Prepare detailed proposal and schedule presentation', '2025-08-06 07:48:30.090308+00', '2025-08-13 12:32:27.857942+00', 52);
-INSERT INTO public.api_opportunity (id, name, stage, probability, estimated_close_date, actual_close_date, value, description, next_steps, created_at, updated_at, lead_id) VALUES (10, 'Travel Services Opportunity - Retail Dynamics', 'negotiation', 80, '2025-09-11', NULL, 499971.00, 'Corporate travel services opportunity with Retail Dynamics', 'Prepare detailed proposal and schedule presentation', '2025-08-06 07:45:37.951783+00', '2025-08-22 10:49:42.039365+00', 18);
-INSERT INTO public.api_opportunity (id, name, stage, probability, estimated_close_date, actual_close_date, value, description, next_steps, created_at, updated_at, lead_id) VALUES (32, 'Travel Services Opportunity - HealthTech Innovations', 'closed_lost', 51, '2025-12-18', NULL, 223403.00, 'Corporate travel services opportunity with HealthTech Innovations', 'Prepare detailed proposal and schedule presentation', '2025-08-06 07:48:31.269323+00', '2025-08-06 07:48:31.269337+00', 59);
-INSERT INTO public.api_opportunity (id, name, stage, probability, estimated_close_date, actual_close_date, value, description, next_steps, created_at, updated_at, lead_id) VALUES (33, 'Infiniti software - Corporate Travel Solution', 'negotiation', 65, '2025-09-12', NULL, 250000.00, 'Opportunity created from qualified lead. demo check
-
-[2025-08-13 06:53] Disqualified: ', 'Send initial proposal and schedule presentation', '2025-08-13 07:40:33.780447+00', '2025-08-13 12:01:33.755377+00', 67);
-INSERT INTO public.api_opportunity (id, name, stage, probability, estimated_close_date, actual_close_date, value, description, next_steps, created_at, updated_at, lead_id) VALUES (34, 'nagendran - Corporate Travel Solution', 'proposal', 65, '2025-09-12', NULL, 1436339.00, 'Opportunity created from qualified lead. Moved from corporate search. AI Score: 92. Established company with consistent business patterns. Good candidate for long-term contracts.. Specialties: web-application, Android-app, crmtool. Travel Frequency: Bi-weekly. Preferred Class: Business/First.
-
-[2025-08-11 10:01] Disqualified: checking this 
-
-[2025-08-11 10:04] Disqualified: testing nagedran corporate
-zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz
-
-[2025-08-11 13:09] Disqualified: ', 'Send initial proposal and schedule presentation', '2025-08-13 12:22:47.244172+00', '2025-08-13 12:22:47.244184+00', 62);
-INSERT INTO public.api_opportunity (id, name, stage, probability, estimated_close_date, actual_close_date, value, description, next_steps, created_at, updated_at, lead_id) VALUES (35, 'muni - Corporate Travel Solution', 'proposal', 65, '2025-09-12', NULL, 55.00, 'Opportunity created from qualified lead. 55ttrreeeee', 'Send initial proposal and schedule presentation', '2025-08-13 12:29:06.359255+00', '2025-08-13 12:29:06.359273+00', 61);
-INSERT INTO public.api_opportunity (id, name, stage, probability, estimated_close_date, actual_close_date, value, description, next_steps, created_at, updated_at, lead_id) VALUES (36, 'TechCorp Solutions - Corporate Travel Solution', 'proposal', 65, '2025-09-19', NULL, 721224.00, 'Opportunity created from qualified lead. Moved from corporate search. AI Score: 91. Established company with consistent business patterns. Good candidate for long-term contracts.. Specialties: Business Services, Corporate Solutions. Travel Frequency: Weekly. Preferred Class: Business/First.', 'Send initial proposal and schedule presentation', '2025-08-20 06:38:11.339182+00', '2025-08-20 06:38:11.339194+00', 64);
-INSERT INTO public.api_opportunity (id, name, stage, probability, estimated_close_date, actual_close_date, value, description, next_steps, created_at, updated_at, lead_id) VALUES (37, 'TechCorp Solutions - Corporate Travel Solution', 'proposal', 65, '2025-09-19', NULL, 2484189.00, 'Opportunity created from qualified lead. Moved from corporate search. AI Score: 94. High-potential corporate client with strong growth indicators. Excellent opportunity for partnership.. Specialties: Business Services, Corporate Solutions. Travel Frequency: Monthly. Preferred Class: First.', 'Send initial proposal and schedule presentation', '2025-08-20 06:49:21.786946+00', '2025-08-20 06:49:21.786965+00', 66);
-INSERT INTO public.api_opportunity (id, name, stage, probability, estimated_close_date, actual_close_date, value, description, next_steps, created_at, updated_at, lead_id) VALUES (31, 'Travel Services Opportunity - Global Finance Ltd', 'discovery', 88, '2025-12-01', NULL, 167105.00, 'Corporate travel services opportunity with Global Finance Ltdxxxxxxxxxxxx', 'Prepare detailed proposal and schedule presentationddddddddd', '2025-08-06 07:48:31.031574+00', '2025-08-21 10:50:55.806474+00', 57);
-INSERT INTO public.api_opportunity (id, name, stage, probability, estimated_close_date, actual_close_date, value, description, next_steps, created_at, updated_at, lead_id) VALUES (38, 'TechCorp Solutions - Corporate Travel Solution', 'proposal', 65, '2025-09-21', NULL, 3461043.00, 'Opportunity created from qualified lead. Moved from corporate search. AI Score: 85. Premium client with sophisticated requirements. Focus on high-service offerings.. Specialties: Business Services, Corporate Solutions. Travel Frequency: Weekly. Preferred Class: Business.', 'Send initial proposal and schedule presentation', '2025-08-22 07:08:47.590268+00', '2025-08-22 07:08:47.590281+00', 65);
-INSERT INTO public.api_opportunity (id, name, stage, probability, estimated_close_date, actual_close_date, value, description, next_steps, created_at, updated_at, lead_id) VALUES (5, 'Travel Services Opportunity - TechCorp Solutions', 'closed_lost', 99, '2025-10-05', NULL, 6666666.00, 'Corporate travel services opportunity with TechCorpdd', 'Prepare detailed proposal and schedule presentationzzzzzzzzzzzzz', '2025-08-06 07:44:47.019117+00', '2025-08-22 07:13:35.159763+00', 7);
-
-
---
--- TOC entry 3657 (class 0 OID 155649)
--- Dependencies: 267
 -- Data for Name: api_opportunityactivity; Type: TABLE DATA; Schema: public; Owner: -
 --
 
@@ -1858,56 +825,65 @@ INSERT INTO public.api_opportunityactivity (id, type, description, date, created
 
 
 --
--- TOC entry 3633 (class 0 OID 32803)
--- Dependencies: 243
 -- Data for Name: api_revenueforecast; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 
 
 --
--- TOC entry 3639 (class 0 OID 32825)
--- Dependencies: 249
 -- Data for Name: api_supportticket; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 
 
 --
--- TOC entry 3635 (class 0 OID 32811)
--- Dependencies: 245
 -- Data for Name: api_traveloffer; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 
 
 --
--- TOC entry 3637 (class 0 OID 32819)
--- Dependencies: 247
 -- Data for Name: api_traveloffer_target_companies; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 
 
 --
--- TOC entry 3612 (class 0 OID 24599)
--- Dependencies: 222
 -- Data for Name: auth_group; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 
 
 --
--- TOC entry 3614 (class 0 OID 24607)
--- Dependencies: 224
--- Data for Name: auth_group_permissions; Type: TABLE DATA; Schema: public; Owner: -
+-- Data for Name: django_content_type; Type: TABLE DATA; Schema: public; Owner: -
 --
 
+INSERT INTO public.django_content_type (id, app_label, model) VALUES (1, 'admin', 'logentry');
+INSERT INTO public.django_content_type (id, app_label, model) VALUES (2, 'auth', 'permission');
+INSERT INTO public.django_content_type (id, app_label, model) VALUES (3, 'auth', 'group');
+INSERT INTO public.django_content_type (id, app_label, model) VALUES (4, 'auth', 'user');
+INSERT INTO public.django_content_type (id, app_label, model) VALUES (5, 'contenttypes', 'contenttype');
+INSERT INTO public.django_content_type (id, app_label, model) VALUES (6, 'sessions', 'session');
+INSERT INTO public.django_content_type (id, app_label, model) VALUES (7, 'api', 'company');
+INSERT INTO public.django_content_type (id, app_label, model) VALUES (8, 'api', 'contact');
+INSERT INTO public.django_content_type (id, app_label, model) VALUES (9, 'api', 'lead');
+INSERT INTO public.django_content_type (id, app_label, model) VALUES (10, 'api', 'opportunity');
+INSERT INTO public.django_content_type (id, app_label, model) VALUES (11, 'api', 'contract');
+INSERT INTO public.django_content_type (id, app_label, model) VALUES (12, 'api', 'vendor');
+INSERT INTO public.django_content_type (id, app_label, model) VALUES (13, 'api', 'marketingcampaign');
+INSERT INTO public.django_content_type (id, app_label, model) VALUES (14, 'api', 'supportticket');
+INSERT INTO public.django_content_type (id, app_label, model) VALUES (15, 'api', 'revenueforecast');
+INSERT INTO public.django_content_type (id, app_label, model) VALUES (16, 'api', 'activitylog');
+INSERT INTO public.django_content_type (id, app_label, model) VALUES (17, 'api', 'contractbreach');
+INSERT INTO public.django_content_type (id, app_label, model) VALUES (18, 'api', 'emailcampaign');
+INSERT INTO public.django_content_type (id, app_label, model) VALUES (19, 'api', 'traveloffer');
+INSERT INTO public.django_content_type (id, app_label, model) VALUES (20, 'api', 'aiconversation');
+INSERT INTO public.django_content_type (id, app_label, model) VALUES (21, 'api', 'leadnote');
+INSERT INTO public.django_content_type (id, app_label, model) VALUES (22, 'api', 'leadhistory');
+INSERT INTO public.django_content_type (id, app_label, model) VALUES (23, 'api', 'opportunityactivity');
 
 
 --
--- TOC entry 3610 (class 0 OID 24593)
--- Dependencies: 220
 -- Data for Name: auth_permission; Type: TABLE DATA; Schema: public; Owner: -
 --
 
@@ -2006,78 +982,30 @@ INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES 
 
 
 --
--- TOC entry 3616 (class 0 OID 24613)
--- Dependencies: 226
--- Data for Name: auth_user; Type: TABLE DATA; Schema: public; Owner: -
+-- Data for Name: auth_group_permissions; Type: TABLE DATA; Schema: public; Owner: -
 --
 
-INSERT INTO public.auth_user (id, password, last_login, is_superuser, username, first_name, last_name, email, is_staff, is_active, date_joined) VALUES (1, '!bLN8o8e3ZBuT1TRTso9vvUV7HYrphSJucHem8yxx', NULL, true, 'admin', '', '', 'admin@example.com', true, true, '2025-08-06 06:37:23.333557+00');
-INSERT INTO public.auth_user (id, password, last_login, is_superuser, username, first_name, last_name, email, is_staff, is_active, date_joined) VALUES (3, '', NULL, false, 'user1', 'John', 'Smith', 'user1@soar-ai.com', false, true, '2025-08-06 07:24:45.104845+00');
-INSERT INTO public.auth_user (id, password, last_login, is_superuser, username, first_name, last_name, email, is_staff, is_active, date_joined) VALUES (4, '', NULL, false, 'user2', 'Jane', 'Johnson', 'user2@soar-ai.com', false, true, '2025-08-06 07:24:46.054165+00');
-INSERT INTO public.auth_user (id, password, last_login, is_superuser, username, first_name, last_name, email, is_staff, is_active, date_joined) VALUES (5, '', NULL, false, 'user3', 'Mike', 'Brown', 'user3@soar-ai.com', false, true, '2025-08-06 07:24:46.988532+00');
-INSERT INTO public.auth_user (id, password, last_login, is_superuser, username, first_name, last_name, email, is_staff, is_active, date_joined) VALUES (6, '', NULL, false, 'user4', 'Sarah', 'Davis', 'user4@soar-ai.com', false, true, '2025-08-06 07:24:47.923234+00');
-INSERT INTO public.auth_user (id, password, last_login, is_superuser, username, first_name, last_name, email, is_staff, is_active, date_joined) VALUES (7, '', NULL, false, 'user5', 'David', 'Wilson', 'user5@soar-ai.com', false, true, '2025-08-06 07:24:48.857783+00');
-INSERT INTO public.auth_user (id, password, last_login, is_superuser, username, first_name, last_name, email, is_staff, is_active, date_joined) VALUES (8, '', NULL, false, 'system', 'System', 'User', 'system@company.com', false, true, '2025-08-12 05:17:41.323561+00');
 
 
 --
--- TOC entry 3618 (class 0 OID 24621)
--- Dependencies: 228
 -- Data for Name: auth_user_groups; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 
 
 --
--- TOC entry 3620 (class 0 OID 24627)
--- Dependencies: 230
 -- Data for Name: auth_user_user_permissions; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 
 
 --
--- TOC entry 3622 (class 0 OID 24685)
--- Dependencies: 232
 -- Data for Name: django_admin_log; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 
 
 --
--- TOC entry 3608 (class 0 OID 24585)
--- Dependencies: 218
--- Data for Name: django_content_type; Type: TABLE DATA; Schema: public; Owner: -
---
-
-INSERT INTO public.django_content_type (id, app_label, model) VALUES (1, 'admin', 'logentry');
-INSERT INTO public.django_content_type (id, app_label, model) VALUES (2, 'auth', 'permission');
-INSERT INTO public.django_content_type (id, app_label, model) VALUES (3, 'auth', 'group');
-INSERT INTO public.django_content_type (id, app_label, model) VALUES (4, 'auth', 'user');
-INSERT INTO public.django_content_type (id, app_label, model) VALUES (5, 'contenttypes', 'contenttype');
-INSERT INTO public.django_content_type (id, app_label, model) VALUES (6, 'sessions', 'session');
-INSERT INTO public.django_content_type (id, app_label, model) VALUES (7, 'api', 'company');
-INSERT INTO public.django_content_type (id, app_label, model) VALUES (8, 'api', 'contact');
-INSERT INTO public.django_content_type (id, app_label, model) VALUES (9, 'api', 'lead');
-INSERT INTO public.django_content_type (id, app_label, model) VALUES (10, 'api', 'opportunity');
-INSERT INTO public.django_content_type (id, app_label, model) VALUES (11, 'api', 'contract');
-INSERT INTO public.django_content_type (id, app_label, model) VALUES (12, 'api', 'vendor');
-INSERT INTO public.django_content_type (id, app_label, model) VALUES (13, 'api', 'marketingcampaign');
-INSERT INTO public.django_content_type (id, app_label, model) VALUES (14, 'api', 'supportticket');
-INSERT INTO public.django_content_type (id, app_label, model) VALUES (15, 'api', 'revenueforecast');
-INSERT INTO public.django_content_type (id, app_label, model) VALUES (16, 'api', 'activitylog');
-INSERT INTO public.django_content_type (id, app_label, model) VALUES (17, 'api', 'contractbreach');
-INSERT INTO public.django_content_type (id, app_label, model) VALUES (18, 'api', 'emailcampaign');
-INSERT INTO public.django_content_type (id, app_label, model) VALUES (19, 'api', 'traveloffer');
-INSERT INTO public.django_content_type (id, app_label, model) VALUES (20, 'api', 'aiconversation');
-INSERT INTO public.django_content_type (id, app_label, model) VALUES (21, 'api', 'leadnote');
-INSERT INTO public.django_content_type (id, app_label, model) VALUES (22, 'api', 'leadhistory');
-INSERT INTO public.django_content_type (id, app_label, model) VALUES (23, 'api', 'opportunityactivity');
-
-
---
--- TOC entry 3606 (class 0 OID 24577)
--- Dependencies: 216
 -- Data for Name: django_migrations; Type: TABLE DATA; Schema: public; Owner: -
 --
 
@@ -2110,19 +1038,16 @@ INSERT INTO public.django_migrations (id, app, name, applied) VALUES (31, 'api',
 INSERT INTO public.django_migrations (id, app, name, applied) VALUES (32, 'api', '0008_create_leadhistory_table', '2025-08-13 06:48:18.294365+00');
 INSERT INTO public.django_migrations (id, app, name, applied) VALUES (33, 'api', '0009_lead_assigned_agent', '2025-08-18 13:08:48.20642+00');
 INSERT INTO public.django_migrations (id, app, name, applied) VALUES (34, 'api', '0010_opportunityactivity', '2025-08-21 09:18:45.353565+00');
+INSERT INTO public.django_migrations (id, app, name, applied) VALUES (35, 'api', '0011_add_move_as_lead_to_company', '2025-08-25 09:24:58.053565+00');
 
 
 --
--- TOC entry 3623 (class 0 OID 24713)
--- Dependencies: 233
 -- Data for Name: django_session; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 
 
 --
--- TOC entry 3663 (class 0 OID 0)
--- Dependencies: 260
 -- Name: api_activitylog_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
@@ -2130,8 +1055,6 @@ SELECT pg_catalog.setval('public.api_activitylog_id_seq', 1, false);
 
 
 --
--- TOC entry 3664 (class 0 OID 0)
--- Dependencies: 258
 -- Name: api_aiconversation_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
@@ -2139,8 +1062,6 @@ SELECT pg_catalog.setval('public.api_aiconversation_id_seq', 1, false);
 
 
 --
--- TOC entry 3665 (class 0 OID 0)
--- Dependencies: 234
 -- Name: api_company_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
@@ -2148,8 +1069,6 @@ SELECT pg_catalog.setval('public.api_company_id_seq', 23, true);
 
 
 --
--- TOC entry 3666 (class 0 OID 0)
--- Dependencies: 236
 -- Name: api_contact_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
@@ -2157,8 +1076,6 @@ SELECT pg_catalog.setval('public.api_contact_id_seq', 21, true);
 
 
 --
--- TOC entry 3667 (class 0 OID 0)
--- Dependencies: 238
 -- Name: api_contract_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
@@ -2166,8 +1083,6 @@ SELECT pg_catalog.setval('public.api_contract_id_seq', 7, true);
 
 
 --
--- TOC entry 3668 (class 0 OID 0)
--- Dependencies: 256
 -- Name: api_contractbreach_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
@@ -2175,8 +1090,6 @@ SELECT pg_catalog.setval('public.api_contractbreach_id_seq', 1, false);
 
 
 --
--- TOC entry 3669 (class 0 OID 0)
--- Dependencies: 252
 -- Name: api_emailcampaign_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
@@ -2184,8 +1097,6 @@ SELECT pg_catalog.setval('public.api_emailcampaign_id_seq', 1, false);
 
 
 --
--- TOC entry 3670 (class 0 OID 0)
--- Dependencies: 254
 -- Name: api_emailcampaign_target_leads_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
@@ -2193,8 +1104,6 @@ SELECT pg_catalog.setval('public.api_emailcampaign_target_leads_id_seq', 1, fals
 
 
 --
--- TOC entry 3671 (class 0 OID 0)
--- Dependencies: 240
 -- Name: api_lead_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
@@ -2202,8 +1111,6 @@ SELECT pg_catalog.setval('public.api_lead_id_seq', 73, true);
 
 
 --
--- TOC entry 3672 (class 0 OID 0)
--- Dependencies: 264
 -- Name: api_leadhistory_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
@@ -2211,8 +1118,6 @@ SELECT pg_catalog.setval('public.api_leadhistory_id_seq', 506, true);
 
 
 --
--- TOC entry 3673 (class 0 OID 0)
--- Dependencies: 262
 -- Name: api_leadnote_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
@@ -2220,8 +1125,6 @@ SELECT pg_catalog.setval('public.api_leadnote_id_seq', 5, true);
 
 
 --
--- TOC entry 3674 (class 0 OID 0)
--- Dependencies: 250
 -- Name: api_opportunity_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
@@ -2229,8 +1132,6 @@ SELECT pg_catalog.setval('public.api_opportunity_id_seq', 38, true);
 
 
 --
--- TOC entry 3675 (class 0 OID 0)
--- Dependencies: 266
 -- Name: api_opportunityactivity_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
@@ -2238,8 +1139,6 @@ SELECT pg_catalog.setval('public.api_opportunityactivity_id_seq', 7, true);
 
 
 --
--- TOC entry 3676 (class 0 OID 0)
--- Dependencies: 242
 -- Name: api_revenueforecast_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
@@ -2247,8 +1146,6 @@ SELECT pg_catalog.setval('public.api_revenueforecast_id_seq', 1, false);
 
 
 --
--- TOC entry 3677 (class 0 OID 0)
--- Dependencies: 248
 -- Name: api_supportticket_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
@@ -2256,8 +1153,6 @@ SELECT pg_catalog.setval('public.api_supportticket_id_seq', 1, false);
 
 
 --
--- TOC entry 3678 (class 0 OID 0)
--- Dependencies: 244
 -- Name: api_traveloffer_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
@@ -2265,8 +1160,6 @@ SELECT pg_catalog.setval('public.api_traveloffer_id_seq', 1, false);
 
 
 --
--- TOC entry 3679 (class 0 OID 0)
--- Dependencies: 246
 -- Name: api_traveloffer_target_companies_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
@@ -2274,8 +1167,6 @@ SELECT pg_catalog.setval('public.api_traveloffer_target_companies_id_seq', 1, fa
 
 
 --
--- TOC entry 3680 (class 0 OID 0)
--- Dependencies: 221
 -- Name: auth_group_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
@@ -2283,8 +1174,6 @@ SELECT pg_catalog.setval('public.auth_group_id_seq', 1, false);
 
 
 --
--- TOC entry 3681 (class 0 OID 0)
--- Dependencies: 223
 -- Name: auth_group_permissions_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
@@ -2292,8 +1181,6 @@ SELECT pg_catalog.setval('public.auth_group_permissions_id_seq', 1, false);
 
 
 --
--- TOC entry 3682 (class 0 OID 0)
--- Dependencies: 219
 -- Name: auth_permission_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
@@ -2301,8 +1188,6 @@ SELECT pg_catalog.setval('public.auth_permission_id_seq', 92, true);
 
 
 --
--- TOC entry 3683 (class 0 OID 0)
--- Dependencies: 227
 -- Name: auth_user_groups_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
@@ -2310,8 +1195,6 @@ SELECT pg_catalog.setval('public.auth_user_groups_id_seq', 1, false);
 
 
 --
--- TOC entry 3684 (class 0 OID 0)
--- Dependencies: 225
 -- Name: auth_user_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
@@ -2319,8 +1202,6 @@ SELECT pg_catalog.setval('public.auth_user_id_seq', 8, true);
 
 
 --
--- TOC entry 3685 (class 0 OID 0)
--- Dependencies: 229
 -- Name: auth_user_user_permissions_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
@@ -2328,8 +1209,6 @@ SELECT pg_catalog.setval('public.auth_user_user_permissions_id_seq', 1, false);
 
 
 --
--- TOC entry 3686 (class 0 OID 0)
--- Dependencies: 231
 -- Name: django_admin_log_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
@@ -2337,8 +1216,6 @@ SELECT pg_catalog.setval('public.django_admin_log_id_seq', 1, false);
 
 
 --
--- TOC entry 3687 (class 0 OID 0)
--- Dependencies: 217
 -- Name: django_content_type_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
@@ -2346,977 +1223,11 @@ SELECT pg_catalog.setval('public.django_content_type_id_seq', 23, true);
 
 
 --
--- TOC entry 3688 (class 0 OID 0)
--- Dependencies: 215
 -- Name: django_migrations_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
-SELECT pg_catalog.setval('public.django_migrations_id_seq', 34, true);
+SELECT pg_catalog.setval('public.django_migrations_id_seq', 35, true);
 
-
---
--- TOC entry 3415 (class 2606 OID 32890)
--- Name: api_activitylog api_activitylog_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.api_activitylog
-    ADD CONSTRAINT api_activitylog_pkey PRIMARY KEY (id);
-
-
---
--- TOC entry 3410 (class 2606 OID 32880)
--- Name: api_aiconversation api_aiconversation_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.api_aiconversation
-    ADD CONSTRAINT api_aiconversation_pkey PRIMARY KEY (id);
-
-
---
--- TOC entry 3412 (class 2606 OID 32882)
--- Name: api_aiconversation api_aiconversation_session_id_key; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.api_aiconversation
-    ADD CONSTRAINT api_aiconversation_session_id_key UNIQUE (session_id);
-
-
---
--- TOC entry 3358 (class 2606 OID 32775)
--- Name: api_company api_company_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.api_company
-    ADD CONSTRAINT api_company_pkey PRIMARY KEY (id);
-
-
---
--- TOC entry 3361 (class 2606 OID 32783)
--- Name: api_contact api_contact_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.api_contact
-    ADD CONSTRAINT api_contact_pkey PRIMARY KEY (id);
-
-
---
--- TOC entry 3365 (class 2606 OID 32793)
--- Name: api_contract api_contract_contract_number_key; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.api_contract
-    ADD CONSTRAINT api_contract_contract_number_key UNIQUE (contract_number);
-
-
---
--- TOC entry 3367 (class 2606 OID 32867)
--- Name: api_contract api_contract_opportunity_id_key; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.api_contract
-    ADD CONSTRAINT api_contract_opportunity_id_key UNIQUE (opportunity_id);
-
-
---
--- TOC entry 3369 (class 2606 OID 32791)
--- Name: api_contract api_contract_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.api_contract
-    ADD CONSTRAINT api_contract_pkey PRIMARY KEY (id);
-
-
---
--- TOC entry 3408 (class 2606 OID 32865)
--- Name: api_contractbreach api_contractbreach_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.api_contractbreach
-    ADD CONSTRAINT api_contractbreach_pkey PRIMARY KEY (id);
-
-
---
--- TOC entry 3399 (class 2606 OID 32851)
--- Name: api_emailcampaign api_emailcampaign_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.api_emailcampaign
-    ADD CONSTRAINT api_emailcampaign_pkey PRIMARY KEY (id);
-
-
---
--- TOC entry 3401 (class 2606 OID 32967)
--- Name: api_emailcampaign_target_leads api_emailcampaign_target_emailcampaign_id_lead_id_be87f6f2_uniq; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.api_emailcampaign_target_leads
-    ADD CONSTRAINT api_emailcampaign_target_emailcampaign_id_lead_id_be87f6f2_uniq UNIQUE (emailcampaign_id, lead_id);
-
-
---
--- TOC entry 3405 (class 2606 OID 32857)
--- Name: api_emailcampaign_target_leads api_emailcampaign_target_leads_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.api_emailcampaign_target_leads
-    ADD CONSTRAINT api_emailcampaign_target_leads_pkey PRIMARY KEY (id);
-
-
---
--- TOC entry 3374 (class 2606 OID 32801)
--- Name: api_lead api_lead_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.api_lead
-    ADD CONSTRAINT api_lead_pkey PRIMARY KEY (id);
-
-
---
--- TOC entry 3423 (class 2606 OID 90140)
--- Name: api_leadhistory api_leadhistory_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.api_leadhistory
-    ADD CONSTRAINT api_leadhistory_pkey PRIMARY KEY (id);
-
-
---
--- TOC entry 3420 (class 2606 OID 90120)
--- Name: api_leadnote api_leadnote_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.api_leadnote
-    ADD CONSTRAINT api_leadnote_pkey PRIMARY KEY (id);
-
-
---
--- TOC entry 3395 (class 2606 OID 32843)
--- Name: api_opportunity api_opportunity_lead_id_key; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.api_opportunity
-    ADD CONSTRAINT api_opportunity_lead_id_key UNIQUE (lead_id);
-
-
---
--- TOC entry 3397 (class 2606 OID 32841)
--- Name: api_opportunity api_opportunity_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.api_opportunity
-    ADD CONSTRAINT api_opportunity_pkey PRIMARY KEY (id);
-
-
---
--- TOC entry 3428 (class 2606 OID 155655)
--- Name: api_opportunityactivity api_opportunityactivity_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.api_opportunityactivity
-    ADD CONSTRAINT api_opportunityactivity_pkey PRIMARY KEY (id);
-
-
---
--- TOC entry 3376 (class 2606 OID 32809)
--- Name: api_revenueforecast api_revenueforecast_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.api_revenueforecast
-    ADD CONSTRAINT api_revenueforecast_pkey PRIMARY KEY (id);
-
-
---
--- TOC entry 3390 (class 2606 OID 32831)
--- Name: api_supportticket api_supportticket_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.api_supportticket
-    ADD CONSTRAINT api_supportticket_pkey PRIMARY KEY (id);
-
-
---
--- TOC entry 3393 (class 2606 OID 32833)
--- Name: api_supportticket api_supportticket_ticket_number_key; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.api_supportticket
-    ADD CONSTRAINT api_supportticket_ticket_number_key UNIQUE (ticket_number);
-
-
---
--- TOC entry 3379 (class 2606 OID 32817)
--- Name: api_traveloffer api_traveloffer_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.api_traveloffer
-    ADD CONSTRAINT api_traveloffer_pkey PRIMARY KEY (id);
-
-
---
--- TOC entry 3381 (class 2606 OID 32929)
--- Name: api_traveloffer_target_companies api_traveloffer_target_c_traveloffer_id_company_i_79bd13d8_uniq; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.api_traveloffer_target_companies
-    ADD CONSTRAINT api_traveloffer_target_c_traveloffer_id_company_i_79bd13d8_uniq UNIQUE (traveloffer_id, company_id);
-
-
---
--- TOC entry 3384 (class 2606 OID 32823)
--- Name: api_traveloffer_target_companies api_traveloffer_target_companies_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.api_traveloffer_target_companies
-    ADD CONSTRAINT api_traveloffer_target_companies_pkey PRIMARY KEY (id);
-
-
---
--- TOC entry 3323 (class 2606 OID 24711)
--- Name: auth_group auth_group_name_key; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.auth_group
-    ADD CONSTRAINT auth_group_name_key UNIQUE (name);
-
-
---
--- TOC entry 3328 (class 2606 OID 24642)
--- Name: auth_group_permissions auth_group_permissions_group_id_permission_id_0cd325b0_uniq; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.auth_group_permissions
-    ADD CONSTRAINT auth_group_permissions_group_id_permission_id_0cd325b0_uniq UNIQUE (group_id, permission_id);
-
-
---
--- TOC entry 3331 (class 2606 OID 24611)
--- Name: auth_group_permissions auth_group_permissions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.auth_group_permissions
-    ADD CONSTRAINT auth_group_permissions_pkey PRIMARY KEY (id);
-
-
---
--- TOC entry 3325 (class 2606 OID 24603)
--- Name: auth_group auth_group_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.auth_group
-    ADD CONSTRAINT auth_group_pkey PRIMARY KEY (id);
-
-
---
--- TOC entry 3318 (class 2606 OID 24633)
--- Name: auth_permission auth_permission_content_type_id_codename_01ab375a_uniq; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.auth_permission
-    ADD CONSTRAINT auth_permission_content_type_id_codename_01ab375a_uniq UNIQUE (content_type_id, codename);
-
-
---
--- TOC entry 3320 (class 2606 OID 24597)
--- Name: auth_permission auth_permission_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.auth_permission
-    ADD CONSTRAINT auth_permission_pkey PRIMARY KEY (id);
-
-
---
--- TOC entry 3339 (class 2606 OID 24625)
--- Name: auth_user_groups auth_user_groups_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.auth_user_groups
-    ADD CONSTRAINT auth_user_groups_pkey PRIMARY KEY (id);
-
-
---
--- TOC entry 3342 (class 2606 OID 24657)
--- Name: auth_user_groups auth_user_groups_user_id_group_id_94350c0c_uniq; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.auth_user_groups
-    ADD CONSTRAINT auth_user_groups_user_id_group_id_94350c0c_uniq UNIQUE (user_id, group_id);
-
-
---
--- TOC entry 3333 (class 2606 OID 24617)
--- Name: auth_user auth_user_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.auth_user
-    ADD CONSTRAINT auth_user_pkey PRIMARY KEY (id);
-
-
---
--- TOC entry 3345 (class 2606 OID 24631)
--- Name: auth_user_user_permissions auth_user_user_permissions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.auth_user_user_permissions
-    ADD CONSTRAINT auth_user_user_permissions_pkey PRIMARY KEY (id);
-
-
---
--- TOC entry 3348 (class 2606 OID 24671)
--- Name: auth_user_user_permissions auth_user_user_permissions_user_id_permission_id_14a6b632_uniq; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.auth_user_user_permissions
-    ADD CONSTRAINT auth_user_user_permissions_user_id_permission_id_14a6b632_uniq UNIQUE (user_id, permission_id);
-
-
---
--- TOC entry 3336 (class 2606 OID 24706)
--- Name: auth_user auth_user_username_key; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.auth_user
-    ADD CONSTRAINT auth_user_username_key UNIQUE (username);
-
-
---
--- TOC entry 3351 (class 2606 OID 24692)
--- Name: django_admin_log django_admin_log_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.django_admin_log
-    ADD CONSTRAINT django_admin_log_pkey PRIMARY KEY (id);
-
-
---
--- TOC entry 3313 (class 2606 OID 24591)
--- Name: django_content_type django_content_type_app_label_model_76bd3d3b_uniq; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.django_content_type
-    ADD CONSTRAINT django_content_type_app_label_model_76bd3d3b_uniq UNIQUE (app_label, model);
-
-
---
--- TOC entry 3315 (class 2606 OID 24589)
--- Name: django_content_type django_content_type_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.django_content_type
-    ADD CONSTRAINT django_content_type_pkey PRIMARY KEY (id);
-
-
---
--- TOC entry 3311 (class 2606 OID 24583)
--- Name: django_migrations django_migrations_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.django_migrations
-    ADD CONSTRAINT django_migrations_pkey PRIMARY KEY (id);
-
-
---
--- TOC entry 3355 (class 2606 OID 24719)
--- Name: django_session django_session_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.django_session
-    ADD CONSTRAINT django_session_pkey PRIMARY KEY (session_key);
-
-
---
--- TOC entry 3416 (class 1259 OID 32997)
--- Name: api_activitylog_user_id_460724d0; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX api_activitylog_user_id_460724d0 ON public.api_activitylog USING btree (user_id);
-
-
---
--- TOC entry 3413 (class 1259 OID 32991)
--- Name: api_aiconversation_user_id_1a71143d; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX api_aiconversation_user_id_1a71143d ON public.api_aiconversation USING btree (user_id);
-
-
---
--- TOC entry 3359 (class 1259 OID 32896)
--- Name: api_contact_company_id_f4d09d00; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX api_contact_company_id_f4d09d00 ON public.api_contact USING btree (company_id);
-
-
---
--- TOC entry 3362 (class 1259 OID 32903)
--- Name: api_contract_company_id_e37b23ce; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX api_contract_company_id_e37b23ce ON public.api_contract USING btree (company_id);
-
-
---
--- TOC entry 3363 (class 1259 OID 32902)
--- Name: api_contract_contract_number_f1accfc0_like; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX api_contract_contract_number_f1accfc0_like ON public.api_contract USING btree (contract_number varchar_pattern_ops);
-
-
---
--- TOC entry 3406 (class 1259 OID 32985)
--- Name: api_contractbreach_contract_id_27a736ec; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX api_contractbreach_contract_id_27a736ec ON public.api_contractbreach USING btree (contract_id);
-
-
---
--- TOC entry 3402 (class 1259 OID 32978)
--- Name: api_emailcampaign_target_leads_emailcampaign_id_214b3ace; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX api_emailcampaign_target_leads_emailcampaign_id_214b3ace ON public.api_emailcampaign_target_leads USING btree (emailcampaign_id);
-
-
---
--- TOC entry 3403 (class 1259 OID 32979)
--- Name: api_emailcampaign_target_leads_lead_id_5af85417; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX api_emailcampaign_target_leads_lead_id_5af85417 ON public.api_emailcampaign_target_leads USING btree (lead_id);
-
-
---
--- TOC entry 3370 (class 1259 OID 32919)
--- Name: api_lead_assigned_to_id_f0f68950; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX api_lead_assigned_to_id_f0f68950 ON public.api_lead USING btree (assigned_to_id);
-
-
---
--- TOC entry 3371 (class 1259 OID 32920)
--- Name: api_lead_company_id_be70c00a; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX api_lead_company_id_be70c00a ON public.api_lead USING btree (company_id);
-
-
---
--- TOC entry 3372 (class 1259 OID 32921)
--- Name: api_lead_contact_id_dc816d20; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX api_lead_contact_id_dc816d20 ON public.api_lead USING btree (contact_id);
-
-
---
--- TOC entry 3421 (class 1259 OID 90151)
--- Name: api_leadhistory_lead_id_7e0a62f4; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX api_leadhistory_lead_id_7e0a62f4 ON public.api_leadhistory USING btree (lead_id);
-
-
---
--- TOC entry 3424 (class 1259 OID 90152)
--- Name: api_leadhistory_user_id_ecc34f8a; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX api_leadhistory_user_id_ecc34f8a ON public.api_leadhistory USING btree (user_id);
-
-
---
--- TOC entry 3417 (class 1259 OID 90131)
--- Name: api_leadnote_created_by_id_1d483ee9; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX api_leadnote_created_by_id_1d483ee9 ON public.api_leadnote USING btree (created_by_id);
-
-
---
--- TOC entry 3418 (class 1259 OID 90132)
--- Name: api_leadnote_lead_id_b0673144; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX api_leadnote_lead_id_b0673144 ON public.api_leadnote USING btree (lead_id);
-
-
---
--- TOC entry 3425 (class 1259 OID 155666)
--- Name: api_opportunityactivity_created_by_id_145d5cd4; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX api_opportunityactivity_created_by_id_145d5cd4 ON public.api_opportunityactivity USING btree (created_by_id);
-
-
---
--- TOC entry 3426 (class 1259 OID 155667)
--- Name: api_opportunityactivity_opportunity_id_4ca456a3; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX api_opportunityactivity_opportunity_id_4ca456a3 ON public.api_opportunityactivity USING btree (opportunity_id);
-
-
---
--- TOC entry 3386 (class 1259 OID 32958)
--- Name: api_supportticket_assigned_to_id_58ef3c94; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX api_supportticket_assigned_to_id_58ef3c94 ON public.api_supportticket USING btree (assigned_to_id);
-
-
---
--- TOC entry 3387 (class 1259 OID 32959)
--- Name: api_supportticket_company_id_37091f98; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX api_supportticket_company_id_37091f98 ON public.api_supportticket USING btree (company_id);
-
-
---
--- TOC entry 3388 (class 1259 OID 32960)
--- Name: api_supportticket_contact_id_f88e966f; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX api_supportticket_contact_id_f88e966f ON public.api_supportticket USING btree (contact_id);
-
-
---
--- TOC entry 3391 (class 1259 OID 32957)
--- Name: api_supportticket_ticket_number_e2907423_like; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX api_supportticket_ticket_number_e2907423_like ON public.api_supportticket USING btree (ticket_number varchar_pattern_ops);
-
-
---
--- TOC entry 3377 (class 1259 OID 32927)
--- Name: api_traveloffer_created_by_id_8302f089; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX api_traveloffer_created_by_id_8302f089 ON public.api_traveloffer USING btree (created_by_id);
-
-
---
--- TOC entry 3382 (class 1259 OID 32941)
--- Name: api_traveloffer_target_companies_company_id_b7ac8b17; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX api_traveloffer_target_companies_company_id_b7ac8b17 ON public.api_traveloffer_target_companies USING btree (company_id);
-
-
---
--- TOC entry 3385 (class 1259 OID 32940)
--- Name: api_traveloffer_target_companies_traveloffer_id_f5ff6ed7; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX api_traveloffer_target_companies_traveloffer_id_f5ff6ed7 ON public.api_traveloffer_target_companies USING btree (traveloffer_id);
-
-
---
--- TOC entry 3321 (class 1259 OID 24712)
--- Name: auth_group_name_a6ea08ec_like; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX auth_group_name_a6ea08ec_like ON public.auth_group USING btree (name varchar_pattern_ops);
-
-
---
--- TOC entry 3326 (class 1259 OID 24653)
--- Name: auth_group_permissions_group_id_b120cbf9; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX auth_group_permissions_group_id_b120cbf9 ON public.auth_group_permissions USING btree (group_id);
-
-
---
--- TOC entry 3329 (class 1259 OID 24654)
--- Name: auth_group_permissions_permission_id_84c5c92e; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX auth_group_permissions_permission_id_84c5c92e ON public.auth_group_permissions USING btree (permission_id);
-
-
---
--- TOC entry 3316 (class 1259 OID 24639)
--- Name: auth_permission_content_type_id_2f476e4b; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX auth_permission_content_type_id_2f476e4b ON public.auth_permission USING btree (content_type_id);
-
-
---
--- TOC entry 3337 (class 1259 OID 24669)
--- Name: auth_user_groups_group_id_97559544; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX auth_user_groups_group_id_97559544 ON public.auth_user_groups USING btree (group_id);
-
-
---
--- TOC entry 3340 (class 1259 OID 24668)
--- Name: auth_user_groups_user_id_6a12ed8b; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX auth_user_groups_user_id_6a12ed8b ON public.auth_user_groups USING btree (user_id);
-
-
---
--- TOC entry 3343 (class 1259 OID 24683)
--- Name: auth_user_user_permissions_permission_id_1fbb5f2c; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX auth_user_user_permissions_permission_id_1fbb5f2c ON public.auth_user_user_permissions USING btree (permission_id);
-
-
---
--- TOC entry 3346 (class 1259 OID 24682)
--- Name: auth_user_user_permissions_user_id_a95ead1b; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX auth_user_user_permissions_user_id_a95ead1b ON public.auth_user_user_permissions USING btree (user_id);
-
-
---
--- TOC entry 3334 (class 1259 OID 24707)
--- Name: auth_user_username_6821ab7c_like; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX auth_user_username_6821ab7c_like ON public.auth_user USING btree (username varchar_pattern_ops);
-
-
---
--- TOC entry 3349 (class 1259 OID 24703)
--- Name: django_admin_log_content_type_id_c4bce8eb; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX django_admin_log_content_type_id_c4bce8eb ON public.django_admin_log USING btree (content_type_id);
-
-
---
--- TOC entry 3352 (class 1259 OID 24704)
--- Name: django_admin_log_user_id_c564eba6; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX django_admin_log_user_id_c564eba6 ON public.django_admin_log USING btree (user_id);
-
-
---
--- TOC entry 3353 (class 1259 OID 24721)
--- Name: django_session_expire_date_a5c62663; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX django_session_expire_date_a5c62663 ON public.django_session USING btree (expire_date);
-
-
---
--- TOC entry 3356 (class 1259 OID 24720)
--- Name: django_session_session_key_c0390e0f_like; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX django_session_session_key_c0390e0f_like ON public.django_session USING btree (session_key varchar_pattern_ops);
-
-
---
--- TOC entry 3455 (class 2606 OID 32992)
--- Name: api_activitylog api_activitylog_user_id_460724d0_fk_auth_user_id; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.api_activitylog
-    ADD CONSTRAINT api_activitylog_user_id_460724d0_fk_auth_user_id FOREIGN KEY (user_id) REFERENCES public.auth_user(id) DEFERRABLE INITIALLY DEFERRED;
-
-
---
--- TOC entry 3454 (class 2606 OID 32986)
--- Name: api_aiconversation api_aiconversation_user_id_1a71143d_fk_auth_user_id; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.api_aiconversation
-    ADD CONSTRAINT api_aiconversation_user_id_1a71143d_fk_auth_user_id FOREIGN KEY (user_id) REFERENCES public.auth_user(id) DEFERRABLE INITIALLY DEFERRED;
-
-
---
--- TOC entry 3438 (class 2606 OID 32891)
--- Name: api_contact api_contact_company_id_f4d09d00_fk_api_company_id; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.api_contact
-    ADD CONSTRAINT api_contact_company_id_f4d09d00_fk_api_company_id FOREIGN KEY (company_id) REFERENCES public.api_company(id) DEFERRABLE INITIALLY DEFERRED;
-
-
---
--- TOC entry 3439 (class 2606 OID 32897)
--- Name: api_contract api_contract_company_id_e37b23ce_fk_api_company_id; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.api_contract
-    ADD CONSTRAINT api_contract_company_id_e37b23ce_fk_api_company_id FOREIGN KEY (company_id) REFERENCES public.api_company(id) DEFERRABLE INITIALLY DEFERRED;
-
-
---
--- TOC entry 3440 (class 2606 OID 32868)
--- Name: api_contract api_contract_opportunity_id_da447352_fk_api_opportunity_id; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.api_contract
-    ADD CONSTRAINT api_contract_opportunity_id_da447352_fk_api_opportunity_id FOREIGN KEY (opportunity_id) REFERENCES public.api_opportunity(id) DEFERRABLE INITIALLY DEFERRED;
-
-
---
--- TOC entry 3453 (class 2606 OID 32980)
--- Name: api_contractbreach api_contractbreach_contract_id_27a736ec_fk_api_contract_id; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.api_contractbreach
-    ADD CONSTRAINT api_contractbreach_contract_id_27a736ec_fk_api_contract_id FOREIGN KEY (contract_id) REFERENCES public.api_contract(id) DEFERRABLE INITIALLY DEFERRED;
-
-
---
--- TOC entry 3451 (class 2606 OID 32968)
--- Name: api_emailcampaign_target_leads api_emailcampaign_ta_emailcampaign_id_214b3ace_fk_api_email; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.api_emailcampaign_target_leads
-    ADD CONSTRAINT api_emailcampaign_ta_emailcampaign_id_214b3ace_fk_api_email FOREIGN KEY (emailcampaign_id) REFERENCES public.api_emailcampaign(id) DEFERRABLE INITIALLY DEFERRED;
-
-
---
--- TOC entry 3452 (class 2606 OID 32973)
--- Name: api_emailcampaign_target_leads api_emailcampaign_target_leads_lead_id_5af85417_fk_api_lead_id; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.api_emailcampaign_target_leads
-    ADD CONSTRAINT api_emailcampaign_target_leads_lead_id_5af85417_fk_api_lead_id FOREIGN KEY (lead_id) REFERENCES public.api_lead(id) DEFERRABLE INITIALLY DEFERRED;
-
-
---
--- TOC entry 3441 (class 2606 OID 32904)
--- Name: api_lead api_lead_assigned_to_id_f0f68950_fk_auth_user_id; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.api_lead
-    ADD CONSTRAINT api_lead_assigned_to_id_f0f68950_fk_auth_user_id FOREIGN KEY (assigned_to_id) REFERENCES public.auth_user(id) DEFERRABLE INITIALLY DEFERRED;
-
-
---
--- TOC entry 3442 (class 2606 OID 32909)
--- Name: api_lead api_lead_company_id_be70c00a_fk_api_company_id; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.api_lead
-    ADD CONSTRAINT api_lead_company_id_be70c00a_fk_api_company_id FOREIGN KEY (company_id) REFERENCES public.api_company(id) DEFERRABLE INITIALLY DEFERRED;
-
-
---
--- TOC entry 3443 (class 2606 OID 32914)
--- Name: api_lead api_lead_contact_id_dc816d20_fk_api_contact_id; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.api_lead
-    ADD CONSTRAINT api_lead_contact_id_dc816d20_fk_api_contact_id FOREIGN KEY (contact_id) REFERENCES public.api_contact(id) DEFERRABLE INITIALLY DEFERRED;
-
-
---
--- TOC entry 3458 (class 2606 OID 90141)
--- Name: api_leadhistory api_leadhistory_lead_id_7e0a62f4_fk_api_lead_id; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.api_leadhistory
-    ADD CONSTRAINT api_leadhistory_lead_id_7e0a62f4_fk_api_lead_id FOREIGN KEY (lead_id) REFERENCES public.api_lead(id) DEFERRABLE INITIALLY DEFERRED;
-
-
---
--- TOC entry 3459 (class 2606 OID 90146)
--- Name: api_leadhistory api_leadhistory_user_id_ecc34f8a_fk_auth_user_id; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.api_leadhistory
-    ADD CONSTRAINT api_leadhistory_user_id_ecc34f8a_fk_auth_user_id FOREIGN KEY (user_id) REFERENCES public.auth_user(id) DEFERRABLE INITIALLY DEFERRED;
-
-
---
--- TOC entry 3456 (class 2606 OID 90121)
--- Name: api_leadnote api_leadnote_created_by_id_1d483ee9_fk_auth_user_id; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.api_leadnote
-    ADD CONSTRAINT api_leadnote_created_by_id_1d483ee9_fk_auth_user_id FOREIGN KEY (created_by_id) REFERENCES public.auth_user(id) DEFERRABLE INITIALLY DEFERRED;
-
-
---
--- TOC entry 3457 (class 2606 OID 90126)
--- Name: api_leadnote api_leadnote_lead_id_b0673144_fk_api_lead_id; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.api_leadnote
-    ADD CONSTRAINT api_leadnote_lead_id_b0673144_fk_api_lead_id FOREIGN KEY (lead_id) REFERENCES public.api_lead(id) DEFERRABLE INITIALLY DEFERRED;
-
-
---
--- TOC entry 3450 (class 2606 OID 32961)
--- Name: api_opportunity api_opportunity_lead_id_18545556_fk_api_lead_id; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.api_opportunity
-    ADD CONSTRAINT api_opportunity_lead_id_18545556_fk_api_lead_id FOREIGN KEY (lead_id) REFERENCES public.api_lead(id) DEFERRABLE INITIALLY DEFERRED;
-
-
---
--- TOC entry 3460 (class 2606 OID 155661)
--- Name: api_opportunityactivity api_opportunityactiv_opportunity_id_4ca456a3_fk_api_oppor; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.api_opportunityactivity
-    ADD CONSTRAINT api_opportunityactiv_opportunity_id_4ca456a3_fk_api_oppor FOREIGN KEY (opportunity_id) REFERENCES public.api_opportunity(id) DEFERRABLE INITIALLY DEFERRED;
-
-
---
--- TOC entry 3461 (class 2606 OID 155656)
--- Name: api_opportunityactivity api_opportunityactivity_created_by_id_145d5cd4_fk_auth_user_id; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.api_opportunityactivity
-    ADD CONSTRAINT api_opportunityactivity_created_by_id_145d5cd4_fk_auth_user_id FOREIGN KEY (created_by_id) REFERENCES public.auth_user(id) DEFERRABLE INITIALLY DEFERRED;
-
-
---
--- TOC entry 3447 (class 2606 OID 32942)
--- Name: api_supportticket api_supportticket_assigned_to_id_58ef3c94_fk_auth_user_id; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.api_supportticket
-    ADD CONSTRAINT api_supportticket_assigned_to_id_58ef3c94_fk_auth_user_id FOREIGN KEY (assigned_to_id) REFERENCES public.auth_user(id) DEFERRABLE INITIALLY DEFERRED;
-
-
---
--- TOC entry 3448 (class 2606 OID 32947)
--- Name: api_supportticket api_supportticket_company_id_37091f98_fk_api_company_id; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.api_supportticket
-    ADD CONSTRAINT api_supportticket_company_id_37091f98_fk_api_company_id FOREIGN KEY (company_id) REFERENCES public.api_company(id) DEFERRABLE INITIALLY DEFERRED;
-
-
---
--- TOC entry 3449 (class 2606 OID 32952)
--- Name: api_supportticket api_supportticket_contact_id_f88e966f_fk_api_contact_id; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.api_supportticket
-    ADD CONSTRAINT api_supportticket_contact_id_f88e966f_fk_api_contact_id FOREIGN KEY (contact_id) REFERENCES public.api_contact(id) DEFERRABLE INITIALLY DEFERRED;
-
-
---
--- TOC entry 3444 (class 2606 OID 32922)
--- Name: api_traveloffer api_traveloffer_created_by_id_8302f089_fk_auth_user_id; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.api_traveloffer
-    ADD CONSTRAINT api_traveloffer_created_by_id_8302f089_fk_auth_user_id FOREIGN KEY (created_by_id) REFERENCES public.auth_user(id) DEFERRABLE INITIALLY DEFERRED;
-
-
---
--- TOC entry 3445 (class 2606 OID 32935)
--- Name: api_traveloffer_target_companies api_traveloffer_targ_company_id_b7ac8b17_fk_api_compa; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.api_traveloffer_target_companies
-    ADD CONSTRAINT api_traveloffer_targ_company_id_b7ac8b17_fk_api_compa FOREIGN KEY (company_id) REFERENCES public.api_company(id) DEFERRABLE INITIALLY DEFERRED;
-
-
---
--- TOC entry 3446 (class 2606 OID 32930)
--- Name: api_traveloffer_target_companies api_traveloffer_targ_traveloffer_id_f5ff6ed7_fk_api_trave; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.api_traveloffer_target_companies
-    ADD CONSTRAINT api_traveloffer_targ_traveloffer_id_f5ff6ed7_fk_api_trave FOREIGN KEY (traveloffer_id) REFERENCES public.api_traveloffer(id) DEFERRABLE INITIALLY DEFERRED;
-
-
---
--- TOC entry 3430 (class 2606 OID 24648)
--- Name: auth_group_permissions auth_group_permissio_permission_id_84c5c92e_fk_auth_perm; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.auth_group_permissions
-    ADD CONSTRAINT auth_group_permissio_permission_id_84c5c92e_fk_auth_perm FOREIGN KEY (permission_id) REFERENCES public.auth_permission(id) DEFERRABLE INITIALLY DEFERRED;
-
-
---
--- TOC entry 3431 (class 2606 OID 24643)
--- Name: auth_group_permissions auth_group_permissions_group_id_b120cbf9_fk_auth_group_id; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.auth_group_permissions
-    ADD CONSTRAINT auth_group_permissions_group_id_b120cbf9_fk_auth_group_id FOREIGN KEY (group_id) REFERENCES public.auth_group(id) DEFERRABLE INITIALLY DEFERRED;
-
-
---
--- TOC entry 3429 (class 2606 OID 24634)
--- Name: auth_permission auth_permission_content_type_id_2f476e4b_fk_django_co; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.auth_permission
-    ADD CONSTRAINT auth_permission_content_type_id_2f476e4b_fk_django_co FOREIGN KEY (content_type_id) REFERENCES public.django_content_type(id) DEFERRABLE INITIALLY DEFERRED;
-
-
---
--- TOC entry 3432 (class 2606 OID 24663)
--- Name: auth_user_groups auth_user_groups_group_id_97559544_fk_auth_group_id; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.auth_user_groups
-    ADD CONSTRAINT auth_user_groups_group_id_97559544_fk_auth_group_id FOREIGN KEY (group_id) REFERENCES public.auth_group(id) DEFERRABLE INITIALLY DEFERRED;
-
-
---
--- TOC entry 3433 (class 2606 OID 24658)
--- Name: auth_user_groups auth_user_groups_user_id_6a12ed8b_fk_auth_user_id; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.auth_user_groups
-    ADD CONSTRAINT auth_user_groups_user_id_6a12ed8b_fk_auth_user_id FOREIGN KEY (user_id) REFERENCES public.auth_user(id) DEFERRABLE INITIALLY DEFERRED;
-
-
---
--- TOC entry 3434 (class 2606 OID 24677)
--- Name: auth_user_user_permissions auth_user_user_permi_permission_id_1fbb5f2c_fk_auth_perm; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.auth_user_user_permissions
-    ADD CONSTRAINT auth_user_user_permi_permission_id_1fbb5f2c_fk_auth_perm FOREIGN KEY (permission_id) REFERENCES public.auth_permission(id) DEFERRABLE INITIALLY DEFERRED;
-
-
---
--- TOC entry 3435 (class 2606 OID 24672)
--- Name: auth_user_user_permissions auth_user_user_permissions_user_id_a95ead1b_fk_auth_user_id; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.auth_user_user_permissions
-    ADD CONSTRAINT auth_user_user_permissions_user_id_a95ead1b_fk_auth_user_id FOREIGN KEY (user_id) REFERENCES public.auth_user(id) DEFERRABLE INITIALLY DEFERRED;
-
-
---
--- TOC entry 3436 (class 2606 OID 24693)
--- Name: django_admin_log django_admin_log_content_type_id_c4bce8eb_fk_django_co; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.django_admin_log
-    ADD CONSTRAINT django_admin_log_content_type_id_c4bce8eb_fk_django_co FOREIGN KEY (content_type_id) REFERENCES public.django_content_type(id) DEFERRABLE INITIALLY DEFERRED;
-
-
---
--- TOC entry 3437 (class 2606 OID 24698)
--- Name: django_admin_log django_admin_log_user_id_c564eba6_fk_auth_user_id; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.django_admin_log
-    ADD CONSTRAINT django_admin_log_user_id_c564eba6_fk_auth_user_id FOREIGN KEY (user_id) REFERENCES public.auth_user(id) DEFERRABLE INITIALLY DEFERRED;
-
-
--- Completed on 2025-08-25 09:17:18 UTC
 
 --
 -- PostgreSQL database dump complete
