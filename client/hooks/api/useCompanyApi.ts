@@ -299,21 +299,38 @@ export const useCompanyApi = () => {
     }
   }, [setLoading, setError, setData]);
 
-  const bulkUploadCompanies = async (file: File) => {
-    const formData = new FormData();
-    formData.append('file', file);
+  const bulkUploadCompanies = async (file: File, onProgress?: (progressEvent: any) => void) => {
+    setLoading(true);
+    setError(null);
 
-    const response = await fetch(`${API_BASE_URL}/companies/bulk-upload/`, {
-      method: 'POST',
-      body: formData,
-    });
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
 
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.error || 'Upload failed');
+      const response = await axios.post(
+        `${API_BASE_URL}/companies/bulk-upload/`,
+        formData,
+        {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+          onUploadProgress: onProgress,
+        }
+      );
+
+      setData(response.data);
+      return response.data;
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.error ||
+                          error.response?.data?.message ||
+                          error.response?.data?.detail ||
+                          error.message ||
+                          'Upload failed';
+      setError(errorMessage);
+      throw new Error(errorMessage);
+    } finally {
+      setLoading(false);
     }
-
-    return response.json();
   };
 
   const downloadSampleExcel = async () => {

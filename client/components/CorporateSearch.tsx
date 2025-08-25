@@ -483,18 +483,24 @@ export function CorporateSearch({
 
     try {
       const formData = new FormData();
-      formData.append('companies', uploadFile); // 'companies' should match the expected field name on the backend
+      formData.append('file', uploadFile); // Use 'file' to match the backend expectation
 
-      const response = await bulkUploadCompanies(formData, (progressEvent) => { // Use bulkUploadCompanies from useCompanyApi
+      const response = await bulkUploadCompanies(uploadFile, (progressEvent) => {
         const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
         setUploadProgress(percentCompleted);
       });
 
-      // Assuming the API returns success information
-      if (response.success) {
-        setUploadSuccess(`Upload successful! ${response.message || ''}`);
-        // Optionally, refresh the company list
+      // Handle successful response
+      if (response.success !== false) {
+        setUploadSuccess(`Upload successful! Created ${response.created_count || 0} companies, skipped ${response.skipped_count || 0} duplicates.`);
+        // Refresh the company list
         loadCompanies({});
+        
+        // Clear the file input
+        setUploadFile(null);
+        if (fileInputRef.current) {
+          fileInputRef.current.value = '';
+        }
       } else {
         // Handle validation errors or other issues reported by the API
         setUploadError(`Upload failed: ${response.errors?.join(', ') || response.message || 'Unknown error'}`);
