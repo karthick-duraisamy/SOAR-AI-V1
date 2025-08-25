@@ -239,7 +239,7 @@ interface OpportunityCardProps {
   onViewHistory: (opportunity: Opportunity) => void;
   onSendProposal?: (opportunity: Opportunity) => void;
   onMoveToNegotiation?: (opportunity: Opportunity) => void;
-  onCloseDeal?: (opportunity: Opportunity) => void;
+  onCloseDeal?: (opportunity: Opportunity, status: string) => void;
 }
 
 const OpportunityCard = memo(
@@ -513,14 +513,16 @@ const OpportunityCard = memo(
             </Button>
           </div>
           <div className="flex gap-2">
-            {/* Stage-specific Action Buttons */}
-            {opportunity.stage === "proposal" && onSendProposal && (
+            {/* Status-driven flow buttons */}
+            {opportunity.stage === "discovery" && (
               <Button
                 size="sm"
-                className="h-8 px-3 text-xs bg-[#eff6ff] border border-[#bedbff] text-[#1447e6] rounded-md font-medium hover:bg-[#bedbff]"
+                className="h-8 px-3 text-xs bg-blue-600 hover:bg-blue-700 text-white rounded-md font-medium"
                 onClick={(e) => {
                   e.stopPropagation();
-                  onSendProposal(opportunity);
+                  if (onSendProposal) {
+                    onSendProposal(opportunity);
+                  }
                 }}
               >
                 <FileText className="h-3 w-3 mr-1" />
@@ -528,13 +530,15 @@ const OpportunityCard = memo(
               </Button>
             )}
 
-            {opportunity.stage === "proposal" && onMoveToNegotiation && (
+            {opportunity.stage === "proposal" && (
               <Button
                 size="sm"
                 className="h-8 px-3 text-xs bg-orange-500 hover:bg-orange-600 text-white rounded-md font-medium"
                 onClick={(e) => {
                   e.stopPropagation();
-                  onMoveToNegotiation(opportunity);
+                  if (onMoveToNegotiation) {
+                    onMoveToNegotiation(opportunity);
+                  }
                 }}
               >
                 <ArrowRight className="h-3 w-3 mr-1" />
@@ -542,7 +546,7 @@ const OpportunityCard = memo(
               </Button>
             )}
 
-            {opportunity.stage === "negotiation" && onCloseDeal && (
+            {opportunity.stage === "negotiation" && (
               <div className="relative group">
                 <Button
                   size="sm"
@@ -550,7 +554,7 @@ const OpportunityCard = memo(
                 >
                   <Handshake className="h-3 w-3 mr-1" />
                   Close Deal
-                  <ChevronDown className="h-3 w-3 mr-1" />
+                  <ChevronDown className="h-3 w-3 ml-1" />
                 </Button>
 
                 {/* Hover dropdown - positioned below the button and centered */}
@@ -561,26 +565,9 @@ const OpportunityCard = memo(
                         className="w-full px-4 py-3 text-xs text-center hover:bg-green-50 flex items-center justify-center gap-2 text-green-700 font-medium rounded-md transition-colors duration-150"
                         onClick={(e) => {
                           e.stopPropagation();
-                          const updatedOpportunity = {
-                            ...opportunity,
-                            stage: "closed_won",
-                            probability: 100,
-                            actual_close_date: new Date()
-                              .toISOString()
-                              .split("T")[0],
-                            updated_at: new Date().toISOString(),
-                          };
-                          setOpportunities((prev) =>
-                            prev.map((opp) =>
-                              opp.id === opportunity.id
-                                ? updatedOpportunity
-                                : opp,
-                            ),
-                          );
-                          setSuccessMessage(
-                            `${opportunity.lead_info?.company?.name} deal closed successfully! 🎉`,
-                          );
-                          setTimeout(() => setSuccessMessage(""), 5000);
+                          if (onCloseDeal) {
+                            onCloseDeal(opportunity, "closed_won");
+                          }
                         }}
                       >
                         <CheckCircle className="h-4 w-4" />
@@ -590,26 +577,9 @@ const OpportunityCard = memo(
                         className="w-full px-4 py-3 text-xs text-center hover:bg-red-50 flex items-center justify-center gap-2 text-red-700 font-medium rounded-md transition-colors duration-150 mt-1"
                         onClick={(e) => {
                           e.stopPropagation();
-                          const updatedOpportunity = {
-                            ...opportunity,
-                            stage: "closed_lost",
-                            probability: 0,
-                            actual_close_date: new Date()
-                              .toISOString()
-                              .split("T")[0],
-                            updated_at: new Date().toISOString(),
-                          };
-                          setOpportunities((prev) =>
-                            prev.map((opp) =>
-                              opp.id === opportunity.id
-                                ? updatedOpportunity
-                                : opp,
-                            ),
-                          );
-                          setSuccessMessage(
-                            `${opportunity.lead_info?.company?.name} deal marked as closed lost`,
-                          );
-                          setTimeout(() => setSuccessMessage(""), 5000);
+                          if (onCloseDeal) {
+                            onCloseDeal(opportunity, "closed_lost");
+                          }
                         }}
                       >
                         <AlertTriangle className="h-4 w-4" />
@@ -639,7 +609,7 @@ interface PipelineColumnProps {
   onViewHistory: (opportunity: Opportunity) => void;
   onSendProposal?: (opportunity: Opportunity) => void;
   onMoveToNegotiation?: (opportunity: Opportunity) => void;
-  onCloseDeal?: (opportunity: Opportunity) => void;
+  onCloseDeal?: (opportunity: Opportunity, status: string) => void;
 }
 
 const PipelineColumn = memo(
@@ -842,8 +812,8 @@ export function Opportunities({
           Math.max(...opportunities.map((o) => o.id), 0) + 1,
         leadId: initialFilters.newOpportunity.leadId || null,
         name: `${initialFilters.newOpportunity.company || "Unknown Company"} - Corporate Travel Solution`,
-        stage: initialFilters.newOpportunity.stage || "proposal",
-        probability: initialFilters.newOpportunity.probability || 65,
+        stage: initialFilters.newOpportunity.stage || "discovery",
+        probability: initialFilters.newOpportunity.probability || 25,
         value:
           initialFilters.newOpportunity.value ||
           initialFilters.newOpportunity.dealValue ||
@@ -1111,11 +1081,11 @@ export function Opportunities({
     setTimeout(() => setSuccessMessage(""), 5000);
   }, []);
 
-  const handleCloseDeal = useCallback((opportunity: Opportunity) => {
+  const handleCloseDeal = useCallback((opportunity: Opportunity, status: string) => {
     const updatedOpportunity = {
       ...opportunity,
-      stage: "closed_won",
-      probability: 100,
+      stage: status,
+      probability: status === "closed_won" ? 100 : 0,
       actual_close_date: new Date().toISOString().split("T")[0],
       updated_at: new Date().toISOString(),
     };
@@ -1124,9 +1094,11 @@ export function Opportunities({
       prev.map((opp) => (opp.id === opportunity.id ? updatedOpportunity : opp)),
     );
 
-    setSuccessMessage(
-      `${opportunity.lead_info?.company?.name} deal closed successfully! 🎉`,
-    );
+    const message = status === "closed_won" 
+      ? `${opportunity.lead_info?.company?.name} deal closed successfully! 🎉`
+      : `${opportunity.lead_info?.company?.name} deal marked as closed lost`;
+    
+    setSuccessMessage(message);
     setTimeout(() => setSuccessMessage(""), 5000);
   }, []);
 
@@ -1325,9 +1297,23 @@ export function Opportunities({
       // Here you would typically upload the file to your server
     }
 
+    // Move opportunity to proposal stage
+    const updatedOpportunity = {
+      ...selectedOpportunity,
+      stage: "proposal",
+      probability: 65,
+      updated_at: new Date().toISOString(),
+    };
+
+    setOpportunities((prev) =>
+      prev.map((opp) => 
+        opp.id === selectedOpportunity.id ? updatedOpportunity : opp
+      ),
+    );
+
     setShowProposalDialog(false);
     setSuccessMessage(
-      `Proposal sent to ${selectedOpportunity.lead_info?.company?.name} successfully`,
+      `Proposal sent to ${selectedOpportunity.lead_info?.company?.name} and moved to Proposal stage`,
     );
     setTimeout(() => setSuccessMessage(""), 5000);
   }, [selectedOpportunity, proposalForm.attachedFile]);
