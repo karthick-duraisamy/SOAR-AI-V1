@@ -130,7 +130,7 @@ interface Opportunity {
 const stages = [
   {
     id: "discovery",
-    label: "Discovery",
+    label: "Qualified",
     color: "bg-blue-500",
     headerColor: "bg-blue-50",
     probability: 25,
@@ -207,7 +207,10 @@ const ActivityAccordion = memo(({ activities }: ActivityAccordionProps) => {
       </div>
       <div className="space-y-2">
         {displayedActivities.map((activity) => (
-          <div key={activity.id} className="text-xs text-blue-700 p-2 bg-white rounded border border-blue-100">
+          <div
+            key={activity.id}
+            className="text-xs text-blue-700 p-2 bg-white rounded border border-blue-100"
+          >
             <div className="flex items-center gap-2 mb-1">
               <div className="w-1 h-1 bg-blue-400 rounded-full"></div>
               <span className="font-medium">{activity.type_display}</span>
@@ -218,9 +221,7 @@ const ActivityAccordion = memo(({ activities }: ActivityAccordionProps) => {
                 by {activity.created_by_name}
               </span>
             </div>
-            <div className="text-blue-600 ml-3">
-              {activity.description}
-            </div>
+            <div className="text-blue-600 ml-3">{activity.description}</div>
           </div>
         ))}
       </div>
@@ -423,7 +424,9 @@ const OpportunityCard = memo(
           <div className="flex items-start gap-2 mb-2 rounded-lg border px-4 py-3 text-sm bg-blue-100">
             <div className="w-2 h-2 bg-gray-400 rounded-full mt-2 flex-shrink-0"></div>
             <div>
-              <span className="text-blue-600 font-medium text-sm">Next Action:</span>
+              <span className="text-blue-600 font-medium text-sm">
+                Next Action:
+              </span>
               <div className="text-blue-600 text-sm">
                 {opportunity.next_steps || "Contract terms discussion"}
               </div>
@@ -433,14 +436,16 @@ const OpportunityCard = memo(
           <div className="mb-4 p-3 bg-gray-50 rounded-lg">
             <div className="text-gray-900 font-medium text-sm mb-1">Notes:</div>
             <div className="text-gray-600 text-sm">
-              {opportunity.description || "Focused on cost optimization across multiple manufacturing sites"}
+              {opportunity.description ||
+                "Focused on cost optimization across multiple manufacturing sites"}
             </div>
           </div>
 
           {/* Recent Activities Section */}
-          {opportunity.latest_activities && opportunity.latest_activities.length > 0 && (
-            <ActivityAccordion activities={opportunity.latest_activities} />
-          )}
+          {opportunity.latest_activities &&
+            opportunity.latest_activities.length > 0 && (
+              <ActivityAccordion activities={opportunity.latest_activities} />
+            )}
         </div>
 
         {/* Tags/Badges */}
@@ -533,7 +538,7 @@ const OpportunityCard = memo(
                 }}
               >
                 <ArrowRight className="h-3 w-3 mr-1" />
-               Negotiate
+                Negotiate
               </Button>
             )}
 
@@ -545,9 +550,9 @@ const OpportunityCard = memo(
                 >
                   <Handshake className="h-3 w-3 mr-1" />
                   Close Deal
-                   <ChevronDown className="h-3 w-3 mr-1" />
+                  <ChevronDown className="h-3 w-3 mr-1" />
                 </Button>
-                
+
                 {/* Hover dropdown - positioned below the button and centered */}
                 <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
                   <div className="bg-white border border-gray-200 rounded-lg shadow-xl overflow-hidden min-w-[160px]">
@@ -560,11 +565,17 @@ const OpportunityCard = memo(
                             ...opportunity,
                             stage: "closed_won",
                             probability: 100,
-                            actual_close_date: new Date().toISOString().split("T")[0],
+                            actual_close_date: new Date()
+                              .toISOString()
+                              .split("T")[0],
                             updated_at: new Date().toISOString(),
                           };
                           setOpportunities((prev) =>
-                            prev.map((opp) => (opp.id === opportunity.id ? updatedOpportunity : opp)),
+                            prev.map((opp) =>
+                              opp.id === opportunity.id
+                                ? updatedOpportunity
+                                : opp,
+                            ),
                           );
                           setSuccessMessage(
                             `${opportunity.lead_info?.company?.name} deal closed successfully! 🎉`,
@@ -583,11 +594,17 @@ const OpportunityCard = memo(
                             ...opportunity,
                             stage: "closed_lost",
                             probability: 0,
-                            actual_close_date: new Date().toISOString().split("T")[0],
+                            actual_close_date: new Date()
+                              .toISOString()
+                              .split("T")[0],
                             updated_at: new Date().toISOString(),
                           };
                           setOpportunities((prev) =>
-                            prev.map((opp) => (opp.id === opportunity.id ? updatedOpportunity : opp)),
+                            prev.map((opp) =>
+                              opp.id === opportunity.id
+                                ? updatedOpportunity
+                                : opp,
+                            ),
                           );
                           setSuccessMessage(
                             `${opportunity.lead_info?.company?.name} deal marked as closed lost`,
@@ -603,7 +620,6 @@ const OpportunityCard = memo(
                 </div>
               </div>
             )}
-            
           </div>
         </div>
       </div>
@@ -728,7 +744,14 @@ export function Opportunities({
   initialFilters,
   onNavigate,
 }: OpportunitiesProps) {
-  const { getOpportunities, updateOpportunityStage, addOpportunityActivity, getOpportunityActivities, getOpportunityHistory, getHistory } = useLeadApi();
+  const {
+    getOpportunities,
+    updateOpportunityStage,
+    addOpportunityActivity,
+    getOpportunityActivities,
+    getOpportunityHistory,
+    getHistory,
+  } = useLeadApi();
   const [opportunities, setOpportunities] = useState<Opportunity[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
@@ -1024,35 +1047,38 @@ export function Opportunities({
     setShowActivityDialog(true);
   }, []);
 
-  const handleViewHistory = useCallback(async (opportunity: Opportunity) => {
-    setSelectedOpportunity(opportunity);
-    setIsLoadingHistory(true);
-    setHistoryData([]);
-    setShowHistoryDialog(true);
-    
-    try {
-      // Use the new comprehensive history API endpoint
-      const historyData = await getOpportunityHistory(opportunity.id);
-      
-      // Ensure we have an array, even if empty
-      const formattedHistory = Array.isArray(historyData) ? historyData : [];
-      
-      setHistoryData(formattedHistory);
-      
-      // Show success message if we got data, info if empty
-      if (formattedHistory.length > 0) {
-        console.log(`Loaded ${formattedHistory.length} history items`);
-      } else {
-        console.log('No history data available for this opportunity');
-      }
-    } catch (error) {
-      console.error('Error fetching opportunity history:', error);
-      // Don't show toast error since we handle it gracefully now
+  const handleViewHistory = useCallback(
+    async (opportunity: Opportunity) => {
+      setSelectedOpportunity(opportunity);
+      setIsLoadingHistory(true);
       setHistoryData([]);
-    } finally {
-      setIsLoadingHistory(false);
-    }
-  }, [getOpportunityHistory]);
+      setShowHistoryDialog(true);
+
+      try {
+        // Use the new comprehensive history API endpoint
+        const historyData = await getOpportunityHistory(opportunity.id);
+
+        // Ensure we have an array, even if empty
+        const formattedHistory = Array.isArray(historyData) ? historyData : [];
+
+        setHistoryData(formattedHistory);
+
+        // Show success message if we got data, info if empty
+        if (formattedHistory.length > 0) {
+          console.log(`Loaded ${formattedHistory.length} history items`);
+        } else {
+          console.log("No history data available for this opportunity");
+        }
+      } catch (error) {
+        console.error("Error fetching opportunity history:", error);
+        // Don't show toast error since we handle it gracefully now
+        setHistoryData([]);
+      } finally {
+        setIsLoadingHistory(false);
+      }
+    },
+    [getOpportunityHistory],
+  );
 
   const handleSendProposal = useCallback((opportunity: Opportunity) => {
     setSelectedOpportunity(opportunity);
@@ -1113,17 +1139,17 @@ export function Opportunities({
 
     // Validate inputs
     if (isNaN(probability) || probability < 0 || probability > 100) {
-      toast.error('Probability must be a number between 0 and 100');
+      toast.error("Probability must be a number between 0 and 100");
       return;
     }
 
     if (isNaN(value) || value < 0) {
-      toast.error('Value must be a positive number');
+      toast.error("Value must be a positive number");
       return;
     }
 
     if (!editForm.estimated_close_date) {
-      toast.error('Estimated close date is required');
+      toast.error("Estimated close date is required");
       return;
     }
 
@@ -1132,17 +1158,20 @@ export function Opportunities({
       probability: probability,
       value: value,
       estimated_close_date: editForm.estimated_close_date,
-      next_steps: editForm.next_steps || '',
-      description: editForm.description || '',
+      next_steps: editForm.next_steps || "",
+      description: editForm.description || "",
     };
 
     try {
-      console.log('Updating opportunity with data:', updateData);
+      console.log("Updating opportunity with data:", updateData);
 
       // Update via API
-      const response = await updateOpportunityStage(selectedOpportunity.id, updateData);
+      const response = await updateOpportunityStage(
+        selectedOpportunity.id,
+        updateData,
+      );
 
-      console.log('Update response:', response);
+      console.log("Update response:", response);
 
       const updatedOpportunity = {
         ...selectedOpportunity,
@@ -1163,35 +1192,45 @@ export function Opportunities({
       );
       setTimeout(() => setSuccessMessage(""), 5000);
 
-      toast.success(`${selectedOpportunity.lead_info?.company?.name} opportunity updated successfully!`);
-
+      toast.success(
+        `${selectedOpportunity.lead_info?.company?.name} opportunity updated successfully!`,
+      );
     } catch (error) {
-      console.error('Error updating opportunity:', error);
-      console.error('Error details:', error.response?.data);
+      console.error("Error updating opportunity:", error);
+      console.error("Error details:", error.response?.data);
 
       // Show specific error message if available
-      const errorMessage = error.response?.data?.detail || 
-                          error.response?.data?.message || 
-                          error.response?.data?.error ||
-                          'Failed to update opportunity. Please try again.';
+      const errorMessage =
+        error.response?.data?.detail ||
+        error.response?.data?.message ||
+        error.response?.data?.error ||
+        "Failed to update opportunity. Please try again.";
       toast.error(errorMessage);
 
       // Optionally refresh opportunities to ensure consistency
       try {
         const data = await getOpportunities({ ...filters });
-        const opportunitiesArray = Array.isArray(data) ? data : data?.results || data?.opportunities || [];
+        const opportunitiesArray = Array.isArray(data)
+          ? data
+          : data?.results || data?.opportunities || [];
         setOpportunities(opportunitiesArray);
       } catch (refreshError) {
         console.error("Error refreshing opportunities:", refreshError);
       }
     }
-  }, [selectedOpportunity, editForm, updateOpportunityStage, getOpportunities, filters]);
+  }, [
+    selectedOpportunity,
+    editForm,
+    updateOpportunityStage,
+    getOpportunities,
+    filters,
+  ]);
 
   const handleSaveActivity = useCallback(async () => {
     if (!selectedOpportunity) return;
 
     if (!activityForm.description.trim()) {
-      toast.error('Activity description is required');
+      toast.error("Activity description is required");
       return;
     }
 
@@ -1199,14 +1238,21 @@ export function Opportunities({
       // Add user information to the activity data
       const activityWithUser = {
         ...activityForm,
-        created_by_name: 'Current User', // In a real app, this would come from auth context
+        created_by_name: "Current User", // In a real app, this would come from auth context
       };
 
-      const response = await addOpportunityActivity(selectedOpportunity.id, activityWithUser);
+      const response = await addOpportunityActivity(
+        selectedOpportunity.id,
+        activityWithUser,
+      );
 
       // Refresh opportunities to show the new activity
       const updatedOpportunities = await getOpportunities({ ...filters });
-      const opportunitiesArray = Array.isArray(updatedOpportunities) ? updatedOpportunities : updatedOpportunities?.results || updatedOpportunities?.opportunities || [];
+      const opportunitiesArray = Array.isArray(updatedOpportunities)
+        ? updatedOpportunities
+        : updatedOpportunities?.results ||
+          updatedOpportunities?.opportunities ||
+          [];
       setOpportunities(opportunitiesArray);
 
       setShowActivityDialog(false);
@@ -1214,39 +1260,57 @@ export function Opportunities({
         `Activity added to ${selectedOpportunity.lead_info?.company?.name} opportunity`,
       );
       setTimeout(() => setSuccessMessage(""), 5000);
-      toast.success('Activity added successfully!');
-
+      toast.success("Activity added successfully!");
     } catch (error) {
-      console.error('Error saving activity:', error);
-      toast.error('Failed to save activity. Please try again.');
+      console.error("Error saving activity:", error);
+      toast.error("Failed to save activity. Please try again.");
     }
-  }, [selectedOpportunity, activityForm, addOpportunityActivity, getOpportunities, filters, setOpportunities]);
+  }, [
+    selectedOpportunity,
+    activityForm,
+    addOpportunityActivity,
+    getOpportunities,
+    filters,
+    setOpportunities,
+  ]);
 
-  const handleFileSelect = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      setProposalForm({ ...proposalForm, attachedFile: file });
-    }
-  }, [proposalForm]);
+  const handleFileSelect = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      const file = event.target.files?.[0];
+      if (file) {
+        setProposalForm({ ...proposalForm, attachedFile: file });
+      }
+    },
+    [proposalForm],
+  );
 
-  const handleFileDrop = useCallback((event: React.DragEvent<HTMLDivElement>) => {
-    event.preventDefault();
-    setIsDragging(false);
-    const file = event.dataTransfer.files[0];
-    if (file) {
-      setProposalForm({ ...proposalForm, attachedFile: file });
-    }
-  }, [proposalForm]);
+  const handleFileDrop = useCallback(
+    (event: React.DragEvent<HTMLDivElement>) => {
+      event.preventDefault();
+      setIsDragging(false);
+      const file = event.dataTransfer.files[0];
+      if (file) {
+        setProposalForm({ ...proposalForm, attachedFile: file });
+      }
+    },
+    [proposalForm],
+  );
 
-  const handleDragOver = useCallback((event: React.DragEvent<HTMLDivElement>) => {
-    event.preventDefault();
-    setIsDragging(true);
-  }, []);
+  const handleDragOver = useCallback(
+    (event: React.DragEvent<HTMLDivElement>) => {
+      event.preventDefault();
+      setIsDragging(true);
+    },
+    [],
+  );
 
-  const handleDragLeave = useCallback((event: React.DragEvent<HTMLDivElement>) => {
-    event.preventDefault();
-    setIsDragging(false);
-  }, []);
+  const handleDragLeave = useCallback(
+    (event: React.DragEvent<HTMLDivElement>) => {
+      event.preventDefault();
+      setIsDragging(false);
+    },
+    [],
+  );
 
   const removeAttachedFile = useCallback(() => {
     setProposalForm({ ...proposalForm, attachedFile: null });
@@ -1257,10 +1321,10 @@ export function Opportunities({
 
     // In a real implementation, you would send this to the API including the file
     if (proposalForm.attachedFile) {
-      console.log('File to upload:', proposalForm.attachedFile.name);
+      console.log("File to upload:", proposalForm.attachedFile.name);
       // Here you would typically upload the file to your server
     }
-    
+
     setShowProposalDialog(false);
     setSuccessMessage(
       `Proposal sent to ${selectedOpportunity.lead_info?.company?.name} successfully`,
@@ -1758,7 +1822,7 @@ export function Opportunities({
                     <div className="flex items-center gap-4 text-sm">
                       <div className="flex items-center gap-2">
                         <div className="w-3 h-3 bg-blue-500 rounded" />
-                        <span>Discovery</span>
+                        <span>Qualified</span>
                       </div>
                       <div className="flex items-center gap-2">
                         <div className="w-3 h-3 bg-orange-500 rounded" />
@@ -1888,7 +1952,10 @@ export function Opportunities({
               >
                 Cancel
               </Button>
-              <Button onClick={handleSaveEdit} className="bg-orange-500 hover:bg-orange-600 text-white">
+              <Button
+                onClick={handleSaveEdit}
+                className="bg-orange-500 hover:bg-orange-600 text-white"
+              >
                 <CheckCircle className="h-4 w-4 mr-2" />
                 Save Changes
               </Button>
@@ -1964,7 +2031,10 @@ export function Opportunities({
               >
                 Cancel
               </Button>
-              <Button onClick={handleSaveActivity} className="bg-orange-500 hover:bg-orange-600 text-white rounded-md ">
+              <Button
+                onClick={handleSaveActivity}
+                className="bg-orange-500 hover:bg-orange-600 text-white rounded-md "
+              >
                 <Plus className="h-4 w-4 mr-2" />
                 Add Activity
               </Button>
@@ -2077,7 +2147,7 @@ export function Opportunities({
                   rows={3}
                 />
               </div>
-              
+
               {/* File Attachment Section */}
               <div>
                 <Label>Attach Supporting Documents</Label>
@@ -2100,7 +2170,12 @@ export function Opportunities({
                             {proposalForm.attachedFile.name}
                           </p>
                           <p className="text-xs text-gray-500">
-                            {(proposalForm.attachedFile.size / 1024 / 1024).toFixed(2)} MB
+                            {(
+                              proposalForm.attachedFile.size /
+                              1024 /
+                              1024
+                            ).toFixed(2)}{" "}
+                            MB
                           </p>
                         </div>
                       </div>
@@ -2136,7 +2211,11 @@ export function Opportunities({
                         type="button"
                         variant="outline"
                         className="mt-4"
-                        onClick={() => document.getElementById('proposal-file-input')?.click()}
+                        onClick={() =>
+                          document
+                            .getElementById("proposal-file-input")
+                            ?.click()
+                        }
                       >
                         <Plus className="h-4 w-4 mr-2" />
                         Browse Files
@@ -2187,23 +2266,26 @@ export function Opportunities({
                   </div>
                 ) : historyData && historyData.length > 0 ? (
                   historyData.map((historyItem) => (
-                    <div key={historyItem.id} className="border-l-4 border-blue-200 pl-4 py-3 bg-white rounded-lg border border-gray-200 shadow-sm">
+                    <div
+                      key={historyItem.id}
+                      className="border-l-4 border-blue-200 pl-4 py-3 bg-white rounded-lg border border-gray-200 shadow-sm"
+                    >
                       <div className="flex items-start justify-between mb-2">
                         <div className="flex items-center gap-3">
                           <div className="flex-shrink-0">
-                            {historyItem.history_type === 'activity' ? (
+                            {historyItem.history_type === "activity" ? (
                               <Activity className="h-4 w-4 text-blue-600" />
-                            ) : historyItem.icon === 'plus' ? (
+                            ) : historyItem.icon === "plus" ? (
                               <Plus className="h-4 w-4 text-green-600" />
-                            ) : historyItem.icon === 'trending-up' ? (
+                            ) : historyItem.icon === "trending-up" ? (
                               <TrendingUp className="h-4 w-4 text-blue-600" />
-                            ) : historyItem.icon === 'user' ? (
+                            ) : historyItem.icon === "user" ? (
                               <User className="h-4 w-4 text-purple-600" />
-                            ) : historyItem.icon === 'phone' ? (
+                            ) : historyItem.icon === "phone" ? (
                               <Phone className="h-4 w-4 text-orange-600" />
-                            ) : historyItem.icon === 'mail' ? (
+                            ) : historyItem.icon === "mail" ? (
                               <Mail className="h-4 w-4 text-red-600" />
-                            ) : historyItem.icon === 'file-text' ? (
+                            ) : historyItem.icon === "file-text" ? (
                               <FileText className="h-4 w-4 text-gray-600" />
                             ) : (
                               <Clock className="h-4 w-4 text-gray-600" />
@@ -2234,8 +2316,12 @@ export function Opportunities({
                 ) : (
                   <div className="text-center py-8 text-muted-foreground">
                     <Activity className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                    <p className="text-lg font-medium mb-2">No history available</p>
-                    <p className="text-sm">No activity or history records found for this opportunity</p>
+                    <p className="text-lg font-medium mb-2">
+                      No history available
+                    </p>
+                    <p className="text-sm">
+                      No activity or history records found for this opportunity
+                    </p>
                   </div>
                 )}
               </div>

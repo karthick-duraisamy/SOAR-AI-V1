@@ -1,28 +1,48 @@
-import { useState, useEffect, useCallback } from 'react'; // Import useCallback
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
-import { Button } from './ui/button';
-import { Input } from './ui/input';
-import { Label } from './ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
-import { Badge } from './ui/badge';
-import { Progress } from './ui/progress';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
-import { Separator } from './ui/separator';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from './ui/dialog';
-import { Checkbox } from './ui/checkbox';
-import { Slider } from './ui/slider';
-import { ScrollArea } from './ui/scroll-area';
-import { Textarea } from './ui/textarea';
-import { Alert, AlertDescription } from './ui/alert';
-import { CorporateProfile } from './CorporateProfile';
-import { useCompanyApi } from '../hooks/api/useCompanyApi';
+import { useState, useEffect, useCallback } from "react"; // Import useCallback
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "./ui/card";
+import { Button } from "./ui/button";
+import { Input } from "./ui/input";
+import { Label } from "./ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "./ui/select";
+import { Badge } from "./ui/badge";
+import { Progress } from "./ui/progress";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
+import { Separator } from "./ui/separator";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "./ui/dialog";
+import { Checkbox } from "./ui/checkbox";
+import { Slider } from "./ui/slider";
+import { ScrollArea } from "./ui/scroll-area";
+import { Textarea } from "./ui/textarea";
+import { Alert, AlertDescription } from "./ui/alert";
+import { CorporateProfile } from "./CorporateProfile";
+import { useCompanyApi } from "../hooks/api/useCompanyApi";
 
-import { 
-  Search, 
-  Filter, 
-  Star, 
-  MapPin, 
-  Users, 
+import {
+  Search,
+  Filter,
+  Star,
+  MapPin,
+  Users,
   Calendar,
   TrendingUp,
   Award,
@@ -72,11 +92,11 @@ import {
   ChevronRight,
   ArrowUpDown,
   ArrowUp,
-  ArrowDown
-} from 'lucide-react';
+  ArrowDown,
+} from "lucide-react";
 
 // Import useDebounce hook
-import { useDebounce } from '../hooks/useDebounce';
+import { useDebounce } from "../hooks/useDebounce";
 
 // API utility functions
 
@@ -91,16 +111,38 @@ const transformCompanyData = (company) => {
     location: company.location,
     aiScore: Math.floor(Math.random() * 20) + 80, // Random AI score for demo
     rating: (Math.random() * 1 + 4).toFixed(1), // Random rating 4.0-5.0
-    established: company.year_established || (company.created_at ? new Date(company.created_at).getFullYear() : 2020),
+    established:
+      company.year_established ||
+      (company.created_at ? new Date(company.created_at).getFullYear() : 2020),
     employees: company.employee_count || Math.floor(Math.random() * 5000) + 100,
-    specialties: company.specialties ? company.specialties.split(',').map(s => s.trim()).filter(s => s).slice(0, 5) : ["Business Services", "Corporate Solutions"],
-    travelBudget: company.travel_budget ? `${(company.travel_budget / 1000000).toFixed(1)}M` : "1.0M",
-    annualTravelVolume: company.annual_travel_volume || `${Math.floor(Math.random() * 5000) + 1000} trips`,
+    specialties: company.specialties
+      ? company.specialties
+          .split(",")
+          .map((s) => s.trim())
+          .filter((s) => s)
+          .slice(0, 5)
+      : ["Business Services", "Corporate Solutions"],
+    travelBudget: company.travel_budget
+      ? `${(company.travel_budget / 1000000).toFixed(1)}M`
+      : "1.0M",
+    annualTravelVolume:
+      company.annual_travel_volume ||
+      `${Math.floor(Math.random() * 5000) + 1000} trips`,
     contracts: Math.floor(Math.random() * 20) + 1,
-    revenue: company.annual_revenue || Math.floor(Math.random() * 50000000) + 10000000,
-    phone: company.phone || "+1 (555) " + Math.floor(Math.random() * 900 + 100) + "-" + Math.floor(Math.random() * 9000 + 1000),
-    email: company.email || `contact@${company.name.toLowerCase().replace(/[^a-z0-9]/g, '')}.com`,
-    website: company.website || `www.${company.name.toLowerCase().replace(/[^a-z0-9]/g, '')}.com`,
+    revenue:
+      company.annual_revenue || Math.floor(Math.random() * 50000000) + 10000000,
+    phone:
+      company.phone ||
+      "+1 (555) " +
+        Math.floor(Math.random() * 900 + 100) +
+        "-" +
+        Math.floor(Math.random() * 9000 + 1000),
+    email:
+      company.email ||
+      `contact@${company.name.toLowerCase().replace(/[^a-z0-9]/g, "")}.com`,
+    website:
+      company.website ||
+      `www.${company.name.toLowerCase().replace(/[^a-z0-9]/g, "")}.com`,
     aiRecommendation: generateAIRecommendation(company),
     compliance: Math.floor(Math.random() * 20) + 80,
     financialStability: Math.floor(Math.random() * 20) + 80,
@@ -109,11 +151,24 @@ const transformCompanyData = (company) => {
     preferredClass: company.preferred_class || getRandomPreferredClass(),
     teamSize: Math.floor((company.employee_count || 1000) * 0.1),
     travelManagers: Math.floor(Math.random() * 5) + 1,
-    currentAirlines: company.current_airlines ? company.current_airlines.split(',').map(s => s.trim()).filter(s => s).slice(0, 5) : getRandomAirlines(),
+    currentAirlines: company.current_airlines
+      ? company.current_airlines
+          .split(",")
+          .map((s) => s.trim())
+          .filter((s) => s)
+          .slice(0, 5)
+      : getRandomAirlines(),
     paymentTerms: company.payment_terms || getRandomPaymentTerms(),
     creditRating: company.credit_rating || getRandomCreditRating(),
-    sustainabilityFocus: company.sustainability_focus || getRandomSustainabilityFocus(),
-    technologyIntegration: company.technology_integration ? company.technology_integration.split(',').map(s => s.trim()).filter(s => s).slice(0, 5) : getRandomTechIntegration(),
+    sustainabilityFocus:
+      company.sustainability_focus || getRandomSustainabilityFocus(),
+    technologyIntegration: company.technology_integration
+      ? company.technology_integration
+          .split(",")
+          .map((s) => s.trim())
+          .filter((s) => s)
+          .slice(0, 5)
+      : getRandomTechIntegration(),
     seasonality: getRandomSeasonality(),
     meetingTypes: getRandomMeetingTypes(),
     companySize: getSizeDisplay(company.size),
@@ -123,7 +178,7 @@ const transformCompanyData = (company) => {
     competitorAirlines: Math.floor(Math.random() * 5) + 1,
     loyaltyPotential: Math.floor(Math.random() * 30) + 70,
     expansionPlans: company.expansion_plans || getRandomExpansionPlans(),
-    riskLevel: company.risk_level || getRandomRiskLevel()
+    riskLevel: company.risk_level || getRandomRiskLevel(),
   };
 };
 
@@ -138,7 +193,7 @@ const getCompanyTypeDisplay = (size) => {
     corporation: "Corporation",
     llc: "LLC",
     partnership: "Partnership",
-    nonprofit: "Non-Profit"
+    nonprofit: "Non-Profit",
   };
   return types[size] || "Corporation";
 };
@@ -156,7 +211,7 @@ const getIndustryDisplay = (industry) => {
     transportation: "Transportation & Logistics",
     education: "Education",
     government: "Government",
-    other: "Other"
+    other: "Other",
   };
   return industries[industry] || "Business Services";
 };
@@ -167,7 +222,7 @@ const getSizeDisplay = (size) => {
     small: "Small",
     medium: "Medium",
     large: "Large",
-    enterprise: "Enterprise"
+    enterprise: "Enterprise",
   };
   return sizes[size] || "Medium";
 };
@@ -178,7 +233,7 @@ const generateAIRecommendation = (company) => {
     "Established company with consistent business patterns. Good candidate for long-term contracts.",
     "Growing organization with expanding travel needs. Consider volume-based pricing strategies.",
     "Premium client with sophisticated requirements. Focus on high-service offerings.",
-    "Cost-conscious organization seeking value. Emphasize efficiency and competitive pricing."
+    "Cost-conscious organization seeking value. Emphasize efficiency and competitive pricing.",
   ];
   return recommendations[Math.floor(Math.random() * recommendations.length)];
 };
@@ -194,13 +249,19 @@ const getRandomDestinations = () => {
     ["Global", "Asia-Pacific", "Europe"],
     ["North America", "Asia-Pacific"],
     ["Domestic", "Regional"],
-    ["Global", "Emerging Markets"]
+    ["Global", "Emerging Markets"],
   ];
   return destinations[Math.floor(Math.random() * destinations.length)];
 };
 
 const getRandomPreferredClass = () => {
-  const classes = ["Economy", "Economy Plus", "Business", "First", "Business/First"];
+  const classes = [
+    "Economy",
+    "Economy Plus",
+    "Business",
+    "First",
+    "Business/First",
+  ];
   return classes[Math.floor(Math.random() * classes.length)];
 };
 
@@ -210,7 +271,7 @@ const getRandomAirlines = () => {
     ["American", "Southwest"],
     ["Emirates", "Singapore Airlines"],
     ["British Airways", "Lufthansa"],
-    ["Air France", "KLM"]
+    ["Air France", "KLM"],
   ];
   return airlines[Math.floor(Math.random() * airlines.length)];
 };
@@ -236,13 +297,18 @@ const getRandomTechIntegration = () => {
     ["GDS", "Corporate Portal"],
     ["API", "Real-time Booking"],
     ["Mobile App", "Expense Management"],
-    ["Corporate Portal", "Reporting"]
+    ["Corporate Portal", "Reporting"],
   ];
   return tech[Math.floor(Math.random() * tech.length)];
 };
 
 const getRandomSeasonality = () => {
-  const patterns = ["Year-round", "Q1/Q3 Heavy", "Spring/Summer Peak", "Holiday Heavy"];
+  const patterns = [
+    "Year-round",
+    "Q1/Q3 Heavy",
+    "Spring/Summer Peak",
+    "Holiday Heavy",
+  ];
   return patterns[Math.floor(Math.random() * patterns.length)];
 };
 
@@ -251,7 +317,7 @@ const getRandomMeetingTypes = () => {
     ["Business Meetings", "Conferences"],
     ["Client Visits", "Trade Shows"],
     ["Team Offsites", "Training"],
-    ["Site Visits", "Regulatory Meetings"]
+    ["Site Visits", "Regulatory Meetings"],
   ];
   return types[Math.floor(Math.random() * types.length)];
 };
@@ -271,15 +337,18 @@ interface CorporateSearchProps {
   onNavigate?: (section: string, filters?: any) => void;
 }
 
-export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchProps) {
+export function CorporateSearch({
+  initialFilters,
+  onNavigate,
+}: CorporateSearchProps) {
   const [searchParams, setSearchParams] = useState({
-    industry: '',
-    location: '',
-    travelBudget: '',
-    companySize: '',
-    travelFrequency: '',
-    globalSearch: '',
-    ...initialFilters
+    industry: "",
+    location: "",
+    travelBudget: "",
+    companySize: "",
+    travelFrequency: "",
+    globalSearch: "",
+    ...initialFilters,
   });
 
   // Debounce search parameters
@@ -295,12 +364,12 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
   const [showCorporateProfile, setShowCorporateProfile] = useState(false);
   const [showAddCompanyDialog, setShowAddCompanyDialog] = useState(false);
-  const [error, setError] = useState('');
-  
+  const [error, setError] = useState("");
+
   // Sort, Filter, and Pagination states
-  const [sortBy, setSortBy] = useState('name');
-  const [sortOrder, setSortOrder] = useState('asc');
-  const [nameFilter, setNameFilter] = useState('');
+  const [sortBy, setSortBy] = useState("name");
+  const [sortOrder, setSortOrder] = useState("asc");
+  const [nameFilter, setNameFilter] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(5);
   const [totalPages, setTotalPages] = useState(0);
@@ -310,80 +379,81 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
     industries: [],
     maturity: [],
     employeeRange: [100, 10000],
-    travelFrequency: '',
-    preferredClass: '',
+    travelFrequency: "",
+    preferredClass: "",
     annualTravelVolume: [100, 20000],
-    revenueRange: '',
-    creditRating: '',
+    revenueRange: "",
+    creditRating: "",
     travelBudgetRange: [0.5, 10],
     techRequirements: [],
-    sustainabilityLevel: ''
+    sustainabilityLevel: "",
   });
 
   const [selectedCorporate, setSelectedCorporate] = useState(null);
   const [movedAsLeadIds, setMovedAsLeadIds] = useState(new Set());
   const [existingLeadCompanies, setExistingLeadCompanies] = useState(new Set());
-  const [successMessage, setSuccessMessage] = useState('');
+  const [successMessage, setSuccessMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // New company form state
   const [newCompany, setNewCompany] = useState({
-    name: '',
-    type: '',
-    industry: '',
-    location: '',
-    website: '',
-    phone: '',
-    email: '',
-    established: '',
-    employees: '',
-    revenue: '',
-    travelBudget: '',
-    annualTravelVolume: '',
-    travelFrequency: '',
-    preferredClass: '',
-    companySize: '',
-    creditRating: '',
-    paymentTerms: '',
-    sustainabilityFocus: '',
-    riskLevel: '',
-    expansionPlans: '',
-    specialties: '',
-    technologyIntegration: '',
-    currentAirlines: '',
-    notes: ''
+    name: "",
+    type: "",
+    industry: "",
+    location: "",
+    website: "",
+    phone: "",
+    email: "",
+    established: "",
+    employees: "",
+    revenue: "",
+    travelBudget: "",
+    annualTravelVolume: "",
+    travelFrequency: "",
+    preferredClass: "",
+    companySize: "",
+    creditRating: "",
+    paymentTerms: "",
+    sustainabilityFocus: "",
+    riskLevel: "",
+    expansionPlans: "",
+    specialties: "",
+    technologyIntegration: "",
+    currentAirlines: "",
+    notes: "",
   });
 
   const [contactForm, setContactForm] = useState({
-    method: 'Email',
-    subject: '',
-    message: '',
-    followUpDate: '',
-    corporateData: null
+    method: "Email",
+    subject: "",
+    message: "",
+    followUpDate: "",
+    corporateData: null,
   });
   const [showContactDialog, setShowContactDialog] = useState(false);
   const [showMoveAsLeadDialog, setShowMoveAsLeadDialog] = useState(false);
-  const [selectedCorporateForMove, setSelectedCorporateForMove] = useState(null);
+  const [selectedCorporateForMove, setSelectedCorporateForMove] =
+    useState(null);
   const [isMovingAsLead, setIsMovingAsLead] = useState(false);
-  
+
   const loadCompanies = useCallback(async (filters = {}) => {
     setIsLoading(true);
-    setError('');
+    setError("");
 
     try {
       const companies = await companyApi.searchCompanies(filters);
       const transformedCompanies = companies.map(transformCompanyData);
-      console.log(companies,'companies')
+      console.log(companies, "companies");
       setFilteredCorporates(transformedCompanies);
       applyFiltersAndSort(transformedCompanies);
-      
+
       // Check which companies already exist as leads
       if (transformedCompanies.length > 0) {
         await checkCompaniesLeadStatus(transformedCompanies);
       }
     } catch (error) {
-      console.error('Error loading companies:', error);
-      setError('Failed to load companies. Please try again.');
+      console.error("Error loading companies:", error);
+      setError("Failed to load companies. Please try again.");
       setFilteredCorporates([]);
     } finally {
       setIsLoading(false);
@@ -395,15 +465,15 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
     try {
       // Check move_as_lead flag directly from company data
       const existingLeads = new Set();
-      companies.forEach(company => {
+      companies.forEach((company) => {
         if (company.move_as_lead) {
           existingLeads.add(company.name);
         }
       });
-      
+
       setExistingLeadCompanies(existingLeads);
     } catch (error) {
-      console.error('Error checking lead status:', error);
+      console.error("Error checking lead status:", error);
       // Don't show error to user as this is not critical functionality
     }
   }, []);
@@ -412,17 +482,17 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
   useEffect(() => {
     const initialLoad = async () => {
       setIsLoading(true);
-      setError('');
+      setError("");
 
       try {
         const companies = await companyApi.searchCompanies({});
         const transformedCompanies = companies.map(transformCompanyData);
         setFilteredCorporates(transformedCompanies);
         applyFiltersAndSort(transformedCompanies);
-        console.log(companies,'companies')
+        console.log(companies, "companies");
       } catch (error) {
-        console.error('Error loading companies:', error);
-        setError('Failed to load companies. Please try again.');
+        console.error("Error loading companies:", error);
+        setError("Failed to load companies. Please try again.");
         setFilteredCorporates([]);
       } finally {
         setIsLoading(false);
@@ -440,13 +510,13 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
     }
 
     setIsSearching(true);
-    setError('');
+    setError("");
 
     try {
       // Merge basic search params with advanced filters
       const mergedFilters = {
         ...searchParams, // Use searchParams directly instead of debouncedSearchParams
-        ...advancedFilters
+        ...advancedFilters,
       };
 
       // Call the API directly instead of through loadCompanies to avoid dependency issues
@@ -454,14 +524,14 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
       const transformedCompanies = companies.map(transformCompanyData);
       setFilteredCorporates(transformedCompanies);
       applyFiltersAndSort(transformedCompanies);
-      
+
       // Check which companies already exist as leads
       if (transformedCompanies.length > 0) {
         await checkCompaniesLeadStatus(transformedCompanies);
       }
     } catch (error) {
-      console.error('Error searching companies:', error);
-      setError('Search failed. Please try again.');
+      console.error("Error searching companies:", error);
+      setError("Search failed. Please try again.");
       setFilteredCorporates([]);
     } finally {
       setIsSearching(false);
@@ -474,64 +544,68 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
   };
 
   // Sort and filter logic
-  const applyFiltersAndSort = useCallback((companies) => {
-    let filtered = [...companies];
-    
-    // Apply name filter
-    if (nameFilter.trim()) {
-      filtered = filtered.filter(company =>
-        company.name.toLowerCase().includes(nameFilter.toLowerCase())
-      );
-    }
-    
-    // Apply sorting
-    filtered.sort((a, b) => {
-      let comparison = 0;
-      
-      switch (sortBy) {
-        case 'name':
-          comparison = a.name.localeCompare(b.name);
-          break;
-        case 'aiScore':
-          comparison = a.aiScore - b.aiScore;
-          break;
-        case 'rating':
-          comparison = parseFloat(a.rating) - parseFloat(b.rating);
-          break;
-        case 'employees':
-          comparison = a.employees - b.employees;
-          break;
-        case 'revenue':
-          comparison = a.revenue - b.revenue;
-          break;
-        case 'established':
-          comparison = a.established - b.established;
-          break;
-        default:
-          comparison = 0;
+  const applyFiltersAndSort = useCallback(
+    (companies) => {
+      let filtered = [...companies];
+
+      // Apply name filter
+      if (nameFilter.trim()) {
+        filtered = filtered.filter((company) =>
+          company.name.toLowerCase().includes(nameFilter.toLowerCase()),
+        );
       }
-      
-      return sortOrder === 'asc' ? comparison : -comparison;
-    });
-    
-    // Calculate pagination
-    const totalItems = filtered.length;
-    const calculatedTotalPages = Math.ceil(totalItems / itemsPerPage);
-    setTotalPages(calculatedTotalPages);
-    
-    // Reset to page 1 if current page exceeds total pages
-    const validCurrentPage = currentPage > calculatedTotalPages ? 1 : currentPage;
-    if (validCurrentPage !== currentPage) {
-      setCurrentPage(validCurrentPage);
-    }
-    
-    // Apply pagination
-    const startIndex = (validCurrentPage - 1) * itemsPerPage;
-    const endIndex = startIndex + itemsPerPage;
-    const paginatedCompanies = filtered.slice(startIndex, endIndex);
-    
-    setDisplayedCorporates(paginatedCompanies);
-  }, [nameFilter, sortBy, sortOrder, currentPage, itemsPerPage]);
+
+      // Apply sorting
+      filtered.sort((a, b) => {
+        let comparison = 0;
+
+        switch (sortBy) {
+          case "name":
+            comparison = a.name.localeCompare(b.name);
+            break;
+          case "aiScore":
+            comparison = a.aiScore - b.aiScore;
+            break;
+          case "rating":
+            comparison = parseFloat(a.rating) - parseFloat(b.rating);
+            break;
+          case "employees":
+            comparison = a.employees - b.employees;
+            break;
+          case "revenue":
+            comparison = a.revenue - b.revenue;
+            break;
+          case "established":
+            comparison = a.established - b.established;
+            break;
+          default:
+            comparison = 0;
+        }
+
+        return sortOrder === "asc" ? comparison : -comparison;
+      });
+
+      // Calculate pagination
+      const totalItems = filtered.length;
+      const calculatedTotalPages = Math.ceil(totalItems / itemsPerPage);
+      setTotalPages(calculatedTotalPages);
+
+      // Reset to page 1 if current page exceeds total pages
+      const validCurrentPage =
+        currentPage > calculatedTotalPages ? 1 : currentPage;
+      if (validCurrentPage !== currentPage) {
+        setCurrentPage(validCurrentPage);
+      }
+
+      // Apply pagination
+      const startIndex = (validCurrentPage - 1) * itemsPerPage;
+      const endIndex = startIndex + itemsPerPage;
+      const paginatedCompanies = filtered.slice(startIndex, endIndex);
+
+      setDisplayedCorporates(paginatedCompanies);
+    },
+    [nameFilter, sortBy, sortOrder, currentPage, itemsPerPage],
+  );
 
   // Effect to reapply filters when dependencies change
   useEffect(() => {
@@ -542,10 +616,10 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
 
   const handleSortChange = (newSortBy) => {
     if (newSortBy === sortBy) {
-      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+      setSortOrder(sortOrder === "asc" ? "desc" : "asc");
     } else {
       setSortBy(newSortBy);
-      setSortOrder('asc');
+      setSortOrder("asc");
     }
     setCurrentPage(1); // Reset to first page when sorting changes
   };
@@ -562,12 +636,12 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
   const handleClearFilters = () => {
     // Reset search parameters
     setSearchParams({
-      industry: '',
-      location: '',
-      travelBudget: '',
-      companySize: '',
-      travelFrequency: '',
-      globalSearch: ''
+      industry: "",
+      location: "",
+      travelBudget: "",
+      companySize: "",
+      travelFrequency: "",
+      globalSearch: "",
     });
 
     // Reset advanced filters
@@ -575,20 +649,20 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
       industries: [],
       maturity: [],
       employeeRange: [100, 10000],
-      travelFrequency: '',
-      preferredClass: '',
+      travelFrequency: "",
+      preferredClass: "",
       annualTravelVolume: [100, 20000],
-      revenueRange: '',
-      creditRating: '',
+      revenueRange: "",
+      creditRating: "",
       travelBudgetRange: [0.5, 10],
       techRequirements: [],
-      sustainabilityLevel: ''
+      sustainabilityLevel: "",
     });
 
     // Reset sort and filter states
-    setNameFilter('');
-    setSortBy('name');
-    setSortOrder('asc');
+    setNameFilter("");
+    setSortBy("name");
+    setSortOrder("asc");
     setCurrentPage(1);
 
     // Reset existing leads state
@@ -615,29 +689,39 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
       const leadData = {
         company: {
           name: corporate.name,
-          industry: corporate.industry === 'Technology & Software' ? 'technology' : 
-                   corporate.industry === 'Finance & Banking' ? 'finance' :
-                   corporate.industry === 'Business Services' ? 'consulting' : 'other',
+          industry:
+            corporate.industry === "Technology & Software"
+              ? "technology"
+              : corporate.industry === "Finance & Banking"
+                ? "finance"
+                : corporate.industry === "Business Services"
+                  ? "consulting"
+                  : "other",
           location: corporate.location,
-          size: corporate.companySize?.toLowerCase() || 'medium',
+          size: corporate.companySize?.toLowerCase() || "medium",
           annual_revenue: corporate.revenue || null,
           travel_budget: corporate.contractValue || null,
-          employee_count: corporate.employees || null
+          employee_count: corporate.employees || null,
         },
         contact: {
-          first_name: 'Contact', // Default contact info - would be better to get from user input
-          last_name: 'Person',
+          first_name: "Contact", // Default contact info - would be better to get from user input
+          last_name: "Person",
           email: corporate.email,
-          phone: corporate.phone || '',
-          position: 'Decision Maker',
-          is_decision_maker: true
+          phone: corporate.phone || "",
+          position: "Decision Maker",
+          is_decision_maker: true,
         },
-        status: 'new',
-        source: 'corporate_search',
-        priority: corporate.aiScore >= 80 ? 'high' : corporate.aiScore >= 60 ? 'medium' : 'low',
+        status: "new",
+        source: "corporate_search",
+        priority:
+          corporate.aiScore >= 80
+            ? "high"
+            : corporate.aiScore >= 60
+              ? "medium"
+              : "low",
         score: corporate.aiScore,
         estimated_value: corporate.contractValue || null,
-        notes: `Moved from corporate search. AI Score: ${corporate.aiScore}. ${corporate.aiRecommendation}. Specialties: ${corporate.specialties?.join(', ') || 'N/A'}. Travel Frequency: ${corporate.travelFrequency || 'N/A'}. Preferred Class: ${corporate.preferredClass || 'N/A'}.`
+        notes: `Moved from corporate search. AI Score: ${corporate.aiScore}. ${corporate.aiRecommendation}. Specialties: ${corporate.specialties?.join(", ") || "N/A"}. Travel Frequency: ${corporate.travelFrequency || "N/A"}. Preferred Class: ${corporate.preferredClass || "N/A"}.`,
       };
 
       // Call the API to create the lead
@@ -647,28 +731,34 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
       try {
         await companyApi.markCompanyAsMovedToLead(corporate.id);
       } catch (error) {
-        console.warn('Failed to mark company flag, but lead was created successfully:', error);
+        console.warn(
+          "Failed to mark company flag, but lead was created successfully:",
+          error,
+        );
       }
 
       // Add to moved leads tracking
-      setMovedAsLeadIds(prev => new Set([...prev, corporate.id]));
-      setExistingLeadCompanies(prev => new Set([...prev, corporate.name]));
+      setMovedAsLeadIds((prev) => new Set([...prev, corporate.id]));
+      setExistingLeadCompanies((prev) => new Set([...prev, corporate.name]));
 
       // Show success message
-      setSuccessMessage(`${corporate.name} has been successfully moved to leads management`);
-      setTimeout(() => setSuccessMessage(''), 5000);
+      setSuccessMessage(
+        `${corporate.name} has been successfully moved to leads management`,
+      );
+      setTimeout(() => setSuccessMessage(""), 5000);
 
       // Navigate to leads if onNavigate is available
       if (onNavigate) {
-        onNavigate('leads-list', { 
-          message: `${corporate.name} has been successfully moved to leads management`
+        onNavigate("leads-list", {
+          message: `${corporate.name} has been successfully moved to leads management`,
         });
       }
-
     } catch (error) {
-      console.error('Error moving corporate as lead:', error);
-      setSuccessMessage(`Error: Failed to move ${corporate.name} as lead. Please try again.`);
-      setTimeout(() => setSuccessMessage(''), 5000);
+      console.error("Error moving corporate as lead:", error);
+      setSuccessMessage(
+        `Error: Failed to move ${corporate.name} as lead. Please try again.`,
+      );
+      setTimeout(() => setSuccessMessage(""), 5000);
     } finally {
       setIsMovingAsLead(false);
       setShowMoveAsLeadDialog(false);
@@ -683,7 +773,7 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
 
   const handleAddCompany = async () => {
     setIsSubmitting(true);
-    setSuccessMessage('');
+    setSuccessMessage("");
 
     try {
       // Map frontend fields to Django model fields - include ALL form sections
@@ -695,66 +785,76 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
         location: newCompany.location,
         email: newCompany.email,
         phone: newCompany.phone,
-        website: newCompany.website || '',
-        
+        website: newCompany.website || "",
+
         // Business Details
-        employee_count: newCompany.employees ? parseInt(newCompany.employees) : null,
-        annual_revenue: newCompany.revenue ? parseFloat(newCompany.revenue) * 1000000 : null, // Convert millions to actual amount
-        year_established: newCompany.established ? parseInt(newCompany.established) : null,
+        employee_count: newCompany.employees
+          ? parseInt(newCompany.employees)
+          : null,
+        annual_revenue: newCompany.revenue
+          ? parseFloat(newCompany.revenue) * 1000000
+          : null, // Convert millions to actual amount
+        year_established: newCompany.established
+          ? parseInt(newCompany.established)
+          : null,
         size: newCompany.companySize,
         credit_rating: newCompany.creditRating,
         payment_terms: newCompany.paymentTerms,
-        
+
         // Travel Profile
-        travel_budget: newCompany.travelBudget ? parseFloat(newCompany.travelBudget) * 1000000 : null, // Convert millions to actual amount
+        travel_budget: newCompany.travelBudget
+          ? parseFloat(newCompany.travelBudget) * 1000000
+          : null, // Convert millions to actual amount
         annual_travel_volume: newCompany.annualTravelVolume,
         travel_frequency: newCompany.travelFrequency,
         preferred_class: newCompany.preferredClass,
         sustainability_focus: newCompany.sustainabilityFocus,
         risk_level: newCompany.riskLevel,
         current_airlines: newCompany.currentAirlines,
-        
+
         // Additional Info
         expansion_plans: newCompany.expansionPlans,
         specialties: newCompany.specialties,
         technology_integration: newCompany.technologyIntegration,
-        description: newCompany.notes || ''
+        description: newCompany.notes || "",
       };
 
-      console.log('Sending company data:', companyData);
+      console.log("Sending company data:", companyData);
 
       const savedCompany = await companyApi.createCompany(companyData);
 
       // Reset form
       setNewCompany({
-        name: '',
-        type: '',
-        industry: '',
-        location: '',
-        website: '',
-        phone: '',
-        email: '',
-        established: '',
-        employees: '',
-        revenue: '',
-        travelBudget: '',
-        annualTravelVolume: '',
-        travelFrequency: '',
-        preferredClass: '',
-        companySize: '',
-        creditRating: '',
-        paymentTerms: '',
-        sustainabilityFocus: '',
-        riskLevel: '',
-        expansionPlans: '',
-        specialties: '',
-        technologyIntegration: '',
-        currentAirlines: '',
-        notes: ''
+        name: "",
+        type: "",
+        industry: "",
+        location: "",
+        website: "",
+        phone: "",
+        email: "",
+        established: "",
+        employees: "",
+        revenue: "",
+        travelBudget: "",
+        annualTravelVolume: "",
+        travelFrequency: "",
+        preferredClass: "",
+        companySize: "",
+        creditRating: "",
+        paymentTerms: "",
+        sustainabilityFocus: "",
+        riskLevel: "",
+        expansionPlans: "",
+        specialties: "",
+        technologyIntegration: "",
+        currentAirlines: "",
+        notes: "",
       });
 
       setShowAddCompanyDialog(false);
-      setSuccessMessage(`${newCompany.name} has been successfully added to the corporate database.`);
+      setSuccessMessage(
+        `${newCompany.name} has been successfully added to the corporate database.`,
+      );
 
       // Refresh the companies list to show the new company
       try {
@@ -763,53 +863,56 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
         setFilteredCorporates(transformedCompanies);
         applyFiltersAndSort(transformedCompanies);
       } catch (refreshError) {
-        console.error('Error refreshing companies list:', refreshError);
+        console.error("Error refreshing companies list:", refreshError);
       }
 
-      setTimeout(() => setSuccessMessage(''), 5000);
-
+      setTimeout(() => setSuccessMessage(""), 5000);
     } catch (error) {
-      console.error('Error saving company:', error);
-      const errorMessage = error.response?.data?.message || error.message || 'Failed to save company';
+      console.error("Error saving company:", error);
+      const errorMessage =
+        error.response?.data?.message ||
+        error.message ||
+        "Failed to save company";
       setSuccessMessage(`Error: ${errorMessage}`);
-      setTimeout(() => setSuccessMessage(''), 5000);
+      setTimeout(() => setSuccessMessage(""), 5000);
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const isFormValid = () => {
-    return newCompany.name.trim() !== '' && 
-           newCompany.industry !== '' && 
-           newCompany.companySize !== '' && 
-           newCompany.location.trim() !== '' &&
-           newCompany.email.trim() !== '';
+    return (
+      newCompany.name.trim() !== "" &&
+      newCompany.industry !== "" &&
+      newCompany.companySize !== "" &&
+      newCompany.location.trim() !== "" &&
+      newCompany.email.trim() !== ""
+    );
   };
 
   // Show specific components based on state
   if (showCorporateProfile && selectedCorporate) {
     return (
-      
-      <Dialog open={showCorporateProfile} onOpenChange={setShowCorporateProfile}>
+      <Dialog
+        open={showCorporateProfile}
+        onOpenChange={setShowCorporateProfile}
+      >
         <h1>nagusafdjsf</h1>
-              <DialogContent className="max-w-2xl  cls-corporate-profile">
-                <div className="mt-4 max-h-[90vh] overflow-y-auto">
-                <CorporateProfile 
-                corporateData={selectedCorporate}
-                onBack={handleBackToSearch}
-              />
-                </div>
-              </DialogContent>
-            </Dialog>
-
-      
+        <DialogContent className="max-w-2xl  cls-corporate-profile">
+          <div className="mt-4 max-h-[90vh] overflow-y-auto">
+            <CorporateProfile
+              corporateData={selectedCorporate}
+              onBack={handleBackToSearch}
+            />
+          </div>
+        </DialogContent>
+      </Dialog>
     );
   }
-// Function to open dialog for contacting a lead
+  // Function to open dialog for contacting a lead
   const handleContactCorporate = (corporate: any) => {
- 
     setContactForm({
-      method: 'Email',
+      method: "Email",
       subject: `Partnership Opportunity - ${corporate.name}`,
       message: `Hi ,
 
@@ -821,13 +924,14 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
 
         Best regards,
         SOAR-AI Team`,
-      followUpDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],// 7 days from now
-      corporateData: corporate
+      followUpDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+        .toISOString()
+        .split("T")[0], // 7 days from now
+      corporateData: corporate,
     });
     setShowContactDialog(true);
   };
   return (
-    
     <div className="w-full h-full bg-gray-50 p-6">
       {/* Success Message */}
       {successMessage && (
@@ -844,11 +948,19 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
         <div className="flex items-center gap-3">
           <Search className="h-6 w-6 text-gray-600" />
           <div>
-            <h1 className="text-xl font-semibold text-gray-900">Corporate Client Discovery</h1>
-            <p className="text-sm text-gray-600">AI-powered search to discover and evaluate potential corporate travel partnerships</p>
+            <h1 className="text-xl font-semibold text-gray-900">
+              Corporate Client Discovery
+            </h1>
+            <p className="text-sm text-gray-600">
+              AI-powered search to discover and evaluate potential corporate
+              travel partnerships
+            </p>
           </div>
         </div>
-        <Button onClick={() => setShowAddCompanyDialog(true)} className="cls-addcomapany">
+        <Button
+          onClick={() => setShowAddCompanyDialog(true)}
+          className="cls-addcomapany"
+        >
           <Plus className="h-4 w-4 mr-2" />
           Add Company
         </Button>
@@ -873,14 +985,23 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
         {/* Top Row - 3 columns */}
         <div className="grid grid-cols-3 gap-6 mb-6">
           <div className="space-y-2">
-            <Label className="text-sm font-medium text-gray-900">Industry Sector</Label>
-            <Select value={searchParams.industry} onValueChange={(value) => setSearchParams({...searchParams, industry: value})}>
+            <Label className="text-sm font-medium text-gray-900">
+              Industry Sector
+            </Label>
+            <Select
+              value={searchParams.industry}
+              onValueChange={(value) =>
+                setSearchParams({ ...searchParams, industry: value })
+              }
+            >
               <SelectTrigger className="h-10 bg-white border-gray-300 text-gray-500">
                 <SelectValue placeholder="Select industry" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="technology">Technology</SelectItem>
-                <SelectItem value="financial services">Financial Services</SelectItem>
+                <SelectItem value="financial services">
+                  Financial Services
+                </SelectItem>
                 <SelectItem value="manufacturing">Manufacturing</SelectItem>
                 <SelectItem value="healthcare">Healthcare</SelectItem>
                 <SelectItem value="energy">Energy</SelectItem>
@@ -889,8 +1010,15 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
           </div>
 
           <div className="space-y-2">
-            <Label className="text-sm font-medium text-gray-900">Geographic Focus</Label>
-            <Select value={searchParams.location} onValueChange={(value) => setSearchParams({...searchParams, location: value})}>
+            <Label className="text-sm font-medium text-gray-900">
+              Geographic Focus
+            </Label>
+            <Select
+              value={searchParams.location}
+              onValueChange={(value) =>
+                setSearchParams({ ...searchParams, location: value })
+              }
+            >
               <SelectTrigger className="h-10 bg-white border-gray-300 text-gray-500">
                 <SelectValue placeholder="Select location" />
               </SelectTrigger>
@@ -904,8 +1032,15 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
           </div>
 
           <div className="space-y-2">
-            <Label className="text-sm font-medium text-gray-900">Annual Travel Budget</Label>
-            <Select value={searchParams.travelBudget} onValueChange={(value) => setSearchParams({...searchParams, travelBudget: value})}>
+            <Label className="text-sm font-medium text-gray-900">
+              Annual Travel Budget
+            </Label>
+            <Select
+              value={searchParams.travelBudget}
+              onValueChange={(value) =>
+                setSearchParams({ ...searchParams, travelBudget: value })
+              }
+            >
               <SelectTrigger className="h-10 bg-white border-gray-300 text-gray-500">
                 <SelectValue placeholder="Select budget range" />
               </SelectTrigger>
@@ -923,8 +1058,15 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
         {/* Bottom Row - 2 columns */}
         <div className="grid grid-cols-3 gap-6 mb-6">
           <div className="space-y-2">
-            <Label className="text-sm font-medium text-gray-900">Company Size</Label>
-            <Select value={searchParams.companySize} onValueChange={(value) => setSearchParams({...searchParams, companySize: value})}>
+            <Label className="text-sm font-medium text-gray-900">
+              Company Size
+            </Label>
+            <Select
+              value={searchParams.companySize}
+              onValueChange={(value) =>
+                setSearchParams({ ...searchParams, companySize: value })
+              }
+            >
               <SelectTrigger className="h-10 bg-white border-gray-300 text-gray-500">
                 <SelectValue placeholder="Select company size" />
               </SelectTrigger>
@@ -939,8 +1081,15 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
           </div>
 
           <div className="space-y-2">
-            <Label className="text-sm font-medium text-gray-900">Travel Frequency</Label>
-            <Select value={searchParams.travelFrequency} onValueChange={(value) => setSearchParams({...searchParams, travelFrequency: value})}>
+            <Label className="text-sm font-medium text-gray-900">
+              Travel Frequency
+            </Label>
+            <Select
+              value={searchParams.travelFrequency}
+              onValueChange={(value) =>
+                setSearchParams({ ...searchParams, travelFrequency: value })
+              }
+            >
               <SelectTrigger className="h-10 bg-white border-gray-300 text-gray-500">
                 <SelectValue placeholder="Select frequency" />
               </SelectTrigger>
@@ -956,9 +1105,9 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
 
         {/* Action Buttons */}
         <div className="flex space-x-3 items-center">
-          <Button 
-            onClick={handleSearch} 
-            disabled={isSearching} 
+          <Button
+            onClick={handleSearch}
+            disabled={isSearching}
             className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-2 rounded-md flex items-center gap-2"
           >
             <Search className="h-4 w-4" />
@@ -968,12 +1117,12 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
                 AI Processing...
               </>
             ) : (
-              'Search Corporates'
+              "Search Corporates"
             )}
           </Button>
 
-          <Button 
-            variant="outline" 
+          <Button
+            variant="outline"
             onClick={() => setShowAdvancedFilters(true)}
             className="border-gray-300 text-gray-700 hover:bg-gray-50 px-4 py-2 rounded-md flex items-center gap-2"
           >
@@ -981,8 +1130,8 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
             Advanced Filters
           </Button>
 
-          <Button 
-            variant="outline" 
+          <Button
+            variant="outline"
             onClick={handleClearFilters}
             className="border-gray-300 text-gray-700 hover:bg-gray-50 px-4 py-2 rounded-md flex items-center gap-2"
           >
@@ -996,9 +1145,7 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
       {error && (
         <Alert className="bg-red-50 border-red-200 mb-4">
           <AlertCircle className="h-4 w-4 text-red-500" />
-          <AlertDescription className="text-red-800">
-            {error}
-          </AlertDescription>
+          <AlertDescription className="text-red-800">{error}</AlertDescription>
         </Alert>
       )}
 
@@ -1006,12 +1153,16 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
       <div className="mb-6">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h2 className="text-lg font-semibold text-gray-900">Search Results</h2>
+            <h2 className="text-lg font-semibold text-gray-900">
+              Search Results
+            </h2>
             <p className="text-sm text-gray-600">
-              {isLoading ? 'Loading...' : `${filteredCorporates.length} total prospects found • Showing ${displayedCorporates.length} results`}
+              {isLoading
+                ? "Loading..."
+                : `${filteredCorporates.length} total prospects found • Showing ${displayedCorporates.length} results`}
             </p>
           </div>
-          
+
           {/* Sort and Filter Controls */}
           {!isLoading && filteredCorporates.length > 0 && (
             <div className="flex items-center gap-4">
@@ -1026,7 +1177,7 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
                 />
                 {nameFilter && (
                   <button
-                    onClick={() => handleNameFilterChange('')}
+                    onClick={() => handleNameFilterChange("")}
                     className="absolute right-2 top-1/2 transform -translate-y-1/2"
                   >
                     <X className="h-4 w-4 text-gray-400 hover:text-gray-600" />
@@ -1068,9 +1219,17 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
       {!isLoading && filteredCorporates.length === 0 && !error && (
         <div className="text-center py-12">
           <Building2 className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">No companies found</h3>
-          <p className="text-gray-600 mb-4">Try adjusting your search criteria or add a new company to get started.</p>
-          <Button onClick={() => setShowAddCompanyDialog(true)} className="bg-orange-500 hover:bg-orange-600 text-white">
+          <h3 className="text-lg font-medium text-gray-900 mb-2">
+            No companies found
+          </h3>
+          <p className="text-gray-600 mb-4">
+            Try adjusting your search criteria or add a new company to get
+            started.
+          </p>
+          <Button
+            onClick={() => setShowAddCompanyDialog(true)}
+            className="bg-orange-500 hover:bg-orange-600 text-white"
+          >
             <Plus className="h-4 w-4 mr-2" />
             Add Company
           </Button>
@@ -1078,172 +1237,217 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
       )}
 
       {/* No Filtered Results State */}
-      {!isLoading && filteredCorporates.length > 0 && displayedCorporates.length === 0 && (nameFilter.trim() !== '') && (
-        <div className="text-center py-12">
-          <Search className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">No matches found</h3>
-          <p className="text-gray-600 mb-4">No companies match your filter "{nameFilter}". Try a different search term.</p>
-          <Button onClick={() => setNameFilter('')} variant="outline" className="border-gray-300">
-            <X className="h-4 w-4 mr-2" />
-            Clear Filter
-          </Button>
-        </div>
-      )}
+      {!isLoading &&
+        filteredCorporates.length > 0 &&
+        displayedCorporates.length === 0 &&
+        nameFilter.trim() !== "" && (
+          <div className="text-center py-12">
+            <Search className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-gray-900 mb-2">
+              No matches found
+            </h3>
+            <p className="text-gray-600 mb-4">
+              No companies match your filter "{nameFilter}". Try a different
+              search term.
+            </p>
+            <Button
+              onClick={() => setNameFilter("")}
+              variant="outline"
+              className="border-gray-300"
+            >
+              <X className="h-4 w-4 mr-2" />
+              Clear Filter
+            </Button>
+          </div>
+        )}
 
       {/* Results List */}
       {!isLoading && displayedCorporates.length > 0 && (
         <>
           <div className="space-y-4">
             {displayedCorporates.map((corporate) => (
-          <Card key={corporate.id} className="bg-white border border-gray-200">
-            <CardContent className="p-6">
-              <div className="flex items-start gap-4">
-                {/* Company Icon */}
-                <div className="flex-shrink-0">
-                  <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                    <Building2 className="h-6 w-6 text-blue-600" />
-                  </div>
-                </div>
-
-                {/* Company Info */}
-                <div className="flex-1">
-                  <div className="flex items-start justify-between mb-3">
-                    <div>
-                      <div className="flex items-center gap-2 mb-1">
-                        <h3 className="text-lg font-semibold text-gray-900">{corporate.name}</h3>
-                        <Badge variant="secondary" className="bg-orange-500 hover:bg-orange-600 text-white text-xs">
-                          AI Score {corporate.aiScore}
-                        </Badge>
-                      </div>
-                      <p className="text-sm text-gray-600 mb-1">{corporate.type} • {corporate.industry}</p>
-                      <div className="flex items-center gap-4 text-sm text-gray-500">
-                        <span className="flex items-center gap-1">
-                          <MapPin className="h-3 w-3" />
-                          {corporate.location}
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <Users className="h-3 w-3" />
-                          {corporate.employees.toLocaleString()} employees
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <Calendar className="h-3 w-3" />
-                          Est. {corporate.established}
-                        </span>
-                        <span className="flex items-center gap-1 cls-link">
-                          <Globe className="h-3 w-3" />
-                          {corporate.website}
-                        </span>
+              <Card
+                key={corporate.id}
+                className="bg-white border border-gray-200"
+              >
+                <CardContent className="p-6">
+                  <div className="flex items-start gap-4">
+                    {/* Company Icon */}
+                    <div className="flex-shrink-0">
+                      <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                        <Building2 className="h-6 w-6 text-blue-600" />
                       </div>
                     </div>
-                    <div className="text-right">
-                      <div className="flex items-center gap-1 mb-1">
-                        <Star className="h-4 w-4 text-yellow-500 fill-current" />
-                        <span className="font-medium text-sm">{corporate.rating}</span>
+
+                    {/* Company Info */}
+                    <div className="flex-1">
+                      <div className="flex items-start justify-between mb-3">
+                        <div>
+                          <div className="flex items-center gap-2 mb-1">
+                            <h3 className="text-lg font-semibold text-gray-900">
+                              {corporate.name}
+                            </h3>
+                            <Badge
+                              variant="secondary"
+                              className="bg-orange-500 hover:bg-orange-600 text-white text-xs"
+                            >
+                              AI Score {corporate.aiScore}
+                            </Badge>
+                          </div>
+                          <p className="text-sm text-gray-600 mb-1">
+                            {corporate.type} • {corporate.industry}
+                          </p>
+                          <div className="flex items-center gap-4 text-sm text-gray-500">
+                            <span className="flex items-center gap-1">
+                              <MapPin className="h-3 w-3" />
+                              {corporate.location}
+                            </span>
+                            <span className="flex items-center gap-1">
+                              <Users className="h-3 w-3" />
+                              {corporate.employees.toLocaleString()} employees
+                            </span>
+                            <span className="flex items-center gap-1">
+                              <Calendar className="h-3 w-3" />
+                              Est. {corporate.established}
+                            </span>
+                            <span className="flex items-center gap-1 cls-link">
+                              <Globe className="h-3 w-3" />
+                              {corporate.website}
+                            </span>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className="flex items-center gap-1 mb-1">
+                            <Star className="h-4 w-4 text-yellow-500 fill-current" />
+                            <span className="font-medium text-sm">
+                              {corporate.rating}
+                            </span>
+                          </div>
+                          <div className="text-sm text-gray-600">
+                            ${corporate.travelBudget} budget
+                          </div>
+                        </div>
                       </div>
-                      <div className="text-sm text-gray-600">${corporate.travelBudget} budget</div>
-                    </div>
-                  </div>
 
-                  {/* Company Details */}
-                  <div className="grid grid-cols-2 gap-x-8 gap-y-2 mb-4 text-sm">
-                    <div className="flex items-center gap-2">
-                      <DollarSign className="h-4 w-4 text-green-600" />
-                      <span>Revenue: ${(corporate.revenue / 1000000).toFixed(1)}M</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Shield className="h-4 w-4 text-blue-600" />
-                      <span>Credit: {corporate.creditRating}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Plane className="h-4 w-4 text-purple-600" />
-                      <span>Travel: {corporate.annualTravelVolume}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Target className="h-4 w-4 text-orange-600" />
-                      <span>Class: {corporate.preferredClass}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Clock className="h-4 w-4 text-gray-600" />
-                      <span>Frequency: {corporate.travelFrequency}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Activity className="h-4 w-4 text-red-600" />
-                      <span>Risk: {corporate.riskLevel}</span>
-                    </div>
-                  </div>
-
-                  {/* Specialties */}
-                  <div className="mb-4">
-                    <p className="text-sm font-medium text-gray-700 mb-2">Specialties</p>
-                    <div className="flex flex-wrap gap-2">
-                      {corporate.specialties.map((specialty, index) => (
-                        <span key={index} className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded">
-                          {specialty}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* AI Recommendation */}
-                  <div className="mb-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
-                    <div className="flex items-start gap-2">
-                      <Brain className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
-                      <div>
-                        <p className="text-sm font-medium text-blue-900">AI Partnership Recommendation</p>
-                        <p className="text-sm text-blue-800 mt-1">{corporate.aiRecommendation}</p>
+                      {/* Company Details */}
+                      <div className="grid grid-cols-2 gap-x-8 gap-y-2 mb-4 text-sm">
+                        <div className="flex items-center gap-2">
+                          <DollarSign className="h-4 w-4 text-green-600" />
+                          <span>
+                            Revenue: ${(corporate.revenue / 1000000).toFixed(1)}
+                            M
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Shield className="h-4 w-4 text-blue-600" />
+                          <span>Credit: {corporate.creditRating}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Plane className="h-4 w-4 text-purple-600" />
+                          <span>Travel: {corporate.annualTravelVolume}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Target className="h-4 w-4 text-orange-600" />
+                          <span>Class: {corporate.preferredClass}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Clock className="h-4 w-4 text-gray-600" />
+                          <span>Frequency: {corporate.travelFrequency}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Activity className="h-4 w-4 text-red-600" />
+                          <span>Risk: {corporate.riskLevel}</span>
+                        </div>
                       </div>
-                    </div>
-                  </div>
 
-                  {/* Action buttons */}
-                  <div className="flex gap-3">
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      onClick={() => handleViewProfile(corporate)}
-                      className="border-gray-300"
-                    >
-                      <Eye className="h-4 w-4 mr-1" />
-                      View Full Profile
-                    </Button>
+                      {/* Specialties */}
+                      <div className="mb-4">
+                        <p className="text-sm font-medium text-gray-700 mb-2">
+                          Specialties
+                        </p>
+                        <div className="flex flex-wrap gap-2">
+                          {corporate.specialties.map((specialty, index) => (
+                            <span
+                              key={index}
+                              className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded"
+                            >
+                              {specialty}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
 
-                    {corporate.move_as_lead || movedAsLeadIds.has(corporate.id) || existingLeadCompanies.has(corporate.name) ? (
-                      <span className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-green-800 bg-green-100 border border-green-200 rounded-md">
-                        <CheckCircle2 className="h-4 w-4 mr-2 text-green-600" />
-                        Already moved to Lead
-                      </span>
-                    ) : (
-                      <Button 
-                        variant="outline"
-                        size="sm" 
-                        onClick={() => handleMoveAsLead(corporate)}
-                        disabled={isMovingAsLead}
-                        className="border-gray-300 cls-addcomapany"
-                      >
-                        {isMovingAsLead && selectedCorporateForMove?.id === corporate.id ? (
-                          <>
-                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-orange-500 mr-2"></div>
-                            Moving...
-                          </>
+                      {/* AI Recommendation */}
+                      <div className="mb-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                        <div className="flex items-start gap-2">
+                          <Brain className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
+                          <div>
+                            <p className="text-sm font-medium text-blue-900">
+                              AI Partnership Recommendation
+                            </p>
+                            <p className="text-sm text-blue-800 mt-1">
+                              {corporate.aiRecommendation}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Action buttons */}
+                      <div className="flex gap-3">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleViewProfile(corporate)}
+                          className="border-gray-300"
+                        >
+                          <Eye className="h-4 w-4 mr-1" />
+                          View Full Profile
+                        </Button>
+
+                        {corporate.move_as_lead ||
+                        movedAsLeadIds.has(corporate.id) ||
+                        existingLeadCompanies.has(corporate.name) ? (
+                          <span className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-green-800 bg-green-100 border border-green-200 rounded-md">
+                            <CheckCircle2 className="h-4 w-4 mr-2 text-green-600" />
+                            Already moved to Lead
+                          </span>
                         ) : (
-                          <>
-                            <UserPlus className="h-4 w-4 mr-2" />
-                            Move as Lead
-                          </>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleMoveAsLead(corporate)}
+                            disabled={isMovingAsLead}
+                            className="border-gray-300 cls-addcomapany"
+                          >
+                            {isMovingAsLead &&
+                            selectedCorporateForMove?.id === corporate.id ? (
+                              <>
+                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-orange-500 mr-2"></div>
+                                Moving...
+                              </>
+                            ) : (
+                              <>
+                                <UserPlus className="h-4 w-4 mr-2" />
+                                Move as Lead
+                              </>
+                            )}
+                          </Button>
                         )}
-                      </Button>
-                    )}
 
-                    <Button variant="outline" size="sm" className="border-gray-300" onClick={() => handleContactCorporate(corporate)}
->
-                      <Phone className="h-4 w-4 mr-1" />
-                      Contact
-                    </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="border-gray-300"
+                          onClick={() => handleContactCorporate(corporate)}
+                        >
+                          <Phone className="h-4 w-4 mr-1" />
+                          Contact
+                        </Button>
+                      </div>
+                    </div>
                   </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+                </CardContent>
+              </Card>
             ))}
           </div>
 
@@ -1252,7 +1456,12 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
             <div className="flex items-center justify-between mt-8 pt-6 border-t border-gray-200">
               <div className="flex items-center gap-2 text-sm text-gray-600">
                 <span>
-                  Showing {((currentPage - 1) * itemsPerPage) + 1} to {Math.min(currentPage * itemsPerPage, filteredCorporates.length)} of {filteredCorporates.length} results
+                  Showing {(currentPage - 1) * itemsPerPage + 1} to{" "}
+                  {Math.min(
+                    currentPage * itemsPerPage,
+                    filteredCorporates.length,
+                  )}{" "}
+                  of {filteredCorporates.length} results
                 </span>
               </div>
 
@@ -1274,8 +1483,14 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
                   {(() => {
                     const pages = [];
                     const maxVisiblePages = 5;
-                    let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
-                    let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+                    let startPage = Math.max(
+                      1,
+                      currentPage - Math.floor(maxVisiblePages / 2),
+                    );
+                    let endPage = Math.min(
+                      totalPages,
+                      startPage + maxVisiblePages - 1,
+                    );
 
                     // Adjust start page if we're near the end
                     if (endPage - startPage + 1 < maxVisiblePages) {
@@ -1290,14 +1505,16 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
                           variant={1 === currentPage ? "default" : "outline"}
                           size="sm"
                           onClick={() => handlePageChange(1)}
-                          className={`w-9 h-9 p-0 ${1 === currentPage ? 'bg-orange-500 hover:bg-orange-600 text-white' : 'border-gray-300'}`}
+                          className={`w-9 h-9 p-0 ${1 === currentPage ? "bg-orange-500 hover:bg-orange-600 text-white" : "border-gray-300"}`}
                         >
                           1
-                        </Button>
+                        </Button>,
                       );
                       if (startPage > 2) {
                         pages.push(
-                          <span key="ellipsis1" className="px-2 text-gray-500">...</span>
+                          <span key="ellipsis1" className="px-2 text-gray-500">
+                            ...
+                          </span>,
                         );
                       }
                     }
@@ -1310,10 +1527,10 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
                           variant={i === currentPage ? "default" : "outline"}
                           size="sm"
                           onClick={() => handlePageChange(i)}
-                          className={`w-9 h-9 p-0 ${i === currentPage ? 'bg-orange-500 hover:bg-orange-600 text-white' : 'border-gray-300'}`}
+                          className={`w-9 h-9 p-0 ${i === currentPage ? "bg-orange-500 hover:bg-orange-600 text-white" : "border-gray-300"}`}
                         >
                           {i}
-                        </Button>
+                        </Button>,
                       );
                     }
 
@@ -1321,19 +1538,23 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
                     if (endPage < totalPages) {
                       if (endPage < totalPages - 1) {
                         pages.push(
-                          <span key="ellipsis2" className="px-2 text-gray-500">...</span>
+                          <span key="ellipsis2" className="px-2 text-gray-500">
+                            ...
+                          </span>,
                         );
                       }
                       pages.push(
                         <Button
                           key={totalPages}
-                          variant={totalPages === currentPage ? "default" : "outline"}
+                          variant={
+                            totalPages === currentPage ? "default" : "outline"
+                          }
                           size="sm"
                           onClick={() => handlePageChange(totalPages)}
-                          className={`w-9 h-9 p-0 ${totalPages === currentPage ? 'bg-orange-500 hover:bg-orange-600 text-white' : 'border-gray-300'}`}
+                          className={`w-9 h-9 p-0 ${totalPages === currentPage ? "bg-orange-500 hover:bg-orange-600 text-white" : "border-gray-300"}`}
                         >
                           {totalPages}
-                        </Button>
+                        </Button>,
                       );
                     }
 
@@ -1360,63 +1581,132 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
 
       {/* Advanced Filters Dialog */}
       <Dialog open={showAdvancedFilters} onOpenChange={setShowAdvancedFilters}>
-        <DialogContent className="max-w-[60rem] w-[95vw] max-h-[85vh] overflow-y-auto" style={{ maxWidth: 'min(var(--modal-width-xl, 80rem), calc(100% - 2rem))' }}>
+        <DialogContent
+          className="max-w-[60rem] w-[95vw] max-h-[85vh] overflow-y-auto"
+          style={{
+            maxWidth: "min(var(--modal-width-xl, 80rem), calc(100% - 2rem))",
+          }}
+        >
           <DialogHeader className="pb-6">
             <DialogTitle className="flex items-center gap-3 text-xl">
               <Filter className="h-6 w-6 text-orange-500" />
               Advanced Search Filters
             </DialogTitle>
             <DialogDescription className="text-base mt-2 cls-gray">
-              Apply detailed criteria to discover the most relevant corporate travel prospects for your business
+              Apply detailed criteria to discover the most relevant corporate
+              travel prospects for your business
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-8">
             <Tabs defaultValue="business" className="w-full">
               <TabsList className="grid w-full grid-cols-4 h-12 bg-gray-100 rounded-lg p-1">
-                <TabsTrigger value="business" className="text-[14px] px-5 py-2 rounded-md data-[state=active]:bg-white data-[state=active]:border-b-2 data-[state=active]:border-orange-500">Business Criteria</TabsTrigger>
-                <TabsTrigger value="travel" className="text-[14px] px-5 py-2 rounded-md data-[state=active]:bg-white data-[state=active]:border-b-2 data-[state=active]:border-orange-500">Travel Patterns</TabsTrigger>
-                <TabsTrigger value="financial" className="text-[14px] px-5 py-2 rounded-md data-[state=active]:bg-white data-[state=active]:border-b-2 data-[state=active]:border-orange-500">Financial Profile</TabsTrigger>
-                <TabsTrigger value="technology" className="text-[14px] px-5 py-2 rounded-md data-[state=active]:bg-white data-[state=active]:border-b-2 data-[state=active]:border-orange-500">Technology & Preferences</TabsTrigger>
+                <TabsTrigger
+                  value="business"
+                  className="text-[14px] px-5 py-2 rounded-md data-[state=active]:bg-white data-[state=active]:border-b-2 data-[state=active]:border-orange-500"
+                >
+                  Business Criteria
+                </TabsTrigger>
+                <TabsTrigger
+                  value="travel"
+                  className="text-[14px] px-5 py-2 rounded-md data-[state=active]:bg-white data-[state=active]:border-b-2 data-[state=active]:border-orange-500"
+                >
+                  Travel Patterns
+                </TabsTrigger>
+                <TabsTrigger
+                  value="financial"
+                  className="text-[14px] px-5 py-2 rounded-md data-[state=active]:bg-white data-[state=active]:border-b-2 data-[state=active]:border-orange-500"
+                >
+                  Financial Profile
+                </TabsTrigger>
+                <TabsTrigger
+                  value="technology"
+                  className="text-[14px] px-5 py-2 rounded-md data-[state=active]:bg-white data-[state=active]:border-b-2 data-[state=active]:border-orange-500"
+                >
+                  Technology & Preferences
+                </TabsTrigger>
               </TabsList>
 
               <TabsContent value="business" className="space-y-6 mt-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
-                    <Label className="text-sm font-medium">Industry Specialization</Label>
+                    <Label className="text-sm font-medium">
+                      Industry Specialization
+                    </Label>
                     <div className="space-y-3">
-                      {["Technology", "Finance", "Manufacturing", "Healthcare", "Energy", "Consulting"].map((industry) => (
-                        <div key={industry} className="flex items-center space-x-3">
-                          <Checkbox 
-                            id={industry.toLowerCase()} 
-                            checked={advancedFilters.industries.includes(industry.toLowerCase())}
+                      {[
+                        "Technology",
+                        "Finance",
+                        "Manufacturing",
+                        "Healthcare",
+                        "Energy",
+                        "Consulting",
+                      ].map((industry) => (
+                        <div
+                          key={industry}
+                          className="flex items-center space-x-3"
+                        >
+                          <Checkbox
+                            id={industry.toLowerCase()}
+                            checked={advancedFilters.industries.includes(
+                              industry.toLowerCase(),
+                            )}
                             onCheckedChange={(checked) => {
                               if (checked) {
-                                setAdvancedFilters(prev => ({
+                                setAdvancedFilters((prev) => ({
                                   ...prev,
-                                  industries: [...prev.industries, industry.toLowerCase()]
+                                  industries: [
+                                    ...prev.industries,
+                                    industry.toLowerCase(),
+                                  ],
                                 }));
                               } else {
-                                setAdvancedFilters(prev => ({
+                                setAdvancedFilters((prev) => ({
                                   ...prev,
-                                  industries: prev.industries.filter(i => i !== industry.toLowerCase())
+                                  industries: prev.industries.filter(
+                                    (i) => i !== industry.toLowerCase(),
+                                  ),
                                 }));
                               }
                             }}
                           />
-                          <Label htmlFor={industry.toLowerCase()} className="text-sm cursor-pointer">{industry}</Label>
+                          <Label
+                            htmlFor={industry.toLowerCase()}
+                            className="text-sm cursor-pointer"
+                          >
+                            {industry}
+                          </Label>
                         </div>
                       ))}
                     </div>
                   </div>
 
                   <div className="space-y-2">
-                    <Label className="text-sm font-medium">Company Maturity</Label>
+                    <Label className="text-sm font-medium">
+                      Company Maturity
+                    </Label>
                     <div className="space-y-3">
-                      {["Startup (1-3 years)", "Growth (4-10 years)", "Established (11-25 years)", "Enterprise (25+ years)"].map((maturity) => (
-                        <div key={maturity} className="flex items-center space-x-3">
-                          <Checkbox id={maturity.toLowerCase().replace(/\s+/g, '-')} />
-                          <Label htmlFor={maturity.toLowerCase().replace(/\s+/g, '-')} className="text-sm cursor-pointer">{maturity}</Label>
+                      {[
+                        "Startup (1-3 years)",
+                        "Growth (4-10 years)",
+                        "Established (11-25 years)",
+                        "Enterprise (25+ years)",
+                      ].map((maturity) => (
+                        <div
+                          key={maturity}
+                          className="flex items-center space-x-3"
+                        >
+                          <Checkbox
+                            id={maturity.toLowerCase().replace(/\s+/g, "-")}
+                          />
+                          <Label
+                            htmlFor={maturity
+                              .toLowerCase()
+                              .replace(/\s+/g, "-")}
+                            className="text-sm cursor-pointer"
+                          >
+                            {maturity}
+                          </Label>
                         </div>
                       ))}
                     </div>
@@ -1424,13 +1714,20 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
                 </div>
 
                 <div className="space-y-2">
-                  <Label className="text-sm font-medium">Employee Count Range</Label>
-                  <Slider 
-                    value={advancedFilters.employeeRange} 
-                    onValueChange={(value) => setAdvancedFilters(prev => ({ ...prev, employeeRange: value }))}
-                    max={10000} 
-                    step={100} 
-                    className="w-full" 
+                  <Label className="text-sm font-medium">
+                    Employee Count Range
+                  </Label>
+                  <Slider
+                    value={advancedFilters.employeeRange}
+                    onValueChange={(value) =>
+                      setAdvancedFilters((prev) => ({
+                        ...prev,
+                        employeeRange: value,
+                      }))
+                    }
+                    max={10000}
+                    step={100}
+                    className="w-full"
                   />
                   <div className="flex justify-between text-sm text-gray-500">
                     <span>{advancedFilters.employeeRange[0]}</span>
@@ -1442,10 +1739,17 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
               <TabsContent value="travel" className="space-y-6 mt-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
-                    <Label className="text-sm font-medium">Travel Frequency</Label>
-                    <Select 
-                      value={advancedFilters.travelFrequency} 
-                      onValueChange={(value) => setAdvancedFilters(prev => ({ ...prev, travelFrequency: value }))}
+                    <Label className="text-sm font-medium">
+                      Travel Frequency
+                    </Label>
+                    <Select
+                      value={advancedFilters.travelFrequency}
+                      onValueChange={(value) =>
+                        setAdvancedFilters((prev) => ({
+                          ...prev,
+                          travelFrequency: value,
+                        }))
+                      }
                     >
                       <SelectTrigger>
                         <SelectValue placeholder="Select frequency" />
@@ -1454,23 +1758,34 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
                         <SelectItem value="daily">Daily Travel</SelectItem>
                         <SelectItem value="weekly">Weekly Travel</SelectItem>
                         <SelectItem value="monthly">Monthly Travel</SelectItem>
-                        <SelectItem value="quarterly">Quarterly Travel</SelectItem>
+                        <SelectItem value="quarterly">
+                          Quarterly Travel
+                        </SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
 
                   <div className="space-y-2">
-                    <Label className="text-sm font-medium">Preferred Class</Label>
-                    <Select 
-                      value={advancedFilters.preferredClass} 
-                      onValueChange={(value) => setAdvancedFilters(prev => ({ ...prev, preferredClass: value }))}
+                    <Label className="text-sm font-medium">
+                      Preferred Class
+                    </Label>
+                    <Select
+                      value={advancedFilters.preferredClass}
+                      onValueChange={(value) =>
+                        setAdvancedFilters((prev) => ({
+                          ...prev,
+                          preferredClass: value,
+                        }))
+                      }
                     >
                       <SelectTrigger>
                         <SelectValue placeholder="Select class preference" />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="economy">Economy</SelectItem>
-                        <SelectItem value="premium-economy">Premium Economy</SelectItem>
+                        <SelectItem value="premium-economy">
+                          Premium Economy
+                        </SelectItem>
                         <SelectItem value="business">Business</SelectItem>
                         <SelectItem value="first">First Class</SelectItem>
                       </SelectContent>
@@ -1479,8 +1794,15 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
                 </div>
 
                 <div className="space-y-2">
-                  <Label className="text-sm font-medium">Annual Travel Volume (Trips)</Label>
-                  <Slider defaultValue={[1000]} max={20000} step={100} className="w-full" />
+                  <Label className="text-sm font-medium">
+                    Annual Travel Volume (Trips)
+                  </Label>
+                  <Slider
+                    defaultValue={[1000]}
+                    max={20000}
+                    step={100}
+                    className="w-full"
+                  />
                   <div className="flex justify-between text-sm text-gray-500">
                     <span>100</span>
                     <span>20,000+</span>
@@ -1491,10 +1813,17 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
               <TabsContent value="financial" className="space-y-6 mt-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
-                    <Label className="text-sm font-medium">Annual Revenue Range</Label>
-                    <Select 
-                      value={advancedFilters.revenueRange} 
-                      onValueChange={(value) => setAdvancedFilters(prev => ({ ...prev, revenueRange: value }))}
+                    <Label className="text-sm font-medium">
+                      Annual Revenue Range
+                    </Label>
+                    <Select
+                      value={advancedFilters.revenueRange}
+                      onValueChange={(value) =>
+                        setAdvancedFilters((prev) => ({
+                          ...prev,
+                          revenueRange: value,
+                        }))
+                      }
                     >
                       <SelectTrigger>
                         <SelectValue placeholder="Select revenue range" />
@@ -1526,8 +1855,15 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
                 </div>
 
                 <div className="space-y-2">
-                  <Label className="text-sm font-medium">Travel Budget Range (Annual)</Label>
-                  <Slider defaultValue={[1]} max={10} step={0.5} className="w-full" />
+                  <Label className="text-sm font-medium">
+                    Travel Budget Range (Annual)
+                  </Label>
+                  <Slider
+                    defaultValue={[1]}
+                    max={10}
+                    step={0.5}
+                    className="w-full"
+                  />
                   <div className="flex justify-between text-sm text-gray-500">
                     <span>$500K</span>
                     <span>$10M+</span>
@@ -1538,22 +1874,45 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
               <TabsContent value="technology" className="space-y-6 mt-6">
                 <div className="space-y-4">
                   <div className="space-y-2">
-                    <Label className="text-sm font-medium">Technology Integration Requirements</Label>
+                    <Label className="text-sm font-medium">
+                      Technology Integration Requirements
+                    </Label>
                     <div className="grid grid-cols-2 gap-4">
-                      {["API Integration", "Mobile App", "Expense Management", "Real-time Booking", "Carbon Tracking", "Reporting Tools"].map((tech) => (
+                      {[
+                        "API Integration",
+                        "Mobile App",
+                        "Expense Management",
+                        "Real-time Booking",
+                        "Carbon Tracking",
+                        "Reporting Tools",
+                      ].map((tech) => (
                         <div key={tech} className="flex items-center space-x-3">
-                          <Checkbox id={tech.toLowerCase().replace(/\s+/g, '-')} />
-                          <Label htmlFor={tech.toLowerCase().replace(/\s+/g, '-')} className="text-sm cursor-pointer">{tech}</Label>
+                          <Checkbox
+                            id={tech.toLowerCase().replace(/\s+/g, "-")}
+                          />
+                          <Label
+                            htmlFor={tech.toLowerCase().replace(/\s+/g, "-")}
+                            className="text-sm cursor-pointer"
+                          >
+                            {tech}
+                          </Label>
                         </div>
                       ))}
                     </div>
                   </div>
 
                   <div className="space-y-2">
-                    <Label className="text-sm font-medium">Sustainability Focus</Label>
-                    <Select 
-                      value={advancedFilters.sustainabilityLevel} 
-                      onValueChange={(value) => setAdvancedFilters(prev => ({ ...prev, sustainabilityLevel: value }))}
+                    <Label className="text-sm font-medium">
+                      Sustainability Focus
+                    </Label>
+                    <Select
+                      value={advancedFilters.sustainabilityLevel}
+                      onValueChange={(value) =>
+                        setAdvancedFilters((prev) => ({
+                          ...prev,
+                          sustainabilityLevel: value,
+                        }))
+                      }
                     >
                       <SelectTrigger>
                         <SelectValue placeholder="Select sustainability level" />
@@ -1572,35 +1931,39 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
           </div>
 
           <DialogFooter className="pt-6 border-t border-gray-300 gap-3">
-            <Button 
-              variant="ghost" 
+            <Button
+              variant="ghost"
               className="text-gray-500 hover:text-gray-700 cls-addcomapany"
               onClick={() => {
                 setAdvancedFilters({
                   industries: [],
                   maturity: [],
                   employeeRange: [100, 10000],
-                  travelFrequency: '',
-                  preferredClass: '',
+                  travelFrequency: "",
+                  preferredClass: "",
                   annualTravelVolume: [100, 20000],
-                  revenueRange: '',
-                  creditRating: '',
+                  revenueRange: "",
+                  creditRating: "",
                   travelBudgetRange: [0.5, 10],
                   techRequirements: [],
-                  sustainabilityLevel: ''
+                  sustainabilityLevel: "",
                 });
               }}
             >
               Reset All
             </Button>
-            <Button variant="outline" className="cls-cancel text-gray-500 hover:text-gray-700" onClick={() => setShowAdvancedFilters(false)}>
+            <Button
+              variant="outline"
+              className="cls-cancel text-gray-500 hover:text-gray-700"
+              onClick={() => setShowAdvancedFilters(false)}
+            >
               Cancel
             </Button>
-            <Button 
+            <Button
               onClick={() => {
                 setShowAdvancedFilters(false);
                 handleSearch();
-              }} 
+              }}
               className="bg-orange-500 hover:bg-orange-600 text-white"
             >
               Apply Filters
@@ -1610,39 +1973,46 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
       </Dialog>
 
       {/* Add Company Dialog */}
-      <Dialog open={showAddCompanyDialog} onOpenChange={setShowAddCompanyDialog}>
+      <Dialog
+        open={showAddCompanyDialog}
+        onOpenChange={setShowAddCompanyDialog}
+      >
         <DialogContent className="max-w-[87rem] w-[95vw] max-h-[85vh] overflow-y-auto">
           <DialogHeader className="pb-[24px] pt-[0px] pr-[0px] pl-[0px] m-[0px]">
             <DialogTitle className="flex items-center gap-3 text-xl">
               <Plus className="h-6 w-6 text-orange-500" />
               Add New Company
             </DialogTitle>
-            <DialogDescription className="text-base mt-2" style={{'color':'#717182'}}>
-              Add a new company to the corporate database for potential partnership opportunities
+            <DialogDescription
+              className="text-base mt-2"
+              style={{ color: "#717182" }}
+            >
+              Add a new company to the corporate database for potential
+              partnership opportunities
             </DialogDescription>
           </DialogHeader>
 
           <Tabs defaultValue="basic" className="w-full">
             <TabsList className="grid w-full grid-cols-4 mb-6 bg-gray-50/50 p-1 rounded-xl border border-gray-200/50">
-              <TabsTrigger 
+              <TabsTrigger
                 value="basic"
                 className="rounded-lg px-5 py-3 data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:border-b-2 data-[state=active]:border-orange-500 data-[state=active]:border-b-orange-500 font-medium text-gray-600 data-[state=active]:text-gray-900 hover:text-gray-900 transition-all duration-200 text-[14px]"
               >
                 Basic Info
               </TabsTrigger>
-              <TabsTrigger 
+              <TabsTrigger
                 value="business"
                 className="rounded-lg px-5 py-3 data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:border-b-2 data-[state=active]:border-orange-500 data-[state=active]:border-b-orange-500 font-medium text-gray-600 data-[state=active]:text-gray-900 hover:text-gray-900 transition-all duration-200 text-[14px]"
               >
                 Business Details
               </TabsTrigger>
-              <TabsTrigger 
+              <TabsTrigger
                 value="travel"
                 className="rounded-lg px-5 py-3 data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:border-b-2 data-[state=active]:border-orange-500 data-[state=active]:border-b-orange-500 font-medium text-gray-600 data-[state=active]:text-gray-900 hover:text-gray-900 transition-all duration-200 text-[14px]"
               >
                 Travel Profile
               </TabsTrigger>
-              <TabsTrigger 
+              <TabsTrigger
                 value="additional"
                 className="rounded-lg px-5 py-3 data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:border-b-2 data-[state=active]:border-orange-500 data-[state=active]:border-b-orange-500 font-medium text-gray-600 data-[state=active]:text-gray-900 hover:text-gray-900 transition-all duration-200 text-[14px]"
               >
@@ -1654,19 +2024,36 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
               <TabsContent value="basic" className="space-y-6 mt-0">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
-                    <Label htmlFor="company-name" className="text-sm font-medium">Company Name *</Label>
+                    <Label
+                      htmlFor="company-name"
+                      className="text-sm font-medium"
+                    >
+                      Company Name *
+                    </Label>
                     <Input
                       id="company-name"
                       placeholder="Enter company name"
                       value={newCompany.name}
-                      onChange={(e) => setNewCompany({...newCompany, name: e.target.value})}
+                      onChange={(e) =>
+                        setNewCompany({ ...newCompany, name: e.target.value })
+                      }
                       className="h-10"
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="company-type" className="text-sm font-medium">Company Type *</Label>
-                    <Select value={newCompany.type} onValueChange={(value) => setNewCompany({...newCompany, type: value})}>
+                    <Label
+                      htmlFor="company-type"
+                      className="text-sm font-medium"
+                    >
+                      Company Type *
+                    </Label>
+                    <Select
+                      value={newCompany.type}
+                      onValueChange={(value) =>
+                        setNewCompany({ ...newCompany, type: value })
+                      }
+                    >
                       <SelectTrigger className="h-10">
                         <SelectValue placeholder="Select company type" />
                       </SelectTrigger>
@@ -1682,21 +2069,38 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
-                    <Label htmlFor="industry" className="text-sm font-medium">Industry *</Label>
-                    <Select value={newCompany.industry} onValueChange={(value) => setNewCompany({...newCompany, industry: value})}>
+                    <Label htmlFor="industry" className="text-sm font-medium">
+                      Industry *
+                    </Label>
+                    <Select
+                      value={newCompany.industry}
+                      onValueChange={(value) =>
+                        setNewCompany({ ...newCompany, industry: value })
+                      }
+                    >
                       <SelectTrigger className="h-10">
                         <SelectValue placeholder="Select industry" />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="technology">Technology</SelectItem>
-                        <SelectItem value="finance">Finance & Banking</SelectItem>
-                        <SelectItem value="manufacturing">Manufacturing</SelectItem>
+                        <SelectItem value="finance">
+                          Finance & Banking
+                        </SelectItem>
+                        <SelectItem value="manufacturing">
+                          Manufacturing
+                        </SelectItem>
                         <SelectItem value="healthcare">Healthcare</SelectItem>
-                        <SelectItem value="energy">Energy & Utilities</SelectItem>
+                        <SelectItem value="energy">
+                          Energy & Utilities
+                        </SelectItem>
                         <SelectItem value="consulting">Consulting</SelectItem>
                         <SelectItem value="retail">Retail</SelectItem>
-                        <SelectItem value="telecommunications">Telecommunications</SelectItem>
-                        <SelectItem value="transportation">Transportation</SelectItem>
+                        <SelectItem value="telecommunications">
+                          Telecommunications
+                        </SelectItem>
+                        <SelectItem value="transportation">
+                          Transportation
+                        </SelectItem>
                         <SelectItem value="education">Education</SelectItem>
                         <SelectItem value="government">Government</SelectItem>
                         <SelectItem value="other">Other</SelectItem>
@@ -1705,12 +2109,19 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="location" className="text-sm font-medium">Location *</Label>
+                    <Label htmlFor="location" className="text-sm font-medium">
+                      Location *
+                    </Label>
                     <Input
                       id="location"
                       placeholder="City, Country"
                       value={newCompany.location}
-                      onChange={(e) => setNewCompany({...newCompany, location: e.target.value})}
+                      onChange={(e) =>
+                        setNewCompany({
+                          ...newCompany,
+                          location: e.target.value,
+                        })
+                      }
                       className="h-10"
                     />
                   </div>
@@ -1718,36 +2129,48 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
-                    <Label htmlFor="email" className="text-sm font-medium">Email *</Label>
+                    <Label htmlFor="email" className="text-sm font-medium">
+                      Email *
+                    </Label>
                     <Input
                       id="email"
                       type="email"
                       placeholder="contact@company.com"
                       value={newCompany.email}
-                      onChange={(e) => setNewCompany({...newCompany, email: e.target.value})}
+                      onChange={(e) =>
+                        setNewCompany({ ...newCompany, email: e.target.value })
+                      }
                       className="h-10"
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="phone" className="text-sm font-medium">Phone</Label>
+                    <Label htmlFor="phone" className="text-sm font-medium">
+                      Phone
+                    </Label>
                     <Input
                       id="phone"
                       placeholder="+1 (555) 123-4567"
                       value={newCompany.phone}
-                      onChange={(e) => setNewCompany({...newCompany, phone: e.target.value})}
+                      onChange={(e) =>
+                        setNewCompany({ ...newCompany, phone: e.target.value })
+                      }
                       className="h-10"
                     />
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="website" className="text-sm font-medium">Website</Label>
+                  <Label htmlFor="website" className="text-sm font-medium">
+                    Website
+                  </Label>
                   <Input
                     id="website"
                     placeholder="www.company.com"
                     value={newCompany.website}
-                    onChange={(e) => setNewCompany({...newCompany, website: e.target.value})}
+                    onChange={(e) =>
+                      setNewCompany({ ...newCompany, website: e.target.value })
+                    }
                     className="h-10"
                   />
                 </div>
@@ -1756,25 +2179,39 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
               <TabsContent value="business" className="space-y-6 mt-0">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
-                    <Label htmlFor="employees" className="text-sm font-medium">Number of Employees *</Label>
+                    <Label htmlFor="employees" className="text-sm font-medium">
+                      Number of Employees *
+                    </Label>
                     <Input
                       id="employees"
                       type="number"
                       placeholder="1000"
                       value={newCompany.employees}
-                      onChange={(e) => setNewCompany({...newCompany, employees: e.target.value})}
+                      onChange={(e) =>
+                        setNewCompany({
+                          ...newCompany,
+                          employees: e.target.value,
+                        })
+                      }
                       className="h-10"
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="revenue" className="text-sm font-medium">Annual Revenue (Millions)</Label>
+                    <Label htmlFor="revenue" className="text-sm font-medium">
+                      Annual Revenue (Millions)
+                    </Label>
                     <Input
                       id="revenue"
                       type="number"
                       placeholder="50"
                       value={newCompany.revenue}
-                      onChange={(e) => setNewCompany({...newCompany, revenue: e.target.value})}
+                      onChange={(e) =>
+                        setNewCompany({
+                          ...newCompany,
+                          revenue: e.target.value,
+                        })
+                      }
                       className="h-10"
                     />
                   </div>
@@ -1782,29 +2219,53 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
-                    <Label htmlFor="established" className="text-sm font-medium">Year Established</Label>
+                    <Label
+                      htmlFor="established"
+                      className="text-sm font-medium"
+                    >
+                      Year Established
+                    </Label>
                     <Input
                       id="established"
                       type="number"
                       placeholder="2010"
                       value={newCompany.established}
-                      onChange={(e) => setNewCompany({...newCompany, established: e.target.value})}
+                      onChange={(e) =>
+                        setNewCompany({
+                          ...newCompany,
+                          established: e.target.value,
+                        })
+                      }
                       className="h-10"
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="company-size" className="text-sm font-medium">Company Size Category</Label>
-                    <Select value={newCompany.companySize} onValueChange={(value) => setNewCompany({...newCompany, companySize: value})}>
+                    <Label
+                      htmlFor="company-size"
+                      className="text-sm font-medium"
+                    >
+                      Company Size Category
+                    </Label>
+                    <Select
+                      value={newCompany.companySize}
+                      onValueChange={(value) =>
+                        setNewCompany({ ...newCompany, companySize: value })
+                      }
+                    >
                       <SelectTrigger className="h-10">
                         <SelectValue placeholder="Select size category" />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="startup">Starp (1-50)</SelectItem>
                         <SelectItem value="small">Small (51-200)</SelectItem>
-                        <SelectItem value="medium">Medium (201-1000)</SelectItem>
+                        <SelectItem value="medium">
+                          Medium (201-1000)
+                        </SelectItem>
                         <SelectItem value="large">Large (1001-5000)</SelectItem>
-                        <SelectItem value="enterprise">Enterprise (5000+)</SelectItem>
+                        <SelectItem value="enterprise">
+                          Enterprise (5000+)
+                        </SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -1812,8 +2273,18 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
-                    <Label htmlFor="credit-rating" className="text-sm font-medium">Credit Rating</Label>
-                    <Select value={newCompany.creditRating} onValueChange={(value) => setNewCompany({...newCompany, creditRating: value})}>
+                    <Label
+                      htmlFor="credit-rating"
+                      className="text-sm font-medium"
+                    >
+                      Credit Rating
+                    </Label>
+                    <Select
+                      value={newCompany.creditRating}
+                      onValueChange={(value) =>
+                        setNewCompany({ ...newCompany, creditRating: value })
+                      }
+                    >
                       <SelectTrigger className="h-10">
                         <SelectValue placeholder="Select credit rating" />
                       </SelectTrigger>
@@ -1828,8 +2299,18 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="payment-terms" className="text-sm font-medium">Payment Terms</Label>
-                    <Select value={newCompany.paymentTerms} onValueChange={(value) => setNewCompany({...newCompany, paymentTerms: value})}>
+                    <Label
+                      htmlFor="payment-terms"
+                      className="text-sm font-medium"
+                    >
+                      Payment Terms
+                    </Label>
+                    <Select
+                      value={newCompany.paymentTerms}
+                      onValueChange={(value) =>
+                        setNewCompany({ ...newCompany, paymentTerms: value })
+                      }
+                    >
                       <SelectTrigger className="h-10">
                         <SelectValue placeholder="Select payment terms" />
                       </SelectTrigger>
@@ -1847,23 +2328,43 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
               <TabsContent value="travel" className="space-y-6 mt-0">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
-                    <Label htmlFor="travel-budget" className="text-sm font-medium">Annual Travel Budget *</Label>
+                    <Label
+                      htmlFor="travel-budget"
+                      className="text-sm font-medium"
+                    >
+                      Annual Travel Budget *
+                    </Label>
                     <Input
                       id="travel-budget"
                       placeholder="e.g., 2.5M"
                       value={newCompany.travelBudget}
-                      onChange={(e) => setNewCompany({...newCompany, travelBudget: e.target.value})}
+                      onChange={(e) =>
+                        setNewCompany({
+                          ...newCompany,
+                          travelBudget: e.target.value,
+                        })
+                      }
                       className="h-10"
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="annual-travel-volume" className="text-sm font-medium">Annual Travel Volume</Label>
+                    <Label
+                      htmlFor="annual-travel-volume"
+                      className="text-sm font-medium"
+                    >
+                      Annual Travel Volume
+                    </Label>
                     <Input
                       id="annual-travel-volume"
                       placeholder="e.g., 5,000 trips"
                       value={newCompany.annualTravelVolume}
-                      onChange={(e) => setNewCompany({...newCompany, annualTravelVolume: e.target.value})}
+                      onChange={(e) =>
+                        setNewCompany({
+                          ...newCompany,
+                          annualTravelVolume: e.target.value,
+                        })
+                      }
                       className="h-10"
                     />
                   </div>
@@ -1871,8 +2372,18 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
-                    <Label htmlFor="travel-frequency" className="text-sm font-medium">Travel Frequency</Label>
-                    <Select value={newCompany.travelFrequency} onValueChange={(value) => setNewCompany({...newCompany, travelFrequency: value})}>
+                    <Label
+                      htmlFor="travel-frequency"
+                      className="text-sm font-medium"
+                    >
+                      Travel Frequency
+                    </Label>
+                    <Select
+                      value={newCompany.travelFrequency}
+                      onValueChange={(value) =>
+                        setNewCompany({ ...newCompany, travelFrequency: value })
+                      }
+                    >
                       <SelectTrigger className="h-10">
                         <SelectValue placeholder="Select frequency" />
                       </SelectTrigger>
@@ -1887,17 +2398,31 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="preferred-class" className="text-sm font-medium">Preferred Travel Class</Label>
-                    <Select value={newCompany.preferredClass} onValueChange={(value) => setNewCompany({...newCompany, preferredClass: value})}>
+                    <Label
+                      htmlFor="preferred-class"
+                      className="text-sm font-medium"
+                    >
+                      Preferred Travel Class
+                    </Label>
+                    <Select
+                      value={newCompany.preferredClass}
+                      onValueChange={(value) =>
+                        setNewCompany({ ...newCompany, preferredClass: value })
+                      }
+                    >
                       <SelectTrigger className="h-10">
                         <SelectValue placeholder="Select class preference" />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="Economy">Economy</SelectItem>
-                        <SelectItem value="Economy Plus">Economy Plus</SelectItem>
+                        <SelectItem value="Economy Plus">
+                          Economy Plus
+                        </SelectItem>
                         <SelectItem value="Business">Business</SelectItem>
                         <SelectItem value="First">First Class</SelectItem>
-                        <SelectItem value="Business/First">Business/First</SelectItem>
+                        <SelectItem value="Business/First">
+                          Business/First
+                        </SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -1905,8 +2430,21 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
-                    <Label htmlFor="sustainability-focus" className="text-sm font-medium">Sustainability Focus</Label>
-                    <Select value={newCompany.sustainabilityFocus} onValueChange={(value) => setNewCompany({...newCompany, sustainabilityFocus: value})}>
+                    <Label
+                      htmlFor="sustainability-focus"
+                      className="text-sm font-medium"
+                    >
+                      Sustainability Focus
+                    </Label>
+                    <Select
+                      value={newCompany.sustainabilityFocus}
+                      onValueChange={(value) =>
+                        setNewCompany({
+                          ...newCompany,
+                          sustainabilityFocus: value,
+                        })
+                      }
+                    >
                       <SelectTrigger className="h-10">
                         <SelectValue placeholder="Select sustainability level" />
                       </SelectTrigger>
@@ -1920,8 +2458,15 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="risk-level" className="text-sm font-medium">Risk Level</Label>
-                    <Select value={newCompany.riskLevel} onValueChange={(value) => setNewCompany({...newCompany, riskLevel: value})}>
+                    <Label htmlFor="risk-level" className="text-sm font-medium">
+                      Risk Level
+                    </Label>
+                    <Select
+                      value={newCompany.riskLevel}
+                      onValueChange={(value) =>
+                        setNewCompany({ ...newCompany, riskLevel: value })
+                      }
+                    >
                       <SelectTrigger className="h-10">
                         <SelectValue placeholder="Select risk level" />
                       </SelectTrigger>
@@ -1936,12 +2481,22 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="current-airlines" className="text-sm font-medium">Current Airlines (comma-separated)</Label>
+                  <Label
+                    htmlFor="current-airlines"
+                    className="text-sm font-medium"
+                  >
+                    Current Airlines (comma-separated)
+                  </Label>
                   <Input
                     id="current-airlines"
                     placeholder="e.g., United, Delta, American"
                     value={newCompany.currentAirlines}
-                    onChange={(e) => setNewCompany({...newCompany, currentAirlines: e.target.value})}
+                    onChange={(e) =>
+                      setNewCompany({
+                        ...newCompany,
+                        currentAirlines: e.target.value,
+                      })
+                    }
                     className="h-10"
                   />
                 </div>
@@ -1949,8 +2504,18 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
 
               <TabsContent value="additional" className="space-y-6 mt-0">
                 <div className="space-y-2">
-                  <Label htmlFor="expansion-plans" className="text-sm font-medium">Expansion Plans</Label>
-                  <Select value={newCompany.expansionPlans} onValueChange={(value) => setNewCompany({...newCompany, expansionPlans: value})}>
+                  <Label
+                    htmlFor="expansion-plans"
+                    className="text-sm font-medium"
+                  >
+                    Expansion Plans
+                  </Label>
+                  <Select
+                    value={newCompany.expansionPlans}
+                    onValueChange={(value) =>
+                      setNewCompany({ ...newCompany, expansionPlans: value })
+                    }
+                  >
                     <SelectTrigger className="h-10">
                       <SelectValue placeholder="Select expansion plans" />
                     </SelectTrigger>
@@ -1965,34 +2530,55 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="specialties" className="text-sm font-medium">Specialties (comma-separated)</Label>
+                  <Label htmlFor="specialties" className="text-sm font-medium">
+                    Specialties (comma-separated)
+                  </Label>
                   <Textarea
                     id="specialties"
                     placeholder="Enterprise Software, Cloud Solutions, AI/ML Services"
                     value={newCompany.specialties}
-                    onChange={(e) => setNewCompany({...newCompany, specialties: e.target.value})}
+                    onChange={(e) =>
+                      setNewCompany({
+                        ...newCompany,
+                        specialties: e.target.value,
+                      })
+                    }
                     className="min-h-[80px] resize-none"
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="technology-integration" className="text-sm font-medium">Technology Integration (comma-separated)</Label>
+                  <Label
+                    htmlFor="technology-integration"
+                    className="text-sm font-medium"
+                  >
+                    Technology Integration (comma-separated)
+                  </Label>
                   <Textarea
                     id="technology-integration"
                     placeholder="API, Mobile App, Expense Management"
                     value={newCompany.technologyIntegration}
-                    onChange={(e) => setNewCompany({...newCompany, technologyIntegration: e.target.value})}
+                    onChange={(e) =>
+                      setNewCompany({
+                        ...newCompany,
+                        technologyIntegration: e.target.value,
+                      })
+                    }
                     className="min-h-[80px] resize-none"
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="notes" className="text-sm font-medium">Additional Notes</Label>
+                  <Label htmlFor="notes" className="text-sm font-medium">
+                    Additional Notes
+                  </Label>
                   <Textarea
                     id="notes"
                     placeholder="Any additional information about the company..."
                     value={newCompany.notes}
-                    onChange={(e) => setNewCompany({...newCompany, notes: e.target.value})}
+                    onChange={(e) =>
+                      setNewCompany({ ...newCompany, notes: e.target.value })
+                    }
                     className="min-h-[120px] resize-none"
                   />
                 </div>
@@ -2001,11 +2587,15 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
           </Tabs>
 
           <DialogFooter className="pt-6 border-t border-gray-300 gap-3">
-            <Button variant="outline" className="border-gray-300 text-gray-700 hover:bg-gray-50" onClick={() => setShowAddCompanyDialog(false)}>
+            <Button
+              variant="outline"
+              className="border-gray-300 text-gray-700 hover:bg-gray-50"
+              onClick={() => setShowAddCompanyDialog(false)}
+            >
               Cancel
             </Button>
-            <Button 
-              onClick={handleAddCompany} 
+            <Button
+              onClick={handleAddCompany}
               disabled={!isFormValid() || isSubmitting}
               className="bg-orange-500 hover:bg-orange-600 text-white"
             >
@@ -2024,8 +2614,11 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
           </DialogFooter>
         </DialogContent>
       </Dialog>
-     {/* Move as Lead Confirmation Dialog */}
-      <Dialog open={showMoveAsLeadDialog} onOpenChange={setShowMoveAsLeadDialog}>
+      {/* Move as Lead Confirmation Dialog */}
+      <Dialog
+        open={showMoveAsLeadDialog}
+        onOpenChange={setShowMoveAsLeadDialog}
+      >
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
@@ -2033,16 +2626,22 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
               Move Company to Leads
             </DialogTitle>
             <DialogDescription>
-              Do you want to move <span className="font-semibold">{selectedCorporateForMove?.name}</span> as a lead?
+              Do you want to move{" "}
+              <span className="font-semibold">
+                {selectedCorporateForMove?.name}
+              </span>{" "}
+              as a lead?
             </DialogDescription>
           </DialogHeader>
-          
+
           {selectedCorporateForMove && (
             <div className="py-4">
               <div className="bg-gray-50 rounded-lg p-4 space-y-2">
                 <div className="flex items-center gap-2">
                   <Building2 className="h-4 w-4 text-gray-600" />
-                  <span className="font-medium">{selectedCorporateForMove.name}</span>
+                  <span className="font-medium">
+                    {selectedCorporateForMove.name}
+                  </span>
                 </div>
                 <div className="flex items-center gap-2 text-sm text-gray-600">
                   <MapPin className="h-3 w-3" />
@@ -2050,10 +2649,16 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
                 </div>
                 <div className="flex items-center gap-2 text-sm text-gray-600">
                   <Users className="h-3 w-3" />
-                  <span>{selectedCorporateForMove.employees?.toLocaleString()} employees</span>
+                  <span>
+                    {selectedCorporateForMove.employees?.toLocaleString()}{" "}
+                    employees
+                  </span>
                 </div>
                 <div className="flex items-center gap-2 text-sm">
-                  <Badge variant="secondary" className="bg-orange-500 hover:bg-orange-600 text-white text-xs">
+                  <Badge
+                    variant="secondary"
+                    className="bg-orange-500 hover:bg-orange-600 text-white text-xs"
+                  >
                     AI Score {selectedCorporateForMove.aiScore}
                   </Badge>
                 </div>
@@ -2062,8 +2667,8 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
           )}
 
           <DialogFooter className="flex gap-2">
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               onClick={() => {
                 setShowMoveAsLeadDialog(false);
                 setSelectedCorporateForMove(null);
@@ -2073,7 +2678,7 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
             >
               Cancel
             </Button>
-            <Button 
+            <Button
               onClick={confirmMoveAsLead}
               disabled={isMovingAsLead}
               className="bg-orange-500 hover:bg-orange-600 text-white"
@@ -2103,43 +2708,55 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
               Contact {contactForm?.corporateData?.name}
             </DialogTitle>
             <DialogDescription>
-              Send a personalized message to  {contactForm?.corporateData?.name}
+              Send a personalized message to {contactForm?.corporateData?.name}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div>
-              <Label className="text-sm font-medium text-gray-700 mb-2 block">Contact Method</Label>
-              <Select 
-                value={contactForm.method} 
-                onValueChange={(value) => setContactForm({...contactForm, method: value})}
+              <Label className="text-sm font-medium text-gray-700 mb-2 block">
+                Contact Method
+              </Label>
+              <Select
+                value={contactForm.method}
+                onValueChange={(value) =>
+                  setContactForm({ ...contactForm, method: value })
+                }
               >
                 <SelectTrigger className="border-orange-200 focus:border-orange-500 focus:ring-orange-500">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="Email">Email</SelectItem>
-                  <SelectItem value="Phone">Phone</SelectItem>
-                  <SelectItem value="LinkedIn">LinkedIn</SelectItem>
-                  <SelectItem value="In-Person Meeting">In-Person Meeting</SelectItem>
+                  <SelectItem value="Phone">SMS</SelectItem>
+                  {/* <SelectItem value="LinkedIn">LinkedIn</SelectItem>
+                  <SelectItem value="In-Person Meeting">In-Person Meeting</SelectItem> */}
                 </SelectContent>
               </Select>
             </div>
 
             <div>
-              <Label className="text-sm font-medium text-gray-700 mb-2 block">Subject</Label>
+              <Label className="text-sm font-medium text-gray-700 mb-2 block">
+                Subject
+              </Label>
               <Input
                 value={contactForm.subject}
-                onChange={(e) => setContactForm({...contactForm, subject: e.target.value})}
+                onChange={(e) =>
+                  setContactForm({ ...contactForm, subject: e.target.value })
+                }
                 placeholder="Enter subject line..."
                 className="border-gray-300 focus:border-orange-500 focus:ring-orange-500"
               />
             </div>
 
             <div>
-              <Label className="text-sm font-medium text-gray-700 mb-2 block">Message</Label>
+              <Label className="text-sm font-medium text-gray-700 mb-2 block">
+                Message
+              </Label>
               <Textarea
                 value={contactForm.message}
-                onChange={(e) => setContactForm({...contactForm, message: e.target.value})}
+                onChange={(e) =>
+                  setContactForm({ ...contactForm, message: e.target.value })
+                }
                 placeholder="Enter your message..."
                 className="min-h-[200px] resize-none border-gray-300 focus:border-orange-500 focus:ring-orange-500"
                 rows={10}
@@ -2147,33 +2764,40 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
             </div>
 
             <div>
-              <Label className="text-sm font-medium text-gray-700 mb-2 block">Follow-up Date</Label>
+              <Label className="text-sm font-medium text-gray-700 mb-2 block">
+                Follow-up Date
+              </Label>
               <Input
                 type="date"
                 value={contactForm.followUpDate}
-                onChange={(e) => setContactForm({...contactForm, followUpDate: e.target.value})}
+                onChange={(e) =>
+                  setContactForm({
+                    ...contactForm,
+                    followUpDate: e.target.value,
+                  })
+                }
                 className="border-gray-300 focus:border-orange-500 focus:ring-orange-500"
               />
             </div>
           </div>
           <DialogFooter className="flex gap-2">
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               onClick={() => {
                 setShowContactDialog(false);
                 setContactForm({
-                  method: 'Email',
-                  subject: '',
-                  message: '',
-                  followUpDate: '',
-                  corporateData: null
+                  method: "Email",
+                  subject: "",
+                  message: "",
+                  followUpDate: "",
+                  corporateData: null,
                 });
               }}
               className="text-gray-600 border-gray-300"
             >
               Cancel
             </Button>
-            <Button 
+            <Button
               // onClick={handleSendMessage}
               className="bg-orange-500 hover:bg-orange-600 text-white"
               disabled={!contactForm.subject || !contactForm.message}
