@@ -2075,12 +2075,289 @@ def download_sample_excel(request):
     """
     Generate and return a sample Excel file with dummy corporate data
     """
-    import pandas as pd
     import io
     from django.http import HttpResponse
     from datetime import datetime
-
+    
     try:
+        # Try pandas first, fall back to openpyxl if pandas fails
+        try:
+            import pandas as pd
+            use_pandas = True
+        except (ImportError, ValueError) as e:
+            print(f"Pandas import failed: {e}, using openpyxl fallback")
+            use_pandas = False
+
+        if not use_pandas:
+            # Fallback implementation using openpyxl directly
+            from openpyxl import Workbook
+            from openpyxl.utils.dataframe import dataframe_to_rows
+            
+            # Create workbook
+            wb = Workbook()
+            ws = wb.active
+            ws.title = "Corporate Data Sample"
+            
+            # Define headers
+            headers = [
+                'name', 'company_type', 'industry', 'location', 'email', 'phone', 'website',
+                'employee_count', 'annual_revenue', 'year_established', 'size', 'credit_rating',
+                'payment_terms', 'travel_budget', 'annual_travel_volume', 'travel_frequency',
+                'preferred_class', 'sustainability_focus', 'risk_level', 'current_airlines',
+                'expansion_plans', 'specialties', 'technology_integration', 'description'
+            ]
+            
+            # Add headers
+            ws.append(headers)
+            
+            # Sample data
+            sample_rows = [
+                [
+                    'TechCorp Solutions', 'corporation', 'technology', 'San Francisco, CA',
+                    'contact@techcorp.com', '+1-555-0123', 'https://techcorp.com', 500,
+                    50000000, 2010, 'medium', 'AA', 'Net 30', 2000000, '$2M annually',
+                    'Weekly', 'Business', 'High', 'Low', 'United, Delta, American',
+                    'Aggressive', 'AI, Machine Learning, Cloud Computing',
+                    'Advanced CRM, API Integration, Mobile Apps',
+                    'Leading technology solutions provider specializing in enterprise software and cloud services.'
+                ],
+                [
+                    'Global Manufacturing Inc', 'corporation', 'manufacturing', 'Detroit, MI',
+                    'info@globalmanuf.com', '+1-555-0456', 'https://globalmanuf.com', 1200,
+                    120000000, 1995, 'large', 'AAA', 'Net 45', 5000000, '$5M annually',
+                    'Monthly', 'Economy Plus', 'Very High', 'Very Low', 'Southwest, JetBlue',
+                    'Moderate', 'Automotive Parts, Industrial Equipment, Supply Chain',
+                    'ERP Systems, IoT Sensors, Automation',
+                    'Leading manufacturer of automotive components and industrial equipment with global operations.'
+                ],
+                [
+                    'HealthCare Partners LLC', 'llc', 'healthcare', 'Boston, MA',
+                    'contact@healthpartners.com', '+1-555-0789', 'https://healthpartners.com', 300,
+                    25000000, 2005, 'medium', 'A', 'Net 30', 800000, '$800K annually',
+                    'Bi-weekly', 'Economy', 'Medium', 'Medium', 'Delta, American',
+                    'Conservative', 'Medical Devices, Patient Care, Telemedicine',
+                    'EMR Systems, Patient Portals, Telehealth',
+                    'Healthcare services provider focused on innovative patient care and medical technology solutions.'
+                ],
+                [
+                    'Financial Advisors Group', 'partnership', 'finance', 'New York, NY',
+                    'info@finadvgroup.com', '+1-555-0321', 'https://finadvgroup.com', 150,
+                    35000000, 2000, 'small', 'BBB', 'Net 15', 1200000, '$1.2M annually',
+                    'Daily', 'First', 'Low', 'High', 'United, Delta',
+                    'Rapid', 'Investment Banking, Portfolio Management, Risk Assessment',
+                    'Trading Platforms, Risk Analytics, Mobile Banking',
+                    'Premier financial advisory firm providing comprehensive investment and wealth management services.'
+                ],
+                [
+                    'Green Energy Solutions', 'corporation', 'energy', 'Austin, TX',
+                    'contact@greenenergy.com', '+1-555-0654', 'https://greenenergy.com', 800,
+                    75000000, 2012, 'large', 'AA', 'Net 60', 3000000, '$3M annually',
+                    'Quarterly', 'Business/First', 'Very High', 'Low', 'Southwest, United',
+                    'Aggressive', 'Solar Power, Wind Energy, Battery Storage, Grid Solutions',
+                    'Smart Grid, IoT Monitoring, AI Optimization',
+                    'Leading renewable energy company specializing in solar and wind power solutions for commercial and residential markets.'
+                ]
+            ]
+            
+            # Add sample data
+            for row in sample_rows:
+                ws.append(row)
+                
+            # Auto-adjust column widths
+            for column in ws.columns:
+                max_length = 0
+                column_letter = column[0].column_letter
+                for cell in column:
+                    try:
+                        if len(str(cell.value)) > max_length:
+                            max_length = len(str(cell.value))
+                    except:
+                        pass
+                adjusted_width = min(max_length + 2, 50)
+                ws.column_dimensions[column_letter].width = adjusted_width
+            
+            # Save to memory
+            output = io.BytesIO()
+            wb.save(output)
+            output.seek(0)
+            
+        else:
+            # Original pandas implementation
+            # Sample data that matches the Company model fields
+            sample_data = [
+                {
+                    'name': 'TechCorp Solutions',
+                    'company_type': 'corporation',
+                    'industry': 'technology',
+                    'location': 'San Francisco, CA',
+                    'email': 'contact@techcorp.com',
+                    'phone': '+1-555-0123',
+                    'website': 'https://techcorp.com',
+                    'employee_count': 500,
+                    'annual_revenue': 50000000,
+                    'year_established': 2010,
+                    'size': 'medium',
+                    'credit_rating': 'AA',
+                    'payment_terms': 'Net 30',
+                    'travel_budget': 2000000,
+                    'annual_travel_volume': '$2M annually',
+                    'travel_frequency': 'Weekly',
+                    'preferred_class': 'Business',
+                    'sustainability_focus': 'High',
+                    'risk_level': 'Low',
+                    'current_airlines': 'United, Delta, American',
+                    'expansion_plans': 'Aggressive',
+                    'specialties': 'AI, Machine Learning, Cloud Computing',
+                    'technology_integration': 'Advanced CRM, API Integration, Mobile Apps',
+                    'description': 'Leading technology solutions provider specializing in enterprise software and cloud services.'
+                },
+                {
+                    'name': 'Global Manufacturing Inc',
+                    'company_type': 'corporation',
+                    'industry': 'manufacturing',
+                    'location': 'Detroit, MI',
+                    'email': 'info@globalmanuf.com',
+                    'phone': '+1-555-0456',
+                    'website': 'https://globalmanuf.com',
+                    'employee_count': 1200,
+                    'annual_revenue': 120000000,
+                    'year_established': 1995,
+                    'size': 'large',
+                    'credit_rating': 'AAA',
+                    'payment_terms': 'Net 45',
+                    'travel_budget': 5000000,
+                    'annual_travel_volume': '$5M annually',
+                    'travel_frequency': 'Monthly',
+                    'preferred_class': 'Economy Plus',
+                    'sustainability_focus': 'Very High',
+                    'risk_level': 'Very Low',
+                    'current_airlines': 'Southwest, JetBlue',
+                    'expansion_plans': 'Moderate',
+                    'specialties': 'Automotive Parts, Industrial Equipment, Supply Chain',
+                    'technology_integration': 'ERP Systems, IoT Sensors, Automation',
+                    'description': 'Leading manufacturer of automotive components and industrial equipment with global operations.'
+                },
+                {
+                    'name': 'HealthCare Partners LLC',
+                    'company_type': 'llc',
+                    'industry': 'healthcare',
+                    'location': 'Boston, MA',
+                    'email': 'contact@healthpartners.com',
+                    'phone': '+1-555-0789',
+                    'website': 'https://healthpartners.com',
+                    'employee_count': 300,
+                    'annual_revenue': 25000000,
+                    'year_established': 2005,
+                    'size': 'medium',
+                    'credit_rating': 'A',
+                    'payment_terms': 'Net 30',
+                    'travel_budget': 800000,
+                    'annual_travel_volume': '$800K annually',
+                    'travel_frequency': 'Bi-weekly',
+                    'preferred_class': 'Economy',
+                    'sustainability_focus': 'Medium',
+                    'risk_level': 'Medium',
+                    'current_airlines': 'Delta, American',
+                    'expansion_plans': 'Conservative',
+                    'specialties': 'Medical Devices, Patient Care, Telemedicine',
+                    'technology_integration': 'EMR Systems, Patient Portals, Telehealth',
+                    'description': 'Healthcare services provider focused on innovative patient care and medical technology solutions.'
+                },
+                {
+                    'name': 'Financial Advisors Group',
+                    'company_type': 'partnership',
+                    'industry': 'finance',
+                    'location': 'New York, NY',
+                    'email': 'info@finadvgroup.com',
+                    'phone': '+1-555-0321',
+                    'website': 'https://finadvgroup.com',
+                    'employee_count': 150,
+                    'annual_revenue': 35000000,
+                    'year_established': 2000,
+                    'size': 'small',
+                    'credit_rating': 'BBB',
+                    'payment_terms': 'Net 15',
+                    'travel_budget': 1200000,
+                    'annual_travel_volume': '$1.2M annually',
+                    'travel_frequency': 'Daily',
+                    'preferred_class': 'First',
+                    'sustainability_focus': 'Low',
+                    'risk_level': 'High',
+                    'current_airlines': 'United, Delta',
+                    'expansion_plans': 'Rapid',
+                    'specialties': 'Investment Banking, Portfolio Management, Risk Assessment',
+                    'technology_integration': 'Trading Platforms, Risk Analytics, Mobile Banking',
+                    'description': 'Premier financial advisory firm providing comprehensive investment and wealth management services.'
+                },
+                {
+                    'name': 'Green Energy Solutions',
+                    'company_type': 'corporation',
+                    'industry': 'energy',
+                    'location': 'Austin, TX',
+                    'email': 'contact@greenenergy.com',
+                    'phone': '+1-555-0654',
+                    'website': 'https://greenenergy.com',
+                    'employee_count': 800,
+                    'annual_revenue': 75000000,
+                    'year_established': 2012,
+                    'size': 'large',
+                    'credit_rating': 'AA',
+                    'payment_terms': 'Net 60',
+                    'travel_budget': 3000000,
+                    'annual_travel_volume': '$3M annually',
+                    'travel_frequency': 'Quarterly',
+                    'preferred_class': 'Business/First',
+                    'sustainability_focus': 'Very High',
+                    'risk_level': 'Low',
+                    'current_airlines': 'Southwest, United',
+                    'expansion_plans': 'Aggressive',
+                    'specialties': 'Solar Power, Wind Energy, Battery Storage, Grid Solutions',
+                    'technology_integration': 'Smart Grid, IoT Monitoring, AI Optimization',
+                    'description': 'Leading renewable energy company specializing in solar and wind power solutions for commercial and residential markets.'
+                }
+            ]
+
+            # Create DataFrame
+            df = pd.DataFrame(sample_data)
+
+            # Create Excel file in memory
+            output = io.BytesIO()
+            with pd.ExcelWriter(output, engine='openpyxl') as writer:
+                df.to_excel(writer, sheet_name='Corporate Data Sample', index=False)
+
+                # Get the workbook and worksheet to add some formatting
+                workbook = writer.book
+                worksheet = writer.sheets['Corporate Data Sample']
+
+                # Auto-adjust column widths
+                for col in worksheet.columns:
+                    max_length = 0
+                    column = col[0].column_letter
+                    for cell in col:
+                        try:
+                            if len(str(cell.value)) > max_length:
+                                max_length = len(str(cell.value))
+                        except:
+                            pass
+                    adjusted_width = min(max_length + 2, 50)
+                    worksheet.column_dimensions[column].width = adjusted_width
+
+            output.seek(0)
+
+        # Create response
+        response = HttpResponse(
+            output.getvalue(),
+            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
+        response['Content-Disposition'] = f'attachment; filename="corporate_data_sample_{datetime.now().strftime("%Y%m%d")}.xlsx"'
+
+        return response
+
+    except Exception as e:
+        return Response(
+            {'error': f'Failed to generate sample file: {str(e)}'},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
         # Sample data that matches the Company model fields
         sample_data = [
             {
