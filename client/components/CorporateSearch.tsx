@@ -360,6 +360,9 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
     corporateData: null
   });
   const [showContactDialog, setShowContactDialog] = useState(false);
+  const [showMoveAsLeadDialog, setShowMoveAsLeadDialog] = useState(false);
+  const [selectedCorporateForMove, setSelectedCorporateForMove] = useState(null);
+  const [isMovingAsLead, setIsMovingAsLead] = useState(false);
   
   const loadCompanies = useCallback(async (filters = {}) => {
     setIsLoading(true);
@@ -562,7 +565,17 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
     loadCompanies({});
   };
 
-  const handleMoveAsLead = async (corporate) => {
+  const handleMoveAsLead = (corporate) => {
+    setSelectedCorporateForMove(corporate);
+    setShowMoveAsLeadDialog(true);
+  };
+
+  const confirmMoveAsLead = async () => {
+    if (!selectedCorporateForMove) return;
+
+    setIsMovingAsLead(true);
+    const corporate = selectedCorporateForMove;
+
     try {
       // Prepare the lead data in the format expected by the Django backend
       const leadData = {
@@ -614,6 +627,10 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
       console.error('Error moving corporate as lead:', error);
       setSuccessMessage(`Error: Failed to move ${corporate.name} as lead. Please try again.`);
       setTimeout(() => setSuccessMessage(''), 5000);
+    } finally {
+      setIsMovingAsLead(false);
+      setShowMoveAsLeadDialog(false);
+      setSelectedCorporateForMove(null);
     }
   };
 
@@ -1152,11 +1169,25 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
                       variant="outline"
                       size="sm" 
                       onClick={() => handleMoveAsLead(corporate)}
-                      disabled={movedAsLeadIds.has(corporate.id)}
+                      disabled={movedAsLeadIds.has(corporate.id) || isMovingAsLead}
                       className="border-gray-300 cls-addcomapany"
                     >
-                      <UserPlus className="h-4 w-4 mr-2" />
-                      {movedAsLeadIds.has(corporate.id) ? 'Moved as Lead' : 'Move as Lead'}
+                      {isMovingAsLead && selectedCorporateForMove?.id === corporate.id ? (
+                        <>
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-orange-500 mr-2"></div>
+                          Moving...
+                        </>
+                      ) : movedAsLeadIds.has(corporate.id) ? (
+                        <>
+                          <CheckCircle2 className="h-4 w-4 mr-2 text-green-600" />
+                          Moved as Lead
+                        </>
+                      ) : (
+                        <>
+                          <UserPlus className="h-4 w-4 mr-2" />
+                          Move as Lead
+                        </>
+                      )}
                     </Button>
 
                     <Button variant="outline" size="sm" className="border-gray-300" onClick={() => handleContactCorporate(corporate)}
@@ -1949,7 +1980,77 @@ export function CorporateSearch({ initialFilters, onNavigate }: CorporateSearchP
           </DialogFooter>
         </DialogContent>
       </Dialog>
-     {/* Contact Lead Dialog - Remains the same, contact is part of the lead/company info */}
+     {/* Move as Lead Confirmation Dialog */}
+      <Dialog open={showMoveAsLeadDialog} onOpenChange={setShowMoveAsLeadDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <UserPlus className="h-5 w-5 text-orange-600" />
+              Move Company to Leads
+            </DialogTitle>
+            <DialogDescription>
+              Do you want to move <span className="font-semibold">{selectedCorporateForMove?.name}</span> as a lead?
+            </DialogDescription>
+          </DialogHeader>
+          
+          {selectedCorporateForMove && (
+            <div className="py-4">
+              <div className="bg-gray-50 rounded-lg p-4 space-y-2">
+                <div className="flex items-center gap-2">
+                  <Building2 className="h-4 w-4 text-gray-600" />
+                  <span className="font-medium">{selectedCorporateForMove.name}</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm text-gray-600">
+                  <MapPin className="h-3 w-3" />
+                  <span>{selectedCorporateForMove.location}</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm text-gray-600">
+                  <Users className="h-3 w-3" />
+                  <span>{selectedCorporateForMove.employees?.toLocaleString()} employees</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm">
+                  <Badge variant="secondary" className="bg-orange-500 hover:bg-orange-600 text-white text-xs">
+                    AI Score {selectedCorporateForMove.aiScore}
+                  </Badge>
+                </div>
+              </div>
+            </div>
+          )}
+
+          <DialogFooter className="flex gap-2">
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                setShowMoveAsLeadDialog(false);
+                setSelectedCorporateForMove(null);
+              }}
+              disabled={isMovingAsLead}
+              className="text-gray-600 border-gray-300"
+            >
+              Cancel
+            </Button>
+            <Button 
+              onClick={confirmMoveAsLead}
+              disabled={isMovingAsLead}
+              className="bg-orange-500 hover:bg-orange-600 text-white"
+            >
+              {isMovingAsLead ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                  Moving...
+                </>
+              ) : (
+                <>
+                  <UserPlus className="h-4 w-4 mr-2" />
+                  Move as Lead
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Contact Lead Dialog - Remains the same, contact is part of the lead/company info */}
       <Dialog open={showContactDialog} onOpenChange={setShowContactDialog}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
