@@ -5,7 +5,7 @@ from .views import (
     ContractViewSet, ContractBreachViewSet, EmailCampaignViewSet,
     TravelOfferViewSet, SupportTicketViewSet, RevenueForecastViewSet,
     ActivityLogViewSet, AIConversationViewSet, LeadNoteViewSet, LeadHistoryViewSet,
-    DashboardAPIView, lead_pipeline_stats, lead_stats, recent_activity, top_leads
+    DashboardAPIView, lead_stats, recent_activity, top_leads, bulk_upload_companies, download_sample_excel
 )
 
 router = DefaultRouter()
@@ -31,8 +31,7 @@ urlpatterns = [
     path('leads/stats/', lead_stats, name='lead_stats'),
     path('leads/recent-activity/', recent_activity, name='recent_activity'),
     path('leads/top-leads/', top_leads, name='top_leads'),
-    path('leads/pipeline-stats/', lead_pipeline_stats, name='lead_pipeline_stats'),
-    path('companies/bulk-upload/', views.bulk_upload_companies, name='bulk_upload_companies'),
-    path('companies/download-sample/', views.download_sample_excel, name='download_sample_excel'),
+    path('companies/bulk-upload/', bulk_upload_companies, name='bulk_upload_companies'),
+    path('companies/download-sample/', download_sample_excel, name='download_sample_excel'),
     path('', include(router.urls)),
 ]

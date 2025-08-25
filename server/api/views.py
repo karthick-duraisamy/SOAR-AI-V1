@@ -2792,6 +2792,38 @@ def recent_activity(request):
 @csrf_exempt
 @api_view(['GET', 'POST'])
 @permission_classes([AllowAny])
+def lead_pipeline_stats(request):
+    """Get lead pipeline statistics"""
+    try:
+        stats = {}
+        total_leads = Lead.objects.count()
+
+        for status, status_label in Lead.LEAD_STATUS_CHOICES:
+            count = Lead.objects.filter(status=status).count()
+            stats[status] = {
+                'count': count,
+                'label': status_label,
+                'percentage': (count / total_leads * 100) if total_leads > 0 else 0
+            }
+
+        stats['summary'] = {
+            'total_leads': total_leads,
+            'qualified_leads': Lead.objects.filter(status='qualified').count(),
+            'unqualified_leads': Lead.objects.filter(status='unqualified').count(),
+            'active_leads': Lead.objects.filter(status__in=['new', 'contacted', 'qualified']).count(),
+            'conversion_rate': (Lead.objects.filter(status='won').count() / max(Lead.objects.count(), 1)) * 100 if total_leads > 0 else 0
+        }
+
+        return Response(stats)
+    except Exception as e:
+        return Response(
+            {'error': str(e)},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+
+@csrf_exempt
+@api_view(['GET', 'POST'])
+@permission_classes([AllowAny])
 def top_leads(request):
     """Get top qualified leads for dashboard"""
     try:
