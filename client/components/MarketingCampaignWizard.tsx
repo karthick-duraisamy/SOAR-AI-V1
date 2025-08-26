@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
@@ -18,6 +17,13 @@ import {
   CheckCircle,
   X
 } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from './ui/dialog';
 
 interface MarketingCampaignWizardProps {
   selectedLeads: any[];
@@ -230,7 +236,7 @@ export function MarketingCampaignWizard({ selectedLeads, onBack, onComplete }: M
                 </Button>
               </div>
               <p className="text-sm text-gray-600">Choose a template to get started quickly</p>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {campaignTemplates.filter(template => 
                   campaignData.channels.includes(template.type)
@@ -339,7 +345,7 @@ export function MarketingCampaignWizard({ selectedLeads, onBack, onComplete }: M
         return (
           <div className="space-y-6">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">Content Creation</h3>
-            
+
             {campaignData.channels.includes('email') && (
               <Card>
                 <CardHeader>
@@ -365,7 +371,7 @@ export function MarketingCampaignWizard({ selectedLeads, onBack, onComplete }: M
                       className="mt-1"
                     />
                   </div>
-                  
+
                   <div>
                     <Label htmlFor="email-body">Email Body</Label>
                     <textarea
@@ -434,7 +440,7 @@ export function MarketingCampaignWizard({ selectedLeads, onBack, onComplete }: M
         return (
           <div className="space-y-6">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">Schedule & Settings</h3>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <Card>
                 <CardHeader>
@@ -450,7 +456,7 @@ export function MarketingCampaignWizard({ selectedLeads, onBack, onComplete }: M
                       className="mt-1"
                     />
                   </div>
-                  
+
                   <div>
                     <Label htmlFor="send-time">Send Time</Label>
                     <Input
@@ -525,7 +531,7 @@ export function MarketingCampaignWizard({ selectedLeads, onBack, onComplete }: M
         return (
           <div className="space-y-6">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">Review & Launch</h3>
-            
+
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <Card>
                 <CardHeader>
@@ -636,7 +642,7 @@ export function MarketingCampaignWizard({ selectedLeads, onBack, onComplete }: M
             <h2 className="text-lg font-semibold text-gray-900">Campaign Creation Progress</h2>
             <span className="text-sm text-gray-600">Step {currentStep} of 5</span>
           </div>
-          
+
           <div className="flex items-center justify-between mb-6">
             {steps.map((step, index) => (
               <div key={step.id} className="flex items-center">
@@ -661,7 +667,7 @@ export function MarketingCampaignWizard({ selectedLeads, onBack, onComplete }: M
               </div>
             ))}
           </div>
-          
+
           <div className="text-center">
             <h3 className="font-medium text-gray-900">{steps[currentStep - 1].name}</h3>
             <p className="text-sm text-gray-600">{steps[currentStep - 1].description}</p>
@@ -687,7 +693,7 @@ export function MarketingCampaignWizard({ selectedLeads, onBack, onComplete }: M
           <ArrowLeft className="h-4 w-4 mr-2" />
           Previous
         </Button>
-        
+
         <div className="flex gap-2">
           <Button variant="outline" onClick={onBack} className="text-gray-700 border-gray-300">
             Cancel
@@ -705,6 +711,155 @@ export function MarketingCampaignWizard({ selectedLeads, onBack, onComplete }: M
           </Button>
         </div>
       </div>
+
+      {/* Template Creator Dialog */}
+      <Dialog open={showCreateTemplate} onOpenChange={setShowCreateTemplate}>
+        <DialogContent className="max-w-2xl max-h-[95vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-semibold text-gray-900">Create Custom Template</DialogTitle>
+            <DialogDescription className="text-gray-600">
+              Design your own campaign template with personalized content
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-6 py-4">
+            {/* Template Name and Channel Type */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="template-name" className="text-sm font-medium text-gray-700">
+                  Template Name
+                </Label>
+                <Input
+                  id="template-name"
+                  placeholder="Enter template name"
+                  className="w-full"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="channel-type" className="text-sm font-medium text-gray-700">
+                  Channel Type
+                </Label>
+                <Select defaultValue="email">
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="email">Email</SelectItem>
+                    <SelectItem value="whatsapp">WhatsApp</SelectItem>
+                    <SelectItem value="linkedin">LinkedIn</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            {/* Target Industry */}
+            <div className="space-y-2">
+              <Label htmlFor="target-industry" className="text-sm font-medium text-gray-700">
+                Target Industry
+              </Label>
+              <Select defaultValue="all">
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Industries</SelectItem>
+                  <SelectItem value="technology">Technology</SelectItem>
+                  <SelectItem value="healthcare">Healthcare</SelectItem>
+                  <SelectItem value="finance">Finance</SelectItem>
+                  <SelectItem value="manufacturing">Manufacturing</SelectItem>
+                  <SelectItem value="retail">Retail</SelectItem>
+                  <SelectItem value="education">Education</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Description */}
+            <div className="space-y-2">
+              <Label htmlFor="description" className="text-sm font-medium text-gray-700">
+                Description
+              </Label>
+              <textarea
+                id="description"
+                placeholder="Brief description of this template"
+                rows={2}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 text-sm resize-none"
+              />
+            </div>
+
+            {/* Subject Line */}
+            <div className="space-y-2">
+              <Label htmlFor="subject-line" className="text-sm font-medium text-gray-700">
+                Subject Line
+              </Label>
+              <Input
+                id="subject-line"
+                placeholder="Enter subject line or connection note"
+                className="w-full"
+              />
+            </div>
+
+            {/* Content */}
+            <div className="space-y-2">
+              <Label htmlFor="content" className="text-sm font-medium text-gray-700">
+                Content
+              </Label>
+              <textarea
+                id="content"
+                placeholder="Write your template content here..."
+                rows={8}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 text-sm resize-none"
+              />
+            </div>
+
+            {/* Available Personalization Variables */}
+            <div className="space-y-3">
+              <Label className="text-sm font-medium text-gray-700">
+                Available personalization variables:
+              </Label>
+              <div className="flex flex-wrap gap-2 text-xs text-gray-600">
+                <span className="bg-gray-100 px-2 py-1 rounded">{'{{company_name}}'}</span>
+                <span className="bg-gray-100 px-2 py-1 rounded">{'{{contact_name}}'}</span>
+                <span className="bg-gray-100 px-2 py-1 rounded">{'{{job_title}}'}</span>
+                <span className="bg-gray-100 px-2 py-1 rounded">{'{{industry}}'}</span>
+                <span className="bg-gray-100 px-2 py-1 rounded">{'{{employees}}'}</span>
+                <span className="bg-gray-100 px-2 py-1 rounded">{'{{travel_budget}}'}</span>
+              </div>
+            </div>
+
+            {/* Call-to-Action */}
+            <div className="space-y-2">
+              <Label htmlFor="cta" className="text-sm font-medium text-gray-700">
+                Call-to-Action
+              </Label>
+              <Input
+                id="cta"
+                placeholder="e.g. Schedule a Demo, Connect, Learn More"
+                className="w-full"
+              />
+            </div>
+          </div>
+
+          {/* Dialog Footer */}
+          <div className="flex justify-end gap-3 pt-6 border-t">
+            <Button 
+              variant="outline" 
+              onClick={() => setShowCreateTemplate(false)}
+              className="px-6"
+            >
+              Cancel
+            </Button>
+            <Button 
+              onClick={() => {
+                // Handle template creation logic here
+                setShowCreateTemplate(false);
+              }}
+              className="bg-orange-500 hover:bg-orange-600 text-white px-6"
+            >
+              Create Template
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
