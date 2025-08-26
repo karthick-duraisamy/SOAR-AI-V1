@@ -91,6 +91,15 @@ const steps = [
 export function MarketingCampaignWizard({ selectedLeads, onBack, onComplete }: MarketingCampaignWizardProps) {
   const [currentStep, setCurrentStep] = useState(1);
   const [showCreateTemplate, setShowCreateTemplate] = useState(false);
+  const [templateData, setTemplateData] = useState({
+    name: '',
+    channelType: 'email',
+    targetIndustry: 'all',
+    description: '',
+    subjectLine: '',
+    content: '',
+    cta: ''
+  });
   const [campaignData, setCampaignData] = useState({
     name: '',
     objective: 'Lead Nurturing',
@@ -132,6 +141,24 @@ export function MarketingCampaignWizard({ selectedLeads, onBack, onComplete }: M
         ? [...prev.channels, channel]
         : prev.channels.filter(c => c !== channel)
     }));
+  };
+
+  const insertPersonalizationVariable = (variable: string) => {
+    const textarea = document.getElementById('template-content') as HTMLTextAreaElement;
+    if (textarea) {
+      const start = textarea.selectionStart;
+      const end = textarea.selectionEnd;
+      const text = textarea.value;
+      const newText = text.substring(0, start) + variable + text.substring(end);
+      
+      setTemplateData(prev => ({ ...prev, content: newText }));
+      
+      // Set cursor position after the inserted variable
+      setTimeout(() => {
+        textarea.focus();
+        textarea.setSelectionRange(start + variable.length, start + variable.length);
+      }, 0);
+    }
   };
 
   const handleNext = () => {
@@ -731,6 +758,8 @@ export function MarketingCampaignWizard({ selectedLeads, onBack, onComplete }: M
                 </Label>
                 <Input
                   id="template-name"
+                  value={templateData.name}
+                  onChange={(e) => setTemplateData(prev => ({ ...prev, name: e.target.value }))}
                   placeholder="Enter template name"
                   className="w-full"
                 />
@@ -739,7 +768,7 @@ export function MarketingCampaignWizard({ selectedLeads, onBack, onComplete }: M
                 <Label htmlFor="channel-type" className="text-sm font-medium text-gray-700">
                   Channel Type
                 </Label>
-                <Select defaultValue="email">
+                <Select value={templateData.channelType} onValueChange={(value) => setTemplateData(prev => ({ ...prev, channelType: value }))}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
@@ -757,7 +786,7 @@ export function MarketingCampaignWizard({ selectedLeads, onBack, onComplete }: M
               <Label htmlFor="target-industry" className="text-sm font-medium text-gray-700">
                 Target Industry
               </Label>
-              <Select defaultValue="all">
+              <Select value={templateData.targetIndustry} onValueChange={(value) => setTemplateData(prev => ({ ...prev, targetIndustry: value }))}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
@@ -780,6 +809,8 @@ export function MarketingCampaignWizard({ selectedLeads, onBack, onComplete }: M
               </Label>
               <textarea
                 id="description"
+                value={templateData.description}
+                onChange={(e) => setTemplateData(prev => ({ ...prev, description: e.target.value }))}
                 placeholder="Brief description of this template"
                 rows={2}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 text-sm resize-none"
@@ -793,6 +824,8 @@ export function MarketingCampaignWizard({ selectedLeads, onBack, onComplete }: M
               </Label>
               <Input
                 id="subject-line"
+                value={templateData.subjectLine}
+                onChange={(e) => setTemplateData(prev => ({ ...prev, subjectLine: e.target.value }))}
                 placeholder="Enter subject line or connection note"
                 className="w-full"
               />
@@ -804,7 +837,9 @@ export function MarketingCampaignWizard({ selectedLeads, onBack, onComplete }: M
                 Content
               </Label>
               <textarea
-                id="content"
+                id="template-content"
+                value={templateData.content}
+                onChange={(e) => setTemplateData(prev => ({ ...prev, content: e.target.value }))}
                 placeholder="Write your template content here..."
                 rows={8}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 text-sm resize-none"
@@ -817,12 +852,42 @@ export function MarketingCampaignWizard({ selectedLeads, onBack, onComplete }: M
                 Available personalization variables:
               </Label>
               <div className="flex flex-wrap gap-2 text-xs text-gray-600">
-                <span className="bg-gray-100 px-2 py-1 rounded">{'{{company_name}}'}</span>
-                <span className="bg-gray-100 px-2 py-1 rounded">{'{{contact_name}}'}</span>
-                <span className="bg-gray-100 px-2 py-1 rounded">{'{{job_title}}'}</span>
-                <span className="bg-gray-100 px-2 py-1 rounded">{'{{industry}}'}</span>
-                <span className="bg-gray-100 px-2 py-1 rounded">{'{{employees}}'}</span>
-                <span className="bg-gray-100 px-2 py-1 rounded">{'{{travel_budget}}'}</span>
+                <span 
+                  className="bg-gray-100 px-2 py-1 rounded cursor-pointer hover:bg-gray-200 transition-colors"
+                  onClick={() => insertPersonalizationVariable('{{company_name}}')}
+                >
+                  {'{{company_name}}'}
+                </span>
+                <span 
+                  className="bg-gray-100 px-2 py-1 rounded cursor-pointer hover:bg-gray-200 transition-colors"
+                  onClick={() => insertPersonalizationVariable('{{contact_name}}')}
+                >
+                  {'{{contact_name}}'}
+                </span>
+                <span 
+                  className="bg-gray-100 px-2 py-1 rounded cursor-pointer hover:bg-gray-200 transition-colors"
+                  onClick={() => insertPersonalizationVariable('{{job_title}}')}
+                >
+                  {'{{job_title}}'}
+                </span>
+                <span 
+                  className="bg-gray-100 px-2 py-1 rounded cursor-pointer hover:bg-gray-200 transition-colors"
+                  onClick={() => insertPersonalizationVariable('{{industry}}')}
+                >
+                  {'{{industry}}'}
+                </span>
+                <span 
+                  className="bg-gray-100 px-2 py-1 rounded cursor-pointer hover:bg-gray-200 transition-colors"
+                  onClick={() => insertPersonalizationVariable('{{employees}}')}
+                >
+                  {'{{employees}}'}
+                </span>
+                <span 
+                  className="bg-gray-100 px-2 py-1 rounded cursor-pointer hover:bg-gray-200 transition-colors"
+                  onClick={() => insertPersonalizationVariable('{{travel_budget}}')}
+                >
+                  {'{{travel_budget}}'}
+                </span>
               </div>
             </div>
 
@@ -833,6 +898,8 @@ export function MarketingCampaignWizard({ selectedLeads, onBack, onComplete }: M
               </Label>
               <Input
                 id="cta"
+                value={templateData.cta}
+                onChange={(e) => setTemplateData(prev => ({ ...prev, cta: e.target.value }))}
                 placeholder="e.g. Schedule a Demo, Connect, Learn More"
                 className="w-full"
               />
@@ -851,6 +918,19 @@ export function MarketingCampaignWizard({ selectedLeads, onBack, onComplete }: M
             <Button 
               onClick={() => {
                 // Handle template creation logic here
+                console.log('Creating template:', templateData);
+                
+                // Reset form
+                setTemplateData({
+                  name: '',
+                  channelType: 'email',
+                  targetIndustry: 'all',
+                  description: '',
+                  subjectLine: '',
+                  content: '',
+                  cta: ''
+                });
+                
                 setShowCreateTemplate(false);
               }}
               className="bg-orange-500 hover:bg-orange-600 text-white px-6"
