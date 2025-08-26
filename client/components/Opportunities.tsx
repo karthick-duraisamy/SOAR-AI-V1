@@ -546,7 +546,7 @@ const OpportunityCard = memo(
               </Button>
             )}
 
-            {opportunity.stage === "negotiation" && (
+            {(opportunity.stage === "negotiation" || opportunity.stage === "proposal") && (
               <div className="relative group">
                 <Button
                   size="sm"
@@ -2176,7 +2176,7 @@ export function Opportunities({
 
         {/* Send Proposal Dialog */}
         <Dialog open={showProposalDialog} onOpenChange={setShowProposalDialog}>
-          <DialogContent className="max-w-2xl">
+          <DialogContent className="max-w-2xl max-h-[95vh]">
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
                 <FileText className="h-5 w-5" />
@@ -2966,7 +2966,7 @@ export function Opportunities({
                           className="rounded"
                         />
                         <span className="text-sm font-medium">Discount Approval Required?</span>
-                        <span className="text-xs text-gray-500">(auto-checked if discount > threshold)</span>
+                        <span className="text-xs text-gray-500">(auto-checked if discount  threshold)</span>
                       </label>
 
                       <div>
