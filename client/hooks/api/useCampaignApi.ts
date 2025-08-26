@@ -13,6 +13,117 @@ interface ApiState<T> {
 interface Campaign {
   id: string;
   name: string;
+  description: string;
+  campaign_type: string;
+  status: string;
+  subject_line: string;
+  email_content: string;
+  emails_sent: number;
+  emails_opened: number;
+  emails_clicked: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export const useCampaignApi = () => {
+  const [state, setState] = useState<ApiState<any>>({
+    data: null,
+    loading: false,
+    error: null,
+  });
+
+  const setLoading = useCallback((loading: boolean) => {
+    setState(prev => ({ ...prev, loading }));
+  }, []);
+
+  const setError = useCallback((error: string | null) => {
+    setState(prev => ({ ...prev, error }));
+  }, []);
+
+  const setData = useCallback((data: any) => {
+    setState(prev => ({ ...prev, data }));
+  }, []);
+
+  // Create new campaign
+  const createCampaign = useCallback(async (campaignData: any) => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const response: AxiosResponse<any> = await axios.post(
+        `${API_BASE_URL}/email-campaigns/`,
+        {
+          name: campaignData.name,
+          description: campaignData.description || '',
+          type: campaignData.objective === 'lead-nurturing' ? 'nurture' : campaignData.objective,
+          subject: campaignData.content?.email?.subject || '',
+          content: campaignData.content?.email?.body || '',
+          target_count: campaignData.targetAudience?.length || 0,
+          target_leads: campaignData.targetAudience?.map((lead: any) => lead.id) || [],
+          channels: campaignData.channels,
+          settings: campaignData.settings
+        },
+        {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+      
+      setData(response.data);
+      return response.data;
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.error || error.message || 'Failed to create campaign';
+      setError(errorMessage);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  }, [setLoading, setError, setData]);
+
+  // Get all campaigns
+  const getCampaigns = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const response: AxiosResponse<Campaign[]> = await axios.get(
+        `${API_BASE_URL}/email-campaigns/`
+      );
+      
+      setData(response.data);
+      return response.data;
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.message || error.message || 'Failed to fetch campaigns';
+      setError(errorMessage);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  }, [setLoading, setError, setData]);
+
+  return {
+    ...state,
+    createCampaign,
+    getCampaigns,
+  };
+};
+
+
+import { useState, useCallback } from 'react';
+import axios, { AxiosResponse } from 'axios';
+
+const API_BASE_URL = '/api';
+
+interface ApiState<T> {
+  data: T | null;
+  loading: boolean;
+  error: string | null;
+}
+
+interface Campaign {
+  id: string;
+  name: string;
   type: string;
   status: string;
   audience: string;

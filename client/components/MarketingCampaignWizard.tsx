@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Checkbox } from './ui/checkbox';
 import { Alert, AlertDescription } from './ui/alert';
 import { useTemplateApi } from '../hooks/api/useTemplateApi';
+import { useCampaignApi } from '../hooks/api/useCampaignApi';
 import { 
   ArrowLeft,
   ArrowRight,
@@ -102,6 +103,12 @@ export function MarketingCampaignWizard({ selectedLeads, onBack, onComplete }: M
     loading: apiLoading, 
     error: apiError 
   } = useTemplateApi();
+  
+  const { 
+    createCampaign,
+    loading: campaignLoading,
+    error: campaignError
+  } = useCampaignApi();
 
   useEffect(() => {
     loadTemplates();
@@ -215,13 +222,34 @@ export function MarketingCampaignWizard({ selectedLeads, onBack, onComplete }: M
     }
   };
 
-  const handleLaunchCampaign = () => {
+  const handleLaunchCampaign = async () => {
     setIsLaunching(true);
-    // Simulate API call
-    setTimeout(() => {
-      onComplete(campaignData);
+    
+    try {
+      // Create the campaign via API
+      const response = await createCampaign({
+        ...campaignData,
+        targetAudience: selectedLeads
+      });
+      
+      if (response.success) {
+        // Show success message and complete
+        onComplete({
+          ...campaignData,
+          campaignId: response.campaign.id,
+          launched: true,
+          launchDate: new Date().toISOString()
+        });
+      } else {
+        throw new Error(response.error || 'Failed to launch campaign');
+      }
+    } catch (error: any) {
+      console.error('Failed to launch campaign:', error);
+      // You can add error handling UI here
+      alert(`Failed to launch campaign: ${error.message}`);
+    } finally {
       setIsLaunching(false);
-    }, 2000);
+    }
   };
 
 
@@ -839,11 +867,11 @@ TechCorp Solutions can achieve complete travel governance without slowing down y
             <div className="flex justify-center mt-12">
               <Button 
                 onClick={handleLaunchCampaign}
-                disabled={isLaunching}
+                disabled={isLaunching || campaignLoading}
                 className="bg-[#FD9646] hover:bg-[#FD9646]/90 text-white px-12 py-4 text-lg font-semibold rounded-lg shadow-lg w-full max-w-md"
                 size="lg"
               >
-                {isLaunching ? (
+                {(isLaunching || campaignLoading) ? (
                   <>
                     <RefreshCw className="h-5 w-5 mr-2 animate-spin" />
                     Launching Campaign...

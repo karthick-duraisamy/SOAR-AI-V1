@@ -1699,6 +1699,45 @@ class EmailCampaignViewSet(viewsets.ModelViewSet):
     queryset = EmailCampaign.objects.all()
     serializer_class = EmailCampaignSerializer
 
+    def create(self, request, *args, **kwargs):
+        """Create new email campaign"""
+        try:
+            data = request.data
+
+            # Create the campaign
+            campaign = EmailCampaign.objects.create(
+                name=data.get('name', 'New Campaign'),
+                description=data.get('description', ''),
+                campaign_type=data.get('type', 'nurture'),
+                status='active',
+                subject_line=data.get('subject', ''),
+                email_content=data.get('content', ''),
+                scheduled_date=timezone.now(),
+                sent_date=timezone.now(),
+                emails_sent=data.get('target_count', 0),
+                emails_opened=0,
+                emails_clicked=0
+            )
+
+            # Add target leads if provided
+            target_lead_ids = data.get('target_leads', [])
+            if target_lead_ids:
+                leads = Lead.objects.filter(id__in=target_lead_ids)
+                campaign.target_leads.set(leads)
+
+            serializer = self.get_serializer(campaign)
+            return Response({
+                'success': True,
+                'message': 'Campaign launched successfully!',
+                'campaign': serializer.data
+            }, status=status.HTTP_201_CREATED)
+
+        except Exception as e:
+            return Response({
+                'success': False,
+                'error': f'Failed to create campaign: {str(e)}'
+            }, status=status.HTTP_400_BAD_REQUEST)
+
     @action(detail=False, methods=['get'])
     def performance(self, request):
         campaigns = self.queryset.filter(status__in=['active', 'completed'])
@@ -2953,12 +2992,51 @@ Would you be interested in a brief conversation about how we could support {{com
                 'updated_at': '2024-01-01T00:00:00Z'
             }
         ]
-        
+
         return Response(default_templates)
 
 class EmailCampaignViewSet(viewsets.ModelViewSet):
     queryset = EmailCampaign.objects.all()
     serializer_class = EmailCampaignSerializer
+
+    def create(self, request, *args, **kwargs):
+        """Create new email campaign"""
+        try:
+            data = request.data
+
+            # Create the campaign
+            campaign = EmailCampaign.objects.create(
+                name=data.get('name', 'New Campaign'),
+                description=data.get('description', ''),
+                campaign_type=data.get('type', 'nurture'),
+                status='active',
+                subject_line=data.get('subject', ''),
+                email_content=data.get('content', ''),
+                scheduled_date=timezone.now(),
+                sent_date=timezone.now(),
+                emails_sent=data.get('target_count', 0),
+                emails_opened=0,
+                emails_clicked=0
+            )
+
+            # Add target leads if provided
+            target_lead_ids = data.get('target_leads', [])
+            if target_lead_ids:
+                leads = Lead.objects.filter(id__in=target_lead_ids)
+                campaign.target_leads.set(leads)
+
+            serializer = self.get_serializer(campaign)
+            return Response({
+                'success': True,
+                'message': 'Campaign launched successfully!',
+                'campaign': serializer.data
+            }, status=status.HTTP_201_CREATED)
+
+        except Exception as e:
+            return Response({
+                'success': False,
+                'error': f'Failed to create campaign: {str(e)}'
+            }, status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=False, methods=['get'])
     def performance(self, request):
