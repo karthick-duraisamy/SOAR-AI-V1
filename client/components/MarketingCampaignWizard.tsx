@@ -820,7 +820,7 @@ TechCorp Solutions can achieve complete travel governance without slowing down y
                     <div>
                       <div className="text-sm font-medium text-gray-700 mb-2">Message:</div>
                       <div className="bg-gray-50 p-4 rounded-md border text-sm leading-relaxed">
-                        <div className="mb-3">Hi {'{{contact_name}}}.</div>
+                        <div className="mb-3">Hi {'{{contact_name}}'}.</div>
 
                         <div className="mb-4">
                           Managing travel compliance for {'{{company_name}}'} employees can be challenging. SOAR-AI 
