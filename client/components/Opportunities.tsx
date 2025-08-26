@@ -2465,8 +2465,8 @@ export function Opportunities({
         </Dialog>
 
         {/* Negotiation Dialog */}
-        <Dialog  open={showNegotiationDialog} onOpenChange={setShowNegotiationDialog}>
-          <DialogContent className="max-w-5xl max-h-[95vh] p-0 ">
+        <Dialog open={showNegotiationDialog} onOpenChange={setShowNegotiationDialog}>
+          <DialogContent className="max-w-5xl max-h-[95vh] p-0">
             <div className="flex flex-col h-full">
               {/* Header */}
               <div className="p-6 rounded-t-lg">
@@ -2475,47 +2475,16 @@ export function Opportunities({
                     <Handshake className="h-6 w-6" />
                     Contract Negotiation - {selectedOpportunity?.lead_info?.company?.name}
                   </DialogTitle>
-                  <DialogDescription className=" mt-2">
-                    Negotiate contract terms, adjust pricing, and prepare revised proposal for {selectedOpportunity?.lead_info?.contact?.first_name} {selectedOpportunity?.lead_info?.contact?.last_name}
+                  <DialogDescription className="mt-2">
+                    Negotiate contract terms and prepare revised proposal for {selectedOpportunity?.lead_info?.contact?.first_name} {selectedOpportunity?.lead_info?.contact?.last_name}
                   </DialogDescription>
                 </DialogHeader>
               </div>
 
               {/* Scrollable Content */}
-              <ScrollArea className="flex-1 px-6 py-4 cls-scroll">
+              <ScrollArea className="flex-1 px-6 py-4">
                 <div className="space-y-8">
-                  {/* Deal Overview Section */}
-                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
-                    <div className="flex items-center gap-3 mb-6">
-                      <Target className="h-5 w-5 text-blue-600" />
-                      <h3 className="text-lg font-semibold text-blue-900">Deal Overview</h3>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-6">
-                      <div className="flex justify-between">
-                        <div>
-                          <p className="text-sm text-blue-700">Current Probability</p>
-                          <p className="text-lg font-bold text-blue-900">{selectedOpportunity?.probability}%</p>
-                        </div>
-                        <div>
-                          <p className="text-sm text-blue-700">Expected Close</p>
-                          <p className="text-lg font-bold text-blue-900">{selectedOpportunity?.estimated_close_date}</p>
-                        </div>
-                      </div>
-                      <div className="flex justify-between">
-                        <div>
-                          <p className="text-sm text-blue-700">Decision Maker</p>
-                          <p className="text-lg font-bold text-blue-900">Yes</p>
-                        </div>
-                        <div>
-                          <p className="text-sm text-blue-700">Industry</p>
-                          <p className="text-lg font-bold text-blue-900">{selectedOpportunity?.lead_info?.company?.industry}</p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Header Section */}
+                  {/* 1. Header Section (Deal Context) */}
                   <div className="space-y-6">
                     <div className="flex items-center gap-2 mb-4">
                       <FileText className="h-5 w-5 text-gray-600" />
@@ -2574,68 +2543,7 @@ export function Opportunities({
                     </div>
                   </div>
 
-                  {/* Financial Terms Section */}
-                  <div className="bg-green-50 border border-green-200 rounded-lg p-6">
-                    <div className="flex items-center gap-2 mb-4">
-                      <DollarSign className="h-5 w-5 text-green-600" />
-                      <h3 className="text-lg font-semibold text-green-900">Financial Terms</h3>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-6">
-                      <div className="flex justify-between">
-                        <div>
-                          <p className="text-sm text-green-700">Current Deal Value</p>
-                          <p className="text-lg font-bold text-green-900">{formatCurrency(selectedOpportunity?.value)}</p>
-                        </div>
-                        <div>
-                          <p className="text-sm text-green-700">Proposed Deal Value *</p>
-                          <Input
-                            type="number"
-                            value={negotiationForm.projectedSpend}
-                            onChange={(e) => setNegotiationForm({...negotiationForm, projectedSpend: e.target.value})}
-                            placeholder="450000"
-                            className="mt-1 w-32"
-                          />
-                        </div>
-                      </div>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <Label className="text-sm font-medium text-green-700">Payment Terms</Label>
-                          <Select
-                            value={negotiationForm.paymentTerms}
-                            onValueChange={(value) => setNegotiationForm({...negotiationForm, paymentTerms: value})}
-                          >
-                            <SelectTrigger className="mt-1">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="net_30">Net 30</SelectItem>
-                              <SelectItem value="net_45">Net 45</SelectItem>
-                              <SelectItem value="custom">Custom</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        <div>
-                          <Label className="text-sm font-medium text-green-700">Implementation Timeline</Label>
-                          <Select
-                            value={negotiationForm.contractDuration}
-                            onValueChange={(value) => setNegotiationForm({...negotiationForm, contractDuration: value})}
-                          >
-                            <SelectTrigger className="mt-1">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="12">30 days</SelectItem>
-                              <SelectItem value="24">60 days</SelectItem>
-                              <SelectItem value="36">90 days</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Volume Commitment Section */}
+                  {/* 2. Volume Commitment (Corporate Side) */}
                   <div className="space-y-6">
                     <div className="flex items-center gap-2 mb-4">
                       <BarChart3 className="h-5 w-5 text-gray-600" />
@@ -2655,6 +2563,27 @@ export function Opportunities({
                         />
                       </div>
                       <div>
+                        <Label htmlFor="projectedSpend" className="text-sm font-medium">Projected Spend</Label>
+                        <Input
+                          id="projectedSpend"
+                          type="number"
+                          value={negotiationForm.projectedSpend}
+                          onChange={(e) => setNegotiationForm({...negotiationForm, projectedSpend: e.target.value})}
+                          placeholder="Enter projected spend..."
+                          className="mt-1"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="preferredRoutes" className="text-sm font-medium">Preferred Routes / Hubs</Label>
+                        <Input
+                          id="preferredRoutes"
+                          value={negotiationForm.preferredRoutes}
+                          onChange={(e) => setNegotiationForm({...negotiationForm, preferredRoutes: e.target.value})}
+                          placeholder="e.g., JFK-LAX, SFO-CHI, NYC-LON..."
+                          className="mt-1"
+                        />
+                      </div>
+                      <div>
                         <Label htmlFor="travelFrequency" className="text-sm font-medium">Travel Frequency Commitment</Label>
                         <Select
                           value={negotiationForm.travelFrequency}
@@ -2669,16 +2598,6 @@ export function Opportunities({
                           </SelectContent>
                         </Select>
                       </div>
-                      <div className="col-span-2">
-                        <Label htmlFor="preferredRoutes" className="text-sm font-medium">Preferred Routes / Hubs</Label>
-                        <Input
-                          id="preferredRoutes"
-                          value={negotiationForm.preferredRoutes}
-                          onChange={(e) => setNegotiationForm({...negotiationForm, preferredRoutes: e.target.value})}
-                          placeholder="e.g., JFK-LAX, SFO-CHI, NYC-LON..."
-                          className="mt-1"
-                        />
-                      </div>
                     </div>
 
                     <div>
@@ -2688,88 +2607,49 @@ export function Opportunities({
                           <Label className="text-xs text-gray-600">Domestic Economy</Label>
                           <div className="flex items-center gap-2 mt-1">
                             <Input
-                              type="range"
+                              type="number"
                               min="0"
                               max="100"
                               value={negotiationForm.domesticEconomy}
-                              onChange={(e) => setNegotiationForm({...negotiationForm, domesticEconomy: parseInt(e.target.value)})}
-                              className="flex-1"
+                              onChange={(e) => setNegotiationForm({...negotiationForm, domesticEconomy: parseInt(e.target.value) || 0})}
+                              className="w-20"
                             />
-                            <span className="text-sm font-medium w-12">{negotiationForm.domesticEconomy}%</span>
+                            <span className="text-sm">%</span>
                           </div>
                         </div>
                         <div>
                           <Label className="text-xs text-gray-600">Business</Label>
                           <div className="flex items-center gap-2 mt-1">
                             <Input
-                              type="range"
+                              type="number"
                               min="0"
                               max="100"
                               value={negotiationForm.domesticBusiness}
-                              onChange={(e) => setNegotiationForm({...negotiationForm, domesticBusiness: parseInt(e.target.value)})}
-                              className="flex-1"
+                              onChange={(e) => setNegotiationForm({...negotiationForm, domesticBusiness: parseInt(e.target.value) || 0})}
+                              className="w-20"
                             />
-                            <span className="text-sm font-medium w-12">{negotiationForm.domesticBusiness}%</span>
+                            <span className="text-sm">%</span>
                           </div>
                         </div>
                         <div>
                           <Label className="text-xs text-gray-600">International</Label>
                           <div className="flex items-center gap-2 mt-1">
                             <Input
-                              type="range"
+                              type="number"
                               min="0"
                               max="100"
                               value={negotiationForm.international}
-                              onChange={(e) => setNegotiationForm({...negotiationForm, international: parseInt(e.target.value)})}
-                              className="flex-1"
+                              onChange={(e) => setNegotiationForm({...negotiationForm, international: parseInt(e.target.value) || 0})}
+                              className="w-20"
                             />
-                            <span className="text-sm font-medium w-12">{negotiationForm.international}%</span>
+                            <span className="text-sm">%</span>
                           </div>
                         </div>
                       </div>
                     </div>
                   </div>
 
-                  {/* Contract Terms Section */}
-                  <div className="bg-purple-50 border border-purple-200 rounded-lg p-6">
-                    <div className="flex items-center gap-2 mb-4">
-                      <FileText className="h-5 w-5 text-purple-600" />
-                      <h3 className="text-lg font-semibold text-purple-900">Contract Terms</h3>
-                    </div>
-
-                    <div className="mb-4">
-                      <p className="text-sm text-purple-700 mb-2">Current Terms</p>
-                      <p className="text-sm text-purple-900 bg-white p-3 rounded border">
-                        Standard travel management contract for {selectedOpportunity?.lead_info?.company?.name}
-                      </p>
-                    </div>
-
-                    <div>
-                      <Label htmlFor="proposedChanges" className="text-sm font-medium text-purple-700">Proposed Terms Changes</Label>
-                      <Textarea
-                        id="proposedChanges"
-                        placeholder="Enter proposed changes to contract terms..."
-                        className="mt-1"
-                        rows={3}
-                      />
-                    </div>
-
-                    <div className="mt-4">
-                      <Label className="text-sm font-medium text-purple-700">Renewal Terms</Label>
-                      <Select defaultValue="12_months">
-                        <SelectTrigger className="mt-1">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="12_months">12 months with auto-renewal</SelectItem>
-                          <SelectItem value="24_months">24 months with auto-renewal</SelectItem>
-                          <SelectItem value="36_months">36 months with auto-renewal</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-
-                  {/* Discount/Offer Terms Section */}
+                  {/* 3. Discount / Offer Terms (Airline Side) */}
                   <div className="space-y-6">
                     <div className="flex items-center gap-2 mb-4">
                       <Gift className="h-5 w-5 text-gray-600" />
@@ -2789,23 +2669,6 @@ export function Opportunities({
                           placeholder="Enter base discount percentage..."
                           className="mt-1"
                         />
-                      </div>
-                      <div>
-                        <Label htmlFor="settlementType" className="text-sm font-medium">Settlement Type</Label>
-                        <Select
-                          value={negotiationForm.settlementType}
-                          onValueChange={(value) => setNegotiationForm({...negotiationForm, settlementType: value})}
-                        >
-                          <SelectTrigger className="mt-1">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="bsp">BSP</SelectItem>
-                            <SelectItem value="direct_billing">Direct Billing</SelectItem>
-                            <SelectItem value="corporate_card">Corporate Card</SelectItem>
-                            <SelectItem value="wallet">Wallet</SelectItem>
-                          </SelectContent>
-                        </Select>
                       </div>
                     </div>
 
@@ -2923,104 +2786,11 @@ export function Opportunities({
                     </div>
                   </div>
 
-                  {/* Negotiation Strategy Section */}
-                  <div className="bg-orange-50 border border-orange-200 rounded-lg p-6">
-                    <div className="flex items-center gap-2 mb-4">
-                      <Target className="h-5 w-5 text-orange-600" />
-                      <h3 className="text-lg font-semibold text-orange-900">Negotiation Strategy</h3>
-                    </div>
-
-                    <div className="space-y-4">
-                      <div>
-                        <Label htmlFor="concessions" className="text-sm font-medium text-orange-700">Concessions Offered</Label>
-                        <Textarea
-                          id="concessions"
-                          placeholder="List any concessions or additional value you're offering..."
-                          className="mt-1"
-                          rows={3}
-                        />
-                      </div>
-
-                      <div>
-                        <Label htmlFor="counterOffer" className="text-sm font-medium text-orange-700">Counter-Offer Reasoning</Label>
-                        <Textarea
-                          id="counterOffer"
-                          placeholder="Explain the reasoning behind your counter-offer..."
-                          className="mt-1"
-                          rows={3}
-                        />
-                      </div>
-
-                      <div className="grid grid-cols-2 gap-6">
-                        <div>
-                          <Label className="text-sm font-medium text-orange-700">Negotiation Urgency</Label>
-                          <Select defaultValue="medium">
-                            <SelectTrigger className="mt-1">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="high">Medium - Standard timeline</SelectItem>
-                              <SelectItem value="medium">High - Urgent</SelectItem>
-                              <SelectItem value="low">Low - Flexible</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        <div className="flex items-center space-x-2 mt-6">
-                          <input type="checkbox" className="rounded" />
-                          <span className="text-sm text-orange-700">Management approval required</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Communication & Notes Section */}
+                  {/* 4. Financial & Contract Terms */}
                   <div className="space-y-6">
                     <div className="flex items-center gap-2 mb-4">
-                      <MessageCircle className="h-5 w-5 text-gray-600" />
-                      <h3 className="text-lg font-semibold text-gray-900">Communication & Notes</h3>
-                    </div>
-
-                    <div className="space-y-4">
-                      <div>
-                        <Label htmlFor="corporateCommitments" className="text-sm font-medium">Commitments by Corporate (readonly)</Label>
-                        <Textarea
-                          id="corporateCommitments"
-                          value={negotiationForm.corporateCommitments}
-                          readOnly
-                          className="mt-1 bg-gray-50"
-                          rows={3}
-                        />
-                      </div>
-
-                      <div>
-                        <Label htmlFor="clientNotes" className="text-sm font-medium">Negotiation Notes (Client Communication)</Label>
-                        <Textarea
-                          id="clientNotes"
-                          placeholder="Notes to include in communication with client..."
-                          className="mt-1"
-                          rows={3}
-                        />
-                      </div>
-
-                      <div>
-                        <Label htmlFor="internalNotes" className="text-sm font-medium">Internal Notes (Private)</Label>
-                        <Textarea
-                          id="internalNotes"
-                          value={negotiationForm.internalNotes}
-                          onChange={(e) => setNegotiationForm({...negotiationForm, internalNotes: e.target.value})}
-                          placeholder="Internal notes for sales team reference..."
-                          className="mt-1"
-                          rows={3}
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Approvals Workflow Section */}
-                  <div className="space-y-6">
-                    <div className="flex items-center gap-2 mb-4">
-                      <CheckCircle className="h-5 w-5 text-gray-600" />
-                      <h3 className="text-lg font-semibold text-gray-900">Approvals Workflow</h3>
+                      <DollarSign className="h-5 w-5 text-gray-600" />
+                      <h3 className="text-lg font-semibold text-gray-900">Financial & Contract Terms</h3>
                     </div>
 
                     <div className="grid grid-cols-2 gap-6">
@@ -3060,6 +2830,108 @@ export function Opportunities({
                         </div>
                       </div>
                       <div>
+                        <Label className="text-sm font-medium">Auto-Renewal</Label>
+                        <div className="flex items-center space-x-2 mt-2">
+                          <label className="flex items-center space-x-2">
+                            <input
+                              type="radio"
+                              name="autoRenewal"
+                              checked={negotiationForm.autoRenewal === true}
+                              onChange={() => setNegotiationForm({...negotiationForm, autoRenewal: true})}
+                            />
+                            <span className="text-sm">Yes</span>
+                          </label>
+                          <label className="flex items-center space-x-2">
+                            <input
+                              type="radio"
+                              name="autoRenewal"
+                              checked={negotiationForm.autoRenewal === false}
+                              onChange={() => setNegotiationForm({...negotiationForm, autoRenewal: false})}
+                            />
+                            <span className="text-sm">No</span>
+                          </label>
+                        </div>
+                      </div>
+                      <div>
+                        <Label className="text-sm font-medium">Payment Terms</Label>
+                        <Select
+                          value={negotiationForm.paymentTerms}
+                          onValueChange={(value) => setNegotiationForm({...negotiationForm, paymentTerms: value})}
+                        >
+                          <SelectTrigger className="mt-1">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="net_30">Net 30</SelectItem>
+                            <SelectItem value="net_45">Net 45</SelectItem>
+                            <SelectItem value="custom">Custom</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div>
+                        <Label className="text-sm font-medium">Settlement Type</Label>
+                        <Select
+                          value={negotiationForm.settlementType}
+                          onValueChange={(value) => setNegotiationForm({...negotiationForm, settlementType: value})}
+                        >
+                          <SelectTrigger className="mt-1">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="bsp">BSP</SelectItem>
+                            <SelectItem value="direct_billing">Direct Billing</SelectItem>
+                            <SelectItem value="corporate_card">Corporate Card</SelectItem>
+                            <SelectItem value="wallet">Wallet</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 5. Negotiation Strategy */}
+                  <div className="space-y-6">
+                    <div className="flex items-center gap-2 mb-4">
+                      <Target className="h-5 w-5 text-gray-600" />
+                      <h3 className="text-lg font-semibold text-gray-900">Negotiation Strategy</h3>
+                    </div>
+
+                    <div className="space-y-4">
+                      <div>
+                        <Label htmlFor="airlineConcessions" className="text-sm font-medium">Concessions by Airline</Label>
+                        <Textarea
+                          id="airlineConcessions"
+                          value={negotiationForm.airlineConcessions}
+                          onChange={(e) => setNegotiationForm({...negotiationForm, airlineConcessions: e.target.value})}
+                          placeholder="List concessions offered by airline..."
+                          className="mt-1"
+                          rows={3}
+                        />
+                      </div>
+
+                      <div>
+                        <Label htmlFor="corporateCommitments" className="text-sm font-medium">Commitments by Corporate (readonly)</Label>
+                        <Textarea
+                          id="corporateCommitments"
+                          value={negotiationForm.corporateCommitments}
+                          readOnly
+                          className="mt-1 bg-gray-50"
+                          rows={3}
+                        />
+                      </div>
+
+                      <div>
+                        <Label htmlFor="internalNotes" className="text-sm font-medium">Internal Notes</Label>
+                        <Textarea
+                          id="internalNotes"
+                          value={negotiationForm.internalNotes}
+                          onChange={(e) => setNegotiationForm({...negotiationForm, internalNotes: e.target.value})}
+                          placeholder="Internal notes for airline team..."
+                          className="mt-1"
+                          rows={3}
+                        />
+                      </div>
+
+                      <div>
                         <Label className="text-sm font-medium">Priority Level</Label>
                         <Select
                           value={negotiationForm.priorityLevel}
@@ -3076,6 +2948,14 @@ export function Opportunities({
                         </Select>
                       </div>
                     </div>
+                  </div>
+
+                  {/* 6. Approvals Workflow */}
+                  <div className="space-y-6">
+                    <div className="flex items-center gap-2 mb-4">
+                      <CheckCircle className="h-5 w-5 text-gray-600" />
+                      <h3 className="text-lg font-semibold text-gray-900">Approvals Workflow</h3>
+                    </div>
 
                     <div className="space-y-4">
                       <label className="flex items-center space-x-2">
@@ -3086,7 +2966,7 @@ export function Opportunities({
                           className="rounded"
                         />
                         <span className="text-sm font-medium">Discount Approval Required?</span>
-                        <span className="text-xs text-gray-500">(auto-checked if discount  threshold)</span>
+                        <span className="text-xs text-gray-500">(auto-checked if discount > threshold)</span>
                       </label>
 
                       <div>
@@ -3106,21 +2986,35 @@ export function Opportunities({
                         </Select>
                       </div>
 
-                      <label className="flex items-center space-x-2">
-                        <input
-                          type="checkbox"
-                          checked={negotiationForm.legalApprovalRequired}
-                          onChange={(e) => setNegotiationForm({...negotiationForm, legalApprovalRequired: e.target.checked})}
-                          className="rounded"
-                        />
-                        <span className="text-sm font-medium">Legal/Compliance Approval Required</span>
-                      </label>
+                      <div>
+                        <Label className="text-sm font-medium">Legal/Compliance Approval</Label>
+                        <div className="flex items-center space-x-2 mt-2">
+                          <label className="flex items-center space-x-2">
+                            <input
+                              type="radio"
+                              name="legalApproval"
+                              checked={negotiationForm.legalApprovalRequired === true}
+                              onChange={() => setNegotiationForm({...negotiationForm, legalApprovalRequired: true})}
+                            />
+                            <span className="text-sm">Yes</span>
+                          </label>
+                          <label className="flex items-center space-x-2">
+                            <input
+                              type="radio"
+                              name="legalApproval"
+                              checked={negotiationForm.legalApprovalRequired === false}
+                              onChange={() => setNegotiationForm({...negotiationForm, legalApprovalRequired: false})}
+                            />
+                            <span className="text-sm">No</span>
+                          </label>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
               </ScrollArea>
 
-              {/* Sticky Footer */}
+              {/* 7. Actions (sticky at bottom) */}
               <div className="border-t bg-white px-6 py-4">
                 <div className="flex justify-between items-center">
                   <div className="flex gap-3">
