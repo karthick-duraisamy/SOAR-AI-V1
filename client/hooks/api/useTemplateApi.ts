@@ -64,7 +64,11 @@ export const useTemplateApi = () => {
         `${API_BASE_URL}/campaign-templates/default_templates/`
       );
 
-      const allTemplates = [...defaultResponse.data, ...customResponse.data];
+      // Handle both cases: array directly or wrapped in data property
+      const customTemplates = Array.isArray(customResponse.data) ? customResponse.data : [];
+      const defaultTemplates = Array.isArray(defaultResponse.data) ? defaultResponse.data : [];
+
+      const allTemplates = [...defaultTemplates, ...customTemplates];
       setData(allTemplates);
       return allTemplates;
     } catch (error: any) {
