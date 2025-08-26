@@ -74,6 +74,7 @@ import { format } from 'date-fns';
 import { ScrollArea } from './ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs'; // Added Tabs components
 import { CorporateProfile } from './CorporateProfile';
+import { MarketingCampaignWizard } from './MarketingCampaignWizard';
 
 interface LeadsListProps {
   initialFilters?: any;
@@ -564,7 +565,8 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
   const [showAddNoteDialog, setShowAddNoteDialog] = useState(false);
   const [leadsForViewProfile, setLeadsForViewProfile] = useState<any[]>([]); // State for leads to view profile
   const [selectedCorporate, setSelectedCorporate] = useState(null);
-  const [showCorporateProfile, setShowCorporateProfile] = useState(false);  
+  const [showCorporateProfile, setShowCorporateProfile] = useState(false);
+  const [showMarketingCampaign, setShowMarketingCampaign] = useState(false);  
   const [selectedLeadForNote, setSelectedLeadForNote] = useState<any>(null);
   const [noteForm, setNoteForm] = useState({
     note: '',
@@ -1477,6 +1479,28 @@ SOAR-AI Team`,
     setShowCorporateProfile(true);
   };
 
+  const handleStartCampaign = () => {
+    if (selectedLeads.length === 0) {
+      toast.error('Please select leads first');
+      return;
+    }
+
+    const selectedLeadData = filteredLeads.filter(lead => selectedLeads.includes(lead.id));
+    setShowMarketingCampaign(true);
+  };
+
+  const handleCampaignComplete = (campaignData) => {
+    console.log('Campaign completed with data:', campaignData);
+    toast.success(`Campaign "${campaignData.name}" launched successfully for ${selectedLeads.length} leads!`);
+    setShowMarketingCampaign(false);
+    setSelectedLeads([]);
+    setSelectAll(false);
+  };
+
+  const handleCampaignBack = () => {
+    setShowMarketingCampaign(false);
+  };
+
   // Error state if API call fails
   if (leadApi.error) {
     return (
@@ -1492,6 +1516,17 @@ SOAR-AI Team`,
   }
 
   // Show specific components based on state
+  if (showMarketingCampaign) {
+    const selectedLeadData = filteredLeads.filter(lead => selectedLeads.includes(lead.id));
+    return (
+      <MarketingCampaignWizard
+        selectedLeads={selectedLeadData}
+        onBack={handleCampaignBack}
+        onComplete={handleCampaignComplete}
+      />
+    );
+  }
+
   if (showCorporateProfile && selectedCorporate) {
     return (
       <Dialog open={showCorporateProfile} onOpenChange={setShowCorporateProfile}>
@@ -1870,24 +1905,7 @@ SOAR-AI Team`,
               <Button 
                 size="sm"
                 className="bg-orange-600 hover:bg-orange-700 text-white"
-                onClick={() => {
-                  if (selectedLeads.length === 0) {
-                    toast.error('Please select leads first');
-                    return;
-                  }
-
-                  // Navigate to campaign creation with selected leads
-                  const selectedLeadData = filteredLeads.filter(lead => selectedLeads.includes(lead.id));
-                  onNavigate('marketing-campaign', { 
-                    preSelectedLeads: selectedLeadData,
-                    campaignType: 'bulk_email'
-                  });
-                  toast.success(`Campaign started for ${selectedLeads.length} lead${selectedLeads.length > 1 ? 's' : ''}`);
-
-                  // Clear selection after action
-                  setSelectedLeads([]);
-                  setSelectAll(false);
-                }}
+                onClick={handleStartCampaign}
               >
                 <Mail className="h-4 w-4 mr-2" />
                 Start Campaign
@@ -2204,7 +2222,16 @@ SOAR-AI Team`,
                     <MessageSquare className="h-4 w-4 mr-1" />
                     Add Note
                   </Button>
-                  <Button size="sm" variant="outline" className="text-orange-700 border-orange-200 bg-orange-50">
+                  <Button 
+                    size="sm" 
+                    variant="outline" 
+                    className="text-orange-700 border-orange-200 bg-orange-50"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setSelectedLeads([lead.id]);
+                      setShowMarketingCampaign(true);
+                    }}
+                  >
                     <Megaphone className="h-4 w-4 mr-1" />
                     Campaign
                   </Button>
