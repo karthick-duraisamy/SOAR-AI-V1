@@ -5,7 +5,7 @@ from .views import (
     ContractViewSet, ContractBreachViewSet, EmailCampaignViewSet,
     TravelOfferViewSet, SupportTicketViewSet, RevenueForecastViewSet,
     ActivityLogViewSet, AIConversationViewSet, LeadNoteViewSet, LeadHistoryViewSet,
-    DashboardAPIView, lead_stats, recent_activity, top_leads, bulk_upload_companies, download_sample_excel
+    DashboardAPIView, lead_stats, recent_activity, top_leads, bulk_upload_companies, download_sample_excel, CampaignTemplateViewSet
 )
 
 router = DefaultRouter()
@@ -24,6 +24,7 @@ router.register(r'activity-logs', ActivityLogViewSet)
 router.register(r'lead-notes', LeadNoteViewSet)
 router.register(r'lead-history', LeadHistoryViewSet)
 router.register(r'ai-conversations', AIConversationViewSet)
+router.register(r'campaign-templates', CampaignTemplateViewSet)
 router.register(r'dashboard', DashboardAPIView, basename='dashboard')
 
 urlpatterns = [

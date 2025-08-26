@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
@@ -7,6 +8,7 @@ import { Label } from './ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { Checkbox } from './ui/checkbox';
 import { Alert, AlertDescription } from './ui/alert';
+import { useTemplateApi } from '../hooks/api/useTemplateApi';
 import { 
   ArrowLeft,
   ArrowRight,
@@ -15,7 +17,9 @@ import {
   Linkedin,
   Plus,
   CheckCircle,
-  X
+  X,
+  Save,
+  Loader2
 } from 'lucide-react';
 import {
   Dialog,
@@ -31,54 +35,21 @@ interface MarketingCampaignWizardProps {
   onComplete: (campaignData: any) => void;
 }
 
-const campaignTemplates = [
-  {
-    id: 'welcome-series',
-    name: 'Welcome Series',
-    description: 'Multi-touch welcome sequence for new leads',
-    type: 'email',
-    openRate: 45,
-    clickRate: 12,
-    content: `Hi {{contact_name}},
-
-Welcome to SOAR-AI! We're excited to help {{company_name}} transform your corporate travel experience.
-
-Based on your {{industry}} background, we've identified several opportunities to optimize your travel operations.
-
-Best regards,
-SOAR-AI Team`
-  },
-  {
-    id: 'cost-savings',
-    name: 'Cost Savings Focus',
-    description: 'Emphasizes ROI and cost reduction benefits',
-    type: 'email',
-    openRate: 52,
-    clickRate: 18,
-    content: `{{contact_name}},
-
-Companies like {{company_name}} in the {{industry}} sector are saving an average of 35% on travel costs with SOAR-AI.
-
-Want to see your personalized savings projection?
-
-Best regards,
-SOAR-AI Team`
-  },
-  {
-    id: 'compliance-focused',
-    name: 'Compliance & Control',
-    description: 'Targets compliance and policy management needs',
-    type: 'email',
-    openRate: 48,
-    clickRate: 15,
-    content: `Hi {{contact_name}},
-
-Managing travel compliance for {{company_name}} can be challenging. SOAR-AI ensures 100% policy adherence while maintaining traveler satisfaction.
-
-Best regards,
-SOAR-AI Team`
-  }
-];
+interface CampaignTemplate {
+  id?: string | number;
+  name: string;
+  description: string;
+  channel_type: 'email' | 'whatsapp' | 'linkedin' | 'mixed';
+  target_industry: string;
+  subject_line?: string;
+  content: string;
+  cta: string;
+  linkedin_type?: 'message' | 'post' | 'connection';
+  estimated_open_rate: number;
+  estimated_click_rate: number;
+  is_custom: boolean;
+  created_by: string;
+}
 
 const steps = [
   { id: 1, name: 'Campaign Setup', description: 'Basic campaign configuration' },
@@ -91,20 +62,22 @@ const steps = [
 export function MarketingCampaignWizard({ selectedLeads, onBack, onComplete }: MarketingCampaignWizardProps) {
   const [currentStep, setCurrentStep] = useState(1);
   const [showCreateTemplate, setShowCreateTemplate] = useState(false);
+  const [templates, setTemplates] = useState<CampaignTemplate[]>([]);
   const [templateData, setTemplateData] = useState({
     name: '',
-    channelType: 'email',
-    targetIndustry: 'all',
+    channel_type: 'email' as 'email' | 'whatsapp' | 'linkedin' | 'mixed',
+    target_industry: 'All',
     description: '',
-    subjectLine: '',
+    subject_line: '',
     content: '',
-    cta: ''
+    cta: '',
+    linkedin_type: 'message' as 'message' | 'post' | 'connection'
   });
   const [campaignData, setCampaignData] = useState({
     name: '',
     objective: 'Lead Nurturing',
     channels: ['email'],
-    selectedTemplate: null,
+    selectedTemplate: null as CampaignTemplate | null,
     content: {
       email: {
         subject: '',
@@ -119,16 +92,37 @@ export function MarketingCampaignWizard({ selectedLeads, onBack, onComplete }: M
     }
   });
 
-  const handleTemplateSelect = (template: any) => {
+  const { 
+    getTemplates, 
+    createTemplate, 
+    loading: apiLoading, 
+    error: apiError 
+  } = useTemplateApi();
+
+  useEffect(() => {
+    loadTemplates();
+  }, []);
+
+  const loadTemplates = async () => {
+    try {
+      const allTemplates = await getTemplates();
+      setTemplates(allTemplates);
+    } catch (error) {
+      console.error('Failed to load templates:', error);
+    }
+  };
+
+  const handleTemplateSelect = (template: CampaignTemplate) => {
     setCampaignData(prev => ({
       ...prev,
       selectedTemplate: template,
+      channels: template.channel_type === 'mixed' ? ['email', 'whatsapp', 'linkedin'] : [template.channel_type],
       content: {
         ...prev.content,
         email: {
-          subject: `Partnership Opportunity - ${template.name}`,
+          subject: template.subject_line || `Partnership Opportunity - ${template.name}`,
           body: template.content,
-          cta: 'Schedule a Demo'
+          cta: template.cta
         }
       }
     }));
@@ -161,6 +155,48 @@ export function MarketingCampaignWizard({ selectedLeads, onBack, onComplete }: M
     }
   };
 
+  const handleCreateTemplate = async () => {
+    if (!templateData.name || !templateData.content) {
+      return;
+    }
+
+    try {
+      const newTemplate = await createTemplate({
+        name: templateData.name,
+        description: templateData.description,
+        channel_type: templateData.channel_type,
+        target_industry: templateData.target_industry,
+        subject_line: templateData.subject_line,
+        content: templateData.content,
+        cta: templateData.cta,
+        linkedin_type: templateData.linkedin_type,
+        estimated_open_rate: 40,
+        estimated_click_rate: 10,
+        is_custom: true,
+        created_by: 'User'
+      });
+
+      // Add to local templates array
+      setTemplates(prev => [newTemplate, ...prev]);
+      
+      // Reset form
+      setTemplateData({
+        name: '',
+        channel_type: 'email',
+        target_industry: 'All',
+        description: '',
+        subject_line: '',
+        content: '',
+        cta: '',
+        linkedin_type: 'message'
+      });
+      
+      setShowCreateTemplate(false);
+    } catch (error) {
+      console.error('Failed to create template:', error);
+    }
+  };
+
   const handleNext = () => {
     if (currentStep < 5) {
       setCurrentStep(currentStep + 1);
@@ -173,6 +209,13 @@ export function MarketingCampaignWizard({ selectedLeads, onBack, onComplete }: M
     if (currentStep > 1) {
       setCurrentStep(currentStep - 1);
     }
+  };
+
+  const getFilteredTemplates = () => {
+    return templates.filter(template => 
+      campaignData.channels.includes(template.channel_type) || 
+      (template.channel_type === 'mixed' && campaignData.channels.length > 1)
+    );
   };
 
   const renderStepContent = () => {
@@ -264,10 +307,23 @@ export function MarketingCampaignWizard({ selectedLeads, onBack, onComplete }: M
               </div>
               <p className="text-sm text-gray-600">Choose a template to get started quickly</p>
 
+              {apiLoading && (
+                <div className="flex items-center justify-center py-8">
+                  <Loader2 className="h-6 w-6 animate-spin" />
+                  <span className="ml-2">Loading templates...</span>
+                </div>
+              )}
+
+              {apiError && (
+                <Alert>
+                  <AlertDescription>
+                    Error loading templates: {apiError}
+                  </AlertDescription>
+                </Alert>
+              )}
+
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {campaignTemplates.filter(template => 
-                  campaignData.channels.includes(template.type)
-                ).map((template) => (
+                {getFilteredTemplates().map((template) => (
                   <Card 
                     key={template.id}
                     className={`cursor-pointer transition-all hover:shadow-md border-2 ${
@@ -280,17 +336,26 @@ export function MarketingCampaignWizard({ selectedLeads, onBack, onComplete }: M
                     <CardHeader className="pb-3">
                       <div className="flex items-center justify-between">
                         <CardTitle className="text-sm font-medium">{template.name}</CardTitle>
-                        <Badge variant="outline" className="text-xs">
-                          <Mail className="h-3 w-3 mr-1" />
-                          {template.type}
-                        </Badge>
+                        <div className="flex items-center gap-1">
+                          <Badge variant="outline" className="text-xs">
+                            {template.channel_type === 'email' && <Mail className="h-3 w-3 mr-1" />}
+                            {template.channel_type === 'whatsapp' && <MessageSquare className="h-3 w-3 mr-1" />}
+                            {template.channel_type === 'linkedin' && <Linkedin className="h-3 w-3 mr-1" />}
+                            {template.channel_type}
+                          </Badge>
+                          {template.is_custom && (
+                            <Badge variant="secondary" className="text-xs">
+                              Custom
+                            </Badge>
+                          )}
+                        </div>
                       </div>
                       <CardDescription className="text-xs">{template.description}</CardDescription>
                     </CardHeader>
                     <CardContent className="pt-0">
                       <div className="flex justify-between text-xs text-gray-600">
-                        <span>Open: {template.openRate}%</span>
-                        <span>Click: {template.clickRate}%</span>
+                        <span>Open: {template.estimated_open_rate}%</span>
+                        <span>Click: {template.estimated_click_rate}%</span>
                       </div>
                     </CardContent>
                   </Card>
@@ -741,7 +806,7 @@ export function MarketingCampaignWizard({ selectedLeads, onBack, onComplete }: M
 
       {/* Template Creator Dialog */}
       <Dialog open={showCreateTemplate} onOpenChange={setShowCreateTemplate}>
-        <DialogContent className="max-w-2xl max-h-[95vh] overflow-y-auto">
+        <DialogContent className="max-w-4xl max-h-[95vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-xl font-semibold text-gray-900">Create Custom Template</DialogTitle>
             <DialogDescription className="text-gray-600">
@@ -768,7 +833,7 @@ export function MarketingCampaignWizard({ selectedLeads, onBack, onComplete }: M
                 <Label htmlFor="channel-type" className="text-sm font-medium text-gray-700">
                   Channel Type
                 </Label>
-                <Select value={templateData.channelType} onValueChange={(value) => setTemplateData(prev => ({ ...prev, channelType: value }))}>
+                <Select value={templateData.channel_type} onValueChange={(value: 'email' | 'whatsapp' | 'linkedin' | 'mixed') => setTemplateData(prev => ({ ...prev, channel_type: value }))}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
@@ -776,6 +841,7 @@ export function MarketingCampaignWizard({ selectedLeads, onBack, onComplete }: M
                     <SelectItem value="email">Email</SelectItem>
                     <SelectItem value="whatsapp">WhatsApp</SelectItem>
                     <SelectItem value="linkedin">LinkedIn</SelectItem>
+                    <SelectItem value="mixed">Multi-Channel</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -786,18 +852,18 @@ export function MarketingCampaignWizard({ selectedLeads, onBack, onComplete }: M
               <Label htmlFor="target-industry" className="text-sm font-medium text-gray-700">
                 Target Industry
               </Label>
-              <Select value={templateData.targetIndustry} onValueChange={(value) => setTemplateData(prev => ({ ...prev, targetIndustry: value }))}>
+              <Select value={templateData.target_industry} onValueChange={(value) => setTemplateData(prev => ({ ...prev, target_industry: value }))}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Industries</SelectItem>
-                  <SelectItem value="technology">Technology</SelectItem>
-                  <SelectItem value="healthcare">Healthcare</SelectItem>
-                  <SelectItem value="finance">Finance</SelectItem>
-                  <SelectItem value="manufacturing">Manufacturing</SelectItem>
-                  <SelectItem value="retail">Retail</SelectItem>
-                  <SelectItem value="education">Education</SelectItem>
+                  <SelectItem value="All">All Industries</SelectItem>
+                  <SelectItem value="Technology">Technology</SelectItem>
+                  <SelectItem value="Healthcare">Healthcare</SelectItem>
+                  <SelectItem value="Finance">Finance</SelectItem>
+                  <SelectItem value="Manufacturing">Manufacturing</SelectItem>
+                  <SelectItem value="Retail">Retail</SelectItem>
+                  <SelectItem value="Education">Education</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -818,18 +884,39 @@ export function MarketingCampaignWizard({ selectedLeads, onBack, onComplete }: M
             </div>
 
             {/* Subject Line */}
-            <div className="space-y-2">
-              <Label htmlFor="subject-line" className="text-sm font-medium text-gray-700">
-                Subject Line
-              </Label>
-              <Input
-                id="subject-line"
-                value={templateData.subjectLine}
-                onChange={(e) => setTemplateData(prev => ({ ...prev, subjectLine: e.target.value }))}
-                placeholder="Enter subject line or connection note"
-                className="w-full"
-              />
-            </div>
+            {(templateData.channel_type === 'email' || templateData.channel_type === 'linkedin') && (
+              <div className="space-y-2">
+                <Label htmlFor="subject-line" className="text-sm font-medium text-gray-700">
+                  {templateData.channel_type === 'email' ? 'Subject Line' : 'LinkedIn Subject/Connection Note'}
+                </Label>
+                <Input
+                  id="subject-line"
+                  value={templateData.subject_line}
+                  onChange={(e) => setTemplateData(prev => ({ ...prev, subject_line: e.target.value }))}
+                  placeholder="Enter subject line or connection note"
+                  className="w-full"
+                />
+              </div>
+            )}
+
+            {/* LinkedIn Type */}
+            {templateData.channel_type === 'linkedin' && (
+              <div className="space-y-2">
+                <Label htmlFor="linkedin-type" className="text-sm font-medium text-gray-700">
+                  LinkedIn Type
+                </Label>
+                <Select value={templateData.linkedin_type} onValueChange={(value: 'message' | 'post' | 'connection') => setTemplateData(prev => ({ ...prev, linkedin_type: value }))}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="message">Direct Message</SelectItem>
+                    <SelectItem value="post">Post/Content</SelectItem>
+                    <SelectItem value="connection">Connection Request</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
 
             {/* Content */}
             <div className="space-y-2">
@@ -852,42 +939,15 @@ export function MarketingCampaignWizard({ selectedLeads, onBack, onComplete }: M
                 Available personalization variables:
               </Label>
               <div className="flex flex-wrap gap-2 text-xs text-gray-600">
-                <span 
-                  className="bg-gray-100 px-2 py-1 rounded cursor-pointer hover:bg-gray-200 transition-colors"
-                  onClick={() => insertPersonalizationVariable('{{company_name}}')}
-                >
-                  {'{{company_name}}'}
-                </span>
-                <span 
-                  className="bg-gray-100 px-2 py-1 rounded cursor-pointer hover:bg-gray-200 transition-colors"
-                  onClick={() => insertPersonalizationVariable('{{contact_name}}')}
-                >
-                  {'{{contact_name}}'}
-                </span>
-                <span 
-                  className="bg-gray-100 px-2 py-1 rounded cursor-pointer hover:bg-gray-200 transition-colors"
-                  onClick={() => insertPersonalizationVariable('{{job_title}}')}
-                >
-                  {'{{job_title}}'}
-                </span>
-                <span 
-                  className="bg-gray-100 px-2 py-1 rounded cursor-pointer hover:bg-gray-200 transition-colors"
-                  onClick={() => insertPersonalizationVariable('{{industry}}')}
-                >
-                  {'{{industry}}'}
-                </span>
-                <span 
-                  className="bg-gray-100 px-2 py-1 rounded cursor-pointer hover:bg-gray-200 transition-colors"
-                  onClick={() => insertPersonalizationVariable('{{employees}}')}
-                >
-                  {'{{employees}}'}
-                </span>
-                <span 
-                  className="bg-gray-100 px-2 py-1 rounded cursor-pointer hover:bg-gray-200 transition-colors"
-                  onClick={() => insertPersonalizationVariable('{{travel_budget}}')}
-                >
-                  {'{{travel_budget}}'}
-                </span>
+                {['{{company_name}}', '{{contact_name}}', '{{job_title}}', '{{industry}}', '{{employees}}', '{{travel_budget}}'].map(variable => (
+                  <span 
+                    key={variable}
+                    className="bg-gray-100 px-2 py-1 rounded cursor-pointer hover:bg-gray-200 transition-colors"
+                    onClick={() => insertPersonalizationVariable(variable)}
+                  >
+                    {variable}
+                  </span>
+                ))}
               </div>
             </div>
 
@@ -916,26 +976,21 @@ export function MarketingCampaignWizard({ selectedLeads, onBack, onComplete }: M
               Cancel
             </Button>
             <Button 
-              onClick={() => {
-                // Handle template creation logic here
-                console.log('Creating template:', templateData);
-                
-                // Reset form
-                setTemplateData({
-                  name: '',
-                  channelType: 'email',
-                  targetIndustry: 'all',
-                  description: '',
-                  subjectLine: '',
-                  content: '',
-                  cta: ''
-                });
-                
-                setShowCreateTemplate(false);
-              }}
+              onClick={handleCreateTemplate}
+              disabled={!templateData.name || !templateData.content || apiLoading}
               className="bg-orange-500 hover:bg-orange-600 text-white px-6"
             >
-              Create Template
+              {apiLoading ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Creating...
+                </>
+              ) : (
+                <>
+                  <Save className="h-4 w-4 mr-2" />
+                  Create Template
+                </>
+              )}
             </Button>
           </div>
         </DialogContent>

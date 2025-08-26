@@ -320,6 +320,42 @@ class ContractBreach(models.Model):
     def __str__(self):
         return f"Breach: {self.contract.contract_number} - {self.breach_type}"
 
+class CampaignTemplate(models.Model):
+    CHANNEL_TYPE_CHOICES = [
+        ('email', 'Email'),
+        ('whatsapp', 'WhatsApp'),
+        ('linkedin', 'LinkedIn'),
+        ('mixed', 'Multi-Channel'),
+    ]
+
+    LINKEDIN_TYPE_CHOICES = [
+        ('message', 'Direct Message'),
+        ('post', 'Post/Content'),
+        ('connection', 'Connection Request'),
+    ]
+
+    name = models.CharField(max_length=255)
+    description = models.TextField()
+    channel_type = models.CharField(max_length=20, choices=CHANNEL_TYPE_CHOICES, default='email')
+    target_industry = models.CharField(max_length=100, default='All')
+    subject_line = models.CharField(max_length=255, blank=True, null=True)
+    content = models.TextField()
+    cta = models.CharField(max_length=255)
+    linkedin_type = models.CharField(max_length=20, choices=LINKEDIN_TYPE_CHOICES, blank=True, null=True)
+    estimated_open_rate = models.FloatField(default=40.0)
+    estimated_click_rate = models.FloatField(default=10.0)
+    is_custom = models.BooleanField(default=True)
+    created_by = models.CharField(max_length=255, default='User')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        ordering = ['-created_at']
+
+
 class EmailCampaign(models.Model):
     CAMPAIGN_STATUS_CHOICES = [
         ('draft', 'Draft'),
@@ -344,6 +380,7 @@ class EmailCampaign(models.Model):
     subject_line = models.CharField(max_length=255)
     email_content = models.TextField()
     target_leads = models.ManyToManyField(Lead, blank=True)
+    template = models.ForeignKey(CampaignTemplate, on_delete=models.SET_NULL, null=True, blank=True)
     scheduled_date = models.DateTimeField(null=True, blank=True)
     sent_date = models.DateTimeField(null=True, blank=True)
     emails_sent = models.IntegerField(default=0)

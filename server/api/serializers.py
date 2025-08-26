@@ -2,7 +2,7 @@ from rest_framework import serializers
 from .models import (
     Company, Contact, Lead, Opportunity, OpportunityActivity, Contract, ContractBreach,
     EmailCampaign, TravelOffer, SupportTicket, RevenueForecast,
-    ActivityLog, AIConversation, LeadNote, LeadHistory
+    ActivityLog, AIConversation, LeadNote, LeadHistory, CampaignTemplate
 )
 
 class CompanySerializer(serializers.ModelSerializer):
@@ -107,7 +107,7 @@ class LeadHistorySerializer(serializers.ModelSerializer):
         if obj.user:
             return f"{obj.user.first_name} {obj.user.last_name}".strip() or obj.user.username
         return "System"
-    
+
     def get_user_role(self, obj):
         if obj.user:
             # You can customize this based on your user model
@@ -115,16 +115,16 @@ class LeadHistorySerializer(serializers.ModelSerializer):
                 return "Sales Manager"
             return "Sales Representative"
         return "System"
-    
+
     def get_formatted_timestamp(self, obj):
         from django.utils import timezone
         from datetime import datetime
-        
+
         if obj.timestamp:
             # Format as "7/8/2024 at 9:15:00 AM"
             return obj.timestamp.strftime('%m/%d/%Y at %I:%M:%S %p')
         return ""
-    
+
     def get_assigned_agent(self, obj):
         """Extract assigned agent name from metadata or action text"""
         if obj.history_type in ['agent_assignment', 'agent_reassignment']:
@@ -133,7 +133,7 @@ class LeadHistorySerializer(serializers.ModelSerializer):
                 agent_name = obj.metadata.get('agent_name')
                 if agent_name:
                     return agent_name
-            
+
             # Fallback to extracting from action text
             if 'assigned to' in obj.action.lower() or 'reassigned to' in obj.action.lower():
                 import re
@@ -225,7 +225,7 @@ class LeadSerializer(serializers.ModelSerializer):
         """Get detailed information about the assigned agent"""
         if not obj.assigned_agent:
             return None
-        
+
         # Map agent names to their details (in a real system, this would come from a User/Agent model)
         agent_details = {
             'John Smith': {
@@ -264,7 +264,7 @@ class LeadSerializer(serializers.ModelSerializer):
                 'role': 'Sales Representative'
             }
         }
-        
+
         return agent_details.get(obj.assigned_agent)
 
 class OptimizedLeadSerializer(serializers.ModelSerializer):
@@ -351,7 +351,7 @@ class OptimizedOpportunitySerializer(serializers.ModelSerializer):
     class Meta:
         model = Opportunity
         fields = [
-            'id', 'name', 'stage', 'probability', 'value', 
+            'id', 'name', 'stage', 'probability', 'value',
             'estimated_close_date', 'created_at', 'updated_at',
             'description', 'next_steps', 'lead_info', 'weighted_value',
             'latest_activities'
@@ -502,4 +502,10 @@ class AIConversationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = AIConversation
+        fields = '__all__'
+
+class CampaignTemplateSerializer(serializers.ModelSerializer):
+    """Serializer for Campaign Templates"""
+    class Meta:
+        model = CampaignTemplate
         fields = '__all__'
