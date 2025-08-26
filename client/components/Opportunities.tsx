@@ -2467,7 +2467,7 @@ export function Opportunities({
         {/* Negotiation Dialog */}
         <Dialog open={showNegotiationDialog} onOpenChange={setShowNegotiationDialog}>
           <DialogContent className="max-w-5xl max-h-[95vh] p-0">
-            <div className="flex flex-col h-full">
+            <div className="flex flex-col h-full overflow-y-scroll">
               {/* Header */}
               <div className="bg-gradient-to-r from-purple-600 to-blue-600 text-white p-6 rounded-t-lg">
                 <DialogHeader>
