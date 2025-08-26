@@ -438,93 +438,192 @@ export function MarketingCampaignWizard({ selectedLeads, onBack, onComplete }: M
           <div className="space-y-6">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">Content Creation</h3>
 
-            {campaignData.channels.includes('email') && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Mail className="h-5 w-5 text-blue-600" />
-                    Email Content
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div>
-                    <Label htmlFor="email-subject">Email Subject Line</Label>
-                    <Input
-                      id="email-subject"
-                      value={campaignData.content.email.subject}
-                      onChange={(e) => setCampaignData(prev => ({
-                        ...prev,
-                        content: {
-                          ...prev.content,
-                          email: { ...prev.content.email, subject: e.target.value }
-                        }
-                      }))}
-                      placeholder="Enter compelling subject line..."
-                      className="mt-1"
-                    />
-                  </div>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* Content Tabs */}
+              <div className="lg:col-span-2 space-y-6">
+                <div className="border-b border-gray-200">
+                  <nav className="-mb-px flex space-x-8">
+                    <button
+                      onClick={() => {}}
+                      className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                        campaignData.channels.includes('email')
+                          ? 'border-orange-500 text-orange-600'
+                          : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                      }`}
+                    >
+                      <Mail className="h-4 w-4 inline mr-2" />
+                      Email Content
+                    </button>
+                    <button
+                      onClick={() => {}}
+                      className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                        campaignData.channels.includes('whatsapp')
+                          ? 'border-green-500 text-green-600'
+                          : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                      }`}
+                      disabled={!campaignData.channels.includes('whatsapp')}
+                    >
+                      <MessageSquare className="h-4 w-4 inline mr-2" />
+                      WhatsApp Content
+                    </button>
+                    <button
+                      onClick={() => {}}
+                      className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                        campaignData.channels.includes('linkedin')
+                          ? 'border-blue-500 text-blue-600'
+                          : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                      }`}
+                      disabled={!campaignData.channels.includes('linkedin')}
+                    >
+                      <Linkedin className="h-4 w-4 inline mr-2" />
+                      LinkedIn Content
+                    </button>
+                  </nav>
+                </div>
 
-                  <div>
-                    <Label htmlFor="email-body">Email Body</Label>
-                    <textarea
-                      id="email-body"
-                      value={campaignData.content.email.body}
-                      onChange={(e) => setCampaignData(prev => ({
-                        ...prev,
-                        content: {
-                          ...prev.content,
-                          email: { ...prev.content.email, body: e.target.value }
-                        }
-                      }))}
-                      placeholder="Write your email content..."
-                      rows={10}
-                      className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 resize-none"
-                    />
-                  </div>
+                {/* Email Content Tab */}
+                {campaignData.channels.includes('email') && (
+                  <Card>
+                    <CardContent className="p-6 space-y-4">
+                      <div>
+                        <Label htmlFor="email-subject" className="text-sm font-medium text-gray-700">
+                          Email Subject Line
+                        </Label>
+                        <Input
+                          id="email-subject"
+                          value={campaignData.content.email.subject}
+                          onChange={(e) => setCampaignData(prev => ({
+                            ...prev,
+                            content: {
+                              ...prev.content,
+                              email: { ...prev.content.email, subject: e.target.value }
+                            }
+                          }))}
+                          placeholder="Ensure 100% travel policy compliance at {{company_name}}"
+                          className="mt-1"
+                        />
+                      </div>
 
-                  <div>
-                    <Label htmlFor="email-cta">Call-to-Action</Label>
-                    <Input
-                      id="email-cta"
-                      value={campaignData.content.email.cta}
-                      onChange={(e) => setCampaignData(prev => ({
-                        ...prev,
-                        content: {
-                          ...prev.content,
-                          email: { ...prev.content.email, cta: e.target.value }
-                        }
-                      }))}
-                      placeholder="e.g., Schedule a Demo, Get Quote, Learn More"
-                      className="mt-1"
-                    />
-                  </div>
-                </CardContent>
-              </Card>
-            )}
+                      <div>
+                        <Label htmlFor="email-body" className="text-sm font-medium text-gray-700">
+                          Email Body
+                        </Label>
+                        <textarea
+                          id="email-body"
+                          value={campaignData.content.email.body}
+                          onChange={(e) => setCampaignData(prev => ({
+                            ...prev,
+                            content: {
+                              ...prev.content,
+                              email: { ...prev.content.email, body: e.target.value }
+                            }
+                          }))}
+                          placeholder="Hi {{contact_name}},
 
-            {selectedLeads.length > 0 && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-base">Content Preview</CardTitle>
-                  <CardDescription>See how your content will look to recipients</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="p-4 border rounded-lg bg-gray-50">
-                    <p className="font-medium text-sm mb-2">
-                      Subject: {campaignData.content.email.subject || 'Your subject line here'}
-                    </p>
-                    <div className="text-sm whitespace-pre-wrap mb-3">
-                      {campaignData.content.email.body || 'Your email content will appear here'}
+Managing travel compliance for {{employees}} employees can be challenging. SOAR-AI ensures 100% policy adherence while maintaining traveler satisfaction.
+
+Key compliance features for {{industry}} companies:
+• Automated policy enforcement
+• Real-time approval workflows
+• Expense management integration
+• Regulatory compliance reporting
+• Instant policy violation alerts
+
+{{company_name}} can achieve complete travel governance without slowing down your team."
+                          rows={12}
+                          className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 resize-none font-mono text-sm"
+                        />
+                      </div>
+
+                      <div>
+                        <Label htmlFor="email-cta" className="text-sm font-medium text-gray-700">
+                          Call-to-Action
+                        </Label>
+                        <Input
+                          id="email-cta"
+                          value={campaignData.content.email.cta}
+                          onChange={(e) => setCampaignData(prev => ({
+                            ...prev,
+                            content: {
+                              ...prev.content,
+                              email: { ...prev.content.email, cta: e.target.value }
+                            }
+                          }))}
+                          placeholder="See Compliance Demo"
+                          className="mt-1"
+                        />
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+
+                {/* Available Personalization Variables */}
+                <div className="space-y-3">
+                  <Label className="text-sm font-medium text-gray-700">
+                    Available personalization variables:
+                  </Label>
+                  <div className="flex flex-wrap gap-2 text-xs">
+                    {['{{company_name}}', '{{contact_name}}', '{{job_title}}', '{{industry}}', '{{employees}}', '{{travel_budget}}'].map(variable => (
+                      <span 
+                        key={variable}
+                        className="bg-blue-100 text-blue-800 px-2 py-1 rounded cursor-pointer hover:bg-blue-200 transition-colors"
+                        onClick={() => insertPersonalizationVariable(variable)}
+                      >
+                        {variable}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Content Preview */}
+              <div className="space-y-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-base">Content Preview</CardTitle>
+                    <CardDescription className="text-sm">See how your content will look to recipients</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    {/* Preview for TechCorp Solutions */}
+                    <div className="text-sm text-gray-600 mb-2">Preview for TechCorp Solutions</div>
+                    
+                    {/* Email Preview */}
+                    <div className="border rounded-lg p-4 bg-white">
+                      <div className="mb-2">
+                        <span className="font-medium text-sm text-gray-700">Subject: </span>
+                        <span className="text-sm">
+                          {campaignData.content.email.subject?.replace('{{company_name}}', 'TechCorp Solutions') || 'Ensure 100% travel policy compliance at TechCorp Solutions'}
+                        </span>
+                      </div>
+                      <div className="text-sm text-gray-700 mb-2">
+                        <span className="font-medium">Hi Sarah Johnson,</span>
+                      </div>
+                      <div className="text-sm text-gray-700 whitespace-pre-wrap mb-4">
+                        {campaignData.content.email.body?.replace('{{contact_name}}', 'Sarah Johnson')
+                          .replace('{{employees}}', '2,500')
+                          .replace('{{industry}}', 'Technology')
+                          .replace('{{company_name}}', 'TechCorp Solutions') || 
+                        `Managing travel compliance for 2,500 employees can be challenging. SOAR-AI ensures 100% policy adherence while maintaining traveler satisfaction.
+
+Key compliance features for Technology companies:
+• Automated policy enforcement
+• Real-time approval workflows
+• Expense management integration
+• Regulatory compliance reporting
+• Instant policy violation alerts
+
+TechCorp Solutions can achieve complete travel governance without slowing down your team.`}
+                      </div>
+                      {campaignData.content.email.cta && (
+                        <Button size="sm" className="bg-orange-500 hover:bg-orange-600 text-white">
+                          {campaignData.content.email.cta}
+                        </Button>
+                      )}
                     </div>
-                    {campaignData.content.email.cta && (
-                      <Button size="sm" className="bg-orange-500 hover:bg-orange-600">
-                        {campaignData.content.email.cta}
-                      </Button>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
           </div>
         );
 
