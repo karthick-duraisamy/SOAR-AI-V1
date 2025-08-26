@@ -331,6 +331,68 @@ export function EmailCampaigns({ onNavigate }: EmailCampaignsProps) {
 
   const { getCampaigns, loading: campaignsLoading } = useCampaignApi();
 
+  // Helper function to calculate overall metrics
+  const calculateMetrics = () => {
+    if (campaignList.length === 0) {
+      return {
+        totalCampaigns: 0,
+        activeCampaigns: 0,
+        totalSent: 0,
+        totalDelivered: 0,
+        totalOpened: 0,
+        totalClicked: 0,
+        totalReplied: 0,
+        totalConverted: 0,
+        avgOpenRate: 0,
+        avgClickRate: 0,
+        avgReplyRate: 0,
+        avgConversionRate: 0
+      };
+    }
+
+    const metrics = campaignList.reduce((acc, campaign) => {
+      acc.totalSent += campaign.sent;
+      acc.totalDelivered += campaign.delivered;
+      acc.totalOpened += campaign.opened;
+      acc.totalClicked += campaign.clicked;
+      acc.totalReplied += campaign.replied;
+      acc.totalConverted += campaign.converted;
+      acc.totalOpenRate += campaign.openRate;
+      acc.totalClickRate += campaign.clickRate;
+      acc.totalReplyRate += campaign.replyRate;
+      acc.totalConversionRate += campaign.conversionRate;
+      return acc;
+    }, {
+      totalSent: 0,
+      totalDelivered: 0,
+      totalOpened: 0,
+      totalClicked: 0,
+      totalReplied: 0,
+      totalConverted: 0,
+      totalOpenRate: 0,
+      totalClickRate: 0,
+      totalReplyRate: 0,
+      totalConversionRate: 0
+    });
+
+    return {
+      totalCampaigns: campaignList.length,
+      activeCampaigns: campaignList.filter(c => c.status === 'active').length,
+      totalSent: metrics.totalSent,
+      totalDelivered: metrics.totalDelivered,
+      totalOpened: metrics.totalOpened,
+      totalClicked: metrics.totalClicked,
+      totalReplied: metrics.totalReplied,
+      totalConverted: metrics.totalConverted,
+      avgOpenRate: Math.round(metrics.totalOpenRate / campaignList.length),
+      avgClickRate: Math.round(metrics.totalClickRate / campaignList.length),
+      avgReplyRate: Math.round(metrics.totalReplyRate / campaignList.length),
+      avgConversionRate: Math.round(metrics.totalConversionRate / campaignList.length)
+    };
+  };
+
+  const metrics = calculateMetrics();
+
   useEffect(() => {
     loadCampaigns();
   }, []);
@@ -338,66 +400,74 @@ export function EmailCampaigns({ onNavigate }: EmailCampaignsProps) {
   const loadCampaigns = async () => {
     try {
       const fetchedCampaigns = await getCampaigns();
-      // Transform API data to match the existing campaign structure
-      const transformedCampaigns = fetchedCampaigns.map((campaign: any) => ({
-        id: campaign.id,
-        name: campaign.name,
-        type: campaign.campaign_type === 'nurture' ? 'Nurturing' : campaign.campaign_type,
-        status: campaign.status,
-        audience: 'Generated Leads',
-        totalRecipients: campaign.emails_sent,
-        sent: campaign.emails_sent,
-        delivered: Math.floor(campaign.emails_sent * 0.98),
-        opened: campaign.emails_opened,
-        clicked: campaign.emails_clicked,
-        replied: Math.floor(campaign.emails_clicked * 0.3),
-        converted: Math.floor(campaign.emails_clicked * 0.1),
-        bounced: Math.floor(campaign.emails_sent * 0.02),
-        unsubscribed: Math.floor(campaign.emails_sent * 0.01),
-        openRate: campaign.emails_sent > 0 ? Math.round((campaign.emails_opened / campaign.emails_sent) * 100) : 0,
-        clickRate: campaign.emails_sent > 0 ? Math.round((campaign.emails_clicked / campaign.emails_sent) * 100) : 0,
-        replyRate: campaign.emails_sent > 0 ? Math.round((campaign.emails_clicked * 0.3 / campaign.emails_sent) * 100) : 0,
-        conversionRate: campaign.emails_sent > 0 ? Math.round((campaign.emails_clicked * 0.1 / campaign.emails_sent) * 100) : 0,
-        deliveryRate: 98,
-        bounceRate: 2,
-        unsubscribeRate: 1,
-        createdDate: new Date(campaign.created_at).toISOString().split('T')[0],
-        lastSent: new Date(campaign.updated_at).toISOString().split('T')[0],
-        nextSend: campaign.status === 'active' ? new Date(Date.now() + 86400000).toISOString().split('T')[0] : null,
-        schedule: 'Every 3 days',
-        subject: campaign.subject_line,
-        emailContent: campaign.email_content,
-        automationEnabled: campaign.status === 'active',
-        tags: ['Generated', 'API'],
-        template: 'api-generated',
-        sendTime: '09:00',
-        timezone: 'UTC',
-        frequency: 'every-3-days',
-        trackOpens: true,
-        trackClicks: true,
-        autoFollowUp: true,
-        avgOpenTime: '2.3 hours',
-        avgClickTime: '4.1 hours',
-        topClickedLinks: [
-          { url: 'https://soar-ai.com/demo', clicks: Math.floor(campaign.emails_clicked * 0.5) },
-          { url: 'https://soar-ai.com/pricing', clicks: Math.floor(campaign.emails_clicked * 0.3) },
-          { url: 'https://soar-ai.com/case-studies', clicks: Math.floor(campaign.emails_clicked * 0.2) }
-        ],
-        deviceStats: {
-          desktop: 58,
-          mobile: 35,
-          tablet: 7
-        },
-        locationStats: [
-          { location: 'New York', opens: Math.floor(campaign.emails_opened * 0.3) },
-          { location: 'San Francisco', opens: Math.floor(campaign.emails_opened * 0.25) },
-          { location: 'Chicago', opens: Math.floor(campaign.emails_opened * 0.2) }
-        ],
-        performanceScore: campaign.emails_sent > 100 ? 'high' : 'medium'
-      }));
+      
+      if (fetchedCampaigns && fetchedCampaigns.length > 0) {
+        // Transform API data to match the existing campaign structure
+        const transformedCampaigns = fetchedCampaigns.map((campaign: any) => ({
+          id: campaign.id,
+          name: campaign.name,
+          type: campaign.campaign_type === 'nurture' ? 'Nurturing' : 
+                campaign.campaign_type === 'prospecting' ? 'Prospecting' : 
+                campaign.campaign_type || 'Other',
+          status: campaign.status,
+          audience: 'API Generated Leads',
+          totalRecipients: campaign.emails_sent || 0,
+          sent: campaign.emails_sent || 0,
+          delivered: Math.floor((campaign.emails_sent || 0) * 0.98),
+          opened: campaign.emails_opened || 0,
+          clicked: campaign.emails_clicked || 0,
+          replied: Math.floor((campaign.emails_clicked || 0) * 0.3),
+          converted: Math.floor((campaign.emails_clicked || 0) * 0.1),
+          bounced: Math.floor((campaign.emails_sent || 0) * 0.02),
+          unsubscribed: Math.floor((campaign.emails_sent || 0) * 0.01),
+          openRate: (campaign.emails_sent || 0) > 0 ? Math.round(((campaign.emails_opened || 0) / campaign.emails_sent) * 100) : 0,
+          clickRate: (campaign.emails_sent || 0) > 0 ? Math.round(((campaign.emails_clicked || 0) / campaign.emails_sent) * 100) : 0,
+          replyRate: (campaign.emails_sent || 0) > 0 ? Math.round(((campaign.emails_clicked || 0) * 0.3 / campaign.emails_sent) * 100) : 0,
+          conversionRate: (campaign.emails_sent || 0) > 0 ? Math.round(((campaign.emails_clicked || 0) * 0.1 / campaign.emails_sent) * 100) : 0,
+          deliveryRate: 98,
+          bounceRate: 2,
+          unsubscribeRate: 1,
+          createdDate: campaign.created_at ? new Date(campaign.created_at).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+          lastSent: campaign.updated_at ? new Date(campaign.updated_at).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+          nextSend: campaign.status === 'active' ? new Date(Date.now() + 86400000).toISOString().split('T')[0] : null,
+          schedule: 'Every 3 days',
+          subject: campaign.subject_line || 'No Subject',
+          emailContent: campaign.email_content || 'No content available',
+          automationEnabled: campaign.status === 'active',
+          tags: ['API Generated'],
+          template: 'api-generated',
+          sendTime: '09:00',
+          timezone: 'UTC',
+          frequency: 'every-3-days',
+          trackOpens: true,
+          trackClicks: true,
+          autoFollowUp: true,
+          avgOpenTime: '2.3 hours',
+          avgClickTime: '4.1 hours',
+          topClickedLinks: [
+            { url: 'https://soar-ai.com/demo', clicks: Math.floor((campaign.emails_clicked || 0) * 0.5) },
+            { url: 'https://soar-ai.com/pricing', clicks: Math.floor((campaign.emails_clicked || 0) * 0.3) },
+            { url: 'https://soar-ai.com/case-studies', clicks: Math.floor((campaign.emails_clicked || 0) * 0.2) }
+          ],
+          deviceStats: {
+            desktop: 58,
+            mobile: 35,
+            tablet: 7
+          },
+          locationStats: [
+            { location: 'New York', opens: Math.floor((campaign.emails_opened || 0) * 0.3) },
+            { location: 'San Francisco', opens: Math.floor((campaign.emails_opened || 0) * 0.25) },
+            { location: 'Chicago', opens: Math.floor((campaign.emails_opened || 0) * 0.2) }
+          ],
+          performanceScore: (campaign.emails_sent || 0) > 100 ? 'high' : (campaign.emails_sent || 0) > 20 ? 'medium' : 'low'
+        }));
 
-      // Combine with existing mock campaigns
-      setCampaignList([...transformedCampaigns, ...campaigns]);
+        // Combine with existing mock campaigns for demonstration
+        setCampaignList([...transformedCampaigns, ...campaigns]);
+      } else {
+        // Use mock data if no API data is available
+        setCampaignList(campaigns);
+      }
     } catch (error) {
       console.error('Failed to load campaigns:', error);
       // Keep using mock data if API fails
@@ -484,14 +554,26 @@ export function EmailCampaigns({ onNavigate }: EmailCampaignsProps) {
               fontFamily: 'var(--font-family)',
               color: 'var(--color-foreground)'
             }}>
-              {campaignList.length}
+              {campaignsLoading ? (
+                <div className="animate-pulse">
+                  <div className="h-8 w-16 bg-gray-200 rounded"></div>
+                </div>
+              ) : (
+                metrics.totalCampaigns
+              )}
             </div>
             <p style={{ 
               fontSize: 'var(--text-xs)', 
               color: 'var(--color-muted-foreground)',
               fontFamily: 'var(--font-family)'
             }}>
-              <span className="text-green-600">{campaignList.filter(c => c.status === 'active').length} active</span>
+              {campaignsLoading ? (
+                <div className="animate-pulse">
+                  <div className="h-3 w-20 bg-gray-200 rounded"></div>
+                </div>
+              ) : (
+                <span className="text-green-600">{metrics.activeCampaigns} active</span>
+              )}
             </p>
           </CardContent>
         </Card>
@@ -519,14 +601,28 @@ export function EmailCampaigns({ onNavigate }: EmailCampaignsProps) {
               fontFamily: 'var(--font-family)',
               color: 'var(--color-foreground)'
             }}>
-              {campaignList.length > 0 ? Math.round(campaignList.reduce((sum, c) => sum + c.openRate, 0) / campaignList.length) : 0}%
+              {campaignsLoading ? (
+                <div className="animate-pulse">
+                  <div className="h-8 w-12 bg-gray-200 rounded"></div>
+                </div>
+              ) : (
+                `${metrics.avgOpenRate}%`
+              )}
             </div>
             <p style={{ 
               fontSize: 'var(--text-xs)', 
               color: 'var(--color-muted-foreground)',
               fontFamily: 'var(--font-family)'
             }}>
-              <span className="text-green-600">+5%</span> from last month
+              {campaignsLoading ? (
+                <div className="animate-pulse">
+                  <div className="h-3 w-24 bg-gray-200 rounded"></div>
+                </div>
+              ) : (
+                <span className="text-green-600">
+                  {metrics.totalOpened.toLocaleString()} total opens
+                </span>
+              )}
             </p>
           </CardContent>
         </Card>
@@ -554,14 +650,28 @@ export function EmailCampaigns({ onNavigate }: EmailCampaignsProps) {
               fontFamily: 'var(--font-family)',
               color: 'var(--color-foreground)'
             }}>
-              {campaignList.length > 0 ? Math.round(campaignList.reduce((sum, c) => sum + c.clickRate, 0) / campaignList.length) : 0}%
+              {campaignsLoading ? (
+                <div className="animate-pulse">
+                  <div className="h-8 w-12 bg-gray-200 rounded"></div>
+                </div>
+              ) : (
+                `${metrics.avgClickRate}%`
+              )}
             </div>
             <p style={{ 
               fontSize: 'var(--text-xs)', 
               color: 'var(--color-muted-foreground)',
               fontFamily: 'var(--font-family)'
             }}>
-              <span className="text-green-600">+3%</span> improvement
+              {campaignsLoading ? (
+                <div className="animate-pulse">
+                  <div className="h-3 w-20 bg-gray-200 rounded"></div>
+                </div>
+              ) : (
+                <span className="text-green-600">
+                  {metrics.totalClicked.toLocaleString()} total clicks
+                </span>
+              )}
             </p>
           </CardContent>
         </Card>
@@ -578,9 +688,9 @@ export function EmailCampaigns({ onNavigate }: EmailCampaignsProps) {
               fontWeight: 'var(--font-weight-medium)',
               fontFamily: 'var(--font-family)'
             }}>
-              Conversion Rate
+              Emails Sent
             </CardTitle>
-            <CheckCircle className="h-4 w-4 text-muted-foreground" />
+            <Send className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div style={{ 
@@ -589,14 +699,28 @@ export function EmailCampaigns({ onNavigate }: EmailCampaignsProps) {
               fontFamily: 'var(--font-family)',
               color: 'var(--color-foreground)'
             }}>
-              {campaignList.length > 0 ? Math.round(campaignList.reduce((sum, c) => sum + c.conversionRate, 0) / campaignList.length) : 0}%
+              {campaignsLoading ? (
+                <div className="animate-pulse">
+                  <div className="h-8 w-16 bg-gray-200 rounded"></div>
+                </div>
+              ) : (
+                metrics.totalSent.toLocaleString()
+              )}
             </div>
             <p style={{ 
               fontSize: 'var(--text-xs)', 
               color: 'var(--color-muted-foreground)',
               fontFamily: 'var(--font-family)'
             }}>
-              {campaignList.length > 0 ? Math.round(campaignList.reduce((sum, c) => sum + c.replyRate, 0) / campaignList.length) : 0}% reply rate
+              {campaignsLoading ? (
+                <div className="animate-pulse">
+                  <div className="h-3 w-24 bg-gray-200 rounded"></div>
+                </div>
+              ) : (
+                <span className="text-blue-600">
+                  {metrics.totalDelivered.toLocaleString()} delivered
+                </span>
+              )}
             </p>
           </CardContent>
         </Card>
