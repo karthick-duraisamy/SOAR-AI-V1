@@ -2465,24 +2465,24 @@ export function Opportunities({
         </Dialog>
 
         {/* Negotiation Dialog */}
-        <Dialog open={showNegotiationDialog} onOpenChange={setShowNegotiationDialog}>
-          <DialogContent className="max-w-5xl max-h-[95vh] p-0">
-            <div className="flex flex-col h-full overflow-y-scroll">
+        <Dialog  open={showNegotiationDialog} onOpenChange={setShowNegotiationDialog}>
+          <DialogContent className="max-w-5xl max-h-[95vh] p-0 ">
+            <div className="flex flex-col h-full">
               {/* Header */}
-              <div className="bg-gradient-to-r from-purple-600 to-blue-600 text-white p-6 rounded-t-lg">
+              <div className="p-6 rounded-t-lg">
                 <DialogHeader>
                   <DialogTitle className="flex items-center gap-3 text-xl">
                     <Handshake className="h-6 w-6" />
                     Contract Negotiation - {selectedOpportunity?.lead_info?.company?.name}
                   </DialogTitle>
-                  <DialogDescription className="text-purple-100 mt-2">
+                  <DialogDescription className=" mt-2">
                     Negotiate contract terms, adjust pricing, and prepare revised proposal for {selectedOpportunity?.lead_info?.contact?.first_name} {selectedOpportunity?.lead_info?.contact?.last_name}
                   </DialogDescription>
                 </DialogHeader>
               </div>
 
               {/* Scrollable Content */}
-              <ScrollArea className="flex-1 px-6 py-4">
+              <ScrollArea className="flex-1 px-6 py-4 cls-scroll">
                 <div className="space-y-8">
                   {/* Deal Overview Section */}
                   <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">

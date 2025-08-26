@@ -1245,6 +1245,10 @@ html {
     cursor: not-allowed;
   }
 
+  [role="dialog"]{
+    overflow: auto !important;
+    
+  }
   /* Text selection cursor for text inputs */
   input[type="text"],
   input[type="email"],
