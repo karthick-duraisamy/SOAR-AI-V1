@@ -2840,6 +2840,122 @@ class CampaignTemplateViewSet(viewsets.ModelViewSet):
     queryset = CampaignTemplate.objects.all()
     serializer_class = CampaignTemplateSerializer
 
+    @action(detail=False, methods=['get'])
+    def default_templates(self, request):
+        """Get default/built-in campaign templates"""
+        default_templates = [
+            {
+                'id': 'welcome-series',
+                'name': 'Welcome Series',
+                'description': 'Multi-touch welcome sequence for new leads',
+                'channel_type': 'email',
+                'target_industry': 'All',
+                'subject_line': 'Welcome to the future of corporate travel - {{company_name}}',
+                'content': '''Hi {{contact_name}},
+
+Welcome to SOAR-AI! We're excited to help {{company_name}} transform your corporate travel experience.
+
+Based on your {{industry}} background and {{employees}} team size, we've identified several opportunities to optimize your travel operations:
+
+✈️ Reduce travel costs by up to 35%
+📊 Streamline booking and approval processes  
+🌍 Access our global partner network
+🤖 AI-powered travel recommendations
+
+Ready to see how we can help? Let's schedule a 15-minute discovery call.''',
+                'cta': 'Schedule Discovery Call',
+                'linkedin_type': None,
+                'estimated_open_rate': 45.0,
+                'estimated_click_rate': 12.0,
+                'is_custom': False,
+                'created_by': 'System',
+                'created_at': '2024-01-01T00:00:00Z',
+                'updated_at': '2024-01-01T00:00:00Z'
+            },
+            {
+                'id': 'cost-savings',
+                'name': 'Cost Savings Focus',
+                'description': 'Emphasizes ROI and cost reduction benefits',
+                'channel_type': 'email',
+                'target_industry': 'Manufacturing',
+                'subject_line': '{{company_name}}: Cut travel costs by 35% with SOAR-AI',
+                'content': '''{{contact_name}},
+
+Companies like {{company_name}} in the {{industry}} sector are saving an average of 35% on travel costs with SOAR-AI.
+
+Here's what {{company_name}} could save annually:
+• Current estimated budget: {{travel_budget}}
+• Potential savings: {{calculated_savings}}
+• ROI timeline: 3-6 months
+
+Our AI-powered platform optimizes:
+- Flight routing and pricing
+- Hotel negotiations
+- Policy compliance
+- Expense management
+
+Ready to see your personalized savings analysis?''',
+                'cta': 'View Savings Report',
+                'linkedin_type': None,
+                'estimated_open_rate': 52.0,
+                'estimated_click_rate': 15.0,
+                'is_custom': False,
+                'created_by': 'System',
+                'created_at': '2024-01-01T00:00:00Z',
+                'updated_at': '2024-01-01T00:00:00Z'
+            },
+            {
+                'id': 'linkedin-connection',
+                'name': 'LinkedIn Connection Request',
+                'description': 'Professional connection request for LinkedIn outreach',
+                'channel_type': 'linkedin',
+                'target_industry': 'All',
+                'subject_line': None,
+                'content': '''Hi {{contact_name}},
+
+I noticed {{company_name}} is expanding in the {{industry}} space. I'd love to connect and share how we're helping similar companies optimize their corporate travel operations.
+
+Would you be open to connecting?''',
+                'cta': 'Connect on LinkedIn',
+                'linkedin_type': 'connection',
+                'estimated_open_rate': 65.0,
+                'estimated_click_rate': 25.0,
+                'is_custom': False,
+                'created_by': 'System',
+                'created_at': '2024-01-01T00:00:00Z',
+                'updated_at': '2024-01-01T00:00:00Z'
+            },
+            {
+                'id': 'multi-channel-sequence',
+                'name': 'Multi-Channel Sequence',
+                'description': 'Coordinated outreach across email, LinkedIn, and WhatsApp',
+                'channel_type': 'mixed',
+                'target_industry': 'All',
+                'subject_line': 'Partnership opportunity with {{company_name}}',
+                'content': '''Hi {{contact_name}},
+
+I hope this message finds you well. I've been researching {{company_name}} and I'm impressed by your growth in the {{industry}} sector.
+
+We're helping companies like yours:
+• Reduce travel costs by 25-40%
+• Improve policy compliance
+• Streamline approval workflows
+• Access exclusive corporate rates
+
+Would you be interested in a brief conversation about how we could support {{company_name}}'s travel operations?''',
+                'cta': 'Schedule 15-min Call',
+                'linkedin_type': 'message',
+                'estimated_open_rate': 58.0,
+                'estimated_click_rate': 18.0,
+                'is_custom': False,
+                'created_by': 'System',
+                'created_at': '2024-01-01T00:00:00Z',
+                'updated_at': '2024-01-01T00:00:00Z'
+            }
+        ]
+        
+        return Response(default_templates)
+
 class EmailCampaignViewSet(viewsets.ModelViewSet):
     queryset = EmailCampaign.objects.all()
     serializer_class = EmailCampaignSerializer
