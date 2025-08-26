@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
@@ -19,7 +18,10 @@ import {
   CheckCircle,
   X,
   Save,
-  Loader2
+  Loader2,
+  Brain,
+  RefreshCw,
+  Send
 } from 'lucide-react';
 import {
   Dialog,
@@ -91,6 +93,8 @@ export function MarketingCampaignWizard({ selectedLeads, onBack, onComplete }: M
       autoFollowUp: false
     }
   });
+  const [isLaunching, setIsLaunching] = useState(false);
+  const targetLeads = selectedLeads; // Alias for clarity in case 5
 
   const { 
     getTemplates, 
@@ -144,9 +148,9 @@ export function MarketingCampaignWizard({ selectedLeads, onBack, onComplete }: M
       const end = textarea.selectionEnd;
       const text = textarea.value;
       const newText = text.substring(0, start) + variable + text.substring(end);
-      
+
       setTemplateData(prev => ({ ...prev, content: newText }));
-      
+
       // Set cursor position after the inserted variable
       setTimeout(() => {
         textarea.focus();
@@ -178,7 +182,7 @@ export function MarketingCampaignWizard({ selectedLeads, onBack, onComplete }: M
 
       // Add to local templates array
       setTemplates(prev => [newTemplate, ...prev]);
-      
+
       // Reset form
       setTemplateData({
         name: '',
@@ -190,7 +194,7 @@ export function MarketingCampaignWizard({ selectedLeads, onBack, onComplete }: M
         cta: '',
         linkedin_type: 'message'
       });
-      
+
       setShowCreateTemplate(false);
     } catch (error) {
       console.error('Failed to create template:', error);
@@ -210,6 +214,16 @@ export function MarketingCampaignWizard({ selectedLeads, onBack, onComplete }: M
       setCurrentStep(currentStep - 1);
     }
   };
+
+  const handleLaunchCampaign = () => {
+    setIsLaunching(true);
+    // Simulate API call
+    setTimeout(() => {
+      onComplete(campaignData);
+      setIsLaunching(false);
+    }, 2000);
+  };
+
 
   const getFilteredTemplates = () => {
     return templates.filter(template => 
@@ -586,7 +600,7 @@ Key compliance features for {{industry}} companies:
                   <CardContent className="space-y-4">
                     {/* Preview for TechCorp Solutions */}
                     <div className="text-sm text-gray-600 mb-2">Preview for TechCorp Solutions</div>
-                    
+
                     {/* Email Preview */}
                     <div className="border rounded-lg p-4 bg-white">
                       <div className="mb-2">
@@ -721,87 +735,127 @@ TechCorp Solutions can achieve complete travel governance without slowing down y
       case 5:
         return (
           <div className="space-y-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Review & Launch</h3>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              {/* Left Column - Campaign Summary */}
+              <div className="space-y-6">
+                <div>
+                  <h3 className="text-xl font-semibold text-gray-900 mb-6">Campaign Summary</h3>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-base">Campaign Summary</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Campaign Name:</span>
-                    <span className="font-medium">{campaignData.name || 'Untitled Campaign'}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Objective:</span>
-                    <span className="font-medium">{campaignData.objective}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Channels:</span>
-                    <div className="flex gap-1">
-                      {campaignData.channels.map(channel => (
-                        <Badge key={channel} variant="outline" className="text-xs">
-                          {channel === 'email' && <Mail className="h-3 w-3 mr-1" />}
-                          {channel === 'whatsapp' && <MessageSquare className="h-3 w-3 mr-1" />}
-                          {channel === 'linkedin' && <Linkedin className="h-3 w-3 mr-1" />}
-                          {channel}
-                        </Badge>
-                      ))}
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between py-3 border-b">
+                      <span className="text-gray-600 font-medium">Campaign Name:</span>
+                      <span className="font-semibold text-gray-900">{campaignData.name || 'Nagu'}</span>
                     </div>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Target Leads:</span>
-                    <span className="font-medium">{selectedLeads.length}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Template:</span>
-                    <span className="font-medium">{campaignData.selectedTemplate?.name || 'Custom'}</span>
-                  </div>
-                </CardContent>
-              </Card>
 
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-base">Expected Results</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="text-center">
-                      <div className="text-2xl font-bold text-blue-600">
-                        {Math.round(selectedLeads.length * 0.45)}
-                      </div>
-                      <p className="text-xs text-gray-600">Expected Opens</p>
+                    <div className="flex items-center justify-between py-3 border-b">
+                      <span className="text-gray-600 font-medium">Objective:</span>
+                      <span className="font-semibold text-gray-900 capitalize">Lead Nurturing</span>
                     </div>
-                    <div className="text-center">
-                      <div className="text-2xl font-bold text-green-600">
-                        {Math.round(selectedLeads.length * 0.12)}
+
+                    <div className="flex items-center justify-between py-3 border-b">
+                      <span className="text-gray-600 font-medium">Channels:</span>
+                      <div className="flex items-center gap-2">
+                        <Mail className="h-4 w-4 text-gray-600" />
+                        <span className="font-semibold text-gray-900">email</span>
                       </div>
-                      <p className="text-xs text-gray-600">Expected Clicks</p>
                     </div>
-                    <div className="text-center">
-                      <div className="text-2xl font-bold text-purple-600">
-                        {Math.round(selectedLeads.length * 0.08)}
-                      </div>
-                      <p className="text-xs text-gray-600">Expected Responses</p>
+
+                    <div className="flex items-center justify-between py-3 border-b">
+                      <span className="text-gray-600 font-medium">Target Leads:</span>
+                      <span className="font-semibold text-gray-900">{targetLeads.length}</span>
                     </div>
-                    <div className="text-center">
-                      <div className="text-2xl font-bold text-orange-600">
-                        {Math.round(selectedLeads.length * 0.05)}
-                      </div>
-                      <p className="text-xs text-gray-600">Expected Conversions</p>
+
+                    <div className="flex items-center justify-between py-3 border-b">
+                      <span className="text-gray-600 font-medium">Start Date:</span>
+                      <span className="font-semibold text-gray-900">2025-08-26</span>
                     </div>
                   </div>
-                </CardContent>
-              </Card>
+                </div>
+
+                {/* AI Predictions Section */}
+                <div className="mt-8">
+                  <div className="flex items-center gap-2 mb-6">
+                    <Brain className="h-5 w-5 text-blue-600" />
+                    <h3 className="text-lg font-semibold text-gray-900">AI Predictions</h3>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-6">
+                    <div className="text-center">
+                      <div className="text-3xl font-bold text-blue-600 mb-1">0</div>
+                      <div className="text-sm text-gray-500">Expected Opens</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-3xl font-bold text-blue-600 mb-1">0</div>
+                      <div className="text-sm text-gray-500">Expected Clicks</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-3xl font-bold text-blue-600 mb-1">0</div>
+                      <div className="text-sm text-gray-500">Expected Responses</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-3xl font-bold text-blue-600 mb-1">0</div>
+                      <div className="text-sm text-gray-500">Expected Conversions</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Right Column - Final Content Review */}
+              <div>
+                <h3 className="text-xl font-semibold text-gray-900 mb-6">Final Content Review</h3>
+
+                <div className="bg-white border rounded-lg p-6">
+                  <h4 className="font-semibold text-gray-900 mb-4">Email Campaign:</h4>
+
+                  <div className="space-y-4">
+                    {/* Subject Line */}
+                    <div>
+                      <div className="text-sm font-medium text-gray-700 mb-2">Subject:</div>
+                      <div className="bg-gray-50 p-3 rounded-md border text-sm font-medium">
+                        Ensure 100% travel policy compliance at {'{{company_name}}'}
+                      </div>
+                    </div>
+
+                    {/* Email Body Preview */}
+                    <div>
+                      <div className="text-sm font-medium text-gray-700 mb-2">Message:</div>
+                      <div className="bg-gray-50 p-4 rounded-md border text-sm leading-relaxed">
+                        <div className="mb-3">Hi {'{{contact_name}}}.</div>
+
+                        <div className="mb-4">
+                          Managing travel compliance for {'{{company_name}}'} employees can be challenging. SOAR-AI 
+                          ensures 100% policy adherence while maintaining traveler satisfaction.
+                        </div>
+
+                        <div className="text-blue-600 underline text-sm">See Compliance Demo</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
 
-            <Alert>
-              <CheckCircle className="h-4 w-4" />
-              <AlertDescription>
-                Your campaign is ready to launch! Review the summary above and click "Launch Campaign" to start your marketing outreach.
-              </AlertDescription>
-            </Alert>
+            {/* Launch Button */}
+            <div className="flex justify-center mt-12">
+              <Button 
+                onClick={handleLaunchCampaign}
+                disabled={isLaunching}
+                className="bg-[#FD9646] hover:bg-[#FD9646]/90 text-white px-12 py-4 text-lg font-semibold rounded-lg shadow-lg w-full max-w-md"
+                size="lg"
+              >
+                {isLaunching ? (
+                  <>
+                    <RefreshCw className="h-5 w-5 mr-2 animate-spin" />
+                    Launching Campaign...
+                  </>
+                ) : (
+                  <>
+                    <Send className="h-5 w-5 mr-2" />
+                    Launch Campaign
+                  </>
+                )}
+              </Button>
+            </div>
           </div>
         );
 
@@ -893,7 +947,7 @@ TechCorp Solutions can achieve complete travel governance without slowing down y
             onClick={handleNext}
             disabled={
               (currentStep === 1 && (!campaignData.name || campaignData.channels.length === 0)) ||
-              (currentStep === 3 && campaignData.channels.includes('email') && !campaignData.content.email.subject)
+              (currentStep === 3 && campaignData.channels.includes('email') && (!campaignData.content.email.subject || !campaignData.content.email.body))
             }
             className="bg-orange-500 hover:bg-orange-600 text-white"
           >
