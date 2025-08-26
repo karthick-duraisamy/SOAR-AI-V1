@@ -75,28 +75,6 @@ interface EmailCampaignsProps {
   onNavigate: (screen: string, filters?: any) => void;
 }
 
-export function EmailCampaigns({ onNavigate }: EmailCampaignsProps) {
-  const [activeTab, setActiveTab] = useState('campaigns');
-  const [selectedCampaign, setSelectedCampaign] = useState<any>(null);
-  const [showCreateDialog, setShowCreateDialog] = useState(false);
-  const [showViewDialog, setShowViewDialog] = useState(false);
-  const [viewTab, setViewTab] = useState('overview');
-  const [campaignList, setCampaignList] = useState<any[]>(campaigns);
-
-  const { getCampaigns, loading: campaignsLoading } = useCampaignApi();
-
-  // Calculate dynamic stats from campaign data
-  const campaignStats = {
-    totalCampaigns: campaignList.length,
-    activeCampaigns: campaignList.filter(c => c.status === 'active').length,
-    totalSent: campaignList.reduce((sum, c) => sum + c.sent, 0),
-    openRate: campaignList.length > 0 ? Math.round(campaignList.reduce((sum, c) => sum + c.openRate, 0) / campaignList.length) : 0,
-    clickRate: campaignList.length > 0 ? Math.round(campaignList.reduce((sum, c) => sum + c.clickRate, 0) / campaignList.length) : 0,
-    replyRate: campaignList.length > 0 ? Math.round(campaignList.reduce((sum, c) => sum + c.replyRate, 0) / campaignList.length) : 0,
-    conversionRate: campaignList.length > 0 ? Math.round(campaignList.reduce((sum, c) => sum + c.conversionRate, 0) / campaignList.length) : 0,
-    avgResponseTime: '4.2 hours'
-  };
-
 const campaigns = [
   {
     id: 1,
@@ -417,7 +395,7 @@ export function EmailCampaigns({ onNavigate }: EmailCampaignsProps) {
         ],
         performanceScore: campaign.emails_sent > 100 ? 'high' : 'medium'
       }));
-      
+
       // Combine with existing mock campaigns
       setCampaignList([...transformedCampaigns, ...campaigns]);
     } catch (error) {
@@ -506,14 +484,14 @@ export function EmailCampaigns({ onNavigate }: EmailCampaignsProps) {
               fontFamily: 'var(--font-family)',
               color: 'var(--color-foreground)'
             }}>
-              {campaignStats.totalCampaigns}
+              {campaignList.length}
             </div>
             <p style={{ 
               fontSize: 'var(--text-xs)', 
               color: 'var(--color-muted-foreground)',
               fontFamily: 'var(--font-family)'
             }}>
-              <span className="text-green-600">{campaignStats.activeCampaigns} active</span>
+              <span className="text-green-600">{campaignList.filter(c => c.status === 'active').length} active</span>
             </p>
           </CardContent>
         </Card>
@@ -541,7 +519,7 @@ export function EmailCampaigns({ onNavigate }: EmailCampaignsProps) {
               fontFamily: 'var(--font-family)',
               color: 'var(--color-foreground)'
             }}>
-              {campaignStats.openRate}%
+              {campaignList.length > 0 ? Math.round(campaignList.reduce((sum, c) => sum + c.openRate, 0) / campaignList.length) : 0}%
             </div>
             <p style={{ 
               fontSize: 'var(--text-xs)', 
@@ -576,7 +554,7 @@ export function EmailCampaigns({ onNavigate }: EmailCampaignsProps) {
               fontFamily: 'var(--font-family)',
               color: 'var(--color-foreground)'
             }}>
-              {campaignStats.clickRate}%
+              {campaignList.length > 0 ? Math.round(campaignList.reduce((sum, c) => sum + c.clickRate, 0) / campaignList.length) : 0}%
             </div>
             <p style={{ 
               fontSize: 'var(--text-xs)', 
@@ -611,14 +589,14 @@ export function EmailCampaigns({ onNavigate }: EmailCampaignsProps) {
               fontFamily: 'var(--font-family)',
               color: 'var(--color-foreground)'
             }}>
-              {campaignStats.conversionRate}%
+              {campaignList.length > 0 ? Math.round(campaignList.reduce((sum, c) => sum + c.conversionRate, 0) / campaignList.length) : 0}%
             </div>
             <p style={{ 
               fontSize: 'var(--text-xs)', 
               color: 'var(--color-muted-foreground)',
               fontFamily: 'var(--font-family)'
             }}>
-              {campaignStats.replyRate}% reply rate
+              {campaignList.length > 0 ? Math.round(campaignList.reduce((sum, c) => sum + c.replyRate, 0) / campaignList.length) : 0}% reply rate
             </p>
           </CardContent>
         </Card>
