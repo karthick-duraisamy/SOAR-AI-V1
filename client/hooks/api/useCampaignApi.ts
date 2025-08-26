@@ -1,4 +1,3 @@
-
 import { useState, useCallback } from 'react';
 import axios, { AxiosResponse } from 'axios';
 
@@ -69,7 +68,7 @@ export const useCampaignApi = () => {
           },
         }
       );
-      
+
       setData(response.data);
       return response.data;
     } catch (error: any) {
@@ -90,88 +89,7 @@ export const useCampaignApi = () => {
       const response: AxiosResponse<Campaign[]> = await axios.get(
         `${API_BASE_URL}/email-campaigns/`
       );
-      
-      setData(response.data);
-      return response.data;
-    } catch (error: any) {
-      const errorMessage = error.response?.data?.message || error.message || 'Failed to fetch campaigns';
-      setError(errorMessage);
-      throw error;
-    } finally {
-      setLoading(false);
-    }
-  }, [setLoading, setError, setData]);
 
-  return {
-    ...state,
-    createCampaign,
-    getCampaigns,
-  };
-};
-
-
-import { useState, useCallback } from 'react';
-import axios, { AxiosResponse } from 'axios';
-
-const API_BASE_URL = '/api';
-
-interface ApiState<T> {
-  data: T | null;
-  loading: boolean;
-  error: string | null;
-}
-
-interface Campaign {
-  id: string;
-  name: string;
-  type: string;
-  status: string;
-  audience: string;
-  subject: string;
-  content: string;
-  scheduledDate: string;
-  createdAt: string;
-  updatedAt: string;
-  metrics: {
-    sent: number;
-    delivered: number;
-    opened: number;
-    clicked: number;
-    bounced: number;
-    unsubscribed: number;
-  };
-}
-
-export const useCampaignApi = () => {
-  const [state, setState] = useState<ApiState<any>>({
-    data: null,
-    loading: false,
-    error: null,
-  });
-
-  const setLoading = useCallback((loading: boolean) => {
-    setState(prev => ({ ...prev, loading }));
-  }, []);
-
-  const setError = useCallback((error: string | null) => {
-    setState(prev => ({ ...prev, error }));
-  }, []);
-
-  const setData = useCallback((data: any) => {
-    setState(prev => ({ ...prev, data }));
-  }, []);
-
-  // Get all campaigns
-  const getCampaigns = useCallback(async (filters?: any) => {
-    setLoading(true);
-    setError(null);
-
-    try {
-      const response: AxiosResponse<Campaign[]> = await axios.get(
-        `${API_BASE_URL}/campaigns/`,
-        { params: filters }
-      );
-      
       setData(response.data);
       return response.data;
     } catch (error: any) {
@@ -190,40 +108,13 @@ export const useCampaignApi = () => {
 
     try {
       const response: AxiosResponse<Campaign> = await axios.get(
-        `${API_BASE_URL}/campaigns/${id}/`
+        `${API_BASE_URL}/email-campaigns/${id}/`
       );
-      
+
       setData(response.data);
       return response.data;
     } catch (error: any) {
       const errorMessage = error.response?.data?.message || error.message || 'Failed to fetch campaign';
-      setError(errorMessage);
-      throw error;
-    } finally {
-      setLoading(false);
-    }
-  }, [setLoading, setError, setData]);
-
-  // Create new campaign
-  const createCampaign = useCallback(async (campaignData: Partial<Campaign>) => {
-    setLoading(true);
-    setError(null);
-
-    try {
-      const response: AxiosResponse<Campaign> = await axios.post(
-        `${API_BASE_URL}/campaigns/`,
-        campaignData,
-        {
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        }
-      );
-      
-      setData(response.data);
-      return response.data;
-    } catch (error: any) {
-      const errorMessage = error.response?.data?.message || error.message || 'Failed to create campaign';
       setError(errorMessage);
       throw error;
     } finally {
@@ -238,7 +129,7 @@ export const useCampaignApi = () => {
 
     try {
       const response: AxiosResponse<Campaign> = await axios.put(
-        `${API_BASE_URL}/campaigns/${id}/`,
+        `${API_BASE_URL}/email-campaigns/${id}/`,
         campaignData,
         {
           headers: {
@@ -246,7 +137,7 @@ export const useCampaignApi = () => {
           },
         }
       );
-      
+
       setData(response.data);
       return response.data;
     } catch (error: any) {
@@ -265,9 +156,9 @@ export const useCampaignApi = () => {
 
     try {
       const response: AxiosResponse<any> = await axios.post(
-        `${API_BASE_URL}/campaigns/${id}/send/`
+        `${API_BASE_URL}/email-campaigns/${id}/send/`
       );
-      
+
       setData(response.data);
       return response.data;
     } catch (error: any) {
@@ -286,9 +177,9 @@ export const useCampaignApi = () => {
 
     try {
       const response: AxiosResponse<any> = await axios.get(
-        `${API_BASE_URL}/campaigns/${id}/analytics/`
+        `${API_BASE_URL}/email-campaigns/${id}/analytics/`
       );
-      
+
       setData(response.data);
       return response.data;
     } catch (error: any) {
@@ -302,9 +193,9 @@ export const useCampaignApi = () => {
 
   return {
     ...state,
+    createCampaign,
     getCampaigns,
     getCampaignById,
-    createCampaign,
     updateCampaign,
     sendCampaign,
     getCampaignAnalytics,
