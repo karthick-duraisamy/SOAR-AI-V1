@@ -70,6 +70,8 @@ import {
   AlertCircle,
   UserCheck
 } from 'lucide-react';
+import { toast } from 'react-toastify';
+
 
 interface EmailCampaignsProps {
   onNavigate: (screen: string, filters?: any) => void;
@@ -101,8 +103,9 @@ export function EmailCampaigns({ onNavigate }: EmailCampaignsProps) {
   const [viewTab, setViewTab] = useState('overview');
   const [campaignList, setCampaignList] = useState<Campaign[]>([]);
   const [launchingCampaign, setLaunchingCampaign] = useState<number | null>(null);
+  const [checkingSmtp, setCheckingSmtp] = useState(false);
 
-  const { getCampaigns, launchCampaign, loading: campaignsLoading, error: campaignsError } = useCampaignApi();
+  const { getCampaigns, launchCampaign, checkSmtpStatus: fetchSmtpStatus } = useCampaignApi();
 
   // Helper function to calculate overall metrics from API data
   const calculateMetrics = () => {
@@ -189,23 +192,79 @@ export function EmailCampaigns({ onNavigate }: EmailCampaignsProps) {
     setViewTab('overview');
   };
 
-  const handleLaunchCampaign = async (campaign: Campaign) => {
+  const handleLaunchCampaign = async (campaignId: string) => {
     try {
-      setLaunchingCampaign(campaign.id);
-      const result = await launchCampaign(campaign.id.toString());
-      
-      if (result.success) {
-        // Show success message
-        alert(`Campaign launched successfully! ${result.emails_sent} emails sent.`);
-        // Reload campaigns to get updated status
-        await loadCampaigns();
+      setLaunchingCampaign(campaignId);
+      const response = await launchCampaign(campaignId);
+
+      if (response.success) {
+        const successRate = response.smtp_details?.success_rate || '0%';
+        const totalProcessed = response.smtp_details?.total_processed || 0;
+
+        toast.success(`Campaign launched successfully! ${response.emails_sent} emails sent out of ${totalProcessed} (${successRate} success rate)`);
+
+        // Show detailed SMTP responses if available
+        if (response.smtp_responses && response.smtp_responses.length > 0) {
+          console.log('SMTP Response Details:', response.smtp_responses);
+          console.log('Log file location:', response.log_file);
+
+          // Count different status types
+          const statusCounts = response.smtp_responses.reduce((acc: any, resp: any) => {
+            acc[resp.status] = (acc[resp.status] || 0) + 1;
+            return acc;
+          }, {});
+
+          console.log('SMTP Status Summary:', statusCounts);
+        }
+
+        // Refresh campaigns list
+        loadCampaigns();
       } else {
-        alert(`Failed to launch campaign: ${result.message}`);
+        const errorDetails = response.smtp_responses ? 
+          `\n\nSMTP Errors:\n${response.smtp_responses.map((r: any) => `${r.email}: ${r.message}`).join('\n')}` : '';
+
+        toast.error(`${response.message}${errorDetails}`);
+
+        // Log detailed error information
+        if (response.log_file) {
+          console.log('Error log file:', response.log_file);
+        }
       }
     } catch (error: any) {
-      alert(`Error launching campaign: ${error.message}`);
+      toast.error(`Error launching campaign: ${error.message}`);
     } finally {
       setLaunchingCampaign(null);
+    }
+  };
+
+  const checkSmtpStatus = async () => {
+    setCheckingSmtp(true);
+    try {
+      const response = await fetchSmtpStatus();
+      if (response.status === 'connected') {
+        toast.success(`SMTP Server is connected successfully.`);
+      } else {
+        toast.error(`SMTP Server connection failed: ${response.message}`);
+      }
+    } catch (error: any) {
+      toast.error(`Error checking SMTP status: ${error.message}`);
+    } finally {
+      setCheckingSmtp(false);
+    }
+  };
+
+  const viewSmtpLogs = async (campaignId: string) => {
+    try {
+      const response = await fetchSmtpStatus(campaignId); // Assuming fetchSmtpStatus can also fetch logs with campaignId
+      if (response.log_file) {
+        console.log(`SMTP Logs for Campaign ${campaignId}:`, response.log_file);
+        // Optionally, open the log file in a new tab or display in a modal
+        window.open(response.log_file, '_blank');
+      } else {
+        toast.info('No SMTP logs found for this campaign.');
+      }
+    } catch (error: any) {
+      toast.error(`Error fetching SMTP logs: ${error.message}`);
     }
   };
 
@@ -258,7 +317,7 @@ export function EmailCampaigns({ onNavigate }: EmailCampaignsProps) {
   return (
     <div className="w-full h-full space-y-6 p-5" style={{ fontFamily: 'var(--font-family)' }}>
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between mb-6">
         <div>
           <h2 style={{ 
             fontSize: 'var(--text-2xl)', 
@@ -275,32 +334,19 @@ export function EmailCampaigns({ onNavigate }: EmailCampaignsProps) {
             Automated email outreach and nurturing campaigns
           </p>
         </div>
-        <div className="flex gap-2">
-          <Button 
-            variant="secondary"
-            onClick={loadCampaigns}
-            disabled={campaignsLoading}
-            style={{
-              fontFamily: 'var(--font-family)',
-              fontSize: 'var(--text-base)',
-              backgroundColor: 'var(--color-secondary)',
-              color: 'var(--color-secondary-foreground)'
-            }}
+        <div className="flex gap-3">
+          <Button
+            variant="outline"
+            onClick={checkSmtpStatus}
+            disabled={checkingSmtp}
+            className="border-green-200 text-green-700 hover:bg-green-50"
           >
-            <RefreshCw className={`h-4 w-4 mr-2 ${campaignsLoading ? 'animate-spin' : ''}`} />
-            Refresh
-          </Button>
-          <Button 
-            variant="secondary"
-            style={{
-              fontFamily: 'var(--font-family)',
-              fontSize: 'var(--text-base)',
-              backgroundColor: 'var(--color-secondary)',
-              color: 'var(--color-secondary-foreground)'
-            }}
-          >
-            <Download className="h-4 w-4 mr-2" />
-            Export Data
+            {checkingSmtp ? (
+              <div className="h-4 w-4 mr-2 animate-spin rounded-full border-2 border-green-300 border-t-green-600" />
+            ) : (
+              <Mail className="h-4 w-4 mr-2" />
+            )}
+            Check SMTP Status
           </Button>
           <Button 
             onClick={() => setShowCreateDialog(true)}
@@ -734,7 +780,7 @@ export function EmailCampaigns({ onNavigate }: EmailCampaignsProps) {
                       </p>
                     </div>
                   </div>
-                  
+
                   {/* Campaign Actions */}
                   <div className="flex gap-2 justify-end">
                     <Button 
@@ -752,13 +798,26 @@ export function EmailCampaigns({ onNavigate }: EmailCampaignsProps) {
                       <Eye className="h-4 w-4 mr-1" />
                       View Details
                     </Button>
-                    
+                    {(campaign.status === 'active' || campaign.status === 'completed') && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          viewSmtpLogs(campaign.id.toString());
+                        }}
+                        className="text-blue-600 border-blue-200 hover:bg-blue-50"
+                      >
+                        <FileText className="h-4 w-4 mr-1" />
+                        Logs
+                      </Button>
+                    )}
                     {campaign.status === 'draft' && (
                       <Button 
                         size="sm"
                         onClick={(e) => {
                           e.stopPropagation();
-                          handleLaunchCampaign(campaign);
+                          handleLaunchCampaign(campaign.id.toString());
                         }}
                         disabled={launchingCampaign === campaign.id}
                         style={{

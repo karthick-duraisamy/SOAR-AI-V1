@@ -393,18 +393,42 @@ class EmailCampaign(models.Model):
         return self.name
 
     def send_emails(self):
-        """Send emails to target leads"""
-        from django.core.mail import send_mass_mail
+        """Send emails to target leads with detailed SMTP logging"""
+        import logging
+        from django.core.mail import get_connection, EmailMessage
         from django.template import Template, Context
         from django.conf import settings
+        import smtplib
+
+        # Configure logging for SMTP operations
+        logging.basicConfig(level=logging.INFO)
+        smtp_logger = logging.getLogger('smtp_email_campaign')
+        
+        # Create file handler for email logs
+        import os
+        log_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'logs')
+        os.makedirs(log_dir, exist_ok=True)
+        log_file = os.path.join(log_dir, f'email_campaign_{self.id}_{timezone.now().strftime("%Y%m%d_%H%M%S")}.log')
+        
+        file_handler = logging.FileHandler(log_file)
+        file_handler.setLevel(logging.INFO)
+        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        file_handler.setFormatter(formatter)
+        smtp_logger.addHandler(file_handler)
 
         if not self.target_leads.exists():
+            smtp_logger.warning(f"Campaign {self.name} (ID: {self.id}): No target leads found")
             return {'success': False, 'message': 'No target leads found'}
+
+        smtp_logger.info(f"Starting email campaign: {self.name} (ID: {self.id})")
+        smtp_logger.info(f"Target leads count: {self.target_leads.count()}")
+        smtp_logger.info(f"SMTP Configuration: Host={settings.EMAIL_HOST}, Port={settings.EMAIL_PORT}, TLS={settings.EMAIL_USE_TLS}")
 
         # Prepare email data
         emails_to_send = []
         sent_count = 0
         failed_count = 0
+        smtp_responses = []
 
         for lead in self.target_leads.all():
             try:
@@ -424,23 +448,110 @@ class EmailCampaign(models.Model):
                 rendered_subject = subject_template.render(context)
                 rendered_content = content_template.render(context)
 
-                # Add to mass email list
-                emails_to_send.append((
-                    rendered_subject,
-                    rendered_content,
-                    settings.DEFAULT_FROM_EMAIL,
-                    [lead.contact.email]
-                ))
+                # Create EmailMessage for individual tracking
+                email_msg = EmailMessage(
+                    subject=rendered_subject,
+                    body=rendered_content,
+                    from_email=settings.DEFAULT_FROM_EMAIL,
+                    to=[lead.contact.email]
+                )
+                emails_to_send.append((email_msg, lead))
+
+                smtp_logger.info(f"Prepared email for {lead.contact.email} ({lead.company.name})")
 
             except Exception as e:
                 failed_count += 1
-                print(f"Error preparing email for {lead.contact.email}: {str(e)}")
+                smtp_logger.error(f"Error preparing email for {lead.contact.email}: {str(e)}")
 
-        # Send emails in batches
+        # Send emails individually with detailed SMTP logging
         try:
             if emails_to_send:
-                send_mass_mail(emails_to_send, fail_silently=False)
-                sent_count = len(emails_to_send)
+                # Get SMTP connection
+                connection = get_connection()
+                
+                smtp_logger.info(f"Opening SMTP connection to {settings.EMAIL_HOST}:{settings.EMAIL_PORT}")
+                
+                try:
+                    connection.open()
+                    smtp_logger.info("SMTP connection opened successfully")
+                    
+                    for email_msg, lead in emails_to_send:
+                        try:
+                            # Send individual email
+                            result = connection.send_messages([email_msg])
+                            
+                            if result == 1:
+                                sent_count += 1
+                                smtp_logger.info(f"✓ Email sent successfully to {lead.contact.email} ({lead.company.name})")
+                                smtp_responses.append({
+                                    'email': lead.contact.email,
+                                    'company': lead.company.name,
+                                    'status': 'SUCCESS',
+                                    'message': 'Email sent successfully'
+                                })
+                            else:
+                                failed_count += 1
+                                smtp_logger.error(f"✗ Failed to send email to {lead.contact.email} ({lead.company.name}) - No SMTP error but send failed")
+                                smtp_responses.append({
+                                    'email': lead.contact.email,
+                                    'company': lead.company.name,
+                                    'status': 'FAILED',
+                                    'message': 'Send failed without SMTP error'
+                                })
+                                
+                        except smtplib.SMTPRecipientsRefused as e:
+                            failed_count += 1
+                            smtp_logger.error(f"✗ SMTP Recipients Refused for {lead.contact.email}: {str(e)}")
+                            smtp_responses.append({
+                                'email': lead.contact.email,
+                                'company': lead.company.name,
+                                'status': 'RECIPIENTS_REFUSED',
+                                'message': str(e)
+                            })
+                            
+                        except smtplib.SMTPSenderRefused as e:
+                            failed_count += 1
+                            smtp_logger.error(f"✗ SMTP Sender Refused for {lead.contact.email}: {str(e)}")
+                            smtp_responses.append({
+                                'email': lead.contact.email,
+                                'company': lead.company.name,
+                                'status': 'SENDER_REFUSED',
+                                'message': str(e)
+                            })
+                            
+                        except smtplib.SMTPDataError as e:
+                            failed_count += 1
+                            smtp_logger.error(f"✗ SMTP Data Error for {lead.contact.email}: {str(e)}")
+                            smtp_responses.append({
+                                'email': lead.contact.email,
+                                'company': lead.company.name,
+                                'status': 'DATA_ERROR',
+                                'message': str(e)
+                            })
+                            
+                        except smtplib.SMTPAuthenticationError as e:
+                            failed_count += 1
+                            smtp_logger.error(f"✗ SMTP Authentication Error for {lead.contact.email}: {str(e)}")
+                            smtp_responses.append({
+                                'email': lead.contact.email,
+                                'company': lead.company.name,
+                                'status': 'AUTH_ERROR',
+                                'message': str(e)
+                            })
+                            
+                        except Exception as e:
+                            failed_count += 1
+                            smtp_logger.error(f"✗ Unexpected error sending to {lead.contact.email}: {str(e)}")
+                            smtp_responses.append({
+                                'email': lead.contact.email,
+                                'company': lead.company.name,
+                                'status': 'UNEXPECTED_ERROR',
+                                'message': str(e)
+                            })
+                            
+                finally:
+                    connection.close()
+                    smtp_logger.info("SMTP connection closed")
 
                 # Update campaign stats
                 self.emails_sent = sent_count
@@ -448,22 +559,60 @@ class EmailCampaign(models.Model):
                 self.sent_date = timezone.now()
                 self.save()
 
+                # Log final summary
+                smtp_logger.info(f"Campaign completed: {sent_count} sent, {failed_count} failed")
+                smtp_logger.info(f"Success rate: {(sent_count/(sent_count+failed_count)*100):.1f}%" if (sent_count + failed_count) > 0 else "No emails processed")
+                smtp_logger.info(f"Log file saved: {log_file}")
+
                 return {
                     'success': True,
-                    'message': f'Successfully sent {sent_count} emails',
+                    'message': f'Campaign completed: {sent_count} sent, {failed_count} failed',
                     'sent_count': sent_count,
-                    'failed_count': failed_count
+                    'failed_count': failed_count,
+                    'smtp_responses': smtp_responses,
+                    'log_file': log_file
                 }
             else:
+                smtp_logger.warning("No valid emails to send")
                 return {'success': False, 'message': 'No valid emails to send'}
 
-        except Exception as e:
+        except smtplib.SMTPConnectError as e:
+            error_msg = f'SMTP Connection Error: {str(e)}'
+            smtp_logger.error(error_msg)
             return {
                 'success': False,
-                'message': f'Failed to send emails: {str(e)}',
+                'message': error_msg,
                 'sent_count': 0,
-                'failed_count': len(emails_to_send)
+                'failed_count': len(emails_to_send),
+                'smtp_responses': [],
+                'log_file': log_file
             }
+        except smtplib.SMTPServerDisconnected as e:
+            error_msg = f'SMTP Server Disconnected: {str(e)}'
+            smtp_logger.error(error_msg)
+            return {
+                'success': False,
+                'message': error_msg,
+                'sent_count': 0,
+                'failed_count': len(emails_to_send),
+                'smtp_responses': [],
+                'log_file': log_file
+            }
+        except Exception as e:
+            error_msg = f'Failed to send emails: {str(e)}'
+            smtp_logger.error(error_msg)
+            return {
+                'success': False,
+                'message': error_msg,
+                'sent_count': sent_count,
+                'failed_count': len(emails_to_send) - sent_count,
+                'smtp_responses': smtp_responses,
+                'log_file': log_file
+            }
+        finally:
+            # Remove the handler to prevent memory leaks
+            smtp_logger.removeHandler(file_handler)
+            file_handler.close()
 
 class TravelOffer(models.Model):
     OFFER_STATUS_CHOICES = [
