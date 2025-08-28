@@ -1,4 +1,3 @@
-
 import { useState, useCallback } from 'react';
 import axios, { AxiosResponse } from 'axios';
 
@@ -266,7 +265,7 @@ export const useCampaignApi = () => {
     } finally {
       setLoading(false);
     }
-  }, [setLoading, setError, setData]);</old_str>
+  }, [setLoading, setError, setData]);
 
   // Get campaign performance data
   const getCampaignPerformance = useCallback(async () => {
@@ -295,10 +294,10 @@ export const useCampaignApi = () => {
     setError(null);
 
     try {
-      const endpoint = campaignId ? 
-        `${API_BASE_URL}/email-campaigns/${campaignId}/smtp-status/` : 
+      const endpoint = campaignId ?
+        `${API_BASE_URL}/email-campaigns/${campaignId}/smtp-status/` :
         `${API_BASE_URL}/email-campaigns/smtp-status/`;
-        
+
       const response: AxiosResponse<any> = await axios.get(endpoint);
 
       setData(response.data);
