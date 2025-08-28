@@ -53,22 +53,14 @@ export const useTemplateApi = () => {
     setError(null);
 
     try {
-      // Get custom templates
-      const customResponse: AxiosResponse<CampaignTemplate[]> = await axios.get(
+      // Get all templates (custom and default) from single endpoint
+      const response: AxiosResponse<CampaignTemplate[]> = await axios.get(
         `${API_BASE_URL}/campaign-templates/`,
         { params: filters }
       );
 
-      // Get default templates
-      const defaultResponse: AxiosResponse<CampaignTemplate[]> = await axios.get(
-        `${API_BASE_URL}/campaign-templates/default_templates/`
-      );
-
       // Handle both cases: array directly or wrapped in data property
-      const customTemplates = Array.isArray(customResponse.data) ? customResponse.data : [];
-      const defaultTemplates = Array.isArray(defaultResponse.data) ? defaultResponse.data : [];
-
-      const allTemplates = [...defaultTemplates, ...customTemplates];
+      const allTemplates = Array.isArray(response.data) ? response.data : [];
       setData(allTemplates);
       return allTemplates;
     } catch (error: any) {
