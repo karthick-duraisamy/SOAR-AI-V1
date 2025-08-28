@@ -289,6 +289,29 @@ export const useCampaignApi = () => {
     }
   }, [setLoading, setError, setData]);
 
+  // Check SMTP status
+  const checkSmtpStatus = useCallback(async (campaignId?: string) => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const endpoint = campaignId ? 
+        `${API_BASE_URL}/email-campaigns/${campaignId}/smtp-status/` : 
+        `${API_BASE_URL}/email-campaigns/smtp-status/`;
+        
+      const response: AxiosResponse<any> = await axios.get(endpoint);
+
+      setData(response.data);
+      return response.data;
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.message || error.message || 'Failed to check SMTP status';
+      setError(errorMessage);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  }, [setLoading, setError, setData]);
+
   return {
     ...state,
     createCampaign,
@@ -299,5 +322,6 @@ export const useCampaignApi = () => {
     launchCampaign,
     getCampaignAnalytics,
     getCampaignPerformance,
+    checkSmtpStatus,
   };
 };

@@ -5,7 +5,7 @@ from .views import (
     ContractViewSet, ContractBreachViewSet, EmailCampaignViewSet,
     TravelOfferViewSet, SupportTicketViewSet, RevenueForecastViewSet,
     ActivityLogViewSet, AIConversationViewSet, LeadNoteViewSet, LeadHistoryViewSet,
-    DashboardAPIView, lead_stats, recent_activity, top_leads, bulk_upload_companies, download_sample_excel, CampaignTemplateViewSet
+    DashboardAPIView, lead_stats, recent_activity, top_leads, bulk_upload_companies, download_sample_excel, CampaignTemplateViewSet, check_smtp_status
 )
 
 router = DefaultRouter()
@@ -34,5 +34,8 @@ urlpatterns = [
     path('leads/top-leads/', top_leads, name='top_leads'),
     path('companies/bulk-upload/', bulk_upload_companies, name='bulk_upload_companies'),
     path('companies/download-sample/', download_sample_excel, name='download_sample_excel'),
+    # SMTP status endpoints
+    path('email-campaigns/smtp-status/', check_smtp_status, name='check_smtp_status'),
+    path('email-campaigns/<int:campaign_id>/smtp-status/', check_smtp_status, name='check_campaign_smtp_status'),
     path('', include(router.urls)),
 ]
