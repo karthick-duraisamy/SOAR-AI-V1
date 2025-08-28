@@ -2882,7 +2882,8 @@ class CampaignTemplateViewSet(viewsets.ModelViewSet):
     def list(self, request, *args, **kwargs):
         """Get all templates including both custom and default templates"""
         # Get custom templates from database
-        custom_templates = super().list(request, *args, **kwargs).data
+        custom_templates_response = super().list(request, *args, **kwargs)
+        custom_templates = custom_templates_response.data if hasattr(custom_templates_response, 'data') else []
         
         # Define default templates
         default_templates = [
