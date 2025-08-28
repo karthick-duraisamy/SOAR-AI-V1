@@ -204,27 +204,6 @@ export const useCampaignApi = () => {
     }
   }, [setLoading, setError, setData]);
 
-  // Send campaign
-  const sendCampaign = useCallback(async (id: string) => {
-    setLoading(true);
-    setError(null);
-
-    try {
-      const response: AxiosResponse<any> = await axios.post(
-        `${API_BASE_URL}/email-campaigns/${id}/send/`
-      );
-
-      setData(response.data);
-      return response.data;
-    } catch (error: any) {
-      const errorMessage = error.response?.data?.message || error.message || 'Failed to send campaign';
-      setError(errorMessage);
-      throw error;
-    } finally {
-      setLoading(false);
-    }
-  }, [setLoading, setError, setData]);
-
   // Get campaign analytics
   const getCampaignAnalytics = useCallback(async (id: string) => {
     setLoading(true);
