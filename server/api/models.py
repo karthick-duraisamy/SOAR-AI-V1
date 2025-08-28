@@ -474,7 +474,7 @@ class EmailCampaign(models.Model):
 
             except Exception as e:
                 failed_count += 1
-                smtp_logger.error(f"Error preparing email for {lead.contact.email if lead.contact.email else 'unknown'}: {str(e)}")</old_str>
+                smtp_logger.error(f"Error preparing email for {lead.contact.email if lead.contact.email else 'unknown'}: {str(e)}")
 
         # Send emails individually with detailed SMTP logging
         try:
