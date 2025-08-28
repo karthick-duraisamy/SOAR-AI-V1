@@ -296,7 +296,6 @@ export const useCampaignApi = () => {
     getCampaigns,
     getCampaignById,
     updateCampaign,
-    sendCampaign,
     launchCampaign,
     getCampaignAnalytics,
     getCampaignPerformance,
