@@ -110,7 +110,7 @@ export const useCampaignApi = () => {
       );
 
       // Transform the API response to match our interface
-      const transformedCampaigns: Campaign[] = response.data.map((campaign: EmailCampaign) => ({
+      const transformedCampaigns: Campaign[] = response.data.results.map((campaign: EmailCampaign) => ({
         id: parseInt(campaign.id.toString()),
         name: campaign.name,
         description: campaign.description,
