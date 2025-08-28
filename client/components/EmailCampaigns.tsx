@@ -105,7 +105,7 @@ export function EmailCampaigns({ onNavigate }: EmailCampaignsProps) {
   const [launchingCampaign, setLaunchingCampaign] = useState<number | null>(null);
   const [checkingSmtp, setCheckingSmtp] = useState(false);
 
-  const { getCampaigns, launchCampaign, checkSmtpStatus: fetchSmtpStatus } = useCampaignApi();
+  const { getCampaigns, launchCampaign, checkSmtpStatus: fetchSmtpStatus, loading: campaignsLoading, error: campaignsError } = useCampaignApi();
 
   // Helper function to calculate overall metrics from API data
   const calculateMetrics = () => {
