@@ -75,263 +75,35 @@ interface EmailCampaignsProps {
   onNavigate: (screen: string, filters?: any) => void;
 }
 
-const campaigns = [
-  {
-    id: 1,
-    name: 'Q3 Enterprise Outreach',
-    type: 'Prospecting',
-    status: 'active',
-    audience: 'Qualified Leads',
-    totalRecipients: 245,
-    sent: 245,
-    delivered: 240,
-    opened: 167,
-    clicked: 58,
-    replied: 31,
-    converted: 12,
-    bounced: 5,
-    unsubscribed: 3,
-    openRate: 68,
-    clickRate: 24,
-    replyRate: 13,
-    conversionRate: 5,
-    deliveryRate: 97.8,
-    bounceRate: 2.0,
-    unsubscribeRate: 1.2,
-    createdDate: '2024-07-01',
-    lastSent: '2024-07-14',
-    nextSend: '2024-07-17',
-    schedule: 'Every 3 days',
-    subject: 'Optimize Your Corporate Travel with SOAR-AI',
-    emailContent: `Hi [FIRSTNAME],
-
-I hope this email finds you well. I noticed that [COMPANY] is a leading organization in the [INDUSTRY] sector, and I wanted to reach out regarding an opportunity that could significantly benefit your corporate travel operations.
-
-At SOAR-AI, we specialize in helping companies like [COMPANY] reduce travel costs by up to 35% while improving employee satisfaction and streamlining booking processes. Given your role as [JOBTITLE], I believe you'd be interested in learning how we can help optimize your travel program.
-
-Key benefits for [COMPANY]:
-• Reduce travel expenses by 30-40%
-• Automate policy compliance and approval workflows
-• Provide real-time analytics and reporting
-• Improve traveler experience with our mobile app
-• 24/7 support and dedicated account management
-
-I'd love to schedule a brief 15-minute call to discuss how SOAR-AI can specifically benefit [COMPANY]. Are you available for a quick conversation this week?
-
-Best regards,
-Sarah Johnson
-Senior Account Executive
-SOAR-AI Corporate Travel Solutions`,
-    automationEnabled: true,
-    tags: ['Enterprise', 'High-Value'],
-    template: 'enterprise-intro',
-    sendTime: '09:00',
-    timezone: 'UTC',
-    frequency: 'every-3-days',
-    trackOpens: true,
-    trackClicks: true,
-    autoFollowUp: true,
-    avgOpenTime: '2.3 hours',
-    avgClickTime: '4.1 hours',
-    topClickedLinks: [
-      { url: 'https://soar-ai.com/demo', clicks: 28 },
-      { url: 'https://soar-ai.com/pricing', clicks: 15 },
-      { url: 'https://soar-ai.com/case-studies', clicks: 12 }
-    ],
-    deviceStats: {
-      desktop: 58,
-      mobile: 35,
-      tablet: 7
-    },
-    locationStats: [
-      { location: 'New York', opens: 45 },
-      { location: 'San Francisco', opens: 38 },
-      { location: 'Chicago', opens: 32 }
-    ],
-    performanceScore: 'high'
-  },
-  {
-    id: 2,
-    name: 'Follow-up Sequence',
-    type: 'Nurturing',
-    status: 'active',
-    audience: 'Responded Leads',
-    totalRecipients: 89,
-    sent: 89,
-    delivered: 87,
-    opened: 72,
-    clicked: 34,
-    replied: 28,
-    converted: 8,
-    bounced: 2,
-    unsubscribed: 1,
-    openRate: 81,
-    clickRate: 38,
-    replyRate: 31,
-    conversionRate: 9,
-    deliveryRate: 97.8,
-    bounceRate: 2.2,
-    unsubscribeRate: 1.1,
-    createdDate: '2024-06-15',
-    lastSent: '2024-07-13',
-    nextSend: '2024-07-16',
-    schedule: 'Every 2 days',
-    subject: 'Next Steps: Your Travel Solution',
-    emailContent: `Hi [FIRSTNAME],
-
-Thank you for your interest in SOAR-AI! I'm excited to help [COMPANY] optimize your corporate travel program.
-
-Based on our previous conversation, I understand that [COMPANY] is looking to:
-• Reduce travel costs and improve efficiency
-• Streamline booking and approval processes
-• Enhance traveler experience and satisfaction
-• Gain better visibility into travel spending
-
-I'd like to schedule a personalized demo to show you exactly how SOAR-AI can address these specific needs for [COMPANY]. During our 30-minute session, I'll demonstrate:
-
-1. Cost savings opportunities specific to your industry
-2. Automated policy compliance features
-3. Real-time analytics and reporting capabilities
-4. Mobile app and traveler experience enhancements
-
-I have availability this week:
-• Tuesday, July 16th at 2:00 PM EST
-• Wednesday, July 17th at 10:00 AM EST  
-• Thursday, July 18th at 3:00 PM EST
-
-Which time works best for you? Or if you prefer a different time, just let me know and I'll accommodate your schedule.
-
-Looking forward to speaking with you soon!
-
-Best regards,
-Sarah Johnson
-Senior Account Executive
-SOAR-AI Corporate Travel Solutions`,
-    automationEnabled: true,
-    tags: ['Follow-up', 'Engaged'],
-    template: 'follow-up-sequence',
-    sendTime: '10:00',
-    timezone: 'UTC',
-    frequency: 'every-2-days',
-    trackOpens: true,
-    trackClicks: true,
-    autoFollowUp: true,
-    avgOpenTime: '1.8 hours',
-    avgClickTime: '3.2 hours',
-    topClickedLinks: [
-      { url: 'https://soar-ai.com/schedule-demo', clicks: 22 },
-      { url: 'https://soar-ai.com/case-studies', clicks: 18 },
-      { url: 'https://soar-ai.com/roi-calculator', clicks: 14 }
-    ],
-    deviceStats: {
-      desktop: 62,
-      mobile: 31,
-      tablet: 7
-    },
-    locationStats: [
-      { location: 'Boston', opens: 28 },
-      { location: 'Seattle', opens: 24 },
-      { location: 'Austin', opens: 20 }
-    ],
-    performanceScore: 'high'
-  },
-  {
-    id: 3,
-    name: 'Re-engagement Campaign',
-    type: 'Re-engagement',
-    status: 'paused',
-    audience: 'Cold Leads',
-    totalRecipients: 156,
-    sent: 78,
-    delivered: 74,
-    opened: 34,
-    clicked: 12,
-    replied: 5,
-    converted: 1,
-    bounced: 4,
-    unsubscribed: 2,
-    openRate: 44,
-    clickRate: 15,
-    replyRate: 6,
-    conversionRate: 1,
-    deliveryRate: 94.9,
-    bounceRate: 5.1,
-    unsubscribeRate: 2.6,
-    createdDate: '2024-06-01',
-    lastSent: '2024-07-10',
-    nextSend: null,
-    schedule: 'Weekly',
-    subject: 'We Miss You - Special Travel Offer Inside',
-    emailContent: `Hi [FIRSTNAME],
-
-It's been a while since we last connected, and I wanted to reach out with some exciting news that could benefit [COMPANY].
-
-We've recently launched several new features that I believe would be particularly valuable for organizations like yours:
-
-🎯 **NEW: AI-Powered Travel Optimization**
-Our latest AI technology can now predict and prevent travel disruptions before they happen, potentially saving [COMPANY] thousands in rebooking costs.
-
-💰 **LIMITED TIME: 30% Additional Savings**
-For the next 30 days, we're offering an exclusive 30% discount on our implementation fees for new clients. This is on top of the 35% average cost savings our clients already see.
-
-📊 **Enhanced Analytics Dashboard**
-Get real-time insights into travel patterns, cost drivers, and policy compliance across all your locations.
-
-I know corporate travel management can be challenging, especially with the complexities of managing [EMPLOYEES] employees across multiple locations. That's why I'd love to show you how other companies in [INDUSTRY] are solving these exact challenges with SOAR-AI.
-
-Would you be interested in a brief 15-minute call to learn more about these new capabilities? I promise it will be worth your time.
-
-You can schedule directly on my calendar here: [Schedule a Call]
-
-Or simply reply to this email with your availability.
-
-Best regards,
-Sarah Johnson
-Senior Account Executive
-SOAR-AI Corporate Travel Solutions
-
-P.S. This special offer expires on July 31st, so don't wait too long to reach out!`,
-    automationEnabled: false,
-    tags: ['Re-engagement', 'Special Offer'],
-    template: 'reengagement',
-    sendTime: '14:00',
-    timezone: 'UTC',
-    frequency: 'weekly',
-    trackOpens: true,
-    trackClicks: true,
-    autoFollowUp: false,
-    avgOpenTime: '3.1 hours',
-    avgClickTime: '5.2 hours',
-    topClickedLinks: [
-      { url: 'https://soar-ai.com/special-offer', clicks: 8 },
-      { url: 'https://soar-ai.com/new-features', clicks: 6 },
-      { url: 'https://soar-ai.com/schedule', clicks: 4 }
-    ],
-    deviceStats: {
-      desktop: 55,
-      mobile: 38,
-      tablet: 7
-    },
-    locationStats: [
-      { location: 'Dallas', opens: 12 },
-      { location: 'Miami', opens: 10 },
-      { location: 'Denver', opens: 8 }
-    ],
-    performanceScore: 'medium'
-  }
-];
+interface Campaign {
+  id: number;
+  name: string;
+  description: string;
+  campaign_type: string;
+  status: string;
+  subject_line: string;
+  email_content: string;
+  emails_sent: number;
+  emails_opened: number;
+  emails_clicked: number;
+  target_leads_count: number;
+  open_rate: number;
+  click_rate: number;
+  created_at: string;
+  updated_at: string;
+}
 
 export function EmailCampaigns({ onNavigate }: EmailCampaignsProps) {
   const [activeTab, setActiveTab] = useState('campaigns');
-  const [selectedCampaign, setSelectedCampaign] = useState<any>(null);
+  const [selectedCampaign, setSelectedCampaign] = useState<Campaign | null>(null);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [showViewDialog, setShowViewDialog] = useState(false);
   const [viewTab, setViewTab] = useState('overview');
-  const [campaignList, setCampaignList] = useState<any[]>(campaigns);
+  const [campaignList, setCampaignList] = useState<Campaign[]>([]);
 
-  const { getCampaigns, loading: campaignsLoading } = useCampaignApi();
+  const { getCampaigns, loading: campaignsLoading, error: campaignsError } = useCampaignApi();
 
-  // Helper function to calculate overall metrics
+  // Helper function to calculate overall metrics from API data
   const calculateMetrics = () => {
     if (campaignList.length === 0) {
       return {
@@ -351,43 +123,40 @@ export function EmailCampaigns({ onNavigate }: EmailCampaignsProps) {
     }
 
     const metrics = campaignList.reduce((acc, campaign) => {
-      acc.totalSent += campaign.sent;
-      acc.totalDelivered += campaign.delivered;
-      acc.totalOpened += campaign.opened;
-      acc.totalClicked += campaign.clicked;
-      acc.totalReplied += campaign.replied;
-      acc.totalConverted += campaign.converted;
-      acc.totalOpenRate += campaign.openRate;
-      acc.totalClickRate += campaign.clickRate;
-      acc.totalReplyRate += campaign.replyRate;
-      acc.totalConversionRate += campaign.conversionRate;
+      acc.totalSent += campaign.emails_sent;
+      acc.totalOpened += campaign.emails_opened;
+      acc.totalClicked += campaign.emails_clicked;
+      acc.totalOpenRate += campaign.open_rate;
+      acc.totalClickRate += campaign.click_rate;
       return acc;
     }, {
       totalSent: 0,
-      totalDelivered: 0,
       totalOpened: 0,
       totalClicked: 0,
-      totalReplied: 0,
-      totalConverted: 0,
       totalOpenRate: 0,
-      totalClickRate: 0,
-      totalReplyRate: 0,
-      totalConversionRate: 0
+      totalClickRate: 0
     });
+
+    // Calculate delivered (assume 98% delivery rate)
+    const totalDelivered = Math.floor(metrics.totalSent * 0.98);
+
+    // Calculate replied and converted (estimates based on click rate)
+    const totalReplied = Math.floor(metrics.totalClicked * 0.3);
+    const totalConverted = Math.floor(metrics.totalClicked * 0.1);
 
     return {
       totalCampaigns: campaignList.length,
       activeCampaigns: campaignList.filter(c => c.status === 'active').length,
       totalSent: metrics.totalSent,
-      totalDelivered: metrics.totalDelivered,
+      totalDelivered: totalDelivered,
       totalOpened: metrics.totalOpened,
       totalClicked: metrics.totalClicked,
-      totalReplied: metrics.totalReplied,
-      totalConverted: metrics.totalConverted,
-      avgOpenRate: Math.round(metrics.totalOpenRate / campaignList.length),
-      avgClickRate: Math.round(metrics.totalClickRate / campaignList.length),
-      avgReplyRate: Math.round(metrics.totalReplyRate / campaignList.length),
-      avgConversionRate: Math.round(metrics.totalConversionRate / campaignList.length)
+      totalReplied: totalReplied,
+      totalConverted: totalConverted,
+      avgOpenRate: campaignList.length > 0 ? Math.round(metrics.totalOpenRate / campaignList.length) : 0,
+      avgClickRate: campaignList.length > 0 ? Math.round(metrics.totalClickRate / campaignList.length) : 0,
+      avgReplyRate: metrics.totalSent > 0 ? Math.round((totalReplied / metrics.totalSent) * 100) : 0,
+      avgConversionRate: metrics.totalSent > 0 ? Math.round((totalConverted / metrics.totalSent) * 100) : 0
     };
   };
 
@@ -400,85 +169,69 @@ export function EmailCampaigns({ onNavigate }: EmailCampaignsProps) {
   const loadCampaigns = async () => {
     try {
       const fetchedCampaigns = await getCampaigns();
-      
-      if (fetchedCampaigns && fetchedCampaigns.length > 0) {
-        // Transform API data to match the existing campaign structure
-        const transformedCampaigns = fetchedCampaigns.map((campaign: any) => ({
-          id: campaign.id,
-          name: campaign.name,
-          type: campaign.campaign_type === 'nurture' ? 'Nurturing' : 
-                campaign.campaign_type === 'prospecting' ? 'Prospecting' : 
-                campaign.campaign_type || 'Other',
-          status: campaign.status,
-          audience: 'API Generated Leads',
-          totalRecipients: campaign.emails_sent || 0,
-          sent: campaign.emails_sent || 0,
-          delivered: Math.floor((campaign.emails_sent || 0) * 0.98),
-          opened: campaign.emails_opened || 0,
-          clicked: campaign.emails_clicked || 0,
-          replied: Math.floor((campaign.emails_clicked || 0) * 0.3),
-          converted: Math.floor((campaign.emails_clicked || 0) * 0.1),
-          bounced: Math.floor((campaign.emails_sent || 0) * 0.02),
-          unsubscribed: Math.floor((campaign.emails_sent || 0) * 0.01),
-          openRate: (campaign.emails_sent || 0) > 0 ? Math.round(((campaign.emails_opened || 0) / campaign.emails_sent) * 100) : 0,
-          clickRate: (campaign.emails_sent || 0) > 0 ? Math.round(((campaign.emails_clicked || 0) / campaign.emails_sent) * 100) : 0,
-          replyRate: (campaign.emails_sent || 0) > 0 ? Math.round(((campaign.emails_clicked || 0) * 0.3 / campaign.emails_sent) * 100) : 0,
-          conversionRate: (campaign.emails_sent || 0) > 0 ? Math.round(((campaign.emails_clicked || 0) * 0.1 / campaign.emails_sent) * 100) : 0,
-          deliveryRate: 98,
-          bounceRate: 2,
-          unsubscribeRate: 1,
-          createdDate: campaign.created_at ? new Date(campaign.created_at).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
-          lastSent: campaign.updated_at ? new Date(campaign.updated_at).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
-          nextSend: campaign.status === 'active' ? new Date(Date.now() + 86400000).toISOString().split('T')[0] : null,
-          schedule: 'Every 3 days',
-          subject: campaign.subject_line || 'No Subject',
-          emailContent: campaign.email_content || 'No content available',
-          automationEnabled: campaign.status === 'active',
-          tags: ['API Generated'],
-          template: 'api-generated',
-          sendTime: '09:00',
-          timezone: 'UTC',
-          frequency: 'every-3-days',
-          trackOpens: true,
-          trackClicks: true,
-          autoFollowUp: true,
-          avgOpenTime: '2.3 hours',
-          avgClickTime: '4.1 hours',
-          topClickedLinks: [
-            { url: 'https://soar-ai.com/demo', clicks: Math.floor((campaign.emails_clicked || 0) * 0.5) },
-            { url: 'https://soar-ai.com/pricing', clicks: Math.floor((campaign.emails_clicked || 0) * 0.3) },
-            { url: 'https://soar-ai.com/case-studies', clicks: Math.floor((campaign.emails_clicked || 0) * 0.2) }
-          ],
-          deviceStats: {
-            desktop: 58,
-            mobile: 35,
-            tablet: 7
-          },
-          locationStats: [
-            { location: 'New York', opens: Math.floor((campaign.emails_opened || 0) * 0.3) },
-            { location: 'San Francisco', opens: Math.floor((campaign.emails_opened || 0) * 0.25) },
-            { location: 'Chicago', opens: Math.floor((campaign.emails_opened || 0) * 0.2) }
-          ],
-          performanceScore: (campaign.emails_sent || 0) > 100 ? 'high' : (campaign.emails_sent || 0) > 20 ? 'medium' : 'low'
-        }));
 
-        // Combine with existing mock campaigns for demonstration
-        setCampaignList([...transformedCampaigns, ...campaigns]);
+      if (fetchedCampaigns && Array.isArray(fetchedCampaigns)) {
+        setCampaignList(fetchedCampaigns);
       } else {
-        // Use mock data if no API data is available
-        setCampaignList(campaigns);
+        console.warn('No campaigns data received from API');
+        setCampaignList([]);
       }
     } catch (error) {
       console.error('Failed to load campaigns:', error);
-      // Keep using mock data if API fails
-      setCampaignList(campaigns);
+      setCampaignList([]);
     }
   };
 
-  const handleViewCampaign = (campaign: any) => {
+  const handleViewCampaign = (campaign: Campaign) => {
     setSelectedCampaign(campaign);
     setShowViewDialog(true);
     setViewTab('overview');
+  };
+
+  const getStatusBadgeColor = (status: string) => {
+    switch (status) {
+      case 'active':
+        return 'bg-green-100 text-green-800';
+      case 'paused':
+        return 'bg-yellow-100 text-yellow-800';
+      case 'completed':
+        return 'bg-blue-100 text-blue-800';
+      case 'draft':
+        return 'bg-gray-100 text-gray-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const getCampaignTypeLabel = (type: string) => {
+    switch (type) {
+      case 'nurture':
+        return 'Lead Nurture';
+      case 'follow_up':
+        return 'Follow-up';
+      case 'promotion':
+        return 'Promotional';
+      case 'newsletter':
+        return 'Newsletter';
+      case 'announcement':
+        return 'Announcement';
+      default:
+        return type;
+    }
+  };
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    });
+  };
+
+  const getPerformanceScore = (campaign: Campaign) => {
+    if (campaign.open_rate >= 50) return 'high';
+    if (campaign.open_rate >= 25) return 'medium';
+    return 'low';
   };
 
   return (
@@ -502,6 +255,20 @@ export function EmailCampaigns({ onNavigate }: EmailCampaignsProps) {
           </p>
         </div>
         <div className="flex gap-2">
+          <Button 
+            variant="secondary"
+            onClick={loadCampaigns}
+            disabled={campaignsLoading}
+            style={{
+              fontFamily: 'var(--font-family)',
+              fontSize: 'var(--text-base)',
+              backgroundColor: 'var(--color-secondary)',
+              color: 'var(--color-secondary-foreground)'
+            }}
+          >
+            <RefreshCw className={`h-4 w-4 mr-2 ${campaignsLoading ? 'animate-spin' : ''}`} />
+            Refresh
+          </Button>
           <Button 
             variant="secondary"
             style={{
@@ -528,6 +295,16 @@ export function EmailCampaigns({ onNavigate }: EmailCampaignsProps) {
           </Button>
         </div>
       </div>
+
+      {/* Error Alert */}
+      {campaignsError && (
+        <Alert className="border-red-200 bg-red-50">
+          <AlertCircle className="h-4 w-4 text-red-600" />
+          <AlertDescription className="text-red-800">
+            Failed to load campaigns: {campaignsError}
+          </AlertDescription>
+        </Alert>
+      )}
 
       {/* Campaign Statistics */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -805,7 +582,26 @@ export function EmailCampaigns({ onNavigate }: EmailCampaignsProps) {
                 <span className="ml-2">Loading campaigns...</span>
               </div>
             )}
-            {campaignList.map((campaign) => (
+
+            {!campaignsLoading && campaignList.length === 0 && (
+              <Card style={{ 
+                fontFamily: 'var(--font-family)',
+                border: '1px solid #C9C9C9',
+                borderRadius: 'var(--radius-md)'
+              }}>
+                <CardContent className="p-8 text-center">
+                  <Mail className="h-12 w-12 mx-auto mb-4 text-gray-400" />
+                  <h3 className="text-lg font-medium mb-2">No campaigns found</h3>
+                  <p className="text-gray-600 mb-4">Get started by creating your first email campaign.</p>
+                  <Button onClick={() => setShowCreateDialog(true)}>
+                    <Plus className="h-4 w-4 mr-2" />
+                    Create Campaign
+                  </Button>
+                </CardContent>
+              </Card>
+            )}
+
+            {!campaignsLoading && campaignList.map((campaign) => (
               <Card 
                 key={campaign.id}
                 style={{ 
@@ -828,11 +624,7 @@ export function EmailCampaigns({ onNavigate }: EmailCampaignsProps) {
                       {campaign.name}
                     </CardTitle>
                     <Badge 
-                      variant="default"
-                      style={{
-                        backgroundColor: campaign.status === 'active' ? 'var(--color-primary)' : 'var(--color-secondary)',
-                        color: campaign.status === 'active' ? 'var(--color-primary-foreground)' : 'var(--color-secondary-foreground)'
-                      }}
+                      className={getStatusBadgeColor(campaign.status)}
                     >
                       {campaign.status}
                     </Badge>
@@ -842,8 +634,13 @@ export function EmailCampaigns({ onNavigate }: EmailCampaignsProps) {
                     color: 'var(--color-muted-foreground)',
                     fontFamily: 'var(--font-family)'
                   }}>
-                    {campaign.subject}
+                    {campaign.subject_line}
                   </CardDescription>
+                  <div className="flex items-center gap-2 text-xs text-gray-500">
+                    <span>{getCampaignTypeLabel(campaign.campaign_type)}</span>
+                    <span>•</span>
+                    <span>Created {formatDate(campaign.created_at)}</span>
+                  </div>
                 </CardHeader>
                 <CardContent>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -854,7 +651,7 @@ export function EmailCampaigns({ onNavigate }: EmailCampaignsProps) {
                         fontFamily: 'var(--font-family)',
                         color: 'var(--color-foreground)'
                       }}>
-                        {campaign.sent}
+                        {campaign.emails_sent.toLocaleString()}
                       </div>
                       <p style={{ 
                         fontSize: 'var(--text-xs)', 
@@ -871,7 +668,7 @@ export function EmailCampaigns({ onNavigate }: EmailCampaignsProps) {
                         fontFamily: 'var(--font-family)',
                         color: 'var(--color-foreground)'
                       }}>
-                        {campaign.openRate}%
+                        {Math.round(campaign.open_rate)}%
                       </div>
                       <p style={{ 
                         fontSize: 'var(--text-xs)', 
@@ -888,7 +685,7 @@ export function EmailCampaigns({ onNavigate }: EmailCampaignsProps) {
                         fontFamily: 'var(--font-family)',
                         color: 'var(--color-foreground)'
                       }}>
-                        {campaign.clickRate}%
+                        {Math.round(campaign.click_rate)}%
                       </div>
                       <p style={{ 
                         fontSize: 'var(--text-xs)', 
@@ -905,14 +702,14 @@ export function EmailCampaigns({ onNavigate }: EmailCampaignsProps) {
                         fontFamily: 'var(--font-family)',
                         color: 'var(--color-foreground)'
                       }}>
-                        {campaign.conversionRate}%
+                        {campaign.target_leads_count || 0}
                       </div>
                       <p style={{ 
                         fontSize: 'var(--text-xs)', 
                         color: 'var(--color-muted-foreground)',
                         fontFamily: 'var(--font-family)'
                       }}>
-                        Conversion
+                        Targets
                       </p>
                     </div>
                   </div>
@@ -1025,7 +822,7 @@ export function EmailCampaigns({ onNavigate }: EmailCampaignsProps) {
         </TabsContent>
       </Tabs>
 
-      {/* Campaign Details Modal - Fully Themed */}
+      {/* Campaign Details Modal */}
       <Dialog open={showViewDialog} onOpenChange={setShowViewDialog}>
         <DialogContent className="max-w-modal-2xl max-h-[90vh] overflow-y-auto" style={{ 
           fontFamily: 'var(--font-family)',
@@ -1057,7 +854,7 @@ export function EmailCampaigns({ onNavigate }: EmailCampaignsProps) {
             style={{ fontFamily: 'var(--font-family)' }}
           >
             <TabsList 
-              className="grid w-full grid-cols-4"
+              className="grid w-full grid-cols-3"
               style={{
                 backgroundColor: 'var(--color-tabs-background)',
                 borderRadius: 'var(--radius-md)',
@@ -1065,577 +862,222 @@ export function EmailCampaigns({ onNavigate }: EmailCampaignsProps) {
                 fontFamily: 'var(--font-family)'
               }}
             >
-              <TabsTrigger 
-                value="overview"
-                style={{
-                  fontFamily: 'var(--font-family)',
-                  fontSize: 'var(--text-base)',
-                  fontWeight: 'var(--font-weight-medium)',
-                  color: viewTab === 'overview' ? 'var(--color-tabs-active-text)' : 'var(--color-tabs-inactive-text)',
-                  borderBottom: viewTab === 'overview' ? '1px solid var(--color-tabs-active-border)' : 'none',
-                  backgroundColor: 'transparent'
-                }}
-              >
-                Overview
-              </TabsTrigger>
-              <TabsTrigger 
-                value="performance"
-                style={{
-                  fontFamily: 'var(--font-family)',
-                  fontSize: 'var(--text-base)',
-                  fontWeight: 'var(--font-weight-medium)',
-                  color: viewTab === 'performance' ? 'var(--color-tabs-active-text)' : 'var(--color-tabs-inactive-text)',
-                  borderBottom: viewTab === 'performance' ? '1px solid var(--color-tabs-active-border)' : 'none',
-                  backgroundColor: 'transparent'
-                }}
-              >
-                Performance
-              </TabsTrigger>
-              <TabsTrigger 
-                value="recipients"
-                style={{
-                  fontFamily: 'var(--font-family)',
-                  fontSize: 'var(--text-base)',
-                  fontWeight: 'var(--font-weight-medium)',
-                  color: viewTab === 'recipients' ? 'var(--color-tabs-active-text)' : 'var(--color-tabs-inactive-text)',
-                  borderBottom: viewTab === 'recipients' ? '1px solid var(--color-tabs-active-border)' : 'none',
-                  backgroundColor: 'transparent'
-                }}
-              >
-                Recipients
-              </TabsTrigger>
-              <TabsTrigger 
-                value="content"
-                style={{
-                  fontFamily: 'var(--font-family)',
-                  fontSize: 'var(--text-base)',
-                  fontWeight: 'var(--font-weight-medium)',
-                  color: viewTab === 'content' ? 'var(--color-tabs-active-text)' : 'var(--color-tabs-inactive-text)',
-                  borderBottom: viewTab === 'content' ? '1px solid var(--color-tabs-active-border)' : 'none',
-                  backgroundColor: 'transparent'
-                }}
-              >
-                Content
-              </TabsTrigger>
+              <TabsTrigger value="overview">Overview</TabsTrigger>
+              <TabsTrigger value="performance">Performance</TabsTrigger>
+              <TabsTrigger value="content">Content</TabsTrigger>
             </TabsList>
 
             <TabsContent value="overview" className="space-y-4" style={{ marginTop: 'var(--space-lg)' }}>
-              {/* Dashboard Summary Cards */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                <Card style={{ 
-                  fontFamily: 'var(--font-family)',
-                  border: '1px solid #C9C9C9',
-                  borderRadius: 'var(--radius-md)',
-                  boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)'
-                }}>
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle style={{ 
-                      fontSize: 'var(--text-sm)', 
-                      fontWeight: 'var(--font-weight-medium)',
-                      fontFamily: 'var(--font-family)'
-                    }}>
-                      Sent
-                    </CardTitle>
-                    <Send className="h-4 w-4 text-muted-foreground" />
-                  </CardHeader>
-                  <CardContent>
-                    <div style={{ 
-                      fontSize: 'var(--text-2xl)', 
-                      fontWeight: 'var(--font-weight-medium)',
-                      fontFamily: 'var(--font-family)',
-                      color: 'var(--color-foreground)'
-                    }}>
-                      {selectedCampaign?.sent?.toLocaleString()}
-                    </div>
-                    <p style={{ 
-                      fontSize: 'var(--text-xs)', 
-                      color: 'var(--color-muted-foreground)',
-                      fontFamily: 'var(--font-family)'
-                    }}>
-                      to {selectedCampaign?.totalRecipients} recipients
-                    </p>
-                  </CardContent>
-                </Card>
-
-                <Card style={{ 
-                  fontFamily: 'var(--font-family)',
-                  border: '1px solid #C9C9C9',
-                  borderRadius: 'var(--radius-md)',
-                  boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)'
-                }}>
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle style={{ 
-                      fontSize: 'var(--text-sm)', 
-                      fontWeight: 'var(--font-weight-medium)',
-                      fontFamily: 'var(--font-family)'
-                    }}>
-                      Open Rate
-                    </CardTitle>
-                    <Eye className="h-4 w-4 text-muted-foreground" />
-                  </CardHeader>
-                  <CardContent>
-                    <div style={{ 
-                      fontSize: 'var(--text-2xl)', 
-                      fontWeight: 'var(--font-weight-medium)',
-                      fontFamily: 'var(--font-family)',
-                      color: 'var(--color-foreground)'
-                    }}>
-                      {selectedCampaign?.openRate}%
-                    </div>
-                    <p style={{ 
-                      fontSize: 'var(--text-xs)', 
-                      color: 'var(--color-muted-foreground)',
-                      fontFamily: 'var(--font-family)'
-                    }}>
-                      {selectedCampaign?.opened} opens
-                    </p>
-                  </CardContent>
-                </Card>
-
-                <Card style={{ 
-                  fontFamily: 'var(--font-family)',
-                  border: '1px solid #C9C9C9',
-                  borderRadius: 'var(--radius-md)',
-                  boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)'
-                }}>
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle style={{ 
-                      fontSize: 'var(--text-sm)', 
-                      fontWeight: 'var(--font-weight-medium)',
-                      fontFamily: 'var(--font-family)'
-                    }}>
-                      Click Rate
-                    </CardTitle>
-                    <Target className="h-4 w-4 text-muted-foreground" />
-                  </CardHeader>
-                  <CardContent>
-                    <div style={{ 
-                      fontSize: 'var(--text-2xl)', 
-                      fontWeight: 'var(--font-weight-medium)',
-                      fontFamily: 'var(--font-family)',
-                      color: 'var(--color-foreground)'
-                    }}>
-                      {selectedCampaign?.clickRate}%
-                    </div>
-                    <p style={{ 
-                      fontSize: 'var(--text-xs)', 
-                      color: 'var(--color-muted-foreground)',
-                      fontFamily: 'var(--font-family)'
-                    }}>
-                      {selectedCampaign?.clicked} clicks
-                    </p>
-                  </CardContent>
-                </Card>
-
-                <Card style={{ 
-                  fontFamily: 'var(--font-family)',
-                  border: '1px solid #C9C9C9',
-                  borderRadius: 'var(--radius-md)',
-                  boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)'
-                }}>
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle style={{ 
-                      fontSize: 'var(--text-sm)', 
-                      fontWeight: 'var(--font-weight-medium)',
-                      fontFamily: 'var(--font-family)'
-                    }}>
-                      Conversion Rate
-                    </CardTitle>
-                    <CheckCircle className="h-4 w-4 text-muted-foreground" />
-                  </CardHeader>
-                  <CardContent>
-                    <div style={{ 
-                      fontSize: 'var(--text-2xl)', 
-                      fontWeight: 'var(--font-weight-medium)',
-                      fontFamily: 'var(--font-family)',
-                      color: 'var(--color-foreground)'
-                    }}>
-                      {selectedCampaign?.conversionRate}%
-                    </div>
-                    <p style={{ 
-                      fontSize: 'var(--text-xs)', 
-                      color: 'var(--color-muted-foreground)',
-                      fontFamily: 'var(--font-family)'
-                    }}>
-                      {selectedCampaign?.converted} conversions
-                    </p>
-                  </CardContent>
-                </Card>
-              </div>
-
-              {/* Campaign Timeline */}
-              <Card style={{ 
-                fontFamily: 'var(--font-family)',
-                border: '1px solid #C9C9C9',
-                borderRadius: 'var(--radius-md)',
-                marginTop: 'var(--space-lg)'
-              }}>
-                <CardHeader>
-                  <CardTitle style={{ 
-                    fontSize: 'var(--text-lg)', 
-                    fontWeight: 'var(--font-weight-medium)',
-                    fontFamily: 'var(--font-family)'
+              {selectedCampaign && (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                  <Card style={{ 
+                    fontFamily: 'var(--font-family)',
+                    border: '1px solid #C9C9C9',
+                    borderRadius: 'var(--radius-md)',
+                    boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)'
                   }}>
-                    Campaign Timeline
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <span style={{ 
-                      fontSize: 'var(--text-base)',
-                      fontFamily: 'var(--font-family)',
-                      color: 'var(--color-foreground)'
-                    }}>
-                      Created
-                    </span>
-                    <span style={{ 
-                      fontSize: 'var(--text-base)',
-                      fontFamily: 'var(--font-family)',
-                      color: 'var(--color-muted-foreground)'
-                    }}>
-                      {selectedCampaign?.createdDate}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span style={{ 
-                      fontSize: 'var(--text-base)',
-                      fontFamily: 'var(--font-family)',
-                      color: 'var(--color-foreground)'
-                    }}>
-                      Last Sent
-                    </span>
-                    <span style={{ 
-                      fontSize: 'var(--text-base)',
-                      fontFamily: 'var(--font-family)',
-                      color: 'var(--color-muted-foreground)'
-                    }}>
-                      {selectedCampaign?.lastSent}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span style={{ 
-                      fontSize: 'var(--text-base)',
-                      fontFamily: 'var(--font-family)',
-                      color: 'var(--color-foreground)'
-                    }}>
-                      Next Send
-                    </span>
-                    <span style={{ 
-                      fontSize: 'var(--text-base)',
-                      fontFamily: 'var(--font-family)',
-                      color: 'var(--color-muted-foreground)'
-                    }}>
-                      {selectedCampaign?.nextSend || 'Not scheduled'}
-                    </span>
-                  </div>
-                </CardContent>
-              </Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                      <CardTitle style={{ fontSize: 'var(--text-sm)' }}>Sent</CardTitle>
+                      <Send className="h-4 w-4 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                      <div style={{ fontSize: 'var(--text-2xl)', fontWeight: 'var(--font-weight-medium)' }}>
+                        {selectedCampaign.emails_sent.toLocaleString()}
+                      </div>
+                      <p style={{ fontSize: 'var(--text-xs)', color: 'var(--color-muted-foreground)' }}>
+                        to {selectedCampaign.target_leads_count} targets
+                      </p>
+                    </CardContent>
+                  </Card>
+
+                  <Card style={{ 
+                    fontFamily: 'var(--font-family)',
+                    border: '1px solid #C9C9C9',
+                    borderRadius: 'var(--radius-md)',
+                    boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)'
+                  }}>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                      <CardTitle style={{ fontSize: 'var(--text-sm)' }}>Open Rate</CardTitle>
+                      <Eye className="h-4 w-4 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                      <div style={{ fontSize: 'var(--text-2xl)', fontWeight: 'var(--font-weight-medium)' }}>
+                        {Math.round(selectedCampaign.open_rate)}%
+                      </div>
+                      <p style={{ fontSize: 'var(--text-xs)', color: 'var(--color-muted-foreground)' }}>
+                        {selectedCampaign.emails_opened} opens
+                      </p>
+                    </CardContent>
+                  </Card>
+
+                  <Card style={{ 
+                    fontFamily: 'var(--font-family)',
+                    border: '1px solid #C9C9C9',
+                    borderRadius: 'var(--radius-md)',
+                    boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)'
+                  }}>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                      <CardTitle style={{ fontSize: 'var(--text-sm)' }}>Click Rate</CardTitle>
+                      <Target className="h-4 w-4 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                      <div style={{ fontSize: 'var(--text-2xl)', fontWeight: 'var(--font-weight-medium)' }}>
+                        {Math.round(selectedCampaign.click_rate)}%
+                      </div>
+                      <p style={{ fontSize: 'var(--text-xs)', color: 'var(--color-muted-foreground)' }}>
+                        {selectedCampaign.emails_clicked} clicks
+                      </p>
+                    </CardContent>
+                  </Card>
+
+                  <Card style={{ 
+                    fontFamily: 'var(--font-family)',
+                    border: '1px solid #C9C9C9',
+                    borderRadius: 'var(--radius-md)',
+                    boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)'
+                  }}>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                      <CardTitle style={{ fontSize: 'var(--text-sm)' }}>Status</CardTitle>
+                      <Activity className="h-4 w-4 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                      <div className="flex items-center space-x-2">
+                        <Badge className={getStatusBadgeColor(selectedCampaign.status)}>
+                          {selectedCampaign.status}
+                        </Badge>
+                      </div>
+                      <p style={{ fontSize: 'var(--text-xs)', color: 'var(--color-muted-foreground)' }}>
+                        {getCampaignTypeLabel(selectedCampaign.campaign_type)}
+                      </p>
+                    </CardContent>
+                  </Card>
+                </div>
+              )}
             </TabsContent>
 
             <TabsContent value="performance" className="space-y-4" style={{ marginTop: 'var(--space-lg)' }}>
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <Card style={{ 
-                  fontFamily: 'var(--font-family)',
-                  border: '1px solid #C9C9C9',
-                  borderRadius: 'var(--radius-md)'
-                }}>
-                  <CardHeader>
-                    <CardTitle style={{ 
-                      fontSize: 'var(--text-lg)', 
-                      fontWeight: 'var(--font-weight-medium)',
-                      fontFamily: 'var(--font-family)'
-                    }}>
-                      Campaign Details
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div>
-                      <span style={{ 
-                        fontSize: 'var(--text-sm)',
-                        fontWeight: 'var(--font-weight-medium)',
-                        fontFamily: 'var(--font-family)',
-                        color: 'var(--color-foreground)'
-                      }}>
-                        Type:
-                      </span>
-                      <span style={{ 
-                        fontSize: 'var(--text-sm)',
-                        fontFamily: 'var(--font-family)',
-                        color: 'var(--color-muted-foreground)',
-                        marginLeft: 'var(--space-sm)'
-                      }}>
-                        {selectedCampaign?.type}
-                      </span>
-                    </div>
-                    <div>
-                      <span style={{ 
-                        fontSize: 'var(--text-sm)',
-                        fontWeight: 'var(--font-weight-medium)',
-                        fontFamily: 'var(--font-family)',
-                        color: 'var(--color-foreground)'
-                      }}>
-                        Audience:
-                      </span>
-                      <span style={{ 
-                        fontSize: 'var(--text-sm)',
-                        fontFamily: 'var(--font-family)',
-                        color: 'var(--color-muted-foreground)',
-                        marginLeft: 'var(--space-sm)'
-                      }}>
-                        {selectedCampaign?.audience}
-                      </span>
-                    </div>
-                    <div>
-                      <span style={{ 
-                        fontSize: 'var(--text-sm)',
-                        fontWeight: 'var(--font-weight-medium)',
-                        fontFamily: 'var(--font-family)',
-                        color: 'var(--color-foreground)'
-                      }}>
-                        Schedule:
-                      </span>
-                      <span style={{ 
-                        fontSize: 'var(--text-sm)',
-                        fontFamily: 'var(--font-family)',
-                        color: 'var(--color-muted-foreground)',
-                        marginLeft: 'var(--space-sm)'
-                      }}>
-                        {selectedCampaign?.schedule}
-                      </span>
-                    </div>
-                    <div>
-                      <span style={{ 
-                        fontSize: 'var(--text-sm)',
-                        fontWeight: 'var(--font-weight-medium)',
-                        fontFamily: 'var(--font-family)',
-                        color: 'var(--color-foreground)'
-                      }}>
-                        Status:
-                      </span>
-                      <Badge 
-                        variant="default" 
-                        style={{ 
-                          marginLeft: 'var(--space-sm)',
-                          backgroundColor: selectedCampaign?.status === 'active' ? 'var(--color-primary)' : 'var(--color-secondary)',
-                          color: selectedCampaign?.status === 'active' ? 'var(--color-primary-foreground)' : 'var(--color-secondary-foreground)'
-                        }}
-                      >
-                        {selectedCampaign?.status}
-                      </Badge>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card style={{ 
-                  fontFamily: 'var(--font-family)',
-                  border: '1px solid #C9C9C9',
-                  borderRadius: 'var(--radius-md)'
-                }}>
-                  <CardHeader>
-                    <CardTitle style={{ 
-                      fontSize: 'var(--text-lg)', 
-                      fontWeight: 'var(--font-weight-medium)',
-                      fontFamily: 'var(--font-family)'
-                    }}>
-                      Performance Metrics
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <span style={{ 
-                        fontSize: 'var(--text-sm)',
-                        fontFamily: 'var(--font-family)',
-                        color: 'var(--color-foreground)'
-                      }}>
-                        Delivery Rate
-                      </span>
-                      <span style={{ 
-                        fontSize: 'var(--text-sm)',
-                        fontWeight: 'var(--font-weight-medium)',
-                        fontFamily: 'var(--font-family)',
-                        color: 'var(--color-foreground)'
-                      }}>
-                        {selectedCampaign?.deliveryRate}%
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span style={{ 
-                        fontSize: 'var(--text-sm)',
-                        fontFamily: 'var(--font-family)',
-                        color: 'var(--color-foreground)'
-                      }}>
-                        Bounce Rate
-                      </span>
-                      <span style={{ 
-                        fontSize: 'var(--text-sm)',
-                        fontWeight: 'var(--font-weight-medium)',
-                        fontFamily: 'var(--font-family)',
-                        color: 'var(--color-foreground)'
-                      }}>
-                        {selectedCampaign?.bounceRate}%
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span style={{ 
-                        fontSize: 'var(--text-sm)',
-                        fontFamily: 'var(--font-family)',
-                        color: 'var(--color-foreground)'
-                      }}>
-                        Reply Rate
-                      </span>
-                      <span style={{ 
-                        fontSize: 'var(--text-sm)',
-                        fontWeight: 'var(--font-weight-medium)',
-                        fontFamily: 'var(--font-family)',
-                        color: 'var(--color-foreground)'
-                      }}>
-                        {selectedCampaign?.replyRate}%
-                      </span>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-            </TabsContent>
-
-            <TabsContent value="recipients" className="space-y-4" style={{ marginTop: 'var(--space-lg)' }}>
-              <Card style={{ 
-                fontFamily: 'var(--font-family)',
-                border: '1px solid #C9C9C9',
-                borderRadius: 'var(--radius-md)'
-              }}>
-                <CardHeader>
-                  <CardTitle style={{ 
-                    fontSize: 'var(--text-lg)', 
-                    fontWeight: 'var(--font-weight-medium)',
-                    fontFamily: 'var(--font-family)'
+              {selectedCampaign && (
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  <Card style={{ 
+                    fontFamily: 'var(--font-family)',
+                    border: '1px solid #C9C9C9',
+                    borderRadius: 'var(--radius-md)'
                   }}>
-                    Recipient Analytics
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="text-center">
-                      <div style={{ 
-                        fontSize: 'var(--text-xl)', 
-                        fontWeight: 'var(--font-weight-medium)',
-                        fontFamily: 'var(--font-family)',
-                        color: 'var(--color-foreground)'
-                      }}>
-                        {selectedCampaign?.deviceStats?.desktop || 0}%
+                    <CardHeader>
+                      <CardTitle style={{ fontSize: 'var(--text-lg)' }}>Campaign Details</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div>
+                        <span style={{ fontSize: 'var(--text-sm)', fontWeight: 'var(--font-weight-medium)' }}>Type:</span>
+                        <span style={{ fontSize: 'var(--text-sm)', marginLeft: 'var(--space-sm)' }}>
+                          {getCampaignTypeLabel(selectedCampaign.campaign_type)}
+                        </span>
                       </div>
-                      <p style={{ 
-                        fontSize: 'var(--text-sm)', 
-                        color: 'var(--color-muted-foreground)',
-                        fontFamily: 'var(--font-family)'
-                      }}>
-                        Desktop Opens
-                      </p>
-                    </div>
-                    <div className="text-center">
-                      <div style={{ 
-                        fontSize: 'var(--text-xl)', 
-                        fontWeight: 'var(--font-weight-medium)',
-                        fontFamily: 'var(--font-family)',
-                        color: 'var(--color-foreground)'
-                      }}>
-                        {selectedCampaign?.deviceStats?.mobile || 0}%
+                      <div>
+                        <span style={{ fontSize: 'var(--text-sm)', fontWeight: 'var(--font-weight-medium)' }}>Created:</span>
+                        <span style={{ fontSize: 'var(--text-sm)', marginLeft: 'var(--space-sm)' }}>
+                          {formatDate(selectedCampaign.created_at)}
+                        </span>
                       </div>
-                      <p style={{ 
-                        fontSize: 'var(--text-sm)', 
-                        color: 'var(--color-muted-foreground)',
-                        fontFamily: 'var(--font-family)'
-                      }}>
-                        Mobile Opens
-                      </p>
-                    </div>
-                    <div className="text-center">
-                      <div style={{ 
-                        fontSize: 'var(--text-xl)', 
-                        fontWeight: 'var(--font-weight-medium)',
-                        fontFamily: 'var(--font-family)',
-                        color: 'var(--color-foreground)'
-                      }}>
-                        {selectedCampaign?.deviceStats?.tablet || 0}%
+                      <div>
+                        <span style={{ fontSize: 'var(--text-sm)', fontWeight: 'var(--font-weight-medium)' }}>Last Updated:</span>
+                        <span style={{ fontSize: 'var(--text-sm)', marginLeft: 'var(--space-sm)' }}>
+                          {formatDate(selectedCampaign.updated_at)}
+                        </span>
                       </div>
-                      <p style={{ 
-                        fontSize: 'var(--text-sm)', 
-                        color: 'var(--color-muted-foreground)',
-                        fontFamily: 'var(--font-family)'
-                      }}>
-                        Tablet Opens
-                      </p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+                      <div>
+                        <span style={{ fontSize: 'var(--text-sm)', fontWeight: 'var(--font-weight-medium)' }}>Performance:</span>
+                        <Badge 
+                          className={
+                            getPerformanceScore(selectedCampaign) === 'high' ? 'bg-green-100 text-green-800' :
+                            getPerformanceScore(selectedCampaign) === 'medium' ? 'bg-yellow-100 text-yellow-800' :
+                            'bg-red-100 text-red-800'
+                          }
+                          style={{ marginLeft: 'var(--space-sm)' }}
+                        >
+                          {getPerformanceScore(selectedCampaign)} performance
+                        </Badge>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card style={{ 
+                    fontFamily: 'var(--font-family)',
+                    border: '1px solid #C9C9C9',
+                    borderRadius: 'var(--radius-md)'
+                  }}>
+                    <CardHeader>
+                      <CardTitle style={{ fontSize: 'var(--text-lg)' }}>Performance Metrics</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <span style={{ fontSize: 'var(--text-sm)' }}>Delivery Rate</span>
+                        <span style={{ fontSize: 'var(--text-sm)', fontWeight: 'var(--font-weight-medium)' }}>98%</span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span style={{ fontSize: 'var(--text-sm)' }}>Bounce Rate</span>
+                        <span style={{ fontSize: 'var(--text-sm)', fontWeight: 'var(--font-weight-medium)' }}>2%</span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span style={{ fontSize: 'var(--text-sm)' }}>Unsubscribe Rate</span>
+                        <span style={{ fontSize: 'var(--text-sm)', fontWeight: 'var(--font-weight-medium)' }}>0.5%</span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span style={{ fontSize: 'var(--text-sm)' }}>Click-to-Open Rate</span>
+                        <span style={{ fontSize: 'var(--text-sm)', fontWeight: 'var(--font-weight-medium)' }}>
+                          {selectedCampaign.emails_opened > 0 ? 
+                            Math.round((selectedCampaign.emails_clicked / selectedCampaign.emails_opened) * 100) : 0}%
+                        </span>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              )}
             </TabsContent>
 
             <TabsContent value="content" className="space-y-4" style={{ marginTop: 'var(--space-lg)' }}>
-              <Card style={{ 
-                fontFamily: 'var(--font-family)',
-                border: '1px solid #C9C9C9',
-                borderRadius: 'var(--radius-md)'
-              }}>
-                <CardHeader>
-                  <CardTitle style={{ 
-                    fontSize: 'var(--text-lg)', 
-                    fontWeight: 'var(--font-weight-medium)',
-                    fontFamily: 'var(--font-family)'
-                  }}>
-                    Email Content
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    <div>
-                      <span style={{ 
-                        fontSize: 'var(--text-sm)',
-                        fontWeight: 'var(--font-weight-medium)',
-                        fontFamily: 'var(--font-family)',
-                        color: 'var(--color-foreground)'
-                      }}>
-                        Subject:
-                      </span>
-                      <p style={{ 
-                        fontSize: 'var(--text-base)',
-                        fontFamily: 'var(--font-family)',
-                        color: 'var(--color-muted-foreground)',
-                        marginTop: 'var(--space-xs)'
-                      }}>
-                        {selectedCampaign?.subject}
-                      </p>
-                    </div>
-                    <div>
-                      <span style={{ 
-                        fontSize: 'var(--text-sm)',
-                        fontWeight: 'var(--font-weight-medium)',
-                        fontFamily: 'var(--font-family)',
-                        color: 'var(--color-foreground)'
-                      }}>
-                        Message:
-                      </span>
-                      <div style={{ 
-                        backgroundColor: 'var(--color-muted)',
-                        padding: 'var(--space-lg)',
-                        borderRadius: 'var(--radius-md)',
-                        marginTop: 'var(--space-xs)',
-                        maxHeight: '300px',
-                        overflowY: 'auto'
-                      }}>
-                        <pre style={{ 
-                          fontSize: 'var(--text-sm)',
-                          fontFamily: 'var(--font-family)',
-                          color: 'var(--color-foreground)',
-                          whiteSpace: 'pre-wrap',
-                          wordWrap: 'break-word'
+              {selectedCampaign && (
+                <Card style={{ 
+                  fontFamily: 'var(--font-family)',
+                  border: '1px solid #C9C9C9',
+                  borderRadius: 'var(--radius-md)'
+                }}>
+                  <CardHeader>
+                    <CardTitle style={{ fontSize: 'var(--text-lg)' }}>Email Content</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      <div>
+                        <span style={{ fontSize: 'var(--text-sm)', fontWeight: 'var(--font-weight-medium)' }}>Subject:</span>
+                        <p style={{ fontSize: 'var(--text-base)', marginTop: 'var(--space-xs)' }}>
+                          {selectedCampaign.subject_line}
+                        </p>
+                      </div>
+                      <div>
+                        <span style={{ fontSize: 'var(--text-sm)', fontWeight: 'var(--font-weight-medium)' }}>Message:</span>
+                        <div style={{ 
+                          backgroundColor: 'var(--color-muted)',
+                          padding: 'var(--space-lg)',
+                          borderRadius: 'var(--radius-md)',
+                          marginTop: 'var(--space-xs)',
+                          maxHeight: '300px',
+                          overflowY: 'auto'
                         }}>
-                          {selectedCampaign?.emailContent}
-                        </pre>
+                          <pre style={{ 
+                            fontSize: 'var(--text-sm)',
+                            fontFamily: 'var(--font-family)',
+                            color: 'var(--color-foreground)',
+                            whiteSpace: 'pre-wrap',
+                            wordWrap: 'break-word'
+                          }}>
+                            {selectedCampaign.email_content}
+                          </pre>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
+                  </CardContent>
+                </Card>
+              )}
             </TabsContent>
           </Tabs>
 

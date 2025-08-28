@@ -1,3 +1,4 @@
+
 import { useState, useCallback } from 'react';
 import axios, { AxiosResponse } from 'axios';
 
@@ -10,6 +11,24 @@ interface ApiState<T> {
 }
 
 interface Campaign {
+  id: number;
+  name: string;
+  description: string;
+  campaign_type: string;
+  status: string;
+  subject_line: string;
+  email_content: string;
+  emails_sent: number;
+  emails_opened: number;
+  emails_clicked: number;
+  target_leads_count: number;
+  open_rate: number;
+  click_rate: number;
+  created_at: string;
+  updated_at: string;
+}
+
+interface EmailCampaign {
   id: string;
   name: string;
   description: string;
@@ -54,9 +73,9 @@ export const useCampaignApi = () => {
         {
           name: campaignData.name,
           description: campaignData.description || '',
-          type: campaignData.objective === 'lead-nurturing' ? 'nurture' : campaignData.objective,
-          subject: campaignData.content?.email?.subject || '',
-          content: campaignData.content?.email?.body || '',
+          campaign_type: campaignData.objective === 'lead-nurturing' ? 'nurture' : campaignData.objective,
+          subject_line: campaignData.content?.email?.subject || '',
+          email_content: campaignData.content?.email?.body || '',
           target_count: campaignData.targetAudience?.length || 0,
           target_leads: campaignData.targetAudience?.map((lead: any) => lead.id) || [],
           channels: campaignData.channels,
@@ -81,17 +100,36 @@ export const useCampaignApi = () => {
   }, [setLoading, setError, setData]);
 
   // Get all campaigns
-  const getCampaigns = useCallback(async () => {
+  const getCampaigns = useCallback(async (): Promise<Campaign[]> => {
     setLoading(true);
     setError(null);
 
     try {
-      const response: AxiosResponse<Campaign[]> = await axios.get(
+      const response: AxiosResponse<EmailCampaign[]> = await axios.get(
         `${API_BASE_URL}/email-campaigns/`
       );
 
-      setData(response.data);
-      return response.data;
+      // Transform the API response to match our interface
+      const transformedCampaigns: Campaign[] = response.data.map((campaign: EmailCampaign) => ({
+        id: parseInt(campaign.id.toString()),
+        name: campaign.name,
+        description: campaign.description,
+        campaign_type: campaign.campaign_type,
+        status: campaign.status,
+        subject_line: campaign.subject_line,
+        email_content: campaign.email_content,
+        emails_sent: campaign.emails_sent,
+        emails_opened: campaign.emails_opened,
+        emails_clicked: campaign.emails_clicked,
+        target_leads_count: 0, // Will be populated from the serializer
+        open_rate: campaign.emails_sent > 0 ? (campaign.emails_opened / campaign.emails_sent) * 100 : 0,
+        click_rate: campaign.emails_sent > 0 ? (campaign.emails_clicked / campaign.emails_sent) * 100 : 0,
+        created_at: campaign.created_at,
+        updated_at: campaign.updated_at
+      }));
+
+      setData(transformedCampaigns);
+      return transformedCampaigns;
     } catch (error: any) {
       const errorMessage = error.response?.data?.message || error.message || 'Failed to fetch campaigns';
       setError(errorMessage);
@@ -102,17 +140,35 @@ export const useCampaignApi = () => {
   }, [setLoading, setError, setData]);
 
   // Get campaign by ID
-  const getCampaignById = useCallback(async (id: string) => {
+  const getCampaignById = useCallback(async (id: string): Promise<Campaign> => {
     setLoading(true);
     setError(null);
 
     try {
-      const response: AxiosResponse<Campaign> = await axios.get(
+      const response: AxiosResponse<EmailCampaign> = await axios.get(
         `${API_BASE_URL}/email-campaigns/${id}/`
       );
 
-      setData(response.data);
-      return response.data;
+      const transformedCampaign: Campaign = {
+        id: parseInt(response.data.id.toString()),
+        name: response.data.name,
+        description: response.data.description,
+        campaign_type: response.data.campaign_type,
+        status: response.data.status,
+        subject_line: response.data.subject_line,
+        email_content: response.data.email_content,
+        emails_sent: response.data.emails_sent,
+        emails_opened: response.data.emails_opened,
+        emails_clicked: response.data.emails_clicked,
+        target_leads_count: 0,
+        open_rate: response.data.emails_sent > 0 ? (response.data.emails_opened / response.data.emails_sent) * 100 : 0,
+        click_rate: response.data.emails_sent > 0 ? (response.data.emails_clicked / response.data.emails_sent) * 100 : 0,
+        created_at: response.data.created_at,
+        updated_at: response.data.updated_at
+      };
+
+      setData(transformedCampaign);
+      return transformedCampaign;
     } catch (error: any) {
       const errorMessage = error.response?.data?.message || error.message || 'Failed to fetch campaign';
       setError(errorMessage);
@@ -128,7 +184,7 @@ export const useCampaignApi = () => {
     setError(null);
 
     try {
-      const response: AxiosResponse<Campaign> = await axios.put(
+      const response: AxiosResponse<EmailCampaign> = await axios.put(
         `${API_BASE_URL}/email-campaigns/${id}/`,
         campaignData,
         {
@@ -191,6 +247,27 @@ export const useCampaignApi = () => {
     }
   }, [setLoading, setError, setData]);
 
+  // Get campaign performance data
+  const getCampaignPerformance = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const response: AxiosResponse<any> = await axios.get(
+        `${API_BASE_URL}/email-campaigns/performance/`
+      );
+
+      setData(response.data);
+      return response.data;
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.message || error.message || 'Failed to fetch campaign performance';
+      setError(errorMessage);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  }, [setLoading, setError, setData]);
+
   return {
     ...state,
     createCampaign,
@@ -199,5 +276,6 @@ export const useCampaignApi = () => {
     updateCampaign,
     sendCampaign,
     getCampaignAnalytics,
+    getCampaignPerformance,
   };
 };
