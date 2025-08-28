@@ -432,6 +432,19 @@ class EmailCampaign(models.Model):
 
         for lead in self.target_leads.all():
             try:
+                # Validate email address
+                if not lead.contact.email or not lead.contact.email.strip():
+                    failed_count += 1
+                    smtp_logger.error(f"Skipping lead {lead.company.name} - no valid email address")
+                    continue
+
+                # Validate email format
+                email_address = lead.contact.email.strip()
+                if '@' not in email_address or '.' not in email_address:
+                    failed_count += 1
+                    smtp_logger.error(f"Skipping lead {lead.company.name} - invalid email format: {email_address}")
+                    continue
+
                 # Create template context with lead data
                 context = Context({
                     'contact_name': f"{lead.contact.first_name} {lead.contact.last_name}".strip() or 'Valued Customer',
@@ -453,15 +466,15 @@ class EmailCampaign(models.Model):
                     subject=rendered_subject,
                     body=rendered_content,
                     from_email=settings.DEFAULT_FROM_EMAIL,
-                    to=[lead.contact.email]
+                    to=[email_address]
                 )
                 emails_to_send.append((email_msg, lead))
 
-                smtp_logger.info(f"Prepared email for {lead.contact.email} ({lead.company.name})")
+                smtp_logger.info(f"Prepared email for {email_address} ({lead.company.name})")
 
             except Exception as e:
                 failed_count += 1
-                smtp_logger.error(f"Error preparing email for {lead.contact.email}: {str(e)}")
+                smtp_logger.error(f"Error preparing email for {lead.contact.email if lead.contact.email else 'unknown'}: {str(e)}")</old_str>
 
         # Send emails individually with detailed SMTP logging
         try:

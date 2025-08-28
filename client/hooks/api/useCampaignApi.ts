@@ -266,7 +266,7 @@ export const useCampaignApi = () => {
     } finally {
       setLoading(false);
     }
-  }, [setLoading, setError, setData]);
+  }, [setLoading, setError, setData]);</old_str>
 
   // Get campaign performance data
   const getCampaignPerformance = useCallback(async () => {

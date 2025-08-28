@@ -1708,13 +1708,12 @@ class EmailCampaignViewSet(viewsets.ModelViewSet):
             campaign = EmailCampaign.objects.create(
                 name=data.get('name', 'New Campaign'),
                 description=data.get('description', ''),
-                campaign_type=data.get('type', 'nurture'),
-                status='active',
-                subject_line=data.get('subject', ''),
-                email_content=data.get('content', ''),
+                campaign_type=data.get('campaign_type', 'nurture'),
+                status='draft',  # Set as draft initially
+                subject_line=data.get('subject_line', ''),
+                email_content=data.get('email_content', ''),
                 scheduled_date=timezone.now(),
-                sent_date=timezone.now(),
-                emails_sent=data.get('target_count', 0),
+                emails_sent=0,
                 emails_opened=0,
                 emails_clicked=0
             )
@@ -1724,11 +1723,12 @@ class EmailCampaignViewSet(viewsets.ModelViewSet):
             if target_lead_ids:
                 leads = Lead.objects.filter(id__in=target_lead_ids)
                 campaign.target_leads.set(leads)
+                print(f"Campaign {campaign.id} created with {leads.count()} target leads")
 
             serializer = self.get_serializer(campaign)
             return Response({
                 'success': True,
-                'message': 'Campaign launched successfully!',
+                'message': 'Campaign created successfully!',
                 'campaign': serializer.data
             }, status=status.HTTP_201_CREATED)
 
@@ -1750,6 +1750,13 @@ class EmailCampaignViewSet(viewsets.ModelViewSet):
                     'message': 'Campaign is already active'
                 }, status=status.HTTP_400_BAD_REQUEST)
 
+            # Check if campaign has target leads
+            if not campaign.target_leads.exists():
+                return Response({
+                    'success': False,
+                    'message': 'Campaign has no target leads. Please add leads to the campaign before launching.'
+                }, status=status.HTTP_400_BAD_REQUEST)
+
             # Send emails
             result = campaign.send_emails()
 
@@ -1758,12 +1765,20 @@ class EmailCampaignViewSet(viewsets.ModelViewSet):
                     'success': True,
                     'message': result['message'],
                     'campaign_id': campaign.id,
-                    'emails_sent': result['sent_count']
+                    'emails_sent': result['sent_count'],
+                    'smtp_responses': result.get('smtp_responses', []),
+                    'log_file': result.get('log_file', ''),
+                    'smtp_details': {
+                        'success_rate': f"{(result['sent_count']/(result['sent_count']+result.get('failed_count', 0))*100):.1f}%" if (result['sent_count'] + result.get('failed_count', 0)) > 0 else "0%",
+                        'total_processed': result['sent_count'] + result.get('failed_count', 0)
+                    }
                 }, status=status.HTTP_200_OK)
             else:
                 return Response({
                     'success': False,
-                    'message': result['message']
+                    'message': result['message'],
+                    'smtp_responses': result.get('smtp_responses', []),
+                    'log_file': result.get('log_file', '')
                 }, status=status.HTTP_400_BAD_REQUEST)
 
         except Exception as e:
@@ -3274,13 +3289,12 @@ class EmailCampaignViewSet(viewsets.ModelViewSet):
             campaign = EmailCampaign.objects.create(
                 name=data.get('name', 'New Campaign'),
                 description=data.get('description', ''),
-                campaign_type=data.get('type', 'nurture'),
-                status='active',
-                subject_line=data.get('subject', ''),
-                email_content=data.get('content', ''),
+                campaign_type=data.get('campaign_type', 'nurture'),
+                status='draft',  # Set as draft initially
+                subject_line=data.get('subject_line', ''),
+                email_content=data.get('email_content', ''),
                 scheduled_date=timezone.now(),
-                sent_date=timezone.now(),
-                emails_sent=data.get('target_count', 0),
+                emails_sent=0,
                 emails_opened=0,
                 emails_clicked=0
             )
@@ -3290,11 +3304,12 @@ class EmailCampaignViewSet(viewsets.ModelViewSet):
             if target_lead_ids:
                 leads = Lead.objects.filter(id__in=target_lead_ids)
                 campaign.target_leads.set(leads)
+                print(f"Campaign {campaign.id} created with {leads.count()} target leads")
 
             serializer = self.get_serializer(campaign)
             return Response({
                 'success': True,
-                'message': 'Campaign launched successfully!',
+                'message': 'Campaign created successfully!',
                 'campaign': serializer.data
             }, status=status.HTTP_201_CREATED)
 
@@ -3316,6 +3331,13 @@ class EmailCampaignViewSet(viewsets.ModelViewSet):
                     'message': 'Campaign is already active'
                 }, status=status.HTTP_400_BAD_REQUEST)
 
+            # Check if campaign has target leads
+            if not campaign.target_leads.exists():
+                return Response({
+                    'success': False,
+                    'message': 'Campaign has no target leads. Please add leads to the campaign before launching.'
+                }, status=status.HTTP_400_BAD_REQUEST)
+
             # Send emails
             result = campaign.send_emails()
 
@@ -3324,12 +3346,20 @@ class EmailCampaignViewSet(viewsets.ModelViewSet):
                     'success': True,
                     'message': result['message'],
                     'campaign_id': campaign.id,
-                    'emails_sent': result['sent_count']
+                    'emails_sent': result['sent_count'],
+                    'smtp_responses': result.get('smtp_responses', []),
+                    'log_file': result.get('log_file', ''),
+                    'smtp_details': {
+                        'success_rate': f"{(result['sent_count']/(result['sent_count']+result.get('failed_count', 0))*100):.1f}%" if (result['sent_count'] + result.get('failed_count', 0)) > 0 else "0%",
+                        'total_processed': result['sent_count'] + result.get('failed_count', 0)
+                    }
                 }, status=status.HTTP_200_OK)
             else:
                 return Response({
                     'success': False,
-                    'message': result['message']
+                    'message': result['message'],
+                    'smtp_responses': result.get('smtp_responses', []),
+                    'log_file': result.get('log_file', '')
                 }, status=status.HTTP_400_BAD_REQUEST)
 
         except Exception as e:
