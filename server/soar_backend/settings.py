@@ -139,8 +139,8 @@ EMAIL_HOST = os.getenv('SMTP_HOST', 'smtp.gmail.com')  # Default to Gmail
 EMAIL_PORT = int(os.getenv('SMTP_PORT', '587'))
 EMAIL_USE_TLS = True
 EMAIL_USE_SSL = False
-EMAIL_HOST_USER = os.getenv('SMTP_USER', '')  # Your email
-EMAIL_HOST_PASSWORD = os.getenv('SMTP_PASSWORD', '')  # Your app password
+EMAIL_HOST_USER = os.getenv('SMTP_USER', 'magicholidaystestuser.infi@gmail.com')  # Your email
+EMAIL_HOST_PASSWORD = os.getenv('SMTP_PASSWORD', 'Infi@12345')  # Your app password
 DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', EMAIL_HOST_USER)
 
 # For development, you can use console backend
