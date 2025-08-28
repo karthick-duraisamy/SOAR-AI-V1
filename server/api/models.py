@@ -392,6 +392,79 @@ class EmailCampaign(models.Model):
     def __str__(self):
         return self.name
 
+    def send_emails(self):
+        """Send emails to target leads"""
+        from django.core.mail import send_mass_mail
+        from django.template import Template, Context
+        from django.conf import settings
+
+        if not self.target_leads.exists():
+            return {'success': False, 'message': 'No target leads found'}
+
+        # Prepare email data
+        emails_to_send = []
+        sent_count = 0
+        failed_count = 0
+
+        for lead in self.target_leads.all():
+            try:
+                # Create template context with lead data
+                context = Context({
+                    'contact_name': f"{lead.contact.first_name} {lead.contact.last_name}".strip() or 'Valued Customer',
+                    'company_name': lead.company.name,
+                    'industry': lead.company.get_industry_display(),
+                    'employees': lead.company.employee_count or 'your team',
+                    'travel_budget': f"${int(lead.company.travel_budget/1000000)}M" if lead.company.travel_budget else 'your budget'
+                })
+
+                # Render subject and content with dynamic data
+                subject_template = Template(self.subject_line)
+                content_template = Template(self.email_content)
+
+                rendered_subject = subject_template.render(context)
+                rendered_content = content_template.render(context)
+
+                # Add to mass email list
+                emails_to_send.append((
+                    rendered_subject,
+                    rendered_content,
+                    settings.DEFAULT_FROM_EMAIL,
+                    [lead.contact.email]
+                ))
+
+            except Exception as e:
+                failed_count += 1
+                print(f"Error preparing email for {lead.contact.email}: {str(e)}")
+
+        # Send emails in batches
+        try:
+            if emails_to_send:
+                send_mass_mail(emails_to_send, fail_silently=False)
+                sent_count = len(emails_to_send)
+
+                # Update campaign stats
+                self.emails_sent = sent_count
+                self.status = 'active'
+                self.sent_date = timezone.now()
+                self.save()
+
+                return {
+                    'success': True,
+                    'message': f'Successfully sent {sent_count} emails',
+                    'sent_count': sent_count,
+                    'failed_count': failed_count
+                }
+            else:
+                return {'success': False, 'message': 'No valid emails to send'}
+
+        except Exception as e:
+            return {
+                'success': False,
+                'message': f'Failed to send emails: {str(e)}',
+                'sent_count': 0,
+                'failed_count': len(emails_to_send)
+            }
+
 class TravelOffer(models.Model):
     OFFER_STATUS_CHOICES = [
         ('draft', 'Draft'),
@@ -557,7 +630,7 @@ class LeadHistory(models.Model):
         ('trophy', 'Trophy'),
         ('x', 'X'),
     ]
-    
+
     lead = models.ForeignKey(Lead, on_delete=models.CASCADE, related_name='history_entries')
     history_type = models.CharField(max_length=255)  # <- this must be here
 

@@ -247,6 +247,27 @@ export const useCampaignApi = () => {
     }
   }, [setLoading, setError, setData]);
 
+  // Launch campaign and send emails
+  const launchCampaign = useCallback(async (id: string) => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const response: AxiosResponse<any> = await axios.post(
+        `${API_BASE_URL}/email-campaigns/${id}/launch/`
+      );
+
+      setData(response.data);
+      return response.data;
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.message || error.message || 'Failed to launch campaign';
+      setError(errorMessage);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  }, [setLoading, setError, setData]);
+
   // Get campaign performance data
   const getCampaignPerformance = useCallback(async () => {
     setLoading(true);
@@ -275,6 +296,7 @@ export const useCampaignApi = () => {
     getCampaignById,
     updateCampaign,
     sendCampaign,
+    launchCampaign,
     getCampaignAnalytics,
     getCampaignPerformance,
   };

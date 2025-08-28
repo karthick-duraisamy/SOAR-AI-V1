@@ -100,8 +100,9 @@ export function EmailCampaigns({ onNavigate }: EmailCampaignsProps) {
   const [showViewDialog, setShowViewDialog] = useState(false);
   const [viewTab, setViewTab] = useState('overview');
   const [campaignList, setCampaignList] = useState<Campaign[]>([]);
+  const [launchingCampaign, setLaunchingCampaign] = useState<number | null>(null);
 
-  const { getCampaigns, loading: campaignsLoading, error: campaignsError } = useCampaignApi();
+  const { getCampaigns, launchCampaign, loading: campaignsLoading, error: campaignsError } = useCampaignApi();
 
   // Helper function to calculate overall metrics from API data
   const calculateMetrics = () => {
@@ -186,6 +187,26 @@ export function EmailCampaigns({ onNavigate }: EmailCampaignsProps) {
     setSelectedCampaign(campaign);
     setShowViewDialog(true);
     setViewTab('overview');
+  };
+
+  const handleLaunchCampaign = async (campaign: Campaign) => {
+    try {
+      setLaunchingCampaign(campaign.id);
+      const result = await launchCampaign(campaign.id.toString());
+      
+      if (result.success) {
+        // Show success message
+        alert(`Campaign launched successfully! ${result.emails_sent} emails sent.`);
+        // Reload campaigns to get updated status
+        await loadCampaigns();
+      } else {
+        alert(`Failed to launch campaign: ${result.message}`);
+      }
+    } catch (error: any) {
+      alert(`Error launching campaign: ${error.message}`);
+    } finally {
+      setLaunchingCampaign(null);
+    }
   };
 
   const getStatusBadgeColor = (status: string) => {
@@ -643,7 +664,7 @@ export function EmailCampaigns({ onNavigate }: EmailCampaignsProps) {
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
                     <div className="text-center">
                       <div style={{ 
                         fontSize: 'var(--text-xl)', 
@@ -712,6 +733,54 @@ export function EmailCampaigns({ onNavigate }: EmailCampaignsProps) {
                         Targets
                       </p>
                     </div>
+                  </div>
+                  
+                  {/* Campaign Actions */}
+                  <div className="flex gap-2 justify-end">
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleViewCampaign(campaign);
+                      }}
+                      style={{
+                        fontFamily: 'var(--font-family)',
+                        fontSize: 'var(--text-sm)'
+                      }}
+                    >
+                      <Eye className="h-4 w-4 mr-1" />
+                      View Details
+                    </Button>
+                    
+                    {campaign.status === 'draft' && (
+                      <Button 
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleLaunchCampaign(campaign);
+                        }}
+                        disabled={launchingCampaign === campaign.id}
+                        style={{
+                          fontFamily: 'var(--font-family)',
+                          fontSize: 'var(--text-sm)',
+                          backgroundColor: 'var(--color-primary)',
+                          color: 'var(--color-primary-foreground)'
+                        }}
+                      >
+                        {launchingCampaign === campaign.id ? (
+                          <>
+                            <RefreshCw className="h-4 w-4 mr-1 animate-spin" />
+                            Launching...
+                          </>
+                        ) : (
+                          <>
+                            <Send className="h-4 w-4 mr-1" />
+                            Launch Campaign
+                          </>
+                        )}
+                      </Button>
+                    )}
                   </div>
                 </CardContent>
               </Card>
