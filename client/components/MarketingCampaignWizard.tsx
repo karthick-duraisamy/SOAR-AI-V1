@@ -22,8 +22,7 @@ import {
   Loader2,
   Brain,
   RefreshCw,
-  Send,
-  Zap
+  Send
 } from 'lucide-react';
 import {
   Dialog,
@@ -66,9 +65,6 @@ const steps = [
 export function MarketingCampaignWizard({ selectedLeads, onBack, onComplete }: MarketingCampaignWizardProps) {
   const [currentStep, setCurrentStep] = useState(1);
   const [showCreateTemplate, setShowCreateTemplate] = useState(false);
-  const [campaignLaunched, setCampaignLaunched] = useState(false);
-  const [launchLoading, setLaunchLoading] = useState(false);
-  const [templateFilter, setTemplateFilter] = useState<'all' | 'default' | 'custom'>('all');
   const [templates, setTemplates] = useState<CampaignTemplate[]>([]);
   const [templateData, setTemplateData] = useState({
     name: '',
@@ -107,7 +103,7 @@ export function MarketingCampaignWizard({ selectedLeads, onBack, onComplete }: M
     loading: apiLoading, 
     error: apiError 
   } = useTemplateApi();
-
+  
   const { 
     createCampaign,
     loading: campaignLoading,
@@ -121,10 +117,9 @@ export function MarketingCampaignWizard({ selectedLeads, onBack, onComplete }: M
   const loadTemplates = async () => {
     try {
       const allTemplates = await getTemplates();
-      setTemplates(allTemplates || []);
+      setTemplates(allTemplates);
     } catch (error) {
       console.error('Failed to load templates:', error);
-      setTemplates([]);
     }
   };
 
@@ -177,28 +172,25 @@ export function MarketingCampaignWizard({ selectedLeads, onBack, onComplete }: M
     }
 
     try {
-      const templateDataPayload = {
+      const newTemplate = await createTemplate({
         name: templateData.name,
-        description: templateData.description || '',
+        description: templateData.description,
         channel_type: templateData.channel_type,
-        target_industry: templateData.target_industry || 'All',
-        subject_line: templateData.subject_line || '',
+        target_industry: templateData.target_industry,
+        subject_line: templateData.subject_line,
         content: templateData.content,
-        cta: templateData.cta || '',
+        cta: templateData.cta,
         linkedin_type: templateData.linkedin_type,
-        estimated_open_rate: 40.0,
-        estimated_click_rate: 10.0,
+        estimated_open_rate: 40,
+        estimated_click_rate: 10,
         is_custom: true,
         created_by: 'User'
-      };
+      });
 
-      await createTemplate(templateDataPayload);
+      // Add to local templates array
+      setTemplates(prev => [newTemplate, ...prev]);
 
-      // Refresh templates list
-      const updatedTemplates = await getTemplates();
-      setTemplates(updatedTemplates || []);
-
-      // Reset form and close dialog
+      // Reset form
       setTemplateData({
         name: '',
         channel_type: 'email',
@@ -209,14 +201,10 @@ export function MarketingCampaignWizard({ selectedLeads, onBack, onComplete }: M
         cta: '',
         linkedin_type: 'message'
       });
+
       setShowCreateTemplate(false);
-
-      // Show success message
-      alert('Template created successfully!');
-
     } catch (error) {
       console.error('Failed to create template:', error);
-      alert('Failed to create template. Please try again.');
     }
   };
 
@@ -236,14 +224,14 @@ export function MarketingCampaignWizard({ selectedLeads, onBack, onComplete }: M
 
   const handleLaunchCampaign = async () => {
     setIsLaunching(true);
-
+    
     try {
       // Create the campaign via API
       const response = await createCampaign({
         ...campaignData,
         targetAudience: selectedLeads
       });
-
+      
       if (response.success) {
         // Show success message and complete
         onComplete({
@@ -266,23 +254,10 @@ export function MarketingCampaignWizard({ selectedLeads, onBack, onComplete }: M
 
 
   const getFilteredTemplates = () => {
-    if (!templates || templates.length === 0) return [];
-
-    return templates.filter(template => {
-      // Filter by template type (custom/default/all)
-      if (templateFilter === 'custom' && !template.is_custom) return false;
-      if (templateFilter === 'default' && template.is_custom) return false;
-
-      // Filter by selected channels
-      if (campaignData.channels.length > 0) {
-        const hasMatchingChannel = campaignData.channels.some(channel => 
-          template.channel_type === channel || template.channel_type === 'mixed'
-        );
-        if (!hasMatchingChannel) return false;
-      }
-
-      return true;
-    });
+    return templates.filter(template => 
+      campaignData.channels.includes(template.channel_type) || 
+      (template.channel_type === 'mixed' && campaignData.channels.length > 1)
+    );
   };
 
   const renderStepContent = () => {
@@ -374,31 +349,6 @@ export function MarketingCampaignWizard({ selectedLeads, onBack, onComplete }: M
               </div>
               <p className="text-sm text-gray-600">Choose a template to get started quickly</p>
 
-              {/* Template Filters */}
-              <div className="flex items-center space-x-4 mb-4">
-                <Button
-                  variant={templateFilter === 'all' ? 'default' : 'outline'}
-                  onClick={() => setTemplateFilter('all')}
-                  className="text-sm px-3 py-1 h-auto"
-                >
-                  All
-                </Button>
-                <Button
-                  variant={templateFilter === 'custom' ? 'default' : 'outline'}
-                  onClick={() => setTemplateFilter('custom')}
-                  className="text-sm px-3 py-1 h-auto"
-                >
-                  Custom
-                </Button>
-                <Button
-                  variant={templateFilter === 'default' ? 'default' : 'outline'}
-                  onClick={() => setTemplateFilter('default')}
-                  className="text-sm px-3 py-1 h-auto"
-                >
-                  Default
-                </Button>
-              </div>
-
               {apiLoading && (
                 <div className="flex items-center justify-center py-8">
                   <Loader2 className="h-6 w-6 animate-spin" />
@@ -433,38 +383,21 @@ export function MarketingCampaignWizard({ selectedLeads, onBack, onComplete }: M
                             {template.channel_type === 'email' && <Mail className="h-3 w-3 mr-1" />}
                             {template.channel_type === 'whatsapp' && <MessageSquare className="h-3 w-3 mr-1" />}
                             {template.channel_type === 'linkedin' && <Linkedin className="h-3 w-3 mr-1" />}
-                            {template.channel_type === 'mixed' && <Zap className="h-3 w-3 mr-1" />}
                             {template.channel_type}
                           </Badge>
-                          {template.is_custom ? (
+                          {template.is_custom && (
                             <Badge variant="secondary" className="text-xs">
                               Custom
-                            </Badge>
-                          ) : (
-                            <Badge variant="default" className="text-xs">
-                              Default
                             </Badge>
                           )}
                         </div>
                       </div>
-                      <CardDescription className="text-xs text-gray-600">
-                        {template.description}
-                      </CardDescription>
+                      <CardDescription className="text-xs">{template.description}</CardDescription>
                     </CardHeader>
                     <CardContent className="pt-0">
-                      {template.linkedin_type && (
-                        <p className="text-xs text-blue-600 mb-2">
-                          LinkedIn {template.linkedin_type}
-                        </p>
-                      )}
-                      <div className="flex justify-between text-xs text-gray-500">
+                      <div className="flex justify-between text-xs text-gray-600">
                         <span>Open: {template.estimated_open_rate}%</span>
                         <span>Click: {template.estimated_click_rate}%</span>
-                      </div>
-                      <div className="mt-2">
-                        <p className="text-xs text-gray-500">
-                          Industry: {template.target_industry}
-                        </p>
                       </div>
                     </CardContent>
                   </Card>
