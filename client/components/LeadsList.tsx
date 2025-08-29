@@ -1024,45 +1024,11 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
         description: newCompany.notes || ''
       };
 
-      console.log('Step 1: Saving company data:', companyData);
+      console.log('Creating lead from company data directly:', companyData);
 
-      // Step 1: Save company data using the company API
-      const savedCompany = await companyApi.createCompany(companyData);
-      console.log('Step 1 completed: Company saved successfully:', savedCompany);
-
-      // Step 2: Create lead from the saved company
-      console.log('Step 2: Creating lead from company ID:', savedCompany.id);
-      
-      const leadData = {
-        company: {
-          id: savedCompany.id,
-          name: savedCompany.name,
-          industry: savedCompany.industry,
-          location: savedCompany.location,
-          size: savedCompany.size,
-          annual_revenue: savedCompany.annual_revenue,
-          travel_budget: savedCompany.travel_budget,
-          employee_count: savedCompany.employee_count,
-        },
-        contact: {
-          first_name: 'Contact',
-          last_name: 'Person',
-          email: savedCompany.email,
-          phone: savedCompany.phone || '',
-          position: 'Decision Maker',
-          is_decision_maker: true,
-        },
-        status: 'new',
-        source: 'manual_entry',
-        priority: 'medium',
-        score: 50,
-        estimated_value: savedCompany.travel_budget,
-        notes: `Lead created from company entry. ${savedCompany.description || ''}`,
-        next_action: 'Initial outreach and qualification'
-      };
-
-      const createdLead = await leadApi.createLead(leadData);
-      console.log('Step 2 completed: Lead created successfully:', createdLead);
+      // Use the leads API endpoint that handles both company and lead creation
+      const createdLead = await leadApi.createLeadFromCompany(companyData);
+      console.log('Lead created successfully from company data:', createdLead);
 
       // Reset form
       setNewCompany({

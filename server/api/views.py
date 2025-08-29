@@ -1216,11 +1216,28 @@ class LeadViewSet(viewsets.ModelViewSet):
                 'description': data.get('notes') or ''
             }
 
-            # Create or get company
-            company, created = Company.objects.get_or_create(
-                name=company_data['name'],
-                defaults=company_data
-            )
+            # Create or get company - handle duplicates by using first match
+            try:
+                company = Company.objects.get(name=company_data['name'])
+                created = False
+                # Update the existing company with new data if needed
+                for key, value in company_data.items():
+                    if value is not None:  # Only update non-null values
+                        setattr(company, key, value)
+                company.save()
+            except Company.DoesNotExist:
+                # Create new company if none exists
+                company = Company.objects.create(**company_data)
+                created = True
+            except Company.MultipleObjectsReturned:
+                # Handle multiple companies with same name - use the first one
+                company = Company.objects.filter(name=company_data['name']).first()
+                created = False
+                # Update the existing company with new data if needed
+                for key, value in company_data.items():
+                    if value is not None:  # Only update non-null values
+                        setattr(company, key, value)
+                company.save()
 
             # Create default contact
             contact, contact_created = Contact.objects.get_or_create(
