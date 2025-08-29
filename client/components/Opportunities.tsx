@@ -2917,13 +2917,28 @@ const getRandomRiskLevel = () => {
 
                     <div className="grid grid-cols-2 gap-6">
                       <div>
-                        <Label htmlFor="annualVolume" className="text-sm font-medium">Annual Booking Volume</Label>
+                        <Label htmlFor="travelFrequency" className="text-sm font-medium">Travel Frequency Commitment</Label>
+                        <Select
+                          value={negotiationForm.travelFrequency}
+                          onValueChange={(value) => setNegotiationForm({...negotiationForm, travelFrequency: value})}
+                        >
+                          <SelectTrigger className="mt-1">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="monthly">Monthly</SelectItem>
+                            <SelectItem value="quarterly">Quarterly</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div>
+                        <Label htmlFor="annualVolume" className="text-sm font-medium">Booking Volume</Label>
                         <Input
                           id="annualVolume"
                           type="number"
                           value={negotiationForm.annualBookingVolume}
                           onChange={(e) => setNegotiationForm({...negotiationForm, annualBookingVolume: e.target.value})}
-                          placeholder="Enter annual bookings..."
+                          placeholder="Enter bookings volume..."
                           className="mt-1"
                         />
                       </div>
@@ -2948,21 +2963,7 @@ const getRandomRiskLevel = () => {
                           className="mt-1"
                         />
                       </div>
-                      <div>
-                        <Label htmlFor="travelFrequency" className="text-sm font-medium">Travel Frequency Commitment</Label>
-                        <Select
-                          value={negotiationForm.travelFrequency}
-                          onValueChange={(value) => setNegotiationForm({...negotiationForm, travelFrequency: value})}
-                        >
-                          <SelectTrigger className="mt-1">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="monthly">Monthly</SelectItem>
-                            <SelectItem value="quarterly">Quarterly</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
+                      
                     </div>
 
                     <div>
@@ -3385,6 +3386,15 @@ const getRandomRiskLevel = () => {
                   <div className="flex gap-3">
                     <Button
                       variant="outline"
+                      onClick={() => setShowNegotiationDialog(false)}
+                      className="border-red-300 text-red-600 hover:bg-red-50"
+                    >
+                      Cancel
+                    </Button>
+                  </div>
+                  <div className="flex gap-3">
+                    <Button
+                      variant="outline"
                       onClick={handleSaveNegotiationDraft}
                       className="border-gray-300"
                     >
@@ -3399,15 +3409,7 @@ const getRandomRiskLevel = () => {
                       Send Revised Proposal
                     </Button>
                   </div>
-                  <div className="flex gap-3">
-                    <Button
-                      variant="outline"
-                      onClick={() => setShowNegotiationDialog(false)}
-                      className="border-red-300 text-red-600 hover:bg-red-50"
-                    >
-                      Cancel
-                    </Button>
-                  </div>
+                
                 </div>
               </div>
             </div>
