@@ -432,6 +432,7 @@ export function CorporateSearch({
     subject: "",
     message: "",
     followUpDate: "",
+    followUpMode: "",
     corporateData: null,
   });
   const [showContactDialog, setShowContactDialog] = useState(false);
@@ -1005,6 +1006,7 @@ export function CorporateSearch({
       followUpDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
         .toISOString()
         .split("T")[0], // 7 days from now
+      followUpMode: "",
       corporateData: corporate,
     });
     setShowContactDialog(true);
@@ -2973,7 +2975,7 @@ export function CorporateSearch({
 
             <div>
               <Label className="text-sm font-medium text-gray-700 mb-2 block">
-                Follow-up Date
+                Follow-up Date (Optional)
               </Label>
               <Input
                 type="date"
@@ -2987,6 +2989,30 @@ export function CorporateSearch({
                 className="border-gray-300 focus:border-orange-500 focus:ring-orange-500"
               />
             </div>
+
+            <div>
+              <Label className="text-sm font-medium text-gray-700 mb-2 block">
+                Follow-up Mode
+              </Label>
+              <Select
+                value={contactForm.followUpMode || ""}
+                onValueChange={(value) =>
+                  setContactForm({
+                    ...contactForm,
+                    followUpMode: value,
+                  })
+                }
+              >
+                <SelectTrigger className="border-gray-300 focus:border-orange-500 focus:ring-orange-500">
+                  <SelectValue placeholder="Select follow-up mode" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Call">Call</SelectItem>
+                  <SelectItem value="In Person">In Person</SelectItem>
+                  <SelectItem value="Online Meet">Online Meet</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
           <DialogFooter className="flex gap-2">
             <Button
@@ -2998,6 +3024,7 @@ export function CorporateSearch({
                   subject: "",
                   message: "",
                   followUpDate: "",
+                  followUpMode: "",
                   corporateData: null,
                 });
               }}
