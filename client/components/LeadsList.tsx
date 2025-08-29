@@ -2458,9 +2458,9 @@ SOAR-AI Team`,
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="Email">Email</SelectItem>
-                  <SelectItem value="Phone">Phone</SelectItem>
-                  <SelectItem value="LinkedIn">LinkedIn</SelectItem>
-                  <SelectItem value="In-Person Meeting">In-Person Meeting</SelectItem>
+                  <SelectItem value="Phone">SMS</SelectItem>
+                  {/* <SelectItem value="LinkedIn">LinkedIn</SelectItem>
+                  <SelectItem value="In-Person Meeting">In-Person Meeting</SelectItem> */}
                 </SelectContent>
               </Select>
             </div>

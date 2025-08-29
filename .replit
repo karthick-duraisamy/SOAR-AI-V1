@@ -71,11 +71,11 @@ mode = "parallel"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "cd server && python manage.py runserver 0.0.0.0:8000"
+args = "cd client && npm run dev"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "cd client && npm run dev"
+args = "cd server && python manage.py runserver 0.0.0.0:8000"
 
 [[workflows.workflow]]
 name = "Build Application"
