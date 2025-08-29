@@ -665,11 +665,11 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
   const [isSavingNote, setIsSavingNote] = useState(false);
 
   const isFormValid = () => {
-    return newCompanyForm.name.trim() !== '' && 
-           newCompanyForm.industry !== '' && 
-           newCompanyForm.companySize !== '' && 
-           newCompanyForm.location.trim() !== '' &&
-           newCompanyForm.email.trim() !== '';
+    return newCompany.name.trim() !== '' && 
+           newCompany.industry !== '' && 
+           newCompany.companySize !== '' && 
+           newCompany.location.trim() !== '' &&
+           newCompany.email.trim() !== '';
   };
 
   // Fetch leads from API
