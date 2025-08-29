@@ -2972,9 +2972,10 @@ export function CorporateSearch({
                 rows={10}
               />
             </div>
-
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+            
             <div>
-              <Label className="text-sm font-medium text-gray-700 mb-2 block">
+              <Label className="text-sm font-medium text-gray-700 mb-2 ">
                 Follow-up Date (Optional)
               </Label>
               <Input
@@ -2992,7 +2993,7 @@ export function CorporateSearch({
 
             <div>
               <Label className="text-sm font-medium text-gray-700 mb-2 block">
-                Follow-up Mode
+                Follow-up Mode  (Optional)
               </Label>
               <Select
                 value={contactForm.followUpMode || ""}
@@ -3013,8 +3014,9 @@ export function CorporateSearch({
                 </SelectContent>
               </Select>
             </div>
+              </div>
           </div>
-          <DialogFooter className="flex gap-2">
+          <DialogFooter className=" flex gap-2">
             <Button
               variant="outline"
               onClick={() => {

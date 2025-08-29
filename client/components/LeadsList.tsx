@@ -1155,7 +1155,8 @@ Would you be available for a brief call this week to discuss how we can support 
 
 Best regards,
 SOAR-AI Team`,
-      followUpDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0] // 7 days from now
+      followUpDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 7 days from now
+       followUpMode: ''
     });
     setShowContactDialog(true);
   };
@@ -1190,7 +1191,8 @@ SOAR-AI Team`,
         method: 'Email',
         subject: '',
         message: '',
-        followUpDate: ''
+        followUpDate: '',
+        followUpMode: ''
       });
     } catch (error) {
       console.error('Error sending message:', error);
@@ -2485,9 +2487,9 @@ SOAR-AI Team`,
                 rows={10}
               />
             </div>
-
+             <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
             <div>
-              <Label className="text-sm font-medium text-gray-700 mb-2 block">Follow-up Date</Label>
+              <Label className="text-sm font-medium text-gray-700 mb-2 block">Follow-up Date (Optional)</Label>
               <Input
                 type="date"
                 value={contactForm.followUpDate}
@@ -2495,6 +2497,30 @@ SOAR-AI Team`,
                 className="border-gray-300 focus:border-orange-500 focus:ring-orange-500"
               />
             </div>
+            <div>
+              <Label className="text-sm font-medium text-gray-700 mb-2 block">
+                Follow-up Mode  (Optional)
+              </Label>
+              <Select
+                value={contactForm.followUpMode || ""}
+                onValueChange={(value) =>
+                  setContactForm({
+                    ...contactForm,
+                    followUpMode: value,
+                  })
+                }
+              >
+                <SelectTrigger className="border-gray-300 focus:border-orange-500 focus:ring-orange-500">
+                  <SelectValue placeholder="Select follow-up mode" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Call">Call</SelectItem>
+                  <SelectItem value="In Person">In Person</SelectItem>
+                  <SelectItem value="Online Meet">Online Meet</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+             </div>
           </div>
           <DialogFooter className="flex gap-2">
             <Button 
@@ -2506,7 +2532,8 @@ SOAR-AI Team`,
                   method: 'Email',
                   subject: '',
                   message: '',
-                  followUpDate: ''
+                  followUpDate: '',
+                  followUpMode: ''
                 });
               }}
               className="text-gray-600 border-gray-300"
