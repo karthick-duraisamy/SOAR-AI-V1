@@ -1158,7 +1158,10 @@ const getRandomRiskLevel = () => {
     // Approvals Workflow
     discountApprovalRequired: false,
     revenueManagerAssigned: "",
-    legalApprovalRequired: false
+    legalApprovalRequired: false,
+
+    // Document Attachments
+    attachedFile: null
   });
 
   const [isDragging, setIsDragging] = useState(false);
@@ -3377,10 +3380,102 @@ const getRandomRiskLevel = () => {
                       </div>
                     </div>
                   </div>
+
+                  {/* 7. Document Attachments */}
+                  <div className="space-y-6">
+                    <div className="flex items-center gap-2 mb-4">
+                      <FileText className="h-5 w-5 text-gray-600" />
+                      <h3 className="text-lg font-semibold text-gray-900">Document Attachments</h3>
+                    </div>
+
+                    <div>
+                      <Label className="text-sm font-medium mb-3 block">Attach Supporting Documents</Label>
+                      <div
+                        className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
+                          isDragging
+                            ? "border-blue-500 bg-blue-50"
+                            : "border-gray-300 hover:border-gray-400"
+                        }`}
+                        onDrop={handleFileDrop}
+                        onDragOver={handleDragOver}
+                        onDragLeave={handleDragLeave}
+                      >
+                        {negotiationForm.attachedFile ? (
+                          <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                            <div className="flex items-center gap-3">
+                              <FileText className="h-5 w-5 text-blue-600" />
+                              <div className="text-left">
+                                <p className="text-sm font-medium text-gray-900">
+                                  {negotiationForm.attachedFile.name}
+                                </p>
+                                <p className="text-xs text-gray-500">
+                                  {(
+                                    negotiationForm.attachedFile.size /
+                                    1024 /
+                                    1024
+                                  ).toFixed(2)}{" "}
+                                  MB
+                                </p>
+                              </div>
+                            </div>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setNegotiationForm({...negotiationForm, attachedFile: null})}
+                              className="h-8 w-8 p-0"
+                            >
+                              ×
+                            </Button>
+                          </div>
+                        ) : (
+                          <div>
+                            <FileText className="h-12 w-12 mx-auto mb-4 text-gray-400" />
+                            <div className="space-y-2">
+                              <p className="text-sm text-gray-600">
+                                Drag and drop your contract documents here, or click to browse
+                              </p>
+                              <p className="text-xs text-gray-500">
+                                PDF, DOC, DOCX, XLS, XLSX files up to 10MB
+                              </p>
+                            </div>
+                            <input
+                              type="file"
+                              id="negotiation-file-input"
+                              className="hidden"
+                              accept=".pdf,.doc,.docx,.xls,.xlsx"
+                              onChange={(e) => {
+                                const file = e.target.files?.[0];
+                                if (file) {
+                                  setNegotiationForm({...negotiationForm, attachedFile: file});
+                                }
+                              }}
+                            />
+                            <Button
+                              type="button"
+                              variant="outline"
+                              className="mt-4"
+                              onClick={() =>
+                                document
+                                  .getElementById("negotiation-file-input")
+                                  ?.click()
+                              }
+                            >
+                              <Plus className="h-4 w-4 mr-2" />
+                              Browse Files
+                            </Button>
+                          </div>
+                        )}
+                      </div>
+                      <p className="text-xs text-gray-500 mt-2">
+                        Supported formats: Contract drafts, terms sheets, legal documents, compliance certificates
+                      </p>
+                    </div>
+                  </div>
                 </div>
               </ScrollArea>
 
-              {/* 7. Actions (sticky at bottom) */}
+              {/* 8. Actions (sticky at bottom) */}
               <div className="border-t bg-white px-6 py-4">
                 <div className="flex justify-between items-center">
                   <div className="flex gap-3">
