@@ -359,7 +359,7 @@ export function CorporateSearch({
   const debouncedSearchParams = useDebounce(searchParams, 500); // 500ms debounce delay
 
   // Initialize company API hook
-  const { searchCompanies, addCompany, moveToLead, bulkUploadCompanies, downloadSampleExcel } = useCompanyApi();
+  const { searchCompanies, createCompany, moveToLead, bulkUploadCompanies, downloadSampleExcel } = useCompanyApi();
 
   const [filteredCorporates, setFilteredCorporates] = useState([]);
   const [displayedCorporates, setDisplayedCorporates] = useState([]);
@@ -900,7 +900,7 @@ export function CorporateSearch({
 
       console.log("Sending company data:", companyData);
 
-      const savedCompany = await addCompany(companyData); // Use addCompany from useCompanyApi
+      const savedCompany = await createCompany(companyData); // Use createCompany from useCompanyApi
 
       // Reset form
       setNewCompany({
