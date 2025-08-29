@@ -242,7 +242,8 @@ interface OpportunityCardProps {
   onSendProposal?: (opportunity: Opportunity) => void;
   onMoveToNegotiation?: (opportunity: Opportunity) => void;
   onCloseDeal?: (opportunity: Opportunity, status: string) => void;
-  handleViewProfile: (opportunity: Opportunity) => void;
+  handleViewProfile: (profileId: string) => void;
+
 }
    
 
@@ -760,80 +761,78 @@ const leadApi = useLeadApi();
  const [selectedCorporate, setSelectedCorporate] = useState();
     const [showCorporateProfile, setShowCorporateProfile] = useState(false);   
     const [leadData,setleads] = useState([]);
-  const [isLoadingLeads, setIsLoadingLeads] = useState(false);
      
-  const handleViewProfile = useCallback((opportunities) => {
-    const companyName = opportunities.lead_info?.company?.name;
-    if (!companyName || !leadData.length) {
-      toast.error('Company profile data not available');
-      return;
-    }
-    
-    const item = leadData.find(entry => entry.name === companyName || entry.company === companyName);
-    if (item) {
-      setSelectedCorporate(item);
-      setShowCorporateProfile(true);
-    } else {
-      toast.error('Company profile not found');
-    }
-  }, [leadData]);
+  const handleViewProfile = (opportunities) => {
+  const companyName = opportunities.lead_info.company.name;
+  console.log(leadData,'leadData');
+  
+    const item = leadData.find(entry => entry.company === companyName);
+    console.log(item, 'item');
+    setSelectedCorporate(item);
+    setShowCorporateProfile(true);
+  };
   console.log(showCorporateProfile,'showCorporateProfile',selectedCorporate); 
   
- const fetchLeads = useCallback(async () => {
-        if (isLoadingLeads) return; // Prevent duplicate calls
-        
+ const fetchLeads = async () => {
         try {
-          setIsLoadingLeads(true);
-          
-          // Only fetch a minimal set of leads data needed for view profile functionality
-          // Use a lightweight request with basic filters
+           // Reset to first page on new fetch
+          // Apply current filtrs when fetching
           const filterParams = {
-            search: '',
-            status: '',
-            industry: '',
-            score: '',
-            engagement: '',
-            limit: 50 // Limit to reduce data transfer
+            search: filters.search || '',
+            status: filters.status !== 'all' ? filters.status : '',
+            industry: filters.industry !== 'all' ? filters.industry : '',
+            score: filters.score !== 'all' ? filters.score : '',
+            engagement: filters.engagement !== 'all' ? filters.engagement : ''
           };
     
+          console.log('Fetching leads with filters:', filterParams);
           const apiResponse = await leadApi.getLeads(filterParams);
+          console.log('Raw API response:', apiResponse);
     
-          // Handle different response formats efficiently
+          // Handle different response formats
           let apiLeads = [];
           if (Array.isArray(apiResponse)) {
             apiLeads = apiResponse;
-          } else if (apiResponse?.results) {
+          } else if (apiResponse && Array.isArray(apiResponse.results)) {
             apiLeads = apiResponse.results;
-          } else if (apiResponse?.data) {
+          } else if (apiResponse && apiResponse.data && Array.isArray(apiResponse.data)) {
             apiLeads = apiResponse.data;
           } else {
+            console.warn('Unexpected API response format:', apiResponse);
             apiLeads = [];
           }
     
-          // Only transform data needed for view profile functionality
+          console.log('Processed leads array:', apiLeads);
+    
+          // Transform leads - history_entries are not included here as they are fetched on demand
+          const transformedLeads = apiLeads.map((apiLead: any) => {
+            console.log('Transforming lead:', apiLead);
+            return transformApiLeadToUILead(apiLead);
+          });
+    
           const transformedLeadsforViewProfile = apiLeads.map((apiLead: any) => {
+            console.log('Transforming leadfor view profile:', apiLead);
             return transformCompanyDataForViewProfile(apiLead);
           });
     
-          setleads(transformedLeadsforViewProfile);
+          console.log("ddddddddddddddddd",transformedLeadsforViewProfile);
+          setleads(transformedLeads);
+          // setLeadsForViewProfile(transformedLeadsforViewProfile);
     
         } catch (error) {
-          console.error('Error fetching leads for view profile:', error);
-          // Fail silently to not impact opportunities loading
+          console.error('Error fetching leads:', error);
+          console.error('Error details:', error.response?.data);
+          toast.error('Failed to fetch leads from server');
+          // Set empty array on error to avoid showing static data
           setleads([]);
         } finally {
-          setIsLoadingLeads(false);
+          // setLoading(false);
         }
-      }, [leadApi, isLoadingLeads]);
+      };
       useEffect(() => {
-    // Only fetch leads if view profile functionality might be needed
-    // Use a timeout to not block initial opportunities loading
-    const timeoutId = setTimeout(() => {
-      fetchLeads();
-    }, 1000); // Delay by 1 second to prioritize opportunities loading
-
-    return () => clearTimeout(timeoutId);
-  }, [fetchLeads]);
+    // Always fetch leads on component mount
+    fetchLeads();
+  }, []);
     const transformApiLeadToUILead = (apiLead: any) => {
   // Get the latest note from lead_notes array if available
     const latestNote = apiLead.lead_notes && apiLead.lead_notes.length > 0 
