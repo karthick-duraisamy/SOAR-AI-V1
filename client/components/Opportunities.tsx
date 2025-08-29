@@ -3396,7 +3396,7 @@ const getRandomRiskLevel = () => {
                       className="bg-blue-600 hover:bg-blue-700 text-white"
                     >
                       <FileText className="h-4 w-4 mr-2" />
-                      Generate Revised Proposal
+                      Send Revised Proposal
                     </Button>
                   </div>
                   <div className="flex gap-3">
@@ -3406,18 +3406,6 @@ const getRandomRiskLevel = () => {
                       className="border-red-300 text-red-600 hover:bg-red-50"
                     >
                       Cancel
-                    </Button>
-                    <Button
-                      onClick={handleStartNegotiation}
-                      disabled={isSavingNegotiation}
-                      className="bg-purple-600 hover:bg-purple-700 text-white min-w-[140px]"
-                    >
-                      {isSavingNegotiation ? (
-                        <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                      ) : (
-                        <Handshake className="h-4 w-4 mr-2" />
-                      )}
-                      {isSavingNegotiation ? "Starting..." : "Start Negotiation"}
                     </Button>
                   </div>
                 </div>
