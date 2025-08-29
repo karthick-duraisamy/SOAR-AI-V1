@@ -13,6 +13,7 @@ import { Skeleton } from './ui/skeleton';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from './ui/collapsible';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from './ui/dropdown-menu';
 import { useLeadApi } from '../hooks/api/useLeadApi';
+import { useCompanyApi } from '../hooks/api/useCompanyApi';
 import { 
   Users, 
   UserCheck, 
@@ -546,6 +547,7 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
   const [leads, setLeads] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const leadApi = useLeadApi();
+  const companyApi = useCompanyApi();
   const [successMessage, setSuccessMessage] = useState('');
   const [selectedLead, setSelectedLead] = useState<any>(null); // State for the lead selected in other dialogs
   const [showNewCompanyDialog, setShowNewCompanyDialog] = useState(false); // Changed from showNewLeadDialog
@@ -1022,9 +1024,45 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
         description: newCompany.notes || ''
       };
 
-      console.log('Sending company data:', companyData);
+      console.log('Step 1: Saving company data:', companyData);
 
-      // const savedCompany = await companyApi.createCompany(companyData);
+      // Step 1: Save company data using the company API
+      const savedCompany = await companyApi.createCompany(companyData);
+      console.log('Step 1 completed: Company saved successfully:', savedCompany);
+
+      // Step 2: Create lead from the saved company
+      console.log('Step 2: Creating lead from company ID:', savedCompany.id);
+      
+      const leadData = {
+        company: {
+          id: savedCompany.id,
+          name: savedCompany.name,
+          industry: savedCompany.industry,
+          location: savedCompany.location,
+          size: savedCompany.size,
+          annual_revenue: savedCompany.annual_revenue,
+          travel_budget: savedCompany.travel_budget,
+          employee_count: savedCompany.employee_count,
+        },
+        contact: {
+          first_name: 'Contact',
+          last_name: 'Person',
+          email: savedCompany.email,
+          phone: savedCompany.phone || '',
+          position: 'Decision Maker',
+          is_decision_maker: true,
+        },
+        status: 'new',
+        source: 'manual_entry',
+        priority: 'medium',
+        score: 50,
+        estimated_value: savedCompany.travel_budget,
+        notes: `Lead created from company entry. ${savedCompany.description || ''}`,
+        next_action: 'Initial outreach and qualification'
+      };
+
+      const createdLead = await leadApi.createLead(leadData);
+      console.log('Step 2 completed: Lead created successfully:', createdLead);
 
       // Reset form
       setNewCompany({
@@ -1055,26 +1093,23 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
       });
 
       setShowAddCompanyDialog(false);
-      setSuccessMessage(`${newCompany.name} has been successfully added to the corporate database.`);
+      setSuccessMessage(`${newCompany.name} has been successfully added as a lead!`);
 
-      // Refresh the companies list to show the new company
-      try {
-        const createdLead = await leadApi.createLead(companyData);
-
-        console.log('Lead created successfully:', createdLead);
-
-        await fetchLeads(); 
-      } catch (refreshError) {
-        console.error('Error refreshing companies list:', refreshError);
-      }
-
+      // Refresh the leads list to show the new lead
+      await fetchLeads();
+      
       setTimeout(() => setSuccessMessage(''), 5000);
+      toast.success('Company and lead created successfully!');
 
     } catch (error) {
-      console.error('Error saving company:', error);
-      const errorMessage = error.response?.data?.message || error.message || 'Failed to save company';
+      console.error('Error in handleAddCompany:', error);
+      const errorMessage = error.response?.data?.error ||
+                          error.response?.data?.message || 
+                          error.message || 
+                          'Failed to save company and create lead';
       setSuccessMessage(`Error: ${errorMessage}`);
       setTimeout(() => setSuccessMessage(''), 5000);
+      toast.error('Failed to create company and lead. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
