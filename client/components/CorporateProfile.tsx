@@ -1050,7 +1050,7 @@ export function CorporateProfile({
         </TabsContent>
 
         <TabsContent value="partnerships" className="space-y-6">
-          <Card>
+          {/* <Card>
             <CardHeader>
               <CardTitle>Technology Integration</CardTitle>
             </CardHeader>
@@ -1072,7 +1072,7 @@ export function CorporateProfile({
                 )}
               </div>
             </CardContent>
-          </Card>
+          </Card> */}
 
             <Card>
               <CardHeader>
