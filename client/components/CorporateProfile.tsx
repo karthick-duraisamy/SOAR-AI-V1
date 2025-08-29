@@ -1074,40 +1074,123 @@ export function CorporateProfile({
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Partnership Opportunities</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
-                <h4 className="font-semibold text-blue-800 mb-2">
-                  Volume Partnership
-                </h4>
-                <p className="text-sm text-blue-700">
-                  High travel volume makes this corporate ideal for volume-based
-                  partnerships with tiered benefits.
-                </p>
-              </div>
-              <div className="p-4 bg-green-50 rounded-lg border border-green-200">
-                <h4 className="font-semibold text-green-800 mb-2">
-                  Sustainability Initiative
-                </h4>
-                <p className="text-sm text-green-700">
-                  Strong sustainability focus aligns with carbon offset programs
-                  and eco-friendly travel options.
-                </p>
-              </div>
-              <div className="p-4 bg-purple-50 rounded-lg border border-purple-200">
-                <h4 className="font-semibold text-purple-800 mb-2">
-                  Technology Integration
-                </h4>
-                <p className="text-sm text-purple-700">
-                  Advanced technology requirements present opportunities for API
-                  integration and digital solutions.
-                </p>
-              </div>
-            </CardContent>
-          </Card>
+            <Card>
+              <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Building2 className="h-5 w-5" />
+                    Current Travel Partners / Airlines
+                  </CardTitle>
+                  <CardDescription>
+                    Existing airline partnerships and preferences
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                          <Plane className="h-4 w-4 text-blue-600" />
+                        </div>
+                        <div>
+                          <p className="font-semibold">Delta Air Lines</p>
+                          <p className="text-sm text-gray-500">Primary</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Badge className="bg-[#FD9646] text-white">
+                          Contract
+                        </Badge>
+                        <Edit className="h-4 w-4 text-gray-400 cursor-pointer" />
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                          <Plane className="h-4 w-4 text-blue-600" />
+                        </div>
+                        <div>
+                          <p className="font-semibold">United Airlines</p>
+                          <p className="text-sm text-gray-500">Secondary</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Badge className="bg-[#FD9646] text-white">
+                          Contract
+                        </Badge>
+                        <Edit className="h-4 w-4 text-gray-400 cursor-pointer" />
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                          <Plane className="h-4 w-4 text-blue-600" />
+                        </div>
+                        <div>
+                          <p className="font-semibold">British Airways</p>
+                          <p className="text-sm text-gray-500">International</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Badge variant="outline">No Contract</Badge>
+                        <Edit className="h-4 w-4 text-gray-400 cursor-pointer" />
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                          <Plane className="h-4 w-4 text-blue-600" />
+                        </div>
+                        <div>
+                          <p className="font-semibold">Singapore Airlines</p>
+                          <p className="text-sm text-gray-500">Asia-Pacific</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Badge variant="outline">No Contract</Badge>
+                        <Edit className="h-4 w-4 text-gray-400 cursor-pointer" />
+                      </div>
+                    </div>
+                  </div>
+                  <Button variant="outline" size="sm" className="w-full">
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Partner
+                  </Button>
+                </CardContent>
+            </Card>
+            <Card>
+              <CardHeader>
+                <CardTitle>Partnership Opportunities</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+                  <h4 className="font-semibold text-blue-800 mb-2">
+                    Volume Partnership
+                  </h4>
+                  <p className="text-sm text-blue-700">
+                    High travel volume makes this corporate ideal for volume-based
+                    partnerships with tiered benefits.
+                  </p>
+                </div>
+                <div className="p-4 bg-green-50 rounded-lg border border-green-200">
+                  <h4 className="font-semibold text-green-800 mb-2">
+                    Sustainability Initiative
+                  </h4>
+                  <p className="text-sm text-green-700">
+                    Strong sustainability focus aligns with carbon offset programs
+                    and eco-friendly travel options.
+                  </p>
+                </div>
+                <div className="p-4 bg-purple-50 rounded-lg border border-purple-200">
+                  <h4 className="font-semibold text-purple-800 mb-2">
+                    Technology Integration
+                  </h4>
+                  <p className="text-sm text-purple-700">
+                    Advanced technology requirements present opportunities for API
+                    integration and digital solutions.
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
         </TabsContent>
 
         <TabsContent value="insights" className="space-y-6">

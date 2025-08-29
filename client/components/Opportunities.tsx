@@ -34,6 +34,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 import { ScrollArea } from "./ui/scroll-area";
 import { useLeadApi } from "../hooks/api/useLeadApi";
 import { toast } from "sonner";
+import { CorporateProfile } from './CorporateProfile';
 import {
   TrendingUp,
   TrendingDown,
@@ -176,6 +177,7 @@ interface ActivityAccordionProps {
 
 const ActivityAccordion = memo(({ activities }: ActivityAccordionProps) => {
   const [isExpanded, setIsExpanded] = useState(false);
+  
 
   const displayedActivities = isExpanded ? activities : activities.slice(0, 1);
   const remainingCount = activities.length - 1;
@@ -227,8 +229,8 @@ const ActivityAccordion = memo(({ activities }: ActivityAccordionProps) => {
       </div>
     </div>
   );
+  
 });
-
 ActivityAccordion.displayName = "ActivityAccordion";
 
 // Opportunity Card Component matching the design in the image
@@ -240,7 +242,12 @@ interface OpportunityCardProps {
   onSendProposal?: (opportunity: Opportunity) => void;
   onMoveToNegotiation?: (opportunity: Opportunity) => void;
   onCloseDeal?: (opportunity: Opportunity, status: string) => void;
+  handleViewProfile: (profileId: string) => void;
+
 }
+   
+
+   
 
 const OpportunityCard = memo(
   ({
@@ -251,7 +258,11 @@ const OpportunityCard = memo(
     onSendProposal,
     onMoveToNegotiation,
     onCloseDeal,
+    handleViewProfile
+
   }: OpportunityCardProps) => {
+
+
     const [{ isDragging }, drag] = useDrag(() => ({
       type: ItemTypes.OPPORTUNITY,
       item: { id: opportunity.id, stage: opportunity.stage },
@@ -306,7 +317,7 @@ const OpportunityCard = memo(
         return `$${numAmount.toFixed(0)}`;
       }
     }, []);
-
+     
     const formatDate = useCallback((dateString: string) => {
       return new Date(dateString).toLocaleDateString("en-US", {
         month: "2-digit",
@@ -314,6 +325,8 @@ const OpportunityCard = memo(
         year: "numeric",
       });
     }, []);
+
+    
 
     return (
       <div
@@ -505,7 +518,7 @@ const OpportunityCard = memo(
               className="h-8 px-3 text-xs border-gray-300 text-gray-700 hover:bg-gray-50 rounded-md font-medium"
               onClick={(e) => {
                 e.stopPropagation();
-                onViewHistory(opportunity);
+                handleViewProfile(opportunity);
               }}
             >
               <Eye className="h-3 w-3 mr-1" />
@@ -743,8 +756,341 @@ export function Opportunities({
   const [isSavingEdit, setIsSavingEdit] = useState(false);
   const [isSavingActivity, setIsSavingActivity] = useState(false);
   const [showNegotiationDialog, setShowNegotiationDialog] = useState(false);
-  const [isSavingNegotiation, setIsSavingNegotiation] = useState(false);
+  const [isSavingNegotiation, setIsSavingNegotiation] = useState(false);  
+const leadApi = useLeadApi();
+ const [selectedCorporate, setSelectedCorporate] = useState();
+    const [showCorporateProfile, setShowCorporateProfile] = useState(false);   
+    const [leadData,setleads] = useState([]);
+     
+  const handleViewProfile = (opportunities) => {
+  const companyName = opportunities.lead_info.company.name;
+  console.log(leadData,'leadData');
+  
+    const item = leadData.find(entry => entry.company === companyName);
+    console.log(item, 'item');
+    setSelectedCorporate(item);
+    setShowCorporateProfile(true);
+  };
+  console.log(showCorporateProfile,'showCorporateProfile',selectedCorporate); 
+  
+ const fetchLeads = async () => {
+        try {
+           // Reset to first page on new fetch
+          // Apply current filtrs when fetching
+          const filterParams = {
+            search: filters.search || '',
+            status: filters.status !== 'all' ? filters.status : '',
+            industry: filters.industry !== 'all' ? filters.industry : '',
+            score: filters.score !== 'all' ? filters.score : '',
+            engagement: filters.engagement !== 'all' ? filters.engagement : ''
+          };
+    
+          console.log('Fetching leads with filters:', filterParams);
+          const apiResponse = await leadApi.getLeads(filterParams);
+          console.log('Raw API response:', apiResponse);
+    
+          // Handle different response formats
+          let apiLeads = [];
+          if (Array.isArray(apiResponse)) {
+            apiLeads = apiResponse;
+          } else if (apiResponse && Array.isArray(apiResponse.results)) {
+            apiLeads = apiResponse.results;
+          } else if (apiResponse && apiResponse.data && Array.isArray(apiResponse.data)) {
+            apiLeads = apiResponse.data;
+          } else {
+            console.warn('Unexpected API response format:', apiResponse);
+            apiLeads = [];
+          }
+    
+          console.log('Processed leads array:', apiLeads);
+    
+          // Transform leads - history_entries are not included here as they are fetched on demand
+          const transformedLeads = apiLeads.map((apiLead: any) => {
+            console.log('Transforming lead:', apiLead);
+            return transformApiLeadToUILead(apiLead);
+          });
+    
+          const transformedLeadsforViewProfile = apiLeads.map((apiLead: any) => {
+            console.log('Transforming leadfor view profile:', apiLead);
+            return transformCompanyDataForViewProfile(apiLead);
+          });
+    
+          console.log("ddddddddddddddddd",transformedLeadsforViewProfile);
+          setleads(transformedLeads);
+          // setLeadsForViewProfile(transformedLeadsforViewProfile);
+    
+        } catch (error) {
+          console.error('Error fetching leads:', error);
+          console.error('Error details:', error.response?.data);
+          toast.error('Failed to fetch leads from server');
+          // Set empty array on error to avoid showing static data
+          setleads([]);
+        } finally {
+          // setLoading(false);
+        }
+      };
+      useEffect(() => {
+    // Always fetch leads on component mount
+    fetchLeads();
+  }, []);
+    const transformApiLeadToUILead = (apiLead: any) => {
+  // Get the latest note from lead_notes array if available
+    const latestNote = apiLead.lead_notes && apiLead.lead_notes.length > 0 
+      ? apiLead.lead_notes[0] // Notes are ordered by -created_at in the backend
+      : null;
 
+    // Combine original notes with latest lead notes
+    const combinedNotes = [
+      apiLead.notes || '',
+      latestNote ? `[${new Date(latestNote.created_at).toLocaleDateString()}] ${latestNote.note}` : ''
+    ].filter(Boolean).join(' | ');
+    console.log(apiLead,'cgecj');
+    
+    return {
+      id: apiLead.id,
+      company: apiLead.contact.company_name || 'Unknown Company',
+      type: getCompanyTypeDisplay(apiLead.company.company_type || apiLead.company.size),
+      contact: `${apiLead.full_name || ''} ${apiLead.contact.last_name || ''}`.trim() || 'Unknown Contact',
+      title: apiLead.contact.position || 'Unknown Position',
+      email: apiLead.contact.email || 'unknown@email.com',
+      phone: apiLead.contact.phone || 'N/A',
+      website: apiLead.company.website || `https://wwwwww. ${(apiLead.company.name || 'company').toLowerCase().replace(/\s+/g, '')}.com`,
+      aiScore: Math.floor(Math.random() * 20) + 80, // Random AI score for demo
+      industry: apiLead.company.industry || 'Unknown',
+      employees: apiLead.company.employee_count ,
+      specialties: apiLead.company.specialties ? apiLead.company.specialties.split(',').map(s => s.trim()).filter(s => s).slice(0, 5) : ["Business Services", "Corporate Solutions"],
+      revenue: apiLead.company.annual_revenue ,
+      location: apiLead.company.location || 'Unknown Location',
+      status: apiLead.status || 'new',
+      score: apiLead.score || 50,
+      established: apiLead.company.year_established || (apiLead.company.created_at ? new Date(apiLead.company.created_at).getFullYear() : 2020),
+      companySize: getSizeDisplay(apiLead.company.size),
+      source: apiLead.source || 'Unknown',
+      lastContact: apiLead.last_contact_at ? new Date(apiLead.last_contact_at).toISOString().split('T')[0] : apiLead.created_at ? new Date(apiLead.created_at).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+      nextAction: apiLead.next_action || 'Follow up',
+      destinations: getRandomDestinations(),
+      financialStability: Math.floor(Math.random() * 20) + 80,
+      notes: combinedNotes,
+      leadNotes: apiLead.lead_notes || [], // Store all notes for display
+      engagement: apiLead.score >= 80 ? 'High' : apiLead.score >= 60 ? 'Medium' : 'Low',
+      travelBudget: apiLead.company?.travel_budget ? `${Math.floor(apiLead.company.travel_budget / 1000)}K` : '$0K',
+      annualTravelVolume: apiLead.company.annual_travel_volume || `${Math.floor(Math.random() * 5000) + 1000} trips`,
+      paymentTerms: apiLead.company.payment_terms || getRandomPaymentTerms(),
+      creditRating: apiLead.company.credit_rating || getRandomCreditRating(),
+      sustainabilityFocus: apiLead.company.sustainability_focus || getRandomSustainabilityFocus(),
+      marketSegment: getIndustryDisplay(apiLead.company.industry),
+      aiRecommendation: generateAIRecommendation(apiLead.company),
+      technologyIntegration: apiLead.company.technology_integration ? apiLead.company.technology_integration.split(',').map(s => s.trim()).filter(s => s).slice(0, 5) : getRandomTechIntegration(),
+      compliance: Math.floor(Math.random() * 20) + 80,
+      decisionMaker: apiLead.contact?.is_decision_maker || Math.random() > 0.5,
+      urgency: apiLead.priority || 'Medium', // Assuming 'priority' field maps to urgency
+      aiSuggestion: `AI Score: ${apiLead.score}. ${apiLead.score >= 80 ? 'High priority lead - contact immediately' : apiLead.score >= 60 ? 'Medium priority - follow up within 2 days' : 'Low priority - add to nurture campaign'}`,
+      tags: [apiLead.company?.industry || 'General', apiLead.status || 'New'],
+      contractReady: apiLead.status === 'qualified',
+      lastActivity: apiLead.updated_at ? new Date(apiLead.updated_at).toISOString().split('T')[0] : apiLead.created_at ? new Date(apiLead.created_at).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+      followUpDate: apiLead.next_action_date || new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+      assignedAgent: apiLead.assigned_to?.username || null,
+      assigned_agent_details: apiLead.assigned_to ? { // Map assigned agent details if available
+        name: apiLead.assigned_to.full_name || apiLead.assigned_to.username,
+        email: apiLead.assigned_to.email || `${apiLead.assigned_to.username}@soarai.com`,
+        specialties: apiLead.assigned_to.specialties || [], // Assuming specialties field exists
+        current_leads: apiLead.assigned_to.current_leads || 0, // Assuming current_leads field exists
+      } : undefined,
+      // History will be fetched separately via API and mapped in the dialog
+      history_entries: [] // This will be populated via getHistory API call
+    };
+  };
+  const transformCompanyDataForViewProfile = (apiLead) => {
+  // console.log(apiLead, "apilead for view profile")
+  // Transform backend data to match frontend expectations
+  console.log(apiLead,'final');
+  
+  return {
+    id: apiLead.id,
+    name: apiLead.contact.company_name,
+    type: getCompanyTypeDisplay(apiLead.company.company_type || apiLead.company.size),
+    industry: getIndustryDisplay(apiLead.company.industry),
+    location: apiLead.company.location,
+    aiScore: Math.floor(Math.random() * 20) + 80, // Random AI score for demo
+    rating: (Math.random() * 1 + 4).toFixed(1), // Random rating 4.0-5.0
+    established: apiLead.company.year_established || (apiLead.company.created_at ? new Date(apiLead.company.created_at).getFullYear() : 2020),
+    employees: apiLead.company.employee_count || Math.floor(Math.random() * 5000) + 100,
+    specialties: apiLead.company.specialties ? apiLead.company.specialties.split(',').map(s => s.trim()).filter(s => s).slice(0, 5) : ["Business Services", "Corporate Solutions"],
+    travelBudget: apiLead.company.travel_budget ? `${(apiLead.company.travel_budget / 1000000).toFixed(1)}M` : "1.0M",
+    annualTravelVolume: apiLead.company.annual_travel_volume || `${Math.floor(Math.random() * 5000) + 1000} trips`,
+    contracts: Math.floor(Math.random() * 20) + 1,
+    revenue: apiLead.company.annual_revenue || Math.floor(Math.random() * 50000000) + 10000000,
+    phone: apiLead.company.phone || "+1 (555) " + Math.floor(Math.random() * 900 + 100) + "-" + Math.floor(Math.random() * 9000 + 1000),
+    email: apiLead.company.email || `contact@${apiLead.company.name.toLowerCase().replace(/[^a-z0-9]/g, '')}.com`,
+    website: apiLead.company.website || `www.${apiLead.company.name.toLowerCase().replace(/[^a-z0-9]/g, '')}.com`,
+    aiRecommendation: generateAIRecommendation(apiLead.company),
+    compliance: Math.floor(Math.random() * 20) + 80,
+    financialStability: Math.floor(Math.random() * 20) + 80,
+    travelFrequency: apiLead.company.travel_frequency || getRandomTravelFrequency(),
+    destinations: getRandomDestinations(),
+    preferredClass: apiLead.company.preferred_class || getRandomPreferredClass(),
+    teamSize: Math.floor((apiLead.company.employee_count || 1000) * 0.1),
+    travelManagers: Math.floor(Math.random() * 5) + 1,
+    currentAirlines: apiLead.company.current_airlines ? apiLead.company.current_airlines.split(',').map(s => s.trim()).filter(s => s).slice(0, 5) : getRandomAirlines(),
+    paymentTerms: apiLead.company.payment_terms || getRandomPaymentTerms(),
+    creditRating: apiLead.company.credit_rating || getRandomCreditRating(),
+    sustainabilityFocus: apiLead.company.sustainability_focus || getRandomSustainabilityFocus(),
+    technologyIntegration: apiLead.company.technology_integration ? apiLead.company.technology_integration.split(',').map(s => s.trim()).filter(s => s).slice(0, 5) : getRandomTechIntegration(),
+    seasonality: getRandomSeasonality(),
+    meetingTypes: getRandomMeetingTypes(),
+    companySize: getSizeDisplay(apiLead.company.size),
+    marketSegment: getIndustryDisplay(apiLead.company.industry),
+    decisionMakers: Math.floor(Math.random() * 8) + 2,
+    contractValue: Math.floor(Math.random() * 3000000) + 500000,
+    competitorAirlines: Math.floor(Math.random() * 5) + 1,
+    loyaltyPotential: Math.floor(Math.random() * 30) + 70,
+    expansionPlans: apiLead.company.expansion_plans || getRandomExpansionPlans(),
+    riskLevel: apiLead.company.risk_level || getRandomRiskLevel(),
+    assigned_agent_details: apiLead.assigned_to ? { // Map assigned agent details if available
+        name: apiLead.assigned_to.full_name || apiLead.assigned_to.username,
+        email: apiLead.assigned_to.email || `${apiLead.assigned_to.username}@soarai.com`,
+        specialties: apiLead.assigned_to.specialties || [], // Assuming specialties field exists
+        current_leads: apiLead.assigned_to.current_leads || 0, // Assuming current_leads field exists
+      } : undefined,
+  };
+};
+const getCompanyTypeDisplay = (size) => {
+  const types = {
+    startup: "Startup Company",
+    small: "Small Business",
+    medium: "Medium Corporation",
+    large: "Large Corporation",
+    enterprise: "Enterprise Corporation",
+    corporation: "Corporation",
+    llc: "LLC",
+    partnership: "Partnership",
+    nonprofit: "Non-Profit"
+  };
+  return types[size] || "Corporation";
+};
+
+const getIndustryDisplay = (industry) => {
+  const industries = {
+    technology: "Technology & Software",
+    finance: "Finance & Banking",
+    healthcare: "Healthcare",
+    manufacturing: "Manufacturing",
+    retail: "Retail & Consumer",
+    consulting: "Consulting Services",
+    telecommunications: "Telecommunications",
+    energy: "Energy & Utilities",
+    transportation: "Transportation & Logistics",
+    education: "Education",
+    government: "Government",
+    other: "Other"
+  };
+  return industries[industry] || "Business Services";
+};
+
+const getSizeDisplay = (size) => {
+  const sizes = {
+    startup: "Startup",
+    small: "Small",
+    medium: "Medium",
+    large: "Large",
+    enterprise: "Enterprise"
+  };
+  return sizes[size] || "Medium";
+};
+
+const generateAIRecommendation = (company) => {
+  const recommendations = [
+    "High-potential corporate client with strong growth indicators. Excellent opportunity for partnership.",
+    "Established company with consistent business patterns. Good candidate for long-term contracts.",
+    "Growing organization with expanding travel needs. Consider volume-based pricing strategies.",
+    "Premium client with sophisticated requirements. Focus on high-service offerings.",
+    "Cost-conscious organization seeking value. Emphasize efficiency and competitive pricing."
+  ];
+  return recommendations[Math.floor(Math.random() * recommendations.length)];
+};
+
+const getRandomTravelFrequency = () => {
+  const frequencies = ["Daily", "Weekly", "Monthly", "Bi-weekly", "Quarterly"];
+  return frequencies[Math.floor(Math.random() * frequencies.length)];
+};
+
+const getRandomDestinations = () => {
+  const destinations = [
+    ["North America", "Europe"],
+    ["Global", "Asia-Pacific", "Europe"],
+    ["North America", "Asia-Pacific"],
+    ["Domestic", "Regional"],
+    ["Global", "Emerging Markets"]
+  ];
+  return destinations[Math.floor(Math.random() * destinations.length)];
+};
+
+const getRandomPreferredClass = () => {
+  const classes = ["Economy", "Economy Plus", "Business", "First", "Business/First"];
+  return classes[Math.floor(Math.random() * classes.length)];
+};
+
+const getRandomAirlines = () => {
+  const airlines = [
+    ["United", "Delta"],
+    ["American", "Southwest"],
+    ["Emirates", "Singapore Airlines"],
+    ["British Airways", "Lufthansa"],
+    ["Air France", "KLM"]
+  ];
+  return airlines[Math.floor(Math.random() * airlines.length)];
+};
+
+const getRandomPaymentTerms = () => {
+  const terms = ["Net 15", "Net 30", "Net 45", "Net 60"];
+  return terms[Math.floor(Math.random() * terms.length)];
+};
+
+const getRandomCreditRating = () => {
+  const ratings = ["AAA", "AA", "A", "BBB", "A+"];
+  return ratings[Math.floor(Math.random() * ratings.length)];
+};
+
+const getRandomSustainabilityFocus = () => {
+  const focus = ["Very High", "High", "Medium", "Low"];
+  return focus[Math.floor(Math.random() * focus.length)];
+};
+
+const getRandomTechIntegration = () => {
+  const tech = [
+    ["API", "Mobile App"],
+    ["GDS", "Corporate Portal"],
+    ["API", "Real-time Booking"],
+    ["Mobile App", "Expense Management"],
+    ["Corporate Portal", "Reporting"]
+  ];
+  return tech[Math.floor(Math.random() * tech.length)];
+};
+
+const getRandomSeasonality = () => {
+  const patterns = ["Year-round", "Q1/Q3 Heavy", "Spring/Summer Peak", "Holiday Heavy"];
+  return patterns[Math.floor(Math.random() * patterns.length)];
+};
+
+const getRandomMeetingTypes = () => {
+  const types = [
+    ["Business Meetings", "Conferences"],
+    ["Client Visits", "Trade Shows"],
+    ["Team Offsites", "Training"],
+    ["Site Visits", "Regulatory Meetings"]
+  ];
+  return types[Math.floor(Math.random() * types.length)];
+};
+
+const getRandomExpansionPlans = () => {
+  const plans = ["Aggressive", "Moderate", "Conservative", "Rapid", "Stable"];
+  return plans[Math.floor(Math.random() * plans.length)];
+};
+
+const getRandomRiskLevel = () => {
+  const risks = ["Very Low", "Low", "Medium", "High"];
+  return risks[Math.floor(Math.random() * risks.length)];
+};   
   const [editForm, setEditForm] = useState({
     stage: "",
     probability: "",
@@ -841,6 +1187,7 @@ export function Opportunities({
 
         console.log("Setting opportunities:", opportunitiesArray);
         setOpportunities(opportunitiesArray);
+        // fetchLeads()
       } catch (error) {
         console.error("Error fetching opportunities:", error);
         setOpportunities([]);
@@ -851,7 +1198,9 @@ export function Opportunities({
     };
 
     fetchOpportunities();
-  }, [getOpportunities, filters]);
+    
+  }, [getOpportunities,  filters]);
+
 
   // Handle new opportunity from leads
   useEffect(() => {
@@ -1526,6 +1875,20 @@ export function Opportunities({
   );
 
   return (
+    <>
+       {showCorporateProfile && selectedCorporate && (
+  <Dialog open={showCorporateProfile} onOpenChange={setShowCorporateProfile}>
+    <DialogContent className="max-w-2xl cls-corporate-profile">
+      <div className="mt-4 max-h-[90vh] overflow-y-auto">
+        <CorporateProfile
+          corporateData={selectedCorporate}
+          onBack={() => setShowCorporateProfile(false)}
+        />
+      </div>
+    </DialogContent>
+  </Dialog>
+)}
+
     <DndProvider backend={HTML5Backend}>
       <div className="space-y-6 p-6 bg-gray-50 min-h-screen">
         {/* Success Message */}
@@ -1769,6 +2132,8 @@ export function Opportunities({
                       onSendProposal={handleSendProposal}
                       onMoveToNegotiation={handleMoveToNegotiation}
                       onCloseDeal={handleCloseDeal}
+                      handleViewProfile={handleViewProfile}
+
                     />
                   ))}
                 </div>
@@ -3062,5 +3427,8 @@ export function Opportunities({
         </Dialog>
       </div>
     </DndProvider>
+    </>
+    
   );
+    
 }
