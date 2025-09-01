@@ -2544,203 +2544,698 @@ const getRandomRiskLevel = () => {
 
         {/* Send Proposal Dialog */}
         <Dialog open={showProposalDialog} onOpenChange={setShowProposalDialog}>
-          <DialogContent className="max-w-2xl max-h-[95vh]">
-            <DialogHeader>
-              <DialogTitle className="flex items-center gap-2">
-                <FileText className="h-5 w-5" />
-                Send Proposal - {selectedOpportunity?.lead_info?.company?.name}
-              </DialogTitle>
-              <DialogDescription>
-                Create and send a comprehensive proposal to advance this
-                opportunity
-              </DialogDescription>
-            </DialogHeader>
-            <div className="space-y-4">
-              <div>
-                <Label>Proposal Title *</Label>
-                <Input
-                  value={proposalForm.title}
-                  onChange={(e) =>
-                    setProposalForm({ ...proposalForm, title: e.target.value })
-                  }
-                  placeholder="Enter proposal title..."
-                />
-              </div>
-              <div>
-                <Label>Proposal Description</Label>
-                <Textarea
-                  value={proposalForm.description}
-                  onChange={(e) =>
-                    setProposalForm({
-                      ...proposalForm,
-                      description: e.target.value,
-                    })
-                  }
-                  placeholder="Describe the proposed solution and key benefits..."
-                  rows={4}
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label>Validity Period (Days)</Label>
-                  <Select
-                    value={proposalForm.validityPeriod}
-                    onValueChange={(value) =>
-                      setProposalForm({
-                        ...proposalForm,
-                        validityPeriod: value,
-                      })
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="15">15 days</SelectItem>
-                      <SelectItem value="30">30 days</SelectItem>
-                      <SelectItem value="45">45 days</SelectItem>
-                      <SelectItem value="60">60 days</SelectItem>
-                      <SelectItem value="90">90 days</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label>Delivery Method</Label>
-                  <Select
-                    value={proposalForm.deliveryMethod}
-                    onValueChange={(value) =>
-                      setProposalForm({
-                        ...proposalForm,
-                        deliveryMethod: value,
-                      })
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="email">Email</SelectItem>
-                      <SelectItem value="secure_portal">
-                        Secure Portal
-                      </SelectItem>
-                      <SelectItem value="in_person">
-                        In-Person Presentation
-                      </SelectItem>
-                      <SelectItem value="video_call">
-                        Video Call Presentation
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-              <div>
-                <Label>Special Terms & Conditions</Label>
-                <Textarea
-                  value={proposalForm.specialTerms}
-                  onChange={(e) =>
-                    setProposalForm({
-                      ...proposalForm,
-                      specialTerms: e.target.value,
-                    })
-                  }
-                  placeholder="Any special terms, conditions, or customizations for this proposal..."
-                  rows={3}
-                />
+          <DialogContent className="max-w-5xl max-h-[95vh] p-0">
+            <div className="flex flex-col h-full">
+              {/* Header */}
+              <div className="p-6 rounded-t-lg">
+                <DialogHeader>
+                  <DialogTitle className="flex items-center gap-3 text-xl">
+                    <FileText className="h-6 w-6" />
+                    Send Proposal - {selectedOpportunity?.lead_info?.company?.name}
+                  </DialogTitle>
+                  <DialogDescription className="mt-2">
+                    Create and send a comprehensive proposal to advance this opportunity for {selectedOpportunity?.lead_info?.contact?.first_name} {selectedOpportunity?.lead_info?.contact?.last_name}
+                  </DialogDescription>
+                </DialogHeader>
               </div>
 
-              {/* File Attachment Section */}
-              <div>
-                <Label>Attach Supporting Documents</Label>
-                <div
-                  className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
-                    isDragging
-                      ? "border-blue-500 bg-blue-50"
-                      : "border-gray-300 hover:border-gray-400"
-                  }`}
-                  onDrop={handleFileDrop}
-                  onDragOver={handleDragOver}
-                  onDragLeave={handleDragLeave}
-                >
-                  {proposalForm.attachedFile ? (
-                    <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                      <div className="flex items-center gap-3">
-                        <FileText className="h-5 w-5 text-blue-600" />
-                        <div className="text-left">
-                          <p className="text-sm font-medium text-gray-900">
-                            {proposalForm.attachedFile.name}
-                          </p>
-                          <p className="text-xs text-gray-500">
-                            {(
-                              proposalForm.attachedFile.size /
-                              1024 /
-                              1024
-                            ).toFixed(2)}{" "}
-                            MB
-                          </p>
+              {/* Scrollable Content */}
+              <ScrollArea className="flex-1 px-6 py-4">
+                <div className="space-y-8">
+                  {/* 1. Basic Proposal Information */}
+                  <div className="space-y-6">
+                    <div className="flex items-center gap-2 mb-4">
+                      <FileText className="h-5 w-5 text-gray-600" />
+                      <h3 className="text-lg font-semibold text-gray-900">Proposal Information</h3>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-6">
+                      <div>
+                        <Label htmlFor="proposalTitle" className="text-sm font-medium">Proposal Title *</Label>
+                        <Input
+                          id="proposalTitle"
+                          value={proposalForm.title}
+                          onChange={(e) =>
+                            setProposalForm({ ...proposalForm, title: e.target.value })
+                          }
+                          placeholder="Enter proposal title..."
+                          className="mt-1"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="corporateContact" className="text-sm font-medium">Corporate Contact</Label>
+                        <Input
+                          id="corporateContact"
+                          value={`${selectedOpportunity?.lead_info?.contact?.first_name || ''} ${selectedOpportunity?.lead_info?.contact?.last_name || ''}`}
+                          readOnly
+                          className="mt-1 bg-gray-50"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="validityPeriod" className="text-sm font-medium">Validity Period</Label>
+                        <Select
+                          value={proposalForm.validityPeriod}
+                          onValueChange={(value) =>
+                            setProposalForm({
+                              ...proposalForm,
+                              validityPeriod: value,
+                            })
+                          }
+                        >
+                          <SelectTrigger className="mt-1">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="15">15 days</SelectItem>
+                            <SelectItem value="30">30 days</SelectItem>
+                            <SelectItem value="45">45 days</SelectItem>
+                            <SelectItem value="60">60 days</SelectItem>
+                            <SelectItem value="90">90 days</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div>
+                        <Label htmlFor="deliveryMethod" className="text-sm font-medium">Delivery Method</Label>
+                        <Select
+                          value={proposalForm.deliveryMethod}
+                          onValueChange={(value) =>
+                            setProposalForm({
+                              ...proposalForm,
+                              deliveryMethod: value,
+                            })
+                          }
+                        >
+                          <SelectTrigger className="mt-1">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="email">Email</SelectItem>
+                            <SelectItem value="secure_portal">Secure Portal</SelectItem>
+                            <SelectItem value="in_person">In-Person Presentation</SelectItem>
+                            <SelectItem value="video_call">Video Call Presentation</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+
+                    <div>
+                      <Label htmlFor="proposalDescription" className="text-sm font-medium">Proposal Description</Label>
+                      <Textarea
+                        id="proposalDescription"
+                        value={proposalForm.description}
+                        onChange={(e) =>
+                          setProposalForm({
+                            ...proposalForm,
+                            description: e.target.value,
+                          })
+                        }
+                        placeholder="Describe the proposed solution and key benefits..."
+                        className="mt-1"
+                        rows={4}
+                      />
+                    </div>
+                  </div>
+
+                  {/* 2. Volume Commitment (Corporate Side) */}
+                  <div className="space-y-6">
+                    <div className="flex items-center gap-2 mb-4">
+                      <BarChart3 className="h-5 w-5 text-gray-600" />
+                      <h3 className="text-lg font-semibold text-gray-900">Volume Commitment (Corporate Side)</h3>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-6">
+                      <div>
+                        <Label htmlFor="travelFrequency" className="text-sm font-medium">Travel Frequency Commitment</Label>
+                        <Select
+                          value={negotiationForm.travelFrequency}
+                          onValueChange={(value) => setNegotiationForm({...negotiationForm, travelFrequency: value})}
+                        >
+                          <SelectTrigger className="mt-1">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="monthly">Monthly</SelectItem>
+                            <SelectItem value="quarterly">Quarterly</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div>
+                        <Label htmlFor="annualVolume" className="text-sm font-medium">Booking Volume</Label>
+                        <Input
+                          id="annualVolume"
+                          type="number"
+                          value={negotiationForm.annualBookingVolume}
+                          onChange={(e) => setNegotiationForm({...negotiationForm, annualBookingVolume: e.target.value})}
+                          placeholder="Enter bookings volume..."
+                          className="mt-1"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="projectedSpend" className="text-sm font-medium">Projected Spend</Label>
+                        <Input
+                          id="projectedSpend"
+                          type="number"
+                          value={negotiationForm.projectedSpend}
+                          onChange={(e) => setNegotiationForm({...negotiationForm, projectedSpend: e.target.value})}
+                          placeholder="Enter projected spend..."
+                          className="mt-1"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="preferredRoutes" className="text-sm font-medium">Preferred Routes / Hubs</Label>
+                        <Input
+                          id="preferredRoutes"
+                          value={negotiationForm.preferredRoutes}
+                          onChange={(e) => setNegotiationForm({...negotiationForm, preferredRoutes: e.target.value})}
+                          placeholder="e.g., JFK-LAX, SFO-CHI, NYC-LON..."
+                          className="mt-1"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <Label className="text-sm font-medium mb-3 block">Cabin Class Mix (%)</Label>
+                      <div className="grid grid-cols-3 gap-4">
+                        <div>
+                          <Label className="text-xs text-gray-600">Domestic Economy</Label>
+                          <div className="flex items-center gap-2 mt-1">
+                            <Input
+                              type="number"
+                              min="0"
+                              max="100"
+                              value={negotiationForm.domesticEconomy}
+                              onChange={(e) => setNegotiationForm({...negotiationForm, domesticEconomy: parseInt(e.target.value) || 0})}
+                              className="w-20"
+                            />
+                            <span className="text-sm">%</span>
+                          </div>
+                        </div>
+                        <div>
+                          <Label className="text-xs text-gray-600">Business</Label>
+                          <div className="flex items-center gap-2 mt-1">
+                            <Input
+                              type="number"
+                              min="0"
+                              max="100"
+                              value={negotiationForm.domesticBusiness}
+                              onChange={(e) => setNegotiationForm({...negotiationForm, domesticBusiness: parseInt(e.target.value) || 0})}
+                              className="w-20"
+                            />
+                            <span className="text-sm">%</span>
+                          </div>
+                        </div>
+                        <div>
+                          <Label className="text-xs text-gray-600">International</Label>
+                          <div className="flex items-center gap-2 mt-1">
+                            <Input
+                              type="number"
+                              min="0"
+                              max="100"
+                              value={negotiationForm.international}
+                              onChange={(e) => setNegotiationForm({...negotiationForm, international: parseInt(e.target.value) || 0})}
+                              className="w-20"
+                            />
+                            <span className="text-sm">%</span>
+                          </div>
                         </div>
                       </div>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={removeAttachedFile}
-                        className="h-8 w-8 p-0"
-                      >
-                        ×
-                      </Button>
                     </div>
-                  ) : (
-                    <div>
-                      <FileText className="h-12 w-12 mx-auto mb-4 text-gray-400" />
-                      <div className="space-y-2">
-                        <p className="text-sm text-gray-600">
-                          Drag and drop your file here, or click to browse
-                        </p>
-                        <p className="text-xs text-gray-500">
-                          PDF, DOC, DOCX, XLS, XLSX files up to 10MB
-                        </p>
+                  </div>
+
+                  {/* 3. Discount / Offer Terms (Airline Side) */}
+                  <div className="space-y-6">
+                    <div className="flex items-center gap-2 mb-4">
+                      <Gift className="h-5 w-5 text-gray-600" />
+                      <h3 className="text-lg font-semibold text-gray-900">Discount / Offer Terms (Airline Side)</h3>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-6">
+                      <div>
+                        <Label htmlFor="baseDiscount" className="text-sm font-medium">Base Discount Offered (%)</Label>
+                        <Input
+                          id="baseDiscount"
+                          type="number"
+                          min="0"
+                          max="100"
+                          value={negotiationForm.baseDiscount}
+                          onChange={(e) => setNegotiationForm({...negotiationForm, baseDiscount: e.target.value})}
+                          placeholder="Enter base discount percentage..."
+                          className="mt-1"
+                        />
                       </div>
-                      <input
-                        type="file"
-                        id="proposal-file-input"
-                        className="hidden"
-                        accept=".pdf,.doc,.docx,.xls,.xlsx"
-                        onChange={handleFileSelect}
-                      />
-                      <Button
-                        type="button"
-                        variant="outline"
-                        className="mt-4"
-                        onClick={() =>
-                          document
-                            .getElementById("proposal-file-input")
-                            ?.click()
-                        }
-                      >
-                        <Plus className="h-4 w-4 mr-2" />
-                        Browse Files
-                      </Button>
                     </div>
-                  )}
+
+                    <div>
+                      <div className="flex items-center justify-between mb-3">
+                        <Label className="text-sm font-medium">Route-Specific Discounts</Label>
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="outline"
+                          onClick={addRouteDiscount}
+                          className="h-8 px-3"
+                        >
+                          <Plus className="h-3 w-3 mr-1" />
+                          Add Route
+                        </Button>
+                      </div>
+                      <div className="space-y-3">
+                        {negotiationForm.routeDiscounts.map((route, index) => (
+                          <div key={index} className="grid grid-cols-4 gap-3 items-end">
+                            <div>
+                              <Label className="text-xs text-gray-600">Route</Label>
+                              <Input
+                                placeholder="e.g., JFK-LAX"
+                                value={route.route}
+                                onChange={(e) => updateRouteDiscount(index, 'route', e.target.value)}
+                                className="mt-1"
+                              />
+                            </div>
+                            <div>
+                              <Label className="text-xs text-gray-600">Discount %</Label>
+                              <Input
+                                type="number"
+                                placeholder="15"
+                                value={route.discount}
+                                onChange={(e) => updateRouteDiscount(index, 'discount', e.target.value)}
+                                className="mt-1"
+                              />
+                            </div>
+                            <div>
+                              <Label className="text-xs text-gray-600">Conditions</Label>
+                              <Input
+                                placeholder="Min 50 bookings/year"
+                                value={route.conditions}
+                                onChange={(e) => updateRouteDiscount(index, 'conditions', e.target.value)}
+                                className="mt-1"
+                              />
+                            </div>
+                            <Button
+                              type="button"
+                              size="sm"
+                              variant="outline"
+                              onClick={() => removeRouteDiscount(index)}
+                              className="h-9 w-9 p-0"
+                            >
+                              ×
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div>
+                      <Label className="text-sm font-medium mb-3 block">Loyalty Program Benefits</Label>
+                      <div className="grid grid-cols-3 gap-4">
+                        <label className="flex items-center space-x-2">
+                          <input
+                            type="checkbox"
+                            checked={negotiationForm.loyaltyBenefits.extraMiles}
+                            onChange={(e) => setNegotiationForm({
+                              ...negotiationForm,
+                              loyaltyBenefits: { ...negotiationForm.loyaltyBenefits, extraMiles: e.target.checked }
+                            })}
+                            className="rounded"
+                          />
+                          <span className="text-sm">Extra Miles</span>
+                        </label>
+                        <label className="flex items-center space-x-2">
+                          <input
+                            type="checkbox"
+                            checked={negotiationForm.loyaltyBenefits.priorityBoarding}
+                            onChange={(e) => setNegotiationForm({
+                              ...negotiationForm,
+                              loyaltyBenefits: { ...negotiationForm.loyaltyBenefits, priorityBoarding: e.target.checked }
+                            })}
+                            className="rounded"
+                          />
+                          <span className="text-sm">Priority Boarding</span>
+                        </label>
+                        <label className="flex items-center space-x-2">
+                          <input
+                            type="checkbox"
+                            checked={negotiationForm.loyaltyBenefits.loungeAccess}
+                            onChange={(e) => setNegotiationForm({
+                              ...negotiationForm,
+                              loyaltyBenefits: { ...negotiationForm.loyaltyBenefits, loungeAccess: e.target.checked }
+                            })}
+                            className="rounded"
+                          />
+                          <span className="text-sm">Lounge Access</span>
+                        </label>
+                      </div>
+                    </div>
+
+                    <div>
+                      <Label htmlFor="volumeIncentives" className="text-sm font-medium">Incentives for Exceeding Volume</Label>
+                      <Textarea
+                        id="volumeIncentives"
+                        value={negotiationForm.volumeIncentives}
+                        onChange={(e) => setNegotiationForm({...negotiationForm, volumeIncentives: e.target.value})}
+                        placeholder="Describe additional incentives for volume overachievement..."
+                        className="mt-1"
+                        rows={3}
+                      />
+                    </div>
+                  </div>
+
+                  {/* 4. Financial & Contract Terms */}
+                  <div className="space-y-6">
+                    <div className="flex items-center gap-2 mb-4">
+                      <DollarSign className="h-5 w-5 text-gray-600" />
+                      <h3 className="text-lg font-semibold text-gray-900">Financial & Contract Terms</h3>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-6">
+                      <div>
+                        <Label className="text-sm font-medium">Contract Duration</Label>
+                        <div className="flex gap-4 mt-2">
+                          <label className="flex items-center space-x-2">
+                            <input
+                              type="radio"
+                              name="contractDuration"
+                              value="12"
+                              checked={negotiationForm.contractDuration === "12"}
+                              onChange={(e) => setNegotiationForm({...negotiationForm, contractDuration: e.target.value})}
+                            />
+                            <span className="text-sm">12 months</span>
+                          </label>
+                          <label className="flex items-center space-x-2">
+                            <input
+                              type="radio"
+                              name="contractDuration"
+                              value="24"
+                              checked={negotiationForm.contractDuration === "24"}
+                              onChange={(e) => setNegotiationForm({...negotiationForm, contractDuration: e.target.value})}
+                            />
+                            <span className="text-sm">24 months</span>
+                          </label>
+                          <label className="flex items-center space-x-2">
+                            <input
+                              type="radio"
+                              name="contractDuration"
+                              value="36"
+                              checked={negotiationForm.contractDuration === "36"}
+                              onChange={(e) => setNegotiationForm({...negotiationForm, contractDuration: e.target.value})}
+                            />
+                            <span className="text-sm">36 months</span>
+                          </label>
+                        </div>
+                      </div>
+                      <div>
+                        <Label className="text-sm font-medium">Auto-Renewal</Label>
+                        <div className="flex items-center space-x-2 mt-2">
+                          <label className="flex items-center space-x-2">
+                            <input
+                              type="radio"
+                              name="autoRenewal"
+                              checked={negotiationForm.autoRenewal === true}
+                              onChange={() => setNegotiationForm({...negotiationForm, autoRenewal: true})}
+                            />
+                            <span className="text-sm">Yes</span>
+                          </label>
+                          <label className="flex items-center space-x-2">
+                            <input
+                              type="radio"
+                              name="autoRenewal"
+                              checked={negotiationForm.autoRenewal === false}
+                              onChange={() => setNegotiationForm({...negotiationForm, autoRenewal: false})}
+                            />
+                            <span className="text-sm">No</span>
+                          </label>
+                        </div>
+                      </div>
+                      <div>
+                        <Label className="text-sm font-medium">Payment Terms</Label>
+                        <Select
+                          value={negotiationForm.paymentTerms}
+                          onValueChange={(value) => setNegotiationForm({...negotiationForm, paymentTerms: value})}
+                        >
+                          <SelectTrigger className="mt-1">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="net_30">Net 30</SelectItem>
+                            <SelectItem value="net_45">Net 45</SelectItem>
+                            <SelectItem value="custom">Custom</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div>
+                        <Label className="text-sm font-medium">Settlement Type</Label>
+                        <Select
+                          value={negotiationForm.settlementType}
+                          onValueChange={(value) => setNegotiationForm({...negotiationForm, settlementType: value})}
+                        >
+                          <SelectTrigger className="mt-1">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="bsp">BSP</SelectItem>
+                            <SelectItem value="direct_billing">Direct Billing</SelectItem>
+                            <SelectItem value="corporate_card">Corporate Card</SelectItem>
+                            <SelectItem value="wallet">Wallet</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 5. Special Terms & Conditions */}
+                  <div className="space-y-6">
+                    <div className="flex items-center gap-2 mb-4">
+                      <FileText className="h-5 w-5 text-gray-600" />
+                      <h3 className="text-lg font-semibold text-gray-900">Special Terms & Conditions</h3>
+                    </div>
+
+                    <div>
+                      <Label htmlFor="specialTerms" className="text-sm font-medium">Special Terms & Conditions</Label>
+                      <Textarea
+                        id="specialTerms"
+                        value={proposalForm.specialTerms}
+                        onChange={(e) =>
+                          setProposalForm({
+                            ...proposalForm,
+                            specialTerms: e.target.value,
+                          })
+                        }
+                        placeholder="Any special terms, conditions, or customizations for this proposal..."
+                        className="mt-1"
+                        rows={3}
+                      />
+                    </div>
+
+                    <div>
+                      <Label htmlFor="airlineConcessions" className="text-sm font-medium">Concessions by Airline</Label>
+                      <Textarea
+                        id="airlineConcessions"
+                        value={negotiationForm.airlineConcessions}
+                        onChange={(e) => setNegotiationForm({...negotiationForm, airlineConcessions: e.target.value})}
+                        placeholder="List concessions offered by airline..."
+                        className="mt-1"
+                        rows={3}
+                      />
+                    </div>
+
+                    <div>
+                      <Label htmlFor="corporateCommitments" className="text-sm font-medium">Commitments by Corporate</Label>
+                      <Textarea
+                        id="corporateCommitments"
+                        value={`Annual volume commitment based on ${selectedOpportunity?.lead_info?.company?.employee_count || 'N/A'} employees. Projected spend: ${formatCurrency(selectedOpportunity?.value)}.`}
+                        readOnly
+                        className="mt-1 bg-gray-50"
+                        rows={3}
+                      />
+                    </div>
+                  </div>
+
+                  {/* 6. Approvals Workflow */}
+                  <div className="space-y-6">
+                    <div className="flex items-center gap-2 mb-4">
+                      <CheckCircle className="h-5 w-5 text-gray-600" />
+                      <h3 className="text-lg font-semibold text-gray-900">Approvals Workflow</h3>
+                    </div>
+
+                    <div className="space-y-4">
+                      <label className="flex items-center space-x-2">
+                        <input
+                          type="checkbox"
+                          checked={negotiationForm.discountApprovalRequired}
+                          onChange={(e) => setNegotiationForm({...negotiationForm, discountApprovalRequired: e.target.checked})}
+                          className="rounded"
+                        />
+                        <span className="text-sm font-medium">Discount Approval Required?</span>
+                        <span className="text-xs text-gray-500">(auto-checked if discount above threshold)</span>
+                      </label>
+
+                      <div>
+                        <Label htmlFor="revenueManager" className="text-sm font-medium">Revenue Manager Assigned</Label>
+                        <Select
+                          value={negotiationForm.revenueManagerAssigned}
+                          onValueChange={(value) => setNegotiationForm({...negotiationForm, revenueManagerAssigned: value})}
+                        >
+                          <SelectTrigger className="mt-1">
+                            <SelectValue placeholder="Select revenue manager..." />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="manager_1">Sarah Johnson</SelectItem>
+                            <SelectItem value="manager_2">Mike Chen</SelectItem>
+                            <SelectItem value="manager_3">Lisa Rodriguez</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div>
+                        <Label className="text-sm font-medium">Legal/Compliance Approval</Label>
+                        <div className="flex items-center space-x-2 mt-2">
+                          <label className="flex items-center space-x-2">
+                            <input
+                              type="radio"
+                              name="legalApproval"
+                              checked={negotiationForm.legalApprovalRequired === true}
+                              onChange={() => setNegotiationForm({...negotiationForm, legalApprovalRequired: true})}
+                            />
+                            <span className="text-sm">Yes</span>
+                          </label>
+                          <label className="flex items-center space-x-2">
+                            <input
+                              type="radio"
+                              name="legalApproval"
+                              checked={negotiationForm.legalApprovalRequired === false}
+                              onChange={() => setNegotiationForm({...negotiationForm, legalApprovalRequired: false})}
+                            />
+                            <span className="text-sm">No</span>
+                          </label>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 7. Document Attachments */}
+                  <div className="space-y-6">
+                    <div className="flex items-center gap-2 mb-4">
+                      <FileText className="h-5 w-5 text-gray-600" />
+                      <h3 className="text-lg font-semibold text-gray-900">Document Attachments</h3>
+                    </div>
+
+                    <div>
+                      <Label className="text-sm font-medium mb-3 block">Attach Supporting Documents</Label>
+                      <div
+                        className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
+                          isDragging
+                            ? "border-blue-500 bg-blue-50"
+                            : "border-gray-300 hover:border-gray-400"
+                        }`}
+                        onDrop={handleFileDrop}
+                        onDragOver={handleDragOver}
+                        onDragLeave={handleDragLeave}
+                      >
+                        {proposalForm.attachedFile ? (
+                          <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                            <div className="flex items-center gap-3">
+                              <FileText className="h-5 w-5 text-blue-600" />
+                              <div className="text-left">
+                                <p className="text-sm font-medium text-gray-900">
+                                  {proposalForm.attachedFile.name}
+                                </p>
+                                <p className="text-xs text-gray-500">
+                                  {(
+                                    proposalForm.attachedFile.size /
+                                    1024 /
+                                    1024
+                                  ).toFixed(2)}{" "}
+                                  MB
+                                </p>
+                              </div>
+                            </div>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              onClick={removeAttachedFile}
+                              className="h-8 w-8 p-0"
+                            >
+                              ×
+                            </Button>
+                          </div>
+                        ) : (
+                          <div>
+                            <FileText className="h-12 w-12 mx-auto mb-4 text-gray-400" />
+                            <div className="space-y-2">
+                              <p className="text-sm text-gray-600">
+                                Drag and drop your proposal documents here, or click to browse
+                              </p>
+                              <p className="text-xs text-gray-500">
+                                PDF, DOC, DOCX, XLS, XLSX files up to 10MB
+                              </p>
+                            </div>
+                            <input
+                              type="file"
+                              id="proposal-file-input"
+                              className="hidden"
+                              accept=".pdf,.doc,.docx,.xls,.xlsx"
+                              onChange={handleFileSelect}
+                            />
+                            <Button
+                              type="button"
+                              variant="outline"
+                              className="mt-4"
+                              onClick={() =>
+                                document
+                                  .getElementById("proposal-file-input")
+                                  ?.click()
+                              }
+                            >
+                              <Plus className="h-4 w-4 mr-2" />
+                              Browse Files
+                            </Button>
+                          </div>
+                        )}
+                      </div>
+                      <p className="text-xs text-gray-500 mt-2">
+                        Supported formats: Proposal documents, terms sheets, legal documents, compliance certificates
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </ScrollArea>
+
+              {/* Actions (sticky at bottom) */}
+              <div className="border-t bg-white px-6 py-4">
+                <div className="flex justify-between items-center">
+                  <div className="flex gap-3">
+                    <Button
+                      variant="outline"
+                      onClick={() => setShowProposalDialog(false)}
+                      className="border-red-300 text-red-600 hover:bg-red-50"
+                    >
+                      Cancel
+                    </Button>
+                  </div>
+                  <div className="flex gap-3">
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        console.log("Saving proposal draft:", proposalForm);
+                        toast.success("Proposal draft saved successfully!");
+                      }}
+                      className="border-gray-300"
+                    >
+                      <FileText className="h-4 w-4 mr-2" />
+                      Save Draft
+                    </Button>
+                    <Button
+                      onClick={handleSaveProposal}
+                      disabled={!proposalForm.title}
+                      className="bg-orange-500 hover:bg-orange-600 text-white"
+                    >
+                      <FileText className="h-4 w-4 mr-2" />
+                      Send Proposal
+                    </Button>
+                  </div>
                 </div>
               </div>
             </div>
-            <DialogFooter>
-              <Button
-                variant="outline"
-                onClick={() => setShowProposalDialog(false)}
-              >
-                Cancel
-              </Button>
-              <Button
-                onClick={handleSaveProposal}
-                disabled={!proposalForm.title}
-                className="bg-orange-500 hover:bg-orange-600 text-white"
-              >
-                <FileText className="h-4 w-4 mr-2" />
-                Send Proposal
-              </Button>
-            </DialogFooter>
           </DialogContent>
         </Dialog>
 
