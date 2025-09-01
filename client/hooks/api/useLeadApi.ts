@@ -424,14 +424,44 @@ export const useLeadApi = () => {
   }, []);
 
   const moveToOpportunity = useCallback(async (leadId: number, opportunityData: any) => {
-    // Placeholder for move to opportunity API
-    return baseApi.post(`/leads/${leadId}/move-to-opportunity/`, opportunityData);
-  }, []);
+    setLoading(true);
+    setError(null);
 
-  const assignAgent = useCallback(async (leadId: number, agentId: number) => {
-    // Placeholder for assign agent API
-    return baseApi.post(`/leads/${leadId}/assign-agent/`, { agent_id: agentId });
-  }, []);
+    try {
+      const response = await baseApi.post(`/leads/${leadId}/move_to_opportunity/`, opportunityData);
+      setData(response.data);
+      return response.data;
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.error || 
+                          error.response?.data?.detail || 
+                          error.message || 
+                          'Failed to move lead to opportunity';
+      setError(errorMessage);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  }, [setLoading, setError, setData]);
+
+  const assignAgent = useCallback(async (leadId: number, assignmentData: any) => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const response = await baseApi.post(`/leads/${leadId}/assign_agent/`, assignmentData);
+      setData(response.data);
+      return response.data;
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.error || 
+                          error.response?.data?.detail || 
+                          error.message || 
+                          'Failed to assign agent';
+      setError(errorMessage);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  }, [setLoading, setError, setData]);
 
   const createLeadFromCompany = useCallback(async (companyData: any) => {
     // Placeholder for create lead from company API

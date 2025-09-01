@@ -1394,7 +1394,7 @@ SOAR-AI Team`,
 
       // Call API to assign agent
       await leadApi.assignAgent(selectedLeadForAssign.id, {
-        agent: selectedAgent,
+        agent_name: selectedAgent,
         priority: assignmentPriority,
         notes: assignmentNotes
       });
