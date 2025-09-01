@@ -1115,6 +1115,141 @@ const getRandomRiskLevel = () => {
     attachedFile: null,
   });
 
+  const [showEmailPreview, setShowEmailPreview] = useState(false);
+  const [emailPreviewContent, setEmailPreviewContent] = useState("");
+
+  // Draft management
+  const PROPOSAL_DRAFT_KEY = "proposal_draft_";
+  
+  const saveDraft = useCallback((opportunityId: number, formData: any) => {
+    const draftKey = `${PROPOSAL_DRAFT_KEY}${opportunityId}`;
+    const draftData = {
+      ...formData,
+      attachedFile: null, // Don't store file in localStorage
+      savedAt: new Date().toISOString()
+    };
+    localStorage.setItem(draftKey, JSON.stringify(draftData));
+  }, []);
+
+  const loadDraft = useCallback((opportunityId: number) => {
+    const draftKey = `${PROPOSAL_DRAFT_KEY}${opportunityId}`;
+    const savedDraft = localStorage.getItem(draftKey);
+    if (savedDraft) {
+      try {
+        return JSON.parse(savedDraft);
+      } catch (error) {
+        console.error("Error parsing draft data:", error);
+        return null;
+      }
+    }
+    return null;
+  }, []);
+
+  const clearDraft = useCallback((opportunityId: number) => {
+    const draftKey = `${PROPOSAL_DRAFT_KEY}${opportunityId}`;
+    localStorage.removeItem(draftKey);
+  }, []);
+
+  const generateEmailPreview = useCallback(() => {
+    if (!selectedOpportunity) return "";
+
+    const company = selectedOpportunity.lead_info?.company;
+    const contact = selectedOpportunity.lead_info?.contact;
+    
+    return `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Travel Solutions Proposal</title>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; text-align: center; border-radius: 8px 8px 0 0; }
+        .content { background: white; padding: 30px; border: 1px solid #ddd; }
+        .footer { background: #f8f9fa; padding: 20px; text-align: center; border-radius: 0 0 8px 8px; border: 1px solid #ddd; border-top: none; }
+        .highlight { background: #e3f2fd; padding: 15px; border-left: 4px solid #2196f3; margin: 20px 0; }
+        .terms { background: #f5f5f5; padding: 15px; border-radius: 4px; margin: 20px 0; }
+        .button { display: inline-block; background: #4CAF50; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; margin: 10px 0; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🛫 Travel Solutions Proposal</h1>
+        <p>Your Corporate Travel Partnership Opportunity</p>
+    </div>
+    
+    <div class="content">
+        <p><strong>Dear ${contact?.first_name} ${contact?.last_name},</strong></p>
+        
+        <p>Thank you for your interest in our corporate travel solutions. We are pleased to present this comprehensive proposal for <strong>${company?.name}</strong>.</p>
+        
+        <div class="highlight">
+            <h3>📋 ${proposalForm.title}</h3>
+            <p>${proposalForm.description}</p>
+        </div>
+        
+        <h3>🎯 Key Benefits for ${company?.name}:</h3>
+        <ul>
+            <li><strong>Cost Optimization:</strong> Significant savings through corporate rates and volume discounts</li>
+            <li><strong>Travel Policy Compliance:</strong> Automated policy enforcement and reporting</li>
+            <li><strong>24/7 Support:</strong> Dedicated account management and emergency assistance</li>
+            <li><strong>Advanced Analytics:</strong> Comprehensive reporting and travel insights</li>
+            <li><strong>Seamless Integration:</strong> Easy integration with your existing systems</li>
+        </ul>
+        
+        <h3>💼 Proposal Details:</h3>
+        <div class="terms">
+            <p><strong>Delivery Method:</strong> ${proposalForm.deliveryMethod === 'email' ? 'Email Delivery' : 
+              proposalForm.deliveryMethod === 'secure_portal' ? 'Secure Portal Access' :
+              proposalForm.deliveryMethod === 'in_person' ? 'In-Person Presentation' : 'Video Call Presentation'}</p>
+            <p><strong>Proposal Validity:</strong> ${proposalForm.validityPeriod} days from date of receipt</p>
+            <p><strong>Estimated Deal Value:</strong> ${formatCurrency(selectedOpportunity?.value)}</p>
+            <p><strong>Expected Implementation:</strong> 2-4 weeks after contract signing</p>
+        </div>
+        
+        ${proposalForm.specialTerms ? `
+        <h3>📝 Special Terms & Conditions:</h3>
+        <div class="terms">
+            <p>${proposalForm.specialTerms}</p>
+        </div>
+        ` : ''}
+        
+        <h3>🚀 Next Steps:</h3>
+        <ol>
+            <li>Review the attached detailed proposal document</li>
+            <li>Schedule a presentation meeting with our team</li>
+            <li>Discuss customization requirements</li>
+            <li>Finalize contract terms and implementation timeline</li>
+        </ol>
+        
+        <div class="highlight">
+            <p><strong>⏰ This proposal is valid until:</strong> ${new Date(Date.now() + parseInt(proposalForm.validityPeriod) * 24 * 60 * 60 * 1000).toLocaleDateString('en-US', { 
+              year: 'numeric', 
+              month: 'long', 
+              day: 'numeric' 
+            })}</p>
+        </div>
+        
+        <p>We are excited about the opportunity to partner with ${company?.name} and help optimize your corporate travel program. Our team is ready to answer any questions and provide additional information as needed.</p>
+        
+        <p>Thank you for considering our proposal. We look forward to hearing from you soon.</p>
+        
+        <p>Best regards,<br>
+        <strong>SOAR AI Corporate Travel Team</strong><br>
+        📧 corporate@soar-ai.com<br>
+        📞 +1 (555) 123-4567</p>
+    </div>
+    
+    <div class="footer">
+        <p><small>This proposal is confidential and intended solely for ${company?.name}. Please do not distribute without permission.</small></p>
+        <p><small>© 2024 SOAR AI. All rights reserved.</small></p>
+    </div>
+</body>
+</html>
+    `.trim();
+  }, [selectedOpportunity, proposalForm, formatCurrency]);
+
   const [negotiationForm, setNegotiationForm] = useState({
     // Header Section
     dealTitle: "",
@@ -1454,16 +1589,35 @@ const getRandomRiskLevel = () => {
 
   const handleSendProposal = useCallback((opportunity: Opportunity) => {
     setSelectedOpportunity(opportunity);
-    setProposalForm({
-      title: `Travel Solutions Proposal - ${opportunity.lead_info?.company?.name}`,
-      description: `Comprehensive travel management solution tailored for ${opportunity.lead_info?.company?.name}'s needs including cost optimization, policy compliance, and reporting analytics.`,
-      validityPeriod: "30",
-      specialTerms: "",
-      deliveryMethod: "email",
-      attachedFile: null,
-    });
+    
+    // Try to load existing draft
+    const existingDraft = loadDraft(opportunity.id);
+    
+    if (existingDraft) {
+      // Load draft data
+      setProposalForm({
+        title: existingDraft.title || `Travel Solutions Proposal - ${opportunity.lead_info?.company?.name}`,
+        description: existingDraft.description || `Comprehensive travel management solution tailored for ${opportunity.lead_info?.company?.name}'s needs including cost optimization, policy compliance, and reporting analytics.`,
+        validityPeriod: existingDraft.validityPeriod || "30",
+        specialTerms: existingDraft.specialTerms || "",
+        deliveryMethod: existingDraft.deliveryMethod || "email",
+        attachedFile: null, // File is not saved in draft
+      });
+      toast.success("Draft loaded successfully!");
+    } else {
+      // Set default values
+      setProposalForm({
+        title: `Travel Solutions Proposal - ${opportunity.lead_info?.company?.name}`,
+        description: `Comprehensive travel management solution tailored for ${opportunity.lead_info?.company?.name}'s needs including cost optimization, policy compliance, and reporting analytics.`,
+        validityPeriod: "30",
+        specialTerms: "",
+        deliveryMethod: "email",
+        attachedFile: null,
+      });
+    }
+    
     setShowProposalDialog(true);
-  }, []);
+  }, [loadDraft]);
 
   const handleMoveToNegotiation = useCallback((opportunity: Opportunity) => {
     setSelectedOpportunity(opportunity);
@@ -1705,6 +1859,9 @@ const getRandomRiskLevel = () => {
       // Here you would typically upload the file to your server
     }
 
+    // Clear the draft since proposal is being sent
+    clearDraft(selectedOpportunity.id);
+
     // Move opportunity to proposal stage
     const updatedOpportunity = {
       ...selectedOpportunity,
@@ -1724,7 +1881,21 @@ const getRandomRiskLevel = () => {
       `Proposal sent to ${selectedOpportunity.lead_info?.company?.name} and moved to Proposal stage`,
     );
     setTimeout(() => setSuccessMessage(""), 5000);
-  }, [selectedOpportunity, proposalForm.attachedFile]);
+    toast.success("Proposal sent successfully!");
+  }, [selectedOpportunity, proposalForm.attachedFile, clearDraft]);
+
+  const handleSaveProposalDraft = useCallback(() => {
+    if (!selectedOpportunity) return;
+
+    saveDraft(selectedOpportunity.id, proposalForm);
+    toast.success("Proposal draft saved successfully!");
+  }, [selectedOpportunity, proposalForm, saveDraft]);
+
+  const handlePreviewEmail = useCallback(() => {
+    const previewContent = generateEmailPreview();
+    setEmailPreviewContent(previewContent);
+    setShowEmailPreview(true);
+  }, [generateEmailPreview]);
 
   const handleSaveNegotiationDraft = useCallback(() => {
     if (!selectedOpportunity) return;
@@ -3215,21 +3386,27 @@ const getRandomRiskLevel = () => {
                   <div className="flex gap-3">
                     <Button
                       variant="outline"
-                      onClick={() => {
-                        console.log("Saving proposal draft:", proposalForm);
-                        toast.success("Proposal draft saved successfully!");
-                      }}
+                      onClick={handleSaveProposalDraft}
                       className="border-gray-300"
                     >
                       <FileText className="h-4 w-4 mr-2" />
                       Save Draft
                     </Button>
                     <Button
+                      variant="outline"
+                      onClick={handlePreviewEmail}
+                      disabled={!proposalForm.title || !proposalForm.description}
+                      className="border-blue-300 text-blue-600 hover:bg-blue-50"
+                    >
+                      <Eye className="h-4 w-4 mr-2" />
+                      Preview Email
+                    </Button>
+                    <Button
                       onClick={handleSaveProposal}
                       disabled={!proposalForm.title}
                       className="bg-orange-500 hover:bg-orange-600 text-white"
                     >
-                      <FileText className="h-4 w-4 mr-2" />
+                      <Mail className="h-4 w-4 mr-2" />
                       Send Proposal
                     </Button>
                   </div>
@@ -4000,6 +4177,98 @@ const getRandomRiskLevel = () => {
                     </Button>
                   </div>
                 
+                </div>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Email Preview Dialog */}
+        <Dialog open={showEmailPreview} onOpenChange={setShowEmailPreview}>
+          <DialogContent className="max-w-4xl max-h-[95vh] p-0">
+            <div className="flex flex-col h-full">
+              {/* Header */}
+              <div className="p-6 border-b">
+                <DialogHeader>
+                  <DialogTitle className="flex items-center gap-3 text-xl">
+                    <Mail className="h-6 w-6" />
+                    Email Preview - Proposal for {selectedOpportunity?.lead_info?.company?.name}
+                  </DialogTitle>
+                  <DialogDescription className="mt-2">
+                    Preview how your proposal email will appear to the recipient
+                  </DialogDescription>
+                </DialogHeader>
+              </div>
+
+              {/* Email Info */}
+              <div className="px-6 py-4 bg-gray-50 border-b">
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <span className="font-medium text-gray-700">To:</span>
+                    <span className="ml-2">{selectedOpportunity?.lead_info?.contact?.email}</span>
+                  </div>
+                  <div>
+                    <span className="font-medium text-gray-700">From:</span>
+                    <span className="ml-2">corporate@soar-ai.com</span>
+                  </div>
+                  <div>
+                    <span className="font-medium text-gray-700">Subject:</span>
+                    <span className="ml-2">{proposalForm.title}</span>
+                  </div>
+                  <div>
+                    <span className="font-medium text-gray-700">Delivery:</span>
+                    <span className="ml-2 capitalize">
+                      {proposalForm.deliveryMethod.replace('_', ' ')}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Email Content */}
+              <ScrollArea className="flex-1 p-6">
+                <div 
+                  className="prose max-w-none"
+                  dangerouslySetInnerHTML={{ __html: emailPreviewContent }}
+                />
+              </ScrollArea>
+
+              {/* Actions */}
+              <div className="border-t bg-white px-6 py-4">
+                <div className="flex justify-between items-center">
+                  <div className="text-sm text-gray-500">
+                    This is a preview of how your email will appear to the recipient
+                  </div>
+                  <div className="flex gap-3">
+                    <Button
+                      variant="outline"
+                      onClick={() => setShowEmailPreview(false)}
+                      className="border-gray-300"
+                    >
+                      Close Preview
+                    </Button>
+                    <Button
+                      onClick={() => {
+                        setShowEmailPreview(false);
+                        // Return to proposal dialog
+                      }}
+                      className="bg-blue-600 hover:bg-blue-700 text-white"
+                    >
+                      <Edit className="h-4 w-4 mr-2" />
+                      Edit Proposal
+                    </Button>
+                    <Button
+                      onClick={() => {
+                        setShowEmailPreview(false);
+                        setShowProposalDialog(false);
+                        handleSaveProposal();
+                      }}
+                      disabled={!proposalForm.title}
+                      className="bg-orange-500 hover:bg-orange-600 text-white"
+                    >
+                      <Mail className="h-4 w-4 mr-2" />
+                      Send Now
+                    </Button>
+                  </div>
                 </div>
               </div>
             </div>
