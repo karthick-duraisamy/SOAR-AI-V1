@@ -663,6 +663,8 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSavingNote, setIsSavingNote] = useState(false);
+  const [qualifyingLeadId, setQualifyingLeadId] = useState<number | null>(null);
+  const [disqualifyingLeadId, setDisqualifyingLeadId] = useState<number | null>(null);
 
   const isFormValid = () => {
     return newCompany.name.trim() !== '' && 
@@ -1117,6 +1119,7 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
   // Function to qualify a lead via API
   const handleQualifyLead = async (leadId: number) => {
     try {
+      setQualifyingLeadId(leadId); // Start loading spinner
       await leadApi.qualifyLead(leadId, { reason: 'Lead meets all qualification criteria' });
 
       // Update the local state
@@ -1134,6 +1137,8 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
     } catch (error) {
       console.error('Error qualifying lead:', error);
       toast.error('Failed to qualify lead');
+    } finally {
+      setQualifyingLeadId(null); // Stop loading spinner
     }
   };
 
@@ -1149,6 +1154,7 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
     if (!selectedLeadForDisqualify) return;
 
     try {
+      setDisqualifyingLeadId(selectedLeadForDisqualify.id); // Start loading spinner
       await leadApi.disqualifyLead(selectedLeadForDisqualify.id, disqualifyReason);
 
       // Update the local state
@@ -1171,6 +1177,8 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
     } catch (error) {
       console.error('Error disqualifying lead:', error);
       toast.error('Failed to disqualify lead. Please try again.');
+    } finally {
+      setDisqualifyingLeadId(null); // Stop loading spinner
     }
   };
 
@@ -2364,9 +2372,19 @@ SOAR-AI Team`,
                       variant="outline" 
                       className="text-green-700 border-green-300 hover:bg-green-50"
                       onClick={() => handleQualifyLead(lead.id)}
+                      disabled={qualifyingLeadId === lead.id}
                     >
-                      <UserCheck className="h-4 w-4 mr-1" />
-                      Qualify
+                      {qualifyingLeadId === lead.id ? (
+                        <>
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-green-600 mr-1"></div>
+                          Qualifying...
+                        </>
+                      ) : (
+                        <>
+                          <UserCheck className="h-4 w-4 mr-1" />
+                          Qualify
+                        </>
+                      )}
                     </Button>
                   )}
                   {lead.status !== 'unqualified' && lead.status !== 'Inprogress' && lead.status !== 'new' && (
@@ -2375,9 +2393,19 @@ SOAR-AI Team`,
                       variant="outline" 
                       className="text-red-700 border-red-300 hover:bg-red-50"
                       onClick={() => handleDisqualifyLead(lead)}
+                      disabled={disqualifyingLeadId === lead.id}
                     >
-                      <UserX className="h-4 w-4 mr-1" />
-                      Disqualify
+                      {disqualifyingLeadId === lead.id ? (
+                        <>
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-red-600 mr-1"></div>
+                          Processing...
+                        </>
+                      ) : (
+                        <>
+                          <UserX className="h-4 w-4 mr-1" />
+                          Disqualify
+                        </>
+                      )}
                     </Button>
                   )}
                   <Button size="sm" variant="outline" className="text-gray-700 border-gray-300" onClick={() => handleViewProfile(lead)}>
@@ -2865,8 +2893,16 @@ SOAR-AI Team`,
             <Button 
               onClick={handleConfirmDisqualify}
               className="bg-orange-500 hover:bg-orange-600 text-white"
+              disabled={disqualifyingLeadId !== null}
             >
-              Submit
+              {disqualifyingLeadId !== null ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                  Submitting...
+                </>
+              ) : (
+                'Submit'
+              )}
             </Button>
           </DialogFooter>
         </DialogContent>
