@@ -392,7 +392,27 @@ export const useLeadApi = () => {
     setError(null);
 
     try {
-      const response = await baseApi.post(`/leads/${leadId}/send_message/`, messageData);
+      let response;
+      
+      // Handle corporate contact messages differently
+      if (messageData.contact_type === 'corporate') {
+        // For corporate contacts, use a different endpoint or handle differently
+        // We'll use the same endpoint but with corporate-specific data
+        response = await baseApi.post(`/leads/send_corporate_message/`, {
+          corporate_id: leadId,
+          recipient_email: messageData.recipient_email,
+          recipient_name: messageData.recipient_name,
+          method: messageData.method,
+          subject: messageData.subject,
+          message: messageData.message,
+          followUpDate: messageData.followUpDate,
+          followUpMode: messageData.followUpMode
+        });
+      } else {
+        // Regular lead message
+        response = await baseApi.post(`/leads/${leadId}/send_message/`, messageData);
+      }
+      
       setData(response.data);
       return response.data;
     } catch (error: any) {

@@ -36,6 +36,7 @@ import { Textarea } from "./ui/textarea";
 import { Alert, AlertDescription } from "./ui/alert";
 import { CorporateProfile } from "./CorporateProfile";
 import { useCompanyApi } from "../hooks/api/useCompanyApi";
+import { useLeadApi } from "../hooks/api/useLeadApi";
 
 import {
   Search,
@@ -360,6 +361,9 @@ export function CorporateSearch({
 
   // Initialize company API hook
   const { searchCompanies, createCompany, moveToLead, bulkUploadCompanies, downloadSampleExcel } = useCompanyApi();
+  
+  // Initialize lead API hook for sending messages
+  const leadApi = useLeadApi();
 
   const [filteredCorporates, setFilteredCorporates] = useState([]);
   const [displayedCorporates, setDisplayedCorporates] = useState([]);
@@ -440,6 +444,7 @@ export function CorporateSearch({
   const [selectedCorporateForMove, setSelectedCorporateForMove] =
     useState(null);
   const [isMovingAsLead, setIsMovingAsLead] = useState(false);
+  const [isSendingMessage, setIsSendingMessage] = useState(false);
 
   // Upload Company states
   const [showUploadCompanyDialog, setShowUploadCompanyDialog] = useState(false);
@@ -1011,6 +1016,57 @@ export function CorporateSearch({
       corporateData: corporate,
     });
     setShowContactDialog(true);
+  };
+
+  // Function to send message to corporate contact
+  const handleSendMessage = async () => {
+    if (!contactForm.corporateData || !contactForm.subject || !contactForm.message) {
+      toast.error('Please fill in all required fields');
+      return;
+    }
+
+    setIsSendingMessage(true);
+
+    try {
+      // Use the leadApi to send message (we'll use company data to create a temporary lead-like structure)
+      const response = await leadApi.sendMessage(contactForm.corporateData.id, {
+        method: contactForm.method,
+        subject: contactForm.subject,
+        message: contactForm.message,
+        followUpDate: contactForm.followUpDate,
+        followUpMode: contactForm.followUpMode,
+        // Add corporate-specific data
+        recipient_email: contactForm.corporateData.email,
+        recipient_name: contactForm.corporateData.name,
+        contact_type: 'corporate'
+      });
+
+      if (response && response.success) {
+        setSuccessMessage(`Email sent to ${contactForm.corporateData.name} successfully!`);
+        setTimeout(() => setSuccessMessage(''), 5000);
+        toast.success('Email sent successfully');
+      } else {
+        throw new Error(response?.message || 'Failed to send email');
+      }
+
+      // Close dialog and reset state
+      setShowContactDialog(false);
+      setContactForm({
+        method: 'Email',
+        subject: '',
+        message: '',
+        followUpDate: '',
+        followUpMode: '',
+        corporateData: null
+      });
+
+    } catch (error) {
+      console.error('Error sending message:', error);
+      const errorMessage = error.response?.data?.error || error.message || 'Failed to send message';
+      toast.error(errorMessage);
+    } finally {
+      setIsSendingMessage(false);
+    }
   };
   return (
     <div className="w-full h-full bg-gray-50 p-6">
@@ -3036,12 +3092,21 @@ export function CorporateSearch({
               Cancel
             </Button>
             <Button
-              // onClick={handleSendMessage}
+              onClick={handleSendMessage}
               className="bg-orange-500 hover:bg-orange-600 text-white"
-              disabled={!contactForm.subject || !contactForm.message}
+              disabled={!contactForm.subject || !contactForm.message || isSendingMessage}
             >
-              <Mail className="h-4 w-4 mr-2" />
-              Send Message
+              {isSendingMessage ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                  Sending...
+                </>
+              ) : (
+                <>
+                  <Mail className="h-4 w-4 mr-2" />
+                  Send Message
+                </>
+              )}
             </Button>
           </DialogFooter>
         </DialogContent>
