@@ -396,9 +396,9 @@ export const useLeadApi = () => {
       
       // Handle corporate contact messages differently
       if (messageData.contact_type === 'corporate') {
-        // For corporate contacts, use a different endpoint or handle differently
-        // We'll use the same endpoint but with corporate-specific data
-        response = await baseApi.post(`/leads/send_corporate_message/`, {
+        // For corporate contacts, use the regular lead send message endpoint
+        // but pass the corporate data in a way the backend can handle
+        response = await baseApi.post(`/leads/send_message/`, {
           corporate_id: leadId,
           recipient_email: messageData.recipient_email,
           recipient_name: messageData.recipient_name,
@@ -406,7 +406,8 @@ export const useLeadApi = () => {
           subject: messageData.subject,
           message: messageData.message,
           followUpDate: messageData.followUpDate,
-          followUpMode: messageData.followUpMode
+          followUpMode: messageData.followUpMode,
+          contact_type: 'corporate'
         });
       } else {
         // Regular lead message
