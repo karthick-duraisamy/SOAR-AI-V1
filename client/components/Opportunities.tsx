@@ -741,6 +741,7 @@ export function Opportunities({
     saveProposalDraft,
     updateProposalDraft,
     deleteProposalDraft,
+    
   } = useLeadApi();
 
   // Add missing sendMessage function
