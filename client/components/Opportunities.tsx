@@ -1129,6 +1129,7 @@ const getRandomRiskLevel = () => {
       savedAt: new Date().toISOString()
     };
     localStorage.setItem(draftKey, JSON.stringify(draftData));
+    console.log(`Draft saved for opportunity ${opportunityId}:`, draftData);
   }, []);
 
   const loadDraft = useCallback((opportunityId: number) => {
@@ -1136,18 +1137,22 @@ const getRandomRiskLevel = () => {
     const savedDraft = localStorage.getItem(draftKey);
     if (savedDraft) {
       try {
-        return JSON.parse(savedDraft);
+        const parsed = JSON.parse(savedDraft);
+        console.log(`Draft loaded for opportunity ${opportunityId}:`, parsed);
+        return parsed;
       } catch (error) {
         console.error("Error parsing draft data:", error);
         return null;
       }
     }
+    console.log(`No draft found for opportunity ${opportunityId}`);
     return null;
   }, []);
 
   const clearDraft = useCallback((opportunityId: number) => {
     const draftKey = `${PROPOSAL_DRAFT_KEY}${opportunityId}`;
     localStorage.removeItem(draftKey);
+    console.log(`Draft cleared for opportunity ${opportunityId}`);
   }, []);
 
   // Format currency function - moved here to avoid hoisting issues
@@ -1596,7 +1601,7 @@ const getRandomRiskLevel = () => {
     const existingDraft = loadDraft(opportunity.id);
     
     if (existingDraft) {
-      // Load draft data
+      // Load proposal form data from draft
       setProposalForm({
         title: existingDraft.title || `Travel Solutions Proposal - ${opportunity.lead_info?.company?.name}`,
         description: existingDraft.description || `Comprehensive travel management solution tailored for ${opportunity.lead_info?.company?.name}'s needs including cost optimization, policy compliance, and reporting analytics.`,
@@ -1605,7 +1610,35 @@ const getRandomRiskLevel = () => {
         deliveryMethod: existingDraft.deliveryMethod || "email",
         attachedFile: null, // File is not saved in draft
       });
-      toast.success("Draft loaded successfully!");
+
+      // Load negotiation form data from draft if available
+      if (existingDraft.negotiationData) {
+        setNegotiationForm(prevForm => ({
+          ...prevForm,
+          travelFrequency: existingDraft.negotiationData.travelFrequency || prevForm.travelFrequency,
+          annualBookingVolume: existingDraft.negotiationData.annualBookingVolume || prevForm.annualBookingVolume,
+          projectedSpend: existingDraft.negotiationData.projectedSpend || prevForm.projectedSpend,
+          preferredRoutes: existingDraft.negotiationData.preferredRoutes || prevForm.preferredRoutes,
+          domesticEconomy: existingDraft.negotiationData.domesticEconomy || prevForm.domesticEconomy,
+          domesticBusiness: existingDraft.negotiationData.domesticBusiness || prevForm.domesticBusiness,
+          international: existingDraft.negotiationData.international || prevForm.international,
+          baseDiscount: existingDraft.negotiationData.baseDiscount || prevForm.baseDiscount,
+          routeDiscounts: existingDraft.negotiationData.routeDiscounts || prevForm.routeDiscounts,
+          loyaltyBenefits: existingDraft.negotiationData.loyaltyBenefits || prevForm.loyaltyBenefits,
+          volumeIncentives: existingDraft.negotiationData.volumeIncentives || prevForm.volumeIncentives,
+          contractDuration: existingDraft.negotiationData.contractDuration || prevForm.contractDuration,
+          autoRenewal: existingDraft.negotiationData.autoRenewal !== undefined ? existingDraft.negotiationData.autoRenewal : prevForm.autoRenewal,
+          paymentTerms: existingDraft.negotiationData.paymentTerms || prevForm.paymentTerms,
+          settlementType: existingDraft.negotiationData.settlementType || prevForm.settlementType,
+          airlineConcessions: existingDraft.negotiationData.airlineConcessions || prevForm.airlineConcessions,
+          corporateCommitments: existingDraft.negotiationData.corporateCommitments || prevForm.corporateCommitments,
+          discountApprovalRequired: existingDraft.negotiationData.discountApprovalRequired !== undefined ? existingDraft.negotiationData.discountApprovalRequired : prevForm.discountApprovalRequired,
+          revenueManagerAssigned: existingDraft.negotiationData.revenueManagerAssigned || prevForm.revenueManagerAssigned,
+          legalApprovalRequired: existingDraft.negotiationData.legalApprovalRequired !== undefined ? existingDraft.negotiationData.legalApprovalRequired : prevForm.legalApprovalRequired
+        }));
+      }
+
+      toast.success(`Draft loaded successfully! Last saved: ${new Date(existingDraft.savedAt).toLocaleString()}`);
     } else {
       // Set default values
       setProposalForm({
@@ -1616,10 +1649,20 @@ const getRandomRiskLevel = () => {
         deliveryMethod: "email",
         attachedFile: null,
       });
+
+      // Reset negotiation form to defaults for this opportunity
+      setNegotiationForm(prevForm => ({
+        ...prevForm,
+        dealTitle: `${opportunity.lead_info?.company?.name} Corporate Travel Agreement`,
+        corporateContact: `${opportunity.lead_info?.contact?.first_name} ${opportunity.lead_info?.contact?.last_name}`,
+        airlineAccountManager: "Current User",
+        expectedCloseDate: opportunity.estimated_close_date,
+        corporateCommitments: `Annual volume commitment based on ${opportunity.lead_info?.company?.employee_count || 'N/A'} employees. Projected spend: ${formatCurrency(opportunity.value)}.`
+      }));
     }
     
     setShowProposalDialog(true);
-  }, [loadDraft]);
+  }, [loadDraft, formatCurrency]);
 
   const handleMoveToNegotiation = useCallback((opportunity: Opportunity) => {
     setSelectedOpportunity(opportunity);
@@ -1887,11 +1930,42 @@ const getRandomRiskLevel = () => {
   }, [selectedOpportunity, proposalForm.attachedFile, clearDraft]);
 
   const handleSaveProposalDraft = useCallback(() => {
-    if (!selectedOpportunity) return;
+    if (!selectedOpportunity) {
+      toast.error("No opportunity selected");
+      return;
+    }
 
-    saveDraft(selectedOpportunity.id, proposalForm);
+    // Include all current form data including negotiation form data
+    const draftData = {
+      ...proposalForm,
+      // Also save the negotiation form data that's part of the proposal
+      negotiationData: {
+        travelFrequency: negotiationForm.travelFrequency,
+        annualBookingVolume: negotiationForm.annualBookingVolume,
+        projectedSpend: negotiationForm.projectedSpend,
+        preferredRoutes: negotiationForm.preferredRoutes,
+        domesticEconomy: negotiationForm.domesticEconomy,
+        domesticBusiness: negotiationForm.domesticBusiness,
+        international: negotiationForm.international,
+        baseDiscount: negotiationForm.baseDiscount,
+        routeDiscounts: negotiationForm.routeDiscounts,
+        loyaltyBenefits: negotiationForm.loyaltyBenefits,
+        volumeIncentives: negotiationForm.volumeIncentives,
+        contractDuration: negotiationForm.contractDuration,
+        autoRenewal: negotiationForm.autoRenewal,
+        paymentTerms: negotiationForm.paymentTerms,
+        settlementType: negotiationForm.settlementType,
+        airlineConcessions: negotiationForm.airlineConcessions,
+        corporateCommitments: negotiationForm.corporateCommitments,
+        discountApprovalRequired: negotiationForm.discountApprovalRequired,
+        revenueManagerAssigned: negotiationForm.revenueManagerAssigned,
+        legalApprovalRequired: negotiationForm.legalApprovalRequired
+      }
+    };
+
+    saveDraft(selectedOpportunity.id, draftData);
     toast.success("Proposal draft saved successfully!");
-  }, [selectedOpportunity, proposalForm, saveDraft]);
+  }, [selectedOpportunity, proposalForm, negotiationForm, saveDraft]);
 
   const handlePreviewEmail = useCallback(() => {
     const previewContent = generateEmailPreview();
