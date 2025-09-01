@@ -365,14 +365,14 @@ export const useLeadApi = () => {
     try {
       setLoading(true);
       setError(null);
-      
+
       // Try to fetch from the actual API endpoint
       const response = await baseApi.post(`/opportunities/search/`, filters);
       setData(response.data);
       return response.data;
     } catch (error: any) {
       console.error('Error fetching opportunities:', error);
-      
+
       // If API fails, return mock data for development
       const mockOpportunities = [
         {
@@ -496,7 +496,7 @@ export const useLeadApi = () => {
           ]
         }
       ];
-      
+
       setData(mockOpportunities);
       return mockOpportunities;
     } finally {

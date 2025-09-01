@@ -1664,9 +1664,14 @@ const getRandomRiskLevel = () => {
     
     try {
       // Try to load existing draft
-      const existingDraft = await loadDraft(opportunity.id);
+      const response = await loadDraft(opportunity.id);
       
-      if (existingDraft) {
+      // Handle API response - extract data from response object
+      const existingDraft = response?.data || response;
+      
+      if (existingDraft && Object.keys(existingDraft).length > 0) {
+        console.log("Loading existing draft:", existingDraft);
+        
         // Load proposal form data from draft
         setProposalForm({
           title: existingDraft.title || `Travel Solutions Proposal - ${opportunity.lead_info?.company?.name}`,
@@ -1680,23 +1685,27 @@ const getRandomRiskLevel = () => {
         // Load negotiation form data from draft
         setNegotiationForm(prevForm => ({
           ...prevForm,
+          dealTitle: existingDraft.deal_title || `${opportunity.lead_info?.company?.name} Corporate Travel Agreement`,
+          corporateContact: existingDraft.corporate_contact || `${opportunity.lead_info?.contact?.first_name} ${opportunity.lead_info?.contact?.last_name}`,
+          airlineAccountManager: existingDraft.airline_account_manager || "Current User",
+          expectedCloseDate: existingDraft.expected_close_date || opportunity.estimated_close_date,
           travelFrequency: existingDraft.travel_frequency || prevForm.travelFrequency,
           annualBookingVolume: existingDraft.annual_booking_volume || prevForm.annualBookingVolume,
           projectedSpend: existingDraft.projected_spend || prevForm.projectedSpend,
           preferredRoutes: existingDraft.preferred_routes || prevForm.preferredRoutes,
-          domesticEconomy: existingDraft.domestic_economy || prevForm.domesticEconomy,
-          domesticBusiness: existingDraft.domestic_business || prevForm.domesticBusiness,
-          international: existingDraft.international || prevForm.international,
+          domesticEconomy: existingDraft.domestic_economy !== undefined ? existingDraft.domestic_economy : prevForm.domesticEconomy,
+          domesticBusiness: existingDraft.domestic_business !== undefined ? existingDraft.domestic_business : prevForm.domesticBusiness,
+          international: existingDraft.international !== undefined ? existingDraft.international : prevForm.international,
           baseDiscount: existingDraft.base_discount || prevForm.baseDiscount,
-          routeDiscounts: existingDraft.route_discounts || prevForm.routeDiscounts,
-          loyaltyBenefits: existingDraft.loyalty_benefits || prevForm.loyaltyBenefits,
+          routeDiscounts: Array.isArray(existingDraft.route_discounts) ? existingDraft.route_discounts : prevForm.routeDiscounts,
+          loyaltyBenefits: typeof existingDraft.loyalty_benefits === 'object' ? existingDraft.loyalty_benefits : prevForm.loyaltyBenefits,
           volumeIncentives: existingDraft.volume_incentives || prevForm.volumeIncentives,
           contractDuration: existingDraft.contract_duration || prevForm.contractDuration,
           autoRenewal: existingDraft.auto_renewal !== undefined ? existingDraft.auto_renewal : prevForm.autoRenewal,
           paymentTerms: existingDraft.payment_terms || prevForm.paymentTerms,
           settlementType: existingDraft.settlement_type || prevForm.settlementType,
           airlineConcessions: existingDraft.airline_concessions || prevForm.airlineConcessions,
-          corporateCommitments: existingDraft.corporate_commitments || prevForm.corporateCommitments,
+          corporateCommitments: existingDraft.corporate_commitments || `Annual volume commitment based on ${opportunity.lead_info?.company?.employee_count || 'N/A'} employees. Projected spend: ${formatCurrency(opportunity.value)}.`,
           internalNotes: existingDraft.internal_notes || prevForm.internalNotes,
           priorityLevel: existingDraft.priority_level || prevForm.priorityLevel,
           discountApprovalRequired: existingDraft.discount_approval_required !== undefined ? existingDraft.discount_approval_required : prevForm.discountApprovalRequired,
@@ -1704,8 +1713,10 @@ const getRandomRiskLevel = () => {
           legalApprovalRequired: existingDraft.legal_approval_required !== undefined ? existingDraft.legal_approval_required : prevForm.legalApprovalRequired
         }));
 
-        toast.success(`Draft loaded successfully! Last saved: ${new Date(existingDraft.updated_at).toLocaleString()}`);
+        toast.success(`Draft loaded successfully! Last saved: ${existingDraft.updated_at ? new Date(existingDraft.updated_at).toLocaleString() : 'Recently'}`);
       } else {
+        console.log("No existing draft found, setting default values");
+        
         // Set default values
         setProposalForm({
           title: `Travel Solutions Proposal - ${opportunity.lead_info?.company?.name}`,
@@ -1728,7 +1739,12 @@ const getRandomRiskLevel = () => {
       }
     } catch (error) {
       console.error("Error loading draft:", error);
-      toast.error("Failed to load draft data");
+      console.error("Error details:", error.response?.data);
+      
+      // Only show error if it's not a 404 (no draft found)
+      if (error.response?.status !== 404) {
+        toast.error("Failed to load draft data");
+      }
       
       // Set default values as fallback
       setProposalForm({
