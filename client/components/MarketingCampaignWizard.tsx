@@ -297,7 +297,7 @@ export function MarketingCampaignWizard({ selectedLeads, onBack, onComplete }: M
 
             <div className="space-y-4">
               <Label className="text-base font-medium text-gray-900">Communication Channels</Label>
-              <div className="space-y-3">
+              <div className="space-y-3 flex">
                 <div className="flex items-center space-x-3">
                   <Checkbox 
                     id="email"
