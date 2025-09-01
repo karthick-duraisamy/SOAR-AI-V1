@@ -2067,6 +2067,31 @@ class AIConversationViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(conversation)
         return Response(serializer.data)
 
+@api_view(['GET'])
+def download_proposal_attachment(request, opportunity_id):
+    """
+    Download attachment for a proposal draft
+    """
+    import os
+    from django.http import FileResponse, Http404
+    
+    try:
+        opportunity = Opportunity.objects.get(id=opportunity_id)
+        draft = ProposalDraft.objects.get(opportunity=opportunity)
+        
+        if not draft.attachment_path or not os.path.exists(draft.attachment_path):
+            raise Http404("Attachment not found")
+        
+        # Return file response
+        response = FileResponse(
+            open(draft.attachment_path, 'rb'),
+            filename=draft.attachment_original_name or 'attachment'
+        )
+        return response
+        
+    except (Opportunity.DoesNotExist, ProposalDraft.DoesNotExist):
+        raise Http404("Draft or opportunity not found")
+
 class ProposalDraftViewSet(viewsets.ModelViewSet):
     queryset = ProposalDraft.objects.all()
     serializer_class = ProposalDraftSerializer
@@ -3310,6 +3335,11 @@ def proposal_draft_detail(request, opportunity_id):
     """
     Handle proposal draft operations for a specific opportunity
     """
+    import os
+    import uuid
+    from django.core.files.storage import default_storage
+    from django.core.files.base import ContentFile
+    
     try:
         opportunity = Opportunity.objects.get(id=opportunity_id)
     except Opportunity.DoesNotExist:
@@ -3320,24 +3350,93 @@ def proposal_draft_detail(request, opportunity_id):
         try:
             draft = ProposalDraft.objects.get(opportunity=opportunity)
             serializer = ProposalDraftSerializer(draft)
-            return Response(serializer.data, status=status.HTTP_200_OK)
+            draft_data = serializer.data
+            
+            # Include attachment information if exists
+            if draft.attachment_path and os.path.exists(draft.attachment_path):
+                draft_data['attachment_info'] = {
+                    'filename': draft.attachment_original_name,
+                    'path': draft.attachment_path,
+                    'exists': True
+                }
+            else:
+                draft_data['attachment_info'] = {'exists': False}
+                
+            return Response(draft_data, status=status.HTTP_200_OK)
         except ProposalDraft.DoesNotExist:
             return Response({'message': 'No draft found'}, status=status.HTTP_404_NOT_FOUND)
 
     elif request.method == 'POST' or request.method == 'PUT':
+        # Handle file upload if present
+        attachment_path = None
+        attachment_original_name = None
+        
+        if 'attachment' in request.FILES:
+            uploaded_file = request.FILES['attachment']
+            
+            # Create unique filename with corporate ID and timestamp
+            file_extension = os.path.splitext(uploaded_file.name)[1]
+            unique_filename = f"proposal_{opportunity.lead.company.id}_{opportunity.id}_{uuid.uuid4().hex[:8]}{file_extension}"
+            
+            # Create attachments directory if it doesn't exist
+            attachments_dir = 'proposal_attachments'
+            os.makedirs(attachments_dir, exist_ok=True)
+            
+            # Save file with unique name
+            attachment_path = os.path.join(attachments_dir, unique_filename)
+            
+            # Write file to disk
+            with open(attachment_path, 'wb') as f:
+                for chunk in uploaded_file.chunks():
+                    f.write(chunk)
+            
+            attachment_original_name = uploaded_file.name
+        
+        # Prepare data for serializer
+        data = request.data.copy()
+        if attachment_path:
+            data['attachment_path'] = attachment_path
+            data['attachment_original_name'] = attachment_original_name
+        
         # Create or update draft
         try:
             draft = ProposalDraft.objects.get(opportunity=opportunity)
-            serializer = ProposalDraftSerializer(draft, data=request.data, partial=True)
+            serializer = ProposalDraftSerializer(draft, data=data, partial=True)
         except ProposalDraft.DoesNotExist:
-            data = request.data.copy()
             data['opportunity'] = opportunity.id
             serializer = ProposalDraftSerializer(data=data)
 
         if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_200_OK)
+            saved_draft = serializer.save()
+            
+            # Include attachment info in response
+            response_data = serializer.data
+            if saved_draft.attachment_path and os.path.exists(saved_draft.attachment_path):
+                response_data['attachment_info'] = {
+                    'filename': saved_draft.attachment_original_name,
+                    'path': saved_draft.attachment_path,
+                    'exists': True
+                }
+            
+            return Response(response_data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    elif request.method == 'DELETE':
+        # Delete draft and associated files
+        try:
+            draft = ProposalDraft.objects.get(opportunity=opportunity)
+            
+            # Delete attachment file if exists
+            if draft.attachment_path and os.path.exists(draft.attachment_path):
+                try:
+                    os.remove(draft.attachment_path)
+                except OSError:
+                    pass  # File might be already deleted
+            
+            draft.delete()
+            return Response({'message': 'Draft deleted successfully'}, status=status.HTTP_200_OK)
+        except ProposalDraft.DoesNotExist:
+            return Response({'message': 'No draft found'}, status=status.HTTP_404_NOT_FOUND)serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     elif request.method == 'DELETE':
         # Delete draft

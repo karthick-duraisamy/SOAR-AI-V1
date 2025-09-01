@@ -750,6 +750,7 @@ export function Opportunities({
     saveProposalDraft,
     updateProposalDraft,
     deleteProposalDraft,
+    getAttachmentDownloadUrl,
     
   } = useLeadApi();
 
@@ -1130,12 +1131,18 @@ const getRandomRiskLevel = () => {
     attachedFile: null,
   });
 
+  const [attachmentInfo, setAttachmentInfo] = useState({
+    exists: false,
+    filename: "",
+    path: "",
+  });
+
   const [showEmailPreview, setShowEmailPreview] = useState(false);
   const [emailPreviewContent, setEmailPreviewContent] = useState("");
   const [isDraftLoading, setIsDraftLoading] = useState(false);
 
   // Persistent draft management using API
-  const saveDraft = useCallback(async (opportunityId: number, formData: any) => {
+  const saveDraft = useCallback(async (opportunityId: number, formData: any, file?: File) => {
     try {
       setIsDraftLoading(true);
       
@@ -1183,10 +1190,18 @@ const getRandomRiskLevel = () => {
 
       // Try to update existing draft first, then create if it doesn't exist
       try {
-        await updateProposalDraft(opportunityId, draftData);
+        const response = await updateProposalDraft(opportunityId, draftData, file);
+        // Update attachment info from response
+        if (response.data?.attachment_info) {
+          setAttachmentInfo(response.data.attachment_info);
+        }
       } catch (error) {
         // If update fails (draft doesn't exist), create new one
-        await saveProposalDraft(opportunityId, draftData);
+        const response = await saveProposalDraft(opportunityId, draftData, file);
+        // Update attachment info from response
+        if (response.data?.attachment_info) {
+          setAttachmentInfo(response.data.attachment_info);
+        }
       }
       
       console.log(`Draft saved for opportunity ${opportunityId}:`, draftData);
@@ -1203,13 +1218,24 @@ const getRandomRiskLevel = () => {
       setIsDraftLoading(true);
       const response = await getProposalDraft(opportunityId);
       console.log(`Draft loaded for opportunity ${opportunityId}:`, response);
+      
+      // Handle attachment info if present
+      const draftData = response?.data || response;
+      if (draftData?.attachment_info) {
+        setAttachmentInfo(draftData.attachment_info);
+      } else {
+        setAttachmentInfo({ exists: false, filename: "", path: "" });
+      }
+      
       return response;
     } catch (error) {
       if (error.response?.status === 404) {
         console.log(`No draft found for opportunity ${opportunityId}`);
+        setAttachmentInfo({ exists: false, filename: "", path: "" });
         return null;
       }
       console.error("Error loading draft:", error);
+      setAttachmentInfo({ exists: false, filename: "", path: "" });
       return null;
     } finally {
       setIsDraftLoading(false);
@@ -1722,6 +1748,13 @@ const getRandomRiskLevel = () => {
           legalApprovalRequired: existingDraft.legal_approval_required !== undefined ? existingDraft.legal_approval_required : prevForm.legalApprovalRequired
         }));
 
+        // Handle attachment info
+        if (existingDraft.attachment_info) {
+          setAttachmentInfo(existingDraft.attachment_info);
+        } else {
+          setAttachmentInfo({ exists: false, filename: "", path: "" });
+        }
+
         toast.success(`Draft loaded successfully! Last saved: ${existingDraft.updated_at ? new Date(existingDraft.updated_at).toLocaleString() : 'Recently'}`);
       } else {
         console.log("No existing draft found, setting default values");
@@ -1745,6 +1778,9 @@ const getRandomRiskLevel = () => {
           expectedCloseDate: opportunity.estimated_close_date,
           corporateCommitments: `Annual volume commitment based on ${opportunity.lead_info?.company?.employee_count || 'N/A'} employees. Projected spend: ${formatCurrency(opportunity.value)}.`
         }));
+
+        // Reset attachment info
+        setAttachmentInfo({ exists: false, filename: "", path: "" });
       }
     } catch (error) {
       console.error("Error loading draft:", error);
@@ -1773,6 +1809,9 @@ const getRandomRiskLevel = () => {
         expectedCloseDate: opportunity.estimated_close_date,
         corporateCommitments: `Annual volume commitment based on ${opportunity.lead_info?.company?.employee_count || 'N/A'} employees. Projected spend: ${formatCurrency(opportunity.value)}.`
       }));
+
+      // Reset attachment info on error
+      setAttachmentInfo({ exists: false, filename: "", path: "" });
     } finally {
       setIsDraftLoading(false);
     }
@@ -2009,6 +2048,8 @@ const getRandomRiskLevel = () => {
 
   const removeAttachedFile = useCallback(() => {
     setProposalForm({ ...proposalForm, attachedFile: null });
+    // If there was a stored attachment and we're removing a new file, keep the stored one visible
+    // The stored attachment will only be hidden if user explicitly removes it via the separate remove button
   }, [proposalForm]);
 
   const handleSaveProposal = useCallback(() => {
@@ -2084,7 +2125,8 @@ const getRandomRiskLevel = () => {
         }
       };
 
-      await saveDraft(selectedOpportunity.id, draftData);
+      // Pass the attached file if it exists
+      await saveDraft(selectedOpportunity.id, draftData, proposalForm.attachedFile);
       toast.success("Proposal draft saved successfully!");
     } catch (error) {
       console.error("Error saving draft:", error);
@@ -3506,6 +3548,54 @@ const getRandomRiskLevel = () => {
 
                     <div>
                       <Label className="text-sm font-medium mb-3 block">Attach Supporting Documents</Label>
+                      
+                      {/* Show stored attachment if exists */}
+                      {attachmentInfo.exists && !proposalForm.attachedFile && (
+                        <div className="mb-4 p-3 bg-green-50 rounded-lg border border-green-200">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                              <FileText className="h-5 w-5 text-green-600" />
+                              <div className="text-left">
+                                <p className="text-sm font-medium text-green-900">
+                                  {attachmentInfo.filename}
+                                </p>
+                                <p className="text-xs text-green-600">
+                                  Previously uploaded attachment
+                                </p>
+                              </div>
+                            </div>
+                            <div className="flex gap-2">
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={() => {
+                                  // Download existing attachment
+                                  const downloadUrl = getAttachmentDownloadUrl(selectedOpportunity.id);
+                                  window.open(downloadUrl, '_blank');
+                                }}
+                                className="h-8 px-3 text-xs"
+                              >
+                                Download
+                              </Button>
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={() => {
+                                  setAttachmentInfo({ exists: false, filename: "", path: "" });
+                                  // Note: This doesn't delete the file from server, just hides it from UI
+                                  // The file will be replaced when a new one is uploaded
+                                }}
+                                className="h-8 w-8 p-0"
+                              >
+                                ×
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                      
                       <div
                         className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
                           isDragging
@@ -3530,7 +3620,7 @@ const getRandomRiskLevel = () => {
                                     1024 /
                                     1024
                                   ).toFixed(2)}{" "}
-                                  MB
+                                  MB - New upload
                                 </p>
                               </div>
                             </div>
@@ -3549,7 +3639,10 @@ const getRandomRiskLevel = () => {
                             <FileText className="h-12 w-12 mx-auto mb-4 text-gray-400" />
                             <div className="space-y-2">
                               <p className="text-sm text-gray-600">
-                                Drag and drop your proposal documents here, or click to browse
+                                {attachmentInfo.exists 
+                                  ? "Upload a new document to replace the existing one" 
+                                  : "Drag and drop your proposal documents here, or click to browse"
+                                }
                               </p>
                               <p className="text-xs text-gray-500">
                                 PDF, DOC, DOCX, XLS, XLSX files up to 10MB

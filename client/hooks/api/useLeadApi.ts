@@ -309,19 +309,64 @@ export const useLeadApi = () => {
   }, [baseApi]);
 
   // Save proposal draft for an opportunity
-  const saveProposalDraft = useCallback(async (opportunityId: number, draftData: any) => {
-    return baseApi.post(`/opportunities/${opportunityId}/proposal-draft/`, draftData);
+  const saveProposalDraft = useCallback(async (opportunityId: number, draftData: any, file?: File) => {
+    const formData = new FormData();
+    
+    // Add all draft data to form data
+    Object.keys(draftData).forEach(key => {
+      if (typeof draftData[key] === 'object' && draftData[key] !== null) {
+        formData.append(key, JSON.stringify(draftData[key]));
+      } else {
+        formData.append(key, draftData[key]);
+      }
+    });
+    
+    // Add file if provided
+    if (file) {
+      formData.append('attachment', file);
+    }
+    
+    return baseApi.post(`/opportunities/${opportunityId}/proposal-draft/`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
   }, [baseApi]);
 
   // Update proposal draft for an opportunity
-  const updateProposalDraft = useCallback(async (opportunityId: number, draftData: any) => {
-    return baseApi.put(`/opportunities/${opportunityId}/proposal-draft/`, draftData);
+  const updateProposalDraft = useCallback(async (opportunityId: number, draftData: any, file?: File) => {
+    const formData = new FormData();
+    
+    // Add all draft data to form data
+    Object.keys(draftData).forEach(key => {
+      if (typeof draftData[key] === 'object' && draftData[key] !== null) {
+        formData.append(key, JSON.stringify(draftData[key]));
+      } else {
+        formData.append(key, draftData[key]);
+      }
+    });
+    
+    // Add file if provided
+    if (file) {
+      formData.append('attachment', file);
+    }
+    
+    return baseApi.put(`/opportunities/${opportunityId}/proposal-draft/`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
   }, [baseApi]);
 
   // Delete proposal draft for an opportunity
   const deleteProposalDraft = useCallback(async (opportunityId: number) => {
     return baseApi.delete(`/opportunities/${opportunityId}/proposal-draft/`);
   }, [baseApi]);
+
+  // Get attachment download URL
+  const getAttachmentDownloadUrl = useCallback((opportunityId: number) => {
+    return `${API_BASE_URL}/opportunities/${opportunityId}/proposal-draft/attachment/`;
+  }, []);
 
   // Send message function
   const sendMessage = useCallback((message: string) => {
@@ -559,5 +604,6 @@ export const useLeadApi = () => {
     saveProposalDraft,
     updateProposalDraft,
     deleteProposalDraft,
+    getAttachmentDownloadUrl,
   };
 };

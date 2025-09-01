@@ -894,6 +894,10 @@ class ProposalDraft(models.Model):
     revenue_manager_assigned = models.CharField(max_length=100, blank=True)
     legal_approval_required = models.BooleanField(default=False)
     
+    # File attachment
+    attachment_path = models.CharField(max_length=500, blank=True)
+    attachment_original_name = models.CharField(max_length=255, blank=True)
+    
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
