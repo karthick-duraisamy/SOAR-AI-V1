@@ -243,7 +243,7 @@ interface OpportunityCardProps {
   onMoveToNegotiation?: (opportunity: Opportunity) => void;
   onCloseDeal?: (opportunity: Opportunity, status: string) => void;
   handleViewProfile: (profileId: string) => void;
-
+  isDraftLoading?: boolean;
 }
    
 
@@ -258,7 +258,8 @@ const OpportunityCard = memo(
     onSendProposal,
     onMoveToNegotiation,
     onCloseDeal,
-    handleViewProfile
+    handleViewProfile,
+    isDraftLoading
 
   }: OpportunityCardProps) => {
 
@@ -530,16 +531,21 @@ const OpportunityCard = memo(
             {opportunity.stage === "discovery" && (
               <Button
                 size="sm"
-                className="h-8 px-3 text-xs bg-blue-600 hover:bg-blue-700 text-white rounded-md font-medium"
+                className="h-8 px-3 text-xs bg-blue-600 hover:bg-blue-700 text-white rounded-md font-medium disabled:opacity-50"
                 onClick={(e) => {
                   e.stopPropagation();
                   if (onSendProposal) {
                     onSendProposal(opportunity);
                   }
                 }}
+                disabled={isDraftLoading}
               >
-                <FileText className="h-3 w-3 mr-1" />
-                Send Proposal
+                {isDraftLoading ? (
+                  <RefreshCw className="h-3 w-3 mr-1 animate-spin" />
+                ) : (
+                  <FileText className="h-3 w-3 mr-1" />
+                )}
+                {isDraftLoading ? "Loading..." : "Send Proposal"}
               </Button>
             )}
 
@@ -624,6 +630,7 @@ interface PipelineColumnProps {
   onMoveToNegotiation?: (opportunity: Opportunity) => void;
   onCloseDeal?: (opportunity: Opportunity, status: string) => void;
   handleViewProfile: (opportunity: Opportunity) => void;
+  isDraftLoading?: boolean;
 }
 
 const PipelineColumn = memo(
@@ -638,6 +645,7 @@ const PipelineColumn = memo(
     onMoveToNegotiation,
     onCloseDeal,
     handleViewProfile,
+    isDraftLoading,
   }: PipelineColumnProps) => {
     const [{ isOver }, drop] = useDrop(() => ({
       accept: ItemTypes.OPPORTUNITY,
@@ -708,6 +716,7 @@ const PipelineColumn = memo(
                 onMoveToNegotiation={onMoveToNegotiation}
                 onCloseDeal={onCloseDeal}
                 handleViewProfile={handleViewProfile}
+                isDraftLoading={isDraftLoading}
               />
             ))}
 
@@ -2511,7 +2520,7 @@ const getRandomRiskLevel = () => {
                       onMoveToNegotiation={handleMoveToNegotiation}
                       onCloseDeal={handleCloseDeal}
                       handleViewProfile={handleViewProfile}
-
+                      isDraftLoading={isDraftLoading}
                     />
                   ))}
                 </div>
@@ -2673,6 +2682,7 @@ const getRandomRiskLevel = () => {
                   onMoveToNegotiation={handleMoveToNegotiation}
                   onCloseDeal={handleCloseDeal}
                   handleViewProfile={handleViewProfile}
+                  isDraftLoading={isDraftLoading}
                 />
               ))}
             </div>
