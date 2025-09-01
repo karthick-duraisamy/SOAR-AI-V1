@@ -9,14 +9,14 @@ from datetime import datetime, timedelta
 from .models import (
     Company, Contact, Lead, Opportunity, OpportunityActivity, Contract, ContractBreach,
     CampaignTemplate, EmailCampaign, TravelOffer, SupportTicket, 
-    RevenueForecast, LeadNote, LeadHistory, ActivityLog, ProposalDraft
+    RevenueForecast, LeadNote, LeadHistory, ActivityLog, AIConversation, ProposalDraft
 )
 from .serializers import (
     CompanySerializer, ContactSerializer, LeadSerializer, OpportunitySerializer,
     OpportunityActivitySerializer, ContractSerializer, ContractBreachSerializer,
     CampaignTemplateSerializer, EmailCampaignSerializer, TravelOfferSerializer,
     SupportTicketSerializer, RevenueForecastSerializer, LeadNoteSerializer,
-    LeadHistorySerializer, ActivityLogSerializer, ProposalDraftSerializer
+    LeadHistorySerializer, ActivityLogSerializer, AIConversationSerializer, ProposalDraftSerializer
 )
 
 # Helper function to create lead history entries
