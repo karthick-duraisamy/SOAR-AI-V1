@@ -177,7 +177,7 @@ interface ActivityAccordionProps {
 
 const ActivityAccordion = memo(({ activities }: ActivityAccordionProps) => {
   const [isExpanded, setIsExpanded] = useState(false);
-
+  
 
   const displayedActivities = isExpanded ? activities : activities.slice(0, 1);
   const remainingCount = activities.length - 1;
@@ -229,7 +229,7 @@ const ActivityAccordion = memo(({ activities }: ActivityAccordionProps) => {
       </div>
     </div>
   );
-
+  
 });
 ActivityAccordion.displayName = "ActivityAccordion";
 
@@ -245,9 +245,9 @@ interface OpportunityCardProps {
   handleViewProfile: (profileId: string) => void;
   isDraftLoading?: boolean;
 }
+   
 
-
-
+   
 
 const OpportunityCard = memo(
   ({
@@ -318,7 +318,7 @@ const OpportunityCard = memo(
         return `$${numAmount.toFixed(0)}`;
       }
     }, []);
-
+     
     const formatDate = useCallback((dateString: string) => {
       return new Date(dateString).toLocaleDateString("en-US", {
         month: "2-digit",
@@ -327,7 +327,7 @@ const OpportunityCard = memo(
       });
     }, []);
 
-
+    
 
     return (
       <div
@@ -751,10 +751,10 @@ export function Opportunities({
     updateProposalDraft,
     deleteProposalDraft,
     getAttachmentDownloadUrl,
-
+    
   } = useLeadApi();
 
-
+  
   const [opportunities, setOpportunities] = useState<Opportunity[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
@@ -781,18 +781,18 @@ const leadApi = useLeadApi();
  const [selectedCorporate, setSelectedCorporate] = useState();
     const [showCorporateProfile, setShowCorporateProfile] = useState(false);   
     const [leadData,setleads] = useState([]);
-
+     
   const handleViewProfile = (opportunity: Opportunity) => {
     const companyName = opportunity.lead_info?.company?.name;
     console.log(leadData,'leadData');
-
+    
     const item = leadData.find(entry => entry.company === companyName);
     console.log(item, 'item');
     setSelectedCorporate(item);
     setShowCorporateProfile(true);
   };
   console.log(showCorporateProfile,'showCorporateProfile',selectedCorporate); 
-
+  
  const fetchLeads = async () => {
         try {
           // Apply current filters when fetching
@@ -803,11 +803,11 @@ const leadApi = useLeadApi();
             score: '',
             engagement: ''
           };
-
+    
           console.log('Fetching leads with filters:', filterParams);
           const apiResponse = await leadApi.getLeads(filterParams);
           console.log('Raw API response:', apiResponse);
-
+    
           // Handle different response formats
           let apiLeads = [];
           if (Array.isArray(apiResponse)) {
@@ -820,23 +820,23 @@ const leadApi = useLeadApi();
             console.warn('Unexpected API response format:', apiResponse);
             apiLeads = [];
           }
-
+    
           console.log('Processed leads array:', apiLeads);
-
+    
           // Transform leads - history_entries are not included here as they are fetched on demand
           const transformedLeads = apiLeads.map((apiLead: any) => {
             console.log('Transforming lead:', apiLead);
             return transformApiLeadToUILead(apiLead);
           });
-
+    
           const transformedLeadsforViewProfile = apiLeads.map((apiLead: any) => {
             console.log('Transforming lead for view profile:', apiLead);
             return transformCompanyDataForViewProfile(apiLead);
           });
-
+    
           console.log("Transformed leads for view profile:", transformedLeadsforViewProfile);
           setleads(transformedLeadsforViewProfile); // Use the correct transformed data
-
+    
         } catch (error) {
           console.error('Error fetching leads:', error);
           console.error('Error details:', error?.response?.data);
@@ -861,7 +861,7 @@ const leadApi = useLeadApi();
       latestNote ? `[${new Date(latestNote.created_at).toLocaleDateString()}] ${latestNote.note}` : ''
     ].filter(Boolean).join(' | ');
     console.log(apiLead,'cgecj');
-
+    
     return {
       id: apiLead.id,
       company: apiLead.contact.company_name || 'Unknown Company',
@@ -920,7 +920,7 @@ const leadApi = useLeadApi();
   // console.log(apiLead, "apilead for view profile")
   // Transform backend data to match frontend expectations
   console.log(apiLead,'final');
-
+  
   return {
     id: apiLead.id,
     name: apiLead.contact.company_name,
@@ -942,7 +942,7 @@ const leadApi = useLeadApi();
     aiRecommendation: generateAIRecommendation(apiLead.company),
     compliance: Math.floor(Math.random() * 20) + 80,
     financialStability: Math.floor(Math.random() * 20) + 80,
-    travelFrequency: getRandomTravelFrequency(),
+    travelFrequency: apiLead.company.travel_frequency || getRandomTravelFrequency(),
     destinations: getRandomDestinations(),
     preferredClass: apiLead.company.preferred_class || getRandomPreferredClass(),
     teamSize: Math.floor((apiLead.company.employee_count || 1000) * 0.1),
@@ -1145,7 +1145,7 @@ const getRandomRiskLevel = () => {
   const saveDraft = useCallback(async (opportunityId: number, formData: any, file?: File) => {
     try {
       setIsDraftLoading(true);
-
+      
       // Prepare draft data for API
       const draftData = {
         // Proposal Information
@@ -1154,7 +1154,7 @@ const getRandomRiskLevel = () => {
         validity_period: formData.validityPeriod || '30',
         special_terms: formData.specialTerms || '',
         delivery_method: formData.deliveryMethod || 'email',
-
+        
         // Volume Commitment - get from negotiationData if available
         travel_frequency: formData.negotiationData?.travelFrequency || 'monthly',
         annual_booking_volume: formData.negotiationData?.annualBookingVolume || '',
@@ -1163,25 +1163,25 @@ const getRandomRiskLevel = () => {
         domestic_economy: formData.negotiationData?.domesticEconomy || 60,
         domestic_business: formData.negotiationData?.domesticBusiness || 25,
         international: formData.negotiationData?.international || 15,
-
+        
         // Discount/Offer Terms
         base_discount: formData.negotiationData?.baseDiscount || '',
         route_discounts: formData.negotiationData?.routeDiscounts || [],
         loyalty_benefits: formData.negotiationData?.loyaltyBenefits || {},
         volume_incentives: formData.negotiationData?.volumeIncentives || '',
-
+        
         // Financial & Contract Terms
         contract_duration: formData.negotiationData?.contractDuration || '24',
         auto_renewal: formData.negotiationData?.autoRenewal !== undefined ? formData.negotiationData.autoRenewal : true,
         payment_terms: formData.negotiationData?.paymentTerms || 'net_30',
         settlement_type: formData.negotiationData?.settlementType || 'bsp',
-
+        
         // Negotiation Strategy
         airline_concessions: formData.negotiationData?.airlineConcessions || '',
         corporate_commitments: formData.negotiationData?.corporateCommitments || '',
         internal_notes: formData.negotiationData?.internalNotes || '',
         priority_level: formData.negotiationData?.priorityLevel || 'medium',
-
+        
         // Approvals Workflow
         discount_approval_required: formData.negotiationData?.discountApprovalRequired || false,
         revenue_manager_assigned: formData.negotiationData?.revenueManagerAssigned || '',
@@ -1203,7 +1203,7 @@ const getRandomRiskLevel = () => {
           setAttachmentInfo(response.data.attachment_info);
         }
       }
-
+      
       console.log(`Draft saved for opportunity ${opportunityId}:`, draftData);
     } catch (error) {
       console.error("Error saving draft:", error);
@@ -1218,7 +1218,7 @@ const getRandomRiskLevel = () => {
       setIsDraftLoading(true);
       const response = await getProposalDraft(opportunityId);
       console.log(`Draft loaded for opportunity ${opportunityId}:`, response);
-
+      
       // Handle attachment info if present
       const draftData = response?.data || response;
       if (draftData?.attachment_info) {
@@ -1226,7 +1226,7 @@ const getRandomRiskLevel = () => {
       } else {
         setAttachmentInfo({ exists: false, filename: "", path: "" });
       }
-
+      
       return response;
     } catch (error) {
       if (error.response?.status === 404) {
@@ -1273,7 +1273,7 @@ const getRandomRiskLevel = () => {
 
     const company = selectedOpportunity.lead_info?.company;
     const contact = selectedOpportunity.lead_info?.contact;
-
+    
     return `
 <!DOCTYPE html>
 <html lang="en">
@@ -1296,17 +1296,17 @@ const getRandomRiskLevel = () => {
         <h1>🛫 Travel Solutions Proposal</h1>
         <p>Your Corporate Travel Partnership Opportunity</p>
     </div>
-
+    
     <div class="content">
         <p><strong>Dear ${contact?.first_name} ${contact?.last_name},</strong></p>
-
+        
         <p>Thank you for your interest in our corporate travel solutions. We are pleased to present this comprehensive proposal for <strong>${company?.name}</strong>.</p>
-
+        
         <div class="highlight">
             <h3>📋 ${proposalForm.title}</h3>
             <p>${proposalForm.description}</p>
         </div>
-
+        
         <h3>🎯 Key Benefits for ${company?.name}:</h3>
         <ul>
             <li><strong>Cost Optimization:</strong> Significant savings through corporate rates and volume discounts</li>
@@ -1315,7 +1315,7 @@ const getRandomRiskLevel = () => {
             <li><strong>Advanced Analytics:</strong> Comprehensive reporting and travel insights</li>
             <li><strong>Seamless Integration:</strong> Easy integration with your existing systems</li>
         </ul>
-
+        
         <h3>💼 Proposal Details:</h3>
         <div class="terms">
             <p><strong>Delivery Method:</strong> ${proposalForm.deliveryMethod === 'email' ? 'Email Delivery' : 
@@ -1325,14 +1325,14 @@ const getRandomRiskLevel = () => {
             <p><strong>Estimated Deal Value:</strong> ${formatCurrency(selectedOpportunity?.value)}</p>
             <p><strong>Expected Implementation:</strong> 2-4 weeks after contract signing</p>
         </div>
-
+        
         ${proposalForm.specialTerms ? `
         <h3>📝 Special Terms & Conditions:</h3>
         <div class="terms">
             <p>${proposalForm.specialTerms}</p>
         </div>
         ` : ''}
-
+        
         <h3>🚀 Next Steps:</h3>
         <ol>
             <li>Review the attached detailed proposal document</li>
@@ -1340,7 +1340,7 @@ const getRandomRiskLevel = () => {
             <li>Discuss customization requirements</li>
             <li>Finalize contract terms and implementation timeline</li>
         </ol>
-
+        
         <div class="highlight">
             <p><strong>⏰ This proposal is valid until:</strong> ${new Date(Date.now() + parseInt(proposalForm.validityPeriod) * 24 * 60 * 60 * 1000).toLocaleDateString('en-US', { 
               year: 'numeric', 
@@ -1348,17 +1348,17 @@ const getRandomRiskLevel = () => {
               day: 'numeric' 
             })}</p>
         </div>
-
+        
         <p>We are excited about the opportunity to partner with ${company?.name} and help optimize your corporate travel program. Our team is ready to answer any questions and provide additional information as needed.</p>
-
+        
         <p>Thank you for considering our proposal. We look forward to hearing from you soon.</p>
-
+        
         <p>Best regards,<br>
         <strong>SOAR AI Corporate Travel Team</strong><br>
         📧 corporate@soar-ai.com<br>
         📞 +1 (555) 123-4567</p>
     </div>
-
+    
     <div class="footer">
         <p><small>This proposal is confidential and intended solely for ${company?.name}. Please do not distribute without permission.</small></p>
         <p><small>© 2024 SOAR AI. All rights reserved.</small></p>
@@ -1457,7 +1457,7 @@ const getRandomRiskLevel = () => {
     };
 
     fetchOpportunities();
-
+    
   }, [getOpportunities, filters]);
 
 
@@ -1620,7 +1620,7 @@ const getRandomRiskLevel = () => {
     [safeOpportunities, filters],
   );
 
-
+  
 
   // Pagination calculations
   const totalPages = Math.ceil(filteredOpportunities.length / itemsPerPage);
@@ -1696,17 +1696,17 @@ const getRandomRiskLevel = () => {
   const handleSendProposal = useCallback(async (opportunity: Opportunity) => {
     setSelectedOpportunity(opportunity);
     setIsDraftLoading(true);
-
+    
     try {
       // Try to load existing draft
       const response = await loadDraft(opportunity.id);
-
+      
       // Handle API response - extract data from response object
       const existingDraft = response?.data || response;
-
+      
       if (existingDraft && Object.keys(existingDraft).length > 0) {
         console.log("Loading existing draft:", existingDraft);
-
+        
         // Load proposal form data from draft
         setProposalForm({
           title: existingDraft.title || `Travel Solutions Proposal - ${opportunity.lead_info?.company?.name}`,
@@ -1758,7 +1758,7 @@ const getRandomRiskLevel = () => {
         toast.success(`Draft loaded successfully! Last saved: ${existingDraft.updated_at ? new Date(existingDraft.updated_at).toLocaleString() : 'Recently'}`);
       } else {
         console.log("No existing draft found, setting default values");
-
+        
         // Set default values
         setProposalForm({
           title: `Travel Solutions Proposal - ${opportunity.lead_info?.company?.name}`,
@@ -1785,12 +1785,12 @@ const getRandomRiskLevel = () => {
     } catch (error) {
       console.error("Error loading draft:", error);
       console.error("Error details:", error.response?.data);
-
+      
       // Only show error if it's not a 404 (no draft found)
       if (error.response?.status !== 404) {
         toast.error("Failed to load draft data");
       }
-
+      
       // Set default values as fallback
       setProposalForm({
         title: `Travel Solutions Proposal - ${opportunity.lead_info?.company?.name}`,
@@ -1815,7 +1815,7 @@ const getRandomRiskLevel = () => {
     } finally {
       setIsDraftLoading(false);
     }
-
+    
     setShowProposalDialog(true);
   }, [loadDraft, formatCurrency]);
 
@@ -2094,7 +2094,7 @@ const getRandomRiskLevel = () => {
 
     try {
       setIsDraftLoading(true);
-
+      
       // Include all current form data including negotiation form data
       const draftData = {
         ...proposalForm,
@@ -3139,7 +3139,819 @@ const getRandomRiskLevel = () => {
                           className="mt-1"
                         />
                       </div>
+                    </div>
 
+                    <div>
+                      <Label className="text-sm font-medium mb-3 block">Cabin Class Mix (%)</Label>
+                      <div className="grid grid-cols-3 gap-4">
+                        <div>
+                          <Label className="text-xs text-gray-600">Domestic Economy</Label>
+                          <div className="flex items-center gap-2 mt-1">
+                            <Input
+                              type="number"
+                              min="0"
+                              max="100"
+                              value={negotiationForm.domesticEconomy}
+                              onChange={(e) => setNegotiationForm({...negotiationForm, domesticEconomy: parseInt(e.target.value) || 0})}
+                              className="w-20"
+                            />
+                            <span className="text-sm">%</span>
+                          </div>
+                        </div>
+                        <div>
+                          <Label className="text-xs text-gray-600">Business</Label>
+                          <div className="flex items-center gap-2 mt-1">
+                            <Input
+                              type="number"
+                              min="0"
+                              max="100"
+                              value={negotiationForm.domesticBusiness}
+                              onChange={(e) => setNegotiationForm({...negotiationForm, domesticBusiness: parseInt(e.target.value) || 0})}
+                              className="w-20"
+                            />
+                            <span className="text-sm">%</span>
+                          </div>
+                        </div>
+                        <div>
+                          <Label className="text-xs text-gray-600">International</Label>
+                          <div className="flex items-center gap-2 mt-1">
+                            <Input
+                              type="number"
+                              min="0"
+                              max="100"
+                              value={negotiationForm.international}
+                              onChange={(e) => setNegotiationForm({...negotiationForm, international: parseInt(e.target.value) || 0})}
+                              className="w-20"
+                            />
+                            <span className="text-sm">%</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 3. Discount / Offer Terms (Airline Side) */}
+                  <div className="space-y-6">
+                    <div className="flex items-center gap-2 mb-4">
+                      <Gift className="h-5 w-5 text-gray-600" />
+                      <h3 className="text-lg font-semibold text-gray-900">Discount / Offer Terms (Airline Side)</h3>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-6">
+                      <div>
+                        <Label htmlFor="baseDiscount" className="text-sm font-medium">Base Discount Offered (%)</Label>
+                        <Input
+                          id="baseDiscount"
+                          type="number"
+                          min="0"
+                          max="100"
+                          value={negotiationForm.baseDiscount}
+                          onChange={(e) => setNegotiationForm({...negotiationForm, baseDiscount: e.target.value})}
+                          placeholder="Enter base discount percentage..."
+                          className="mt-1"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <div className="flex items-center justify-between mb-3">
+                        <Label className="text-sm font-medium">Route-Specific Discounts</Label>
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="outline"
+                          onClick={addRouteDiscount}
+                          className="h-8 px-3"
+                        >
+                          <Plus className="h-3 w-3 mr-1" />
+                          Add Route
+                        </Button>
+                      </div>
+                      <div className="space-y-3">
+                        {negotiationForm.routeDiscounts.map((route, index) => (
+                          <div key={index} className="grid grid-cols-4 gap-3 items-end">
+                            <div>
+                              <Label className="text-xs text-gray-600">Route</Label>
+                              <Input
+                                placeholder="e.g., JFK-LAX"
+                                value={route.route}
+                                onChange={(e) => updateRouteDiscount(index, 'route', e.target.value)}
+                                className="mt-1"
+                              />
+                            </div>
+                            <div>
+                              <Label className="text-xs text-gray-600">Discount %</Label>
+                              <Input
+                                type="number"
+                                placeholder="15"
+                                value={route.discount}
+                                onChange={(e) => updateRouteDiscount(index, 'discount', e.target.value)}
+                                className="mt-1"
+                              />
+                            </div>
+                            <div>
+                              <Label className="text-xs text-gray-600">Conditions</Label>
+                              <Input
+                                placeholder="Min 50 bookings/year"
+                                value={route.conditions}
+                                onChange={(e) => updateRouteDiscount(index, 'conditions', e.target.value)}
+                                className="mt-1"
+                              />
+                            </div>
+                            <Button
+                              type="button"
+                              size="sm"
+                              variant="outline"
+                              onClick={() => removeRouteDiscount(index)}
+                              className="h-9 w-9 p-0"
+                            >
+                              ×
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div>
+                      <Label className="text-sm font-medium mb-3 block">Loyalty Program Benefits</Label>
+                      <div className="grid grid-cols-3 gap-4">
+                        <label className="flex items-center space-x-2">
+                          <input
+                            type="checkbox"
+                            checked={negotiationForm.loyaltyBenefits.extraMiles}
+                            onChange={(e) => setNegotiationForm({
+                              ...negotiationForm,
+                              loyaltyBenefits: { ...negotiationForm.loyaltyBenefits, extraMiles: e.target.checked }
+                            })}
+                            className="rounded"
+                          />
+                          <span className="text-sm">Extra Miles</span>
+                        </label>
+                        <label className="flex items-center space-x-2">
+                          <input
+                            type="checkbox"
+                            checked={negotiationForm.loyaltyBenefits.priorityBoarding}
+                            onChange={(e) => setNegotiationForm({
+                              ...negotiationForm,
+                              loyaltyBenefits: { ...negotiationForm.loyaltyBenefits, priorityBoarding: e.target.checked }
+                            })}
+                            className="rounded"
+                          />
+                          <span className="text-sm">Priority Boarding</span>
+                        </label>
+                        <label className="flex items-center space-x-2">
+                          <input
+                            type="checkbox"
+                            checked={negotiationForm.loyaltyBenefits.loungeAccess}
+                            onChange={(e) => setNegotiationForm({
+                              ...negotiationForm,
+                              loyaltyBenefits: { ...negotiationForm.loyaltyBenefits, loungeAccess: e.target.checked }
+                            })}
+                            className="rounded"
+                          />
+                          <span className="text-sm">Lounge Access</span>
+                        </label>
+                      </div>
+                    </div>
+
+                    <div>
+                      <Label htmlFor="volumeIncentives" className="text-sm font-medium">Incentives for Exceeding Volume</Label>
+                      <Textarea
+                        id="volumeIncentives"
+                        value={negotiationForm.volumeIncentives}
+                        onChange={(e) => setNegotiationForm({...negotiationForm, volumeIncentives: e.target.value})}
+                        placeholder="Describe additional incentives for volume overachievement..."
+                        className="mt-1"
+                        rows={3}
+                      />
+                    </div>
+                  </div>
+
+                  {/* 4. Financial & Contract Terms */}
+                  <div className="space-y-6">
+                    <div className="flex items-center gap-2 mb-4">
+                      <DollarSign className="h-5 w-5 text-gray-600" />
+                      <h3 className="text-lg font-semibold text-gray-900">Financial & Contract Terms</h3>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-6">
+                      <div>
+                        <Label className="text-sm font-medium">Contract Duration</Label>
+                        <div className="flex gap-4 mt-2">
+                          <label className="flex items-center space-x-2">
+                            <input
+                              type="radio"
+                              name="contractDuration"
+                              value="12"
+                              checked={negotiationForm.contractDuration === "12"}
+                              onChange={(e) => setNegotiationForm({...negotiationForm, contractDuration: e.target.value})}
+                            />
+                            <span className="text-sm">12 months</span>
+                          </label>
+                          <label className="flex items-center space-x-2">
+                            <input
+                              type="radio"
+                              name="contractDuration"
+                              value="24"
+                              checked={negotiationForm.contractDuration === "24"}
+                              onChange={(e) => setNegotiationForm({...negotiationForm, contractDuration: e.target.value})}
+                            />
+                            <span className="text-sm">24 months</span>
+                          </label>
+                          <label className="flex items-center space-x-2">
+                            <input
+                              type="radio"
+                              name="contractDuration"
+                              value="36"
+                              checked={negotiationForm.contractDuration === "36"}
+                              onChange={(e) => setNegotiationForm({...negotiationForm, contractDuration: e.target.value})}
+                            />
+                            <span className="text-sm">36 months</span>
+                          </label>
+                        </div>
+                      </div>
+                      <div>
+                        <Label className="text-sm font-medium">Auto-Renewal</Label>
+                        <div className="flex items-center space-x-2 mt-2">
+                          <label className="flex items-center space-x-2">
+                            <input
+                              type="radio"
+                              name="autoRenewal"
+                              checked={negotiationForm.autoRenewal === true}
+                              onChange={() => setNegotiationForm({...negotiationForm, autoRenewal: true})}
+                            />
+                            <span className="text-sm">Yes</span>
+                          </label>
+                          <label className="flex items-center space-x-2">
+                            <input
+                              type="radio"
+                              name="autoRenewal"
+                              checked={negotiationForm.autoRenewal === false}
+                              onChange={() => setNegotiationForm({...negotiationForm, autoRenewal: false})}
+                            />
+                            <span className="text-sm">No</span>
+                          </label>
+                        </div>
+                      </div>
+                      <div>
+                        <Label className="text-sm font-medium">Payment Terms</Label>
+                        <Select
+                          value={negotiationForm.paymentTerms}
+                          onValueChange={(value) => setNegotiationForm({...negotiationForm, paymentTerms: value})}
+                        >
+                          <SelectTrigger className="mt-1">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="net_30">Net 30</SelectItem>
+                            <SelectItem value="net_45">Net 45</SelectItem>
+                            <SelectItem value="custom">Custom</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div>
+                        <Label className="text-sm font-medium">Settlement Type</Label>
+                        <Select
+                          value={negotiationForm.settlementType}
+                          onValueChange={(value) => setNegotiationForm({...negotiationForm, settlementType: value})}
+                        >
+                          <SelectTrigger className="mt-1">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="bsp">BSP</SelectItem>
+                            <SelectItem value="direct_billing">Direct Billing</SelectItem>
+                            <SelectItem value="corporate_card">Corporate Card</SelectItem>
+                            <SelectItem value="wallet">Wallet</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 5. Special Terms & Conditions */}
+                  <div className="space-y-6">
+                    <div className="flex items-center gap-2 mb-4">
+                      <FileText className="h-5 w-5 text-gray-600" />
+                      <h3 className="text-lg font-semibold text-gray-900">Special Terms & Conditions</h3>
+                    </div>
+
+                    <div>
+                      <Label htmlFor="specialTerms" className="text-sm font-medium">Special Terms & Conditions</Label>
+                      <Textarea
+                        id="specialTerms"
+                        value={proposalForm.specialTerms}
+                        onChange={(e) =>
+                          setProposalForm({
+                            ...proposalForm,
+                            specialTerms: e.target.value,
+                          })
+                        }
+                        placeholder="Any special terms, conditions, or customizations for this proposal..."
+                        className="mt-1"
+                        rows={3}
+                      />
+                    </div>
+
+                    <div>
+                      <Label htmlFor="airlineConcessions" className="text-sm font-medium">Concessions by Airline</Label>
+                      <Textarea
+                        id="airlineConcessions"
+                        value={negotiationForm.airlineConcessions}
+                        onChange={(e) => setNegotiationForm({...negotiationForm, airlineConcessions: e.target.value})}
+                        placeholder="List concessions offered by airline..."
+                        className="mt-1"
+                        rows={3}
+                      />
+                    </div>
+
+                    <div>
+                      <Label htmlFor="corporateCommitments" className="text-sm font-medium">Commitments by Corporate</Label>
+                      <Textarea
+                        id="corporateCommitments"
+                        value={`Annual volume commitment based on ${selectedOpportunity?.lead_info?.company?.employee_count || 'N/A'} employees. Projected spend: ${formatCurrency(selectedOpportunity?.value)}.`}
+                        readOnly
+                        className="mt-1 bg-gray-50"
+                        rows={3}
+                      />
+                    </div>
+                  </div>
+
+                  {/* 6. Approvals Workflow */}
+                  <div className="space-y-6">
+                    <div className="flex items-center gap-2 mb-4">
+                      <CheckCircle className="h-5 w-5 text-gray-600" />
+                      <h3 className="text-lg font-semibold text-gray-900">Approvals Workflow</h3>
+                    </div>
+
+                    <div className="space-y-4">
+                      <label className="flex items-center space-x-2">
+                        <input
+                          type="checkbox"
+                          checked={negotiationForm.discountApprovalRequired}
+                          onChange={(e) => setNegotiationForm({...negotiationForm, discountApprovalRequired: e.target.checked})}
+                          className="rounded"
+                        />
+                        <span className="text-sm font-medium">Discount Approval Required?</span>
+                        <span className="text-xs text-gray-500">(auto-checked if discount above threshold)</span>
+                      </label>
+
+                      <div>
+                        <Label htmlFor="revenueManager" className="text-sm font-medium">Revenue Manager Assigned</Label>
+                        <Select
+                          value={negotiationForm.revenueManagerAssigned}
+                          onValueChange={(value) => setNegotiationForm({...negotiationForm, revenueManagerAssigned: value})}
+                        >
+                          <SelectTrigger className="mt-1">
+                            <SelectValue placeholder="Select revenue manager..." />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="manager_1">Sarah Johnson</SelectItem>
+                            <SelectItem value="manager_2">Mike Chen</SelectItem>
+                            <SelectItem value="manager_3">Lisa Rodriguez</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div>
+                        <Label className="text-sm font-medium">Legal/Compliance Approval</Label>
+                        <div className="flex items-center space-x-2 mt-2">
+                          <label className="flex items-center space-x-2">
+                            <input
+                              type="radio"
+                              name="legalApproval"
+                              checked={negotiationForm.legalApprovalRequired === true}
+                              onChange={() => setNegotiationForm({...negotiationForm, legalApprovalRequired: true})}
+                            />
+                            <span className="text-sm">Yes</span>
+                          </label>
+                          <label className="flex items-center space-x-2">
+                            <input
+                              type="radio"
+                              name="legalApproval"
+                              checked={negotiationForm.legalApprovalRequired === false}
+                              onChange={() => setNegotiationForm({...negotiationForm, legalApprovalRequired: false})}
+                            />
+                            <span className="text-sm">No</span>
+                          </label>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 7. Document Attachments */}
+                  <div className="space-y-6">
+                    <div className="flex items-center gap-2 mb-4">
+                      <FileText className="h-5 w-5 text-gray-600" />
+                      <h3 className="text-lg font-semibold text-gray-900">Document Attachments</h3>
+                    </div>
+
+                    <div>
+                      <Label className="text-sm font-medium mb-3 block">Attach Supporting Documents</Label>
+                      
+                      {/* Show stored attachment if exists */}
+                      {attachmentInfo.exists && !proposalForm.attachedFile && (
+                        <div className="mb-4 p-3 bg-green-50 rounded-lg border border-green-200">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                              <FileText className="h-5 w-5 text-green-600" />
+                              <div className="text-left">
+                                <p className="text-sm font-medium text-green-900">
+                                  {attachmentInfo.filename}
+                                </p>
+                                <p className="text-xs text-green-600">
+                                  Previously uploaded attachment
+                                </p>
+                              </div>
+                            </div>
+                            <div className="flex gap-2">
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={() => {
+                                  // Download existing attachment
+                                  const downloadUrl = getAttachmentDownloadUrl(selectedOpportunity.id);
+                                  window.open(downloadUrl, '_blank');
+                                }}
+                                className="h-8 px-3 text-xs"
+                              >
+                                Download
+                              </Button>
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={() => {
+                                  setAttachmentInfo({ exists: false, filename: "", path: "" });
+                                  // Note: This doesn't delete the file from server, just hides it from UI
+                                  // The file will be replaced when a new one is uploaded
+                                }}
+                                className="h-8 w-8 p-0"
+                              >
+                                ×
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                      
+                      <div
+                        className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
+                          isDragging
+                            ? "border-blue-500 bg-blue-50"
+                            : "border-gray-300 hover:border-gray-400"
+                        }`}
+                        onDrop={handleFileDrop}
+                        onDragOver={handleDragOver}
+                        onDragLeave={handleDragLeave}
+                      >
+                        {proposalForm.attachedFile ? (
+                          <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                            <div className="flex items-center gap-3">
+                              <FileText className="h-5 w-5 text-blue-600" />
+                              <div className="text-left">
+                                <p className="text-sm font-medium text-gray-900">
+                                  {proposalForm.attachedFile.name}
+                                </p>
+                                <p className="text-xs text-gray-500">
+                                  {(
+                                    proposalForm.attachedFile.size /
+                                    1024 /
+                                    1024
+                                  ).toFixed(2)}{" "}
+                                  MB - New upload
+                                </p>
+                              </div>
+                            </div>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              onClick={removeAttachedFile}
+                              className="h-8 w-8 p-0"
+                            >
+                              ×
+                            </Button>
+                          </div>
+                        ) : (
+                          <div>
+                            <FileText className="h-12 w-12 mx-auto mb-4 text-gray-400" />
+                            <div className="space-y-2">
+                              <p className="text-sm text-gray-600">
+                                {attachmentInfo.exists 
+                                  ? "Upload a new document to replace the existing one" 
+                                  : "Drag and drop your proposal documents here, or click to browse"
+                                }
+                              </p>
+                              <p className="text-xs text-gray-500">
+                                PDF, DOC, DOCX, XLS, XLSX files up to 10MB
+                              </p>
+                            </div>
+                            <input
+                              type="file"
+                              id="proposal-file-input"
+                              className="hidden"
+                              accept=".pdf,.doc,.docx,.xls,.xlsx"
+                              onChange={handleFileSelect}
+                            />
+                            <Button
+                              type="button"
+                              variant="outline"
+                              className="mt-4"
+                              onClick={() =>
+                                document
+                                  .getElementById("proposal-file-input")
+                                  ?.click()
+                              }
+                            >
+                              <Plus className="h-4 w-4 mr-2" />
+                              Browse Files
+                            </Button>
+                          </div>
+                        )}
+                      </div>
+                      <p className="text-xs text-gray-500 mt-2">
+                        Supported formats: Proposal documents, terms sheets, legal documents, compliance certificates
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </ScrollArea>
+
+              {/* Actions (sticky at bottom) */}
+              <div className="border-t bg-white px-6 py-4">
+                <div className="flex justify-between items-center">
+                  <div className="flex gap-3">
+                    <Button
+                      variant="outline"
+                      onClick={() => setShowProposalDialog(false)}
+                      className="border-red-300 text-red-600 hover:bg-red-50"
+                    >
+                      Cancel
+                    </Button>
+                  </div>
+                  <div className="flex gap-3">
+                    <Button
+                      variant="outline"
+                      onClick={handleSaveProposalDraft}
+                      disabled={isDraftLoading}
+                      className="border-gray-300"
+                    >
+                      {isDraftLoading ? (
+                        <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                      ) : (
+                        <FileText className="h-4 w-4 mr-2" />
+                      )}
+                      {isDraftLoading ? "Saving..." : "Save Draft"}
+                    </Button>
+                    <Button
+                      variant="outline"
+                      onClick={handlePreviewEmail}
+                      disabled={!proposalForm.title || !proposalForm.description}
+                      className="border-blue-300 text-blue-600 hover:bg-blue-50"
+                    >
+                      <Eye className="h-4 w-4 mr-2" />
+                      Preview Email
+                    </Button>
+                    <Button
+                      onClick={handleSaveProposal}
+                      disabled={!proposalForm.title}
+                      className="bg-orange-500 hover:bg-orange-600 text-white"
+                    >
+                      <Mail className="h-4 w-4 mr-2" />
+                      Send Proposal
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* History Dialog */}
+        <Dialog open={showHistoryDialog} onOpenChange={setShowHistoryDialog}>
+          <DialogContent className="max-w-4xl max-h-[90vh]">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <History className="h-5 w-5" />
+                Opportunity History -{" "}
+                {selectedOpportunity?.lead_info?.company?.name}
+              </DialogTitle>
+              <DialogDescription>
+                Complete activity and lead history for this opportunity
+              </DialogDescription>
+            </DialogHeader>
+            <ScrollArea className="h-[60vh] w-full">
+              <div className="space-y-4 pr-4">
+                {isLoadingHistory ? (
+                  <div className="flex items-center justify-center py-8">
+                    <RefreshCw className="h-6 w-6 animate-spin text-gray-400 mr-2" />
+                    <span className="text-gray-500">Loading history...</span>
+                  </div>
+                ) : historyData && historyData.length > 0 ? (
+                  historyData.map((historyItem) => (
+                    <div
+                      key={historyItem.id}
+                      className="border-l-4 border-blue-200 pl-4 py-3 bg-white rounded-lg border border-gray-200 shadow-sm"
+                    >
+                      <div className="flex items-start justify-between mb-2">
+                        <div className="flex items-center gap-3">
+                          <div className="flex-shrink-0">
+                            {historyItem.history_type === "activity" ? (
+                              <Activity className="h-4 w-4 text-blue-600" />
+                            ) : historyItem.icon === "plus" ? (
+                              <Plus className="h-4 w-4 text-green-600" />
+                            ) : historyItem.icon === "trending-up" ? (
+                              <TrendingUp className="h-4 w-4 text-blue-600" />
+                            ) : historyItem.icon === "user" ? (
+                              <User className="h-4 w-4 text-purple-600" />
+                            ) : historyItem.icon === "phone" ? (
+                              <Phone className="h-4 w-4 text-orange-600" />
+                            ) : historyItem.icon === "mail" ? (
+                              <Mail className="h-4 w-4 text-red-600" />
+                            ) : historyItem.icon === "file-text" ? (
+                              <FileText className="h-4 w-4 text-gray-600" />
+                            ) : (
+                              <Clock className="h-4 w-4 text-gray-600" />
+                            )}
+                          </div>
+                          <div className="flex-1">
+                            <h4 className="text-sm font-semibold text-gray-900 mb-1">
+                              {historyItem.action}
+                            </h4>
+                            <p className="text-sm text-gray-700 leading-relaxed">
+                              {historyItem.details}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex items-center justify-between text-xs text-gray-500 mt-2">
+                        <div className="flex items-center gap-4">
+                          <span className="flex items-center gap-1">
+                            <User className="h-3 w-3" />
+                            {historyItem.user_name}
+                          </span>
+                          <span>{historyItem.user_role}</span>
+                        </div>
+                        <span>{historyItem.formatted_timestamp}</span>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <Activity className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                    <p className="text-lg font-medium mb-2">
+                      No history available
+                    </p>
+                    <p className="text-sm">
+                      No activity or history records found for this opportunity
+                    </p>
+                  </div>
+                )}
+              </div>
+            </ScrollArea>
+            <DialogFooter>
+              <Button onClick={() => setShowHistoryDialog(false)}>Close</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Negotiation Dialog */}
+        <Dialog open={showNegotiationDialog} onOpenChange={setShowNegotiationDialog}>
+          <DialogContent className="max-w-5xl max-h-[95vh] p-0">
+            <div className="flex flex-col h-full">
+              {/* Header */}
+              <div className="p-6 rounded-t-lg">
+                <DialogHeader>
+                  <DialogTitle className="flex items-center gap-3 text-xl">
+                    <Handshake className="h-6 w-6" />
+                    Contract Negotiation - {selectedOpportunity?.lead_info?.company?.name}
+                  </DialogTitle>
+                  <DialogDescription className="mt-2">
+                    Negotiate contract terms and prepare revised proposal for {selectedOpportunity?.lead_info?.contact?.first_name} {selectedOpportunity?.lead_info?.contact?.last_name}
+                  </DialogDescription>
+                </DialogHeader>
+              </div>
+
+              {/* Scrollable Content */}
+              <ScrollArea className="flex-1 px-6 py-4">
+                <div className="space-y-8">
+                  {/* 1. Header Section (Deal Context) */}
+                  <div className="space-y-6">
+                    <div className="flex items-center gap-2 mb-4">
+                      <FileText className="h-5 w-5 text-gray-600" />
+                      <h3 className="text-lg font-semibold text-gray-900">Deal Context</h3>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-6">
+                      <div>
+                        <Label htmlFor="dealTitle" className="text-sm font-medium">Deal Title *</Label>
+                        <Input
+                          id="dealTitle"
+                          value={negotiationForm.dealTitle}
+                          onChange={(e) => setNegotiationForm({...negotiationForm, dealTitle: e.target.value})}
+                          placeholder="Enter deal title..."
+                          className="mt-1"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="corporateContact" className="text-sm font-medium">Corporate Contact</Label>
+                        <Input
+                          id="corporateContact"
+                          value={negotiationForm.corporateContact}
+                          onChange={(e) => setNegotiationForm({...negotiationForm, corporateContact: e.target.value})}
+                          placeholder="Primary contact name..."
+                          className="mt-1"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="accountManager" className="text-sm font-medium">Airline Account Manager</Label>
+                        <Input
+                          id="accountManager"
+                          value={negotiationForm.airlineAccountManager}
+                          onChange={(e) => setNegotiationForm({...negotiationForm, airlineAccountManager: e.target.value})}
+                          placeholder="Account manager name..."
+                          className="mt-1"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="expectedClose" className="text-sm font-medium">Expected Close Date</Label>
+                        <Input
+                          id="expectedClose"
+                          type="date"
+                          value={negotiationForm.expectedCloseDate}
+                          onChange={(e) => setNegotiationForm({...negotiationForm, expectedCloseDate: e.target.value})}
+                          className="mt-1"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="bg-gray-50 p-4 rounded-lg">
+                      <p className="text-sm font-medium text-gray-700 mb-1">Deal Stage</p>
+                      <div className="flex items-center gap-2">
+                        <Badge className="bg-purple-100 text-purple-800">Negotiation</Badge>
+                        <span className="text-sm text-gray-500">Active negotiation phase</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 2. Volume Commitment (Corporate Side) */}
+                  <div className="space-y-6">
+                    <div className="flex items-center gap-2 mb-4">
+                      <BarChart3 className="h-5 w-5 text-gray-600" />
+                      <h3 className="text-lg font-semibold text-gray-900">Volume Commitment (Corporate Side)</h3>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-6">
+                      <div>
+                        <Label htmlFor="travelFrequency" className="text-sm font-medium">Travel Frequency Commitment</Label>
+                        <Select
+                          value={negotiationForm.travelFrequency}
+                          onValueChange={(value) => setNegotiationForm({...negotiationForm, travelFrequency: value})}
+                        >
+                          <SelectTrigger className="mt-1">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="monthly">Monthly</SelectItem>
+                            <SelectItem value="quarterly">Quarterly</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div>
+                        <Label htmlFor="annualVolume" className="text-sm font-medium">Booking Volume</Label>
+                        <Input
+                          id="annualVolume"
+                          type="number"
+                          value={negotiationForm.annualBookingVolume}
+                          onChange={(e) => setNegotiationForm({...negotiationForm, annualBookingVolume: e.target.value})}
+                          placeholder="Enter bookings volume..."
+                          className="mt-1"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="projectedSpend" className="text-sm font-medium">Projected Spend</Label>
+                        <Input
+                          id="projectedSpend"
+                          type="number"
+                          value={negotiationForm.projectedSpend}
+                          onChange={(e) => setNegotiationForm({...negotiationForm, projectedSpend: e.target.value})}
+                          placeholder="Enter projected spend..."
+                          className="mt-1"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="preferredRoutes" className="text-sm font-medium">Preferred Routes / Hubs</Label>
+                        <Input
+                          id="preferredRoutes"
+                          value={negotiationForm.preferredRoutes}
+                          onChange={(e) => setNegotiationForm({...negotiationForm, preferredRoutes: e.target.value})}
+                          placeholder="e.g., JFK-LAX, SFO-CHI, NYC-LON..."
+                          className="mt-1"
+                        />
+                      </div>
+                      
                     </div>
 
                     <div>
@@ -3454,7 +4266,7 @@ const getRandomRiskLevel = () => {
                         <Label htmlFor="corporateCommitments" className="text-sm font-medium">Commitments by Corporate (readonly)</Label>
                         <Textarea
                           id="corporateCommitments"
-                          value={`Annual volume commitment based on ${selectedOpportunity?.lead_info?.company?.employee_count || 'N/A'} employees. Projected spend: ${formatCurrency(selectedOpportunity?.value)}.`}
+                          value={negotiationForm.corporateCommitments}
                           readOnly
                           className="mt-1 bg-gray-50"
                           rows={3}
@@ -3573,44 +4385,72 @@ const getRandomRiskLevel = () => {
                         onDragOver={handleDragOver}
                         onDragLeave={handleDragLeave}
                       >
-                        <div className="flex flex-col items-center gap-3">
-                          <div className="p-3 bg-gray-100 rounded-full">
-                            <FileText className="h-6 w-6 text-gray-400" />
+                        {negotiationForm.attachedFile ? (
+                          <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                            <div className="flex items-center gap-3">
+                              <FileText className="h-5 w-5 text-blue-600" />
+                              <div className="text-left">
+                                <p className="text-sm font-medium text-gray-900">
+                                  {negotiationForm.attachedFile.name}
+                                </p>
+                                <p className="text-xs text-gray-500">
+                                  {(
+                                    negotiationForm.attachedFile.size /
+                                    1024 /
+                                    1024
+                                  ).toFixed(2)}{" "}
+                                  MB
+                                </p>
+                              </div>
+                            </div>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setNegotiationForm({...negotiationForm, attachedFile: null})}
+                              className="h-8 w-8 p-0"
+                            >
+                              ×
+                            </Button>
                           </div>
+                        ) : (
                           <div>
-                            <p className="text-sm font-medium text-gray-900">
-                              Drop files here or click to browse
-                            </p>
-                            <p className="text-xs text-gray-500 mt-1">
-                              PDF, DOC, DOCX, XLS, XLSX up to 10MB
-                            </p>
-                          </div>
-                          <input
-                            type="file"
-                            id="negotiation-file-input"
-                            className="hidden"
-                            accept=".pdf,.doc,.docx,.xls,.xlsx"
-                            onChange={(e) => {
-                              const file = e.target.files?.[0];
-                              if (file) {
-                                setNegotiationForm({...negotiationForm, attachedFile: file});
+                            <FileText className="h-12 w-12 mx-auto mb-4 text-gray-400" />
+                            <div className="space-y-2">
+                              <p className="text-sm text-gray-600">
+                                Drag and drop your contract documents here, or click to browse
+                              </p>
+                              <p className="text-xs text-gray-500">
+                                PDF, DOC, DOCX, XLS, XLSX files up to 10MB
+                              </p>
+                            </div>
+                            <input
+                              type="file"
+                              id="negotiation-file-input"
+                              className="hidden"
+                              accept=".pdf,.doc,.docx,.xls,.xlsx"
+                              onChange={(e) => {
+                                const file = e.target.files?.[0];
+                                if (file) {
+                                  setNegotiationForm({...negotiationForm, attachedFile: file});
+                                }
+                              }}
+                            />
+                            <Button
+                              type="button"
+                              variant="outline"
+                              className="mt-4"
+                              onClick={() =>
+                                document
+                                  .getElementById("negotiation-file-input")
+                                  ?.click()
                               }
-                            }}
-                          />
-                          <Button
-                            type="button"
-                            variant="outline"
-                            className="mt-4"
-                            onClick={() =>
-                              document
-                                .getElementById("negotiation-file-input")
-                                ?.click()
-                            }
-                          >
-                            <Plus className="h-4 w-4 mr-2" />
-                            Browse Files
-                          </Button>
-                        </div>
+                            >
+                              <Plus className="h-4 w-4 mr-2" />
+                              Browse Files
+                            </Button>
+                          </div>
+                        )}
                       </div>
                       <p className="text-xs text-gray-500 mt-2">
                         Supported formats: Contract drafts, terms sheets, legal documents, compliance certificates
@@ -3649,7 +4489,7 @@ const getRandomRiskLevel = () => {
                       Send Revised Proposal
                     </Button>
                   </div>
-
+                
                 </div>
               </div>
             </div>
@@ -3750,7 +4590,7 @@ const getRandomRiskLevel = () => {
       </div>
     </DndProvider>
     </>
-
+    
   );
-
+    
 }

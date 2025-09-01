@@ -32,7 +32,7 @@ urlpatterns = [
     path('email-campaigns/smtp-status/', views.check_smtp_status, name='check_smtp_status'),
     path('email-campaigns/<int:campaign_id>/smtp-status/', views.check_smtp_status, name='check_campaign_smtp_status'),
     path('', include(router.urls)),
-    # Proposal Draft endpoints
-    path('opportunities/<int:opportunity_id>/proposal-draft/', views.proposal_draft_view, name='proposal-draft'),
-    path('opportunities/<int:opportunity_id>/proposal-draft/attachment/', views.download_proposal_attachment, name='proposal-attachment-download'),
+    # Proposal Draft Management
+    path('opportunities/<int:opportunity_id>/proposal-draft/', views.proposal_draft_detail, name='proposal-draft-detail'),
+    path('opportunities/<int:opportunity_id>/proposal-draft/attachment/', views.download_proposal_attachment, name='proposal-draft-attachment'),
 ]
