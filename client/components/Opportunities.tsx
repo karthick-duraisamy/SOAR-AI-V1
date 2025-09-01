@@ -623,6 +623,7 @@ interface PipelineColumnProps {
   onSendProposal?: (opportunity: Opportunity) => void;
   onMoveToNegotiation?: (opportunity: Opportunity) => void;
   onCloseDeal?: (opportunity: Opportunity, status: string) => void;
+  handleViewProfile: (opportunity: Opportunity) => void;
 }
 
 const PipelineColumn = memo(
@@ -636,6 +637,7 @@ const PipelineColumn = memo(
     onSendProposal,
     onMoveToNegotiation,
     onCloseDeal,
+    handleViewProfile,
   }: PipelineColumnProps) => {
     const [{ isOver }, drop] = useDrop(() => ({
       accept: ItemTypes.OPPORTUNITY,
@@ -705,6 +707,7 @@ const PipelineColumn = memo(
                 onSendProposal={onSendProposal}
                 onMoveToNegotiation={onMoveToNegotiation}
                 onCloseDeal={onCloseDeal}
+                handleViewProfile={handleViewProfile}
               />
             ))}
 
@@ -739,6 +742,13 @@ export function Opportunities({
     updateProposalDraft,
     deleteProposalDraft,
   } = useLeadApi();
+
+  // Add missing sendMessage function
+  const sendMessage = (message: string) => {
+    console.log('Message:', message);
+    // This function can be used for sending messages or notifications
+    // Implementation depends on your messaging system requirements
+  };
   const [opportunities, setOpportunities] = useState<Opportunity[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
@@ -766,8 +776,8 @@ const leadApi = useLeadApi();
     const [showCorporateProfile, setShowCorporateProfile] = useState(false);   
     const [leadData,setleads] = useState([]);
      
-  const handleViewProfile = (opportunities) => {
-  const companyName = opportunities.lead_info.company.name;
+  const handleViewProfile = (opportunity: Opportunity) => {
+  const companyName = opportunity.lead_info?.company?.name;
   console.log(leadData,'leadData');
   
     const item = leadData.find(entry => entry.company === companyName);
@@ -2641,6 +2651,7 @@ const getRandomRiskLevel = () => {
                   onSendProposal={handleSendProposal}
                   onMoveToNegotiation={handleMoveToNegotiation}
                   onCloseDeal={handleCloseDeal}
+                  handleViewProfile={handleViewProfile}
                 />
               ))}
             </div>
