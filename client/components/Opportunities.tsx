@@ -1150,6 +1150,23 @@ const getRandomRiskLevel = () => {
     localStorage.removeItem(draftKey);
   }, []);
 
+  // Format currency function - moved here to avoid hoisting issues
+  const formatCurrency = useCallback((amount: number | null | undefined) => {
+    // Handle null, undefined, or NaN values
+    const numAmount = Number(amount);
+    if (!numAmount || isNaN(numAmount)) {
+      return "$0";
+    }
+
+    if (numAmount >= 1000000) {
+      return `$${(numAmount / 1000000).toFixed(1)}M`;
+    } else if (numAmount >= 1000) {
+      return `$${(numAmount / 1000).toFixed(0)}K`;
+    } else {
+      return `$${numAmount.toFixed(0)}`;
+    }
+  }, []);
+
   const generateEmailPreview = useCallback(() => {
     if (!selectedOpportunity) return "";
 
@@ -1499,22 +1516,7 @@ const getRandomRiskLevel = () => {
     [safeOpportunities, filters],
   );
 
-  // Format currency function
-  const formatCurrency = useCallback((amount: number | null | undefined) => {
-    // Handle null, undefined, or NaN values
-    const numAmount = Number(amount);
-    if (!numAmount || isNaN(numAmount)) {
-      return "$0";
-    }
-
-    if (numAmount >= 1000000) {
-      return `$${(numAmount / 1000000).toFixed(1)}M`;
-    } else if (numAmount >= 1000) {
-      return `$${(numAmount / 1000).toFixed(0)}K`;
-    } else {
-      return `$${numAmount.toFixed(0)}`;
-    }
-  }, []);
+  
 
   // Pagination calculations
   const totalPages = Math.ceil(filteredOpportunities.length / itemsPerPage);
