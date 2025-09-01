@@ -1426,7 +1426,7 @@ SOAR-AI Team`,
       // Prepare opportunity data from lead - match Django Opportunity model fields exactly
       const opportunityData = {
         name: `${lead.company} - Corporate Travel Solution`,
-        stage: 'proposal',
+        stage: 'discovery',
         probability: 65,
         estimated_close_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
         value: parseInt(lead.travelBudget.replace(/[^0-9]/g, '')) || 250000,

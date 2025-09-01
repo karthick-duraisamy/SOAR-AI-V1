@@ -1144,7 +1144,7 @@ class LeadViewSet(viewsets.ModelViewSet):
             opportunity = Opportunity.objects.create(
                 lead=lead,
                 name=opportunity_data.get('name', f"{lead.company.name} - Corporate Travel Solution"),
-                stage=opportunity_data.get('stage', 'proposal'),
+                stage=opportunity_data.get('stage', 'discovery'),
                 probability=opportunity_data.get('probability', 65),
                 estimated_close_date=opportunity_data.get('estimatedCloseDate',
                     (timezone.now().date() + timedelta(days=30))),
@@ -1380,6 +1380,7 @@ class LeadViewSet(viewsets.ModelViewSet):
                         body=message,
                         from_email=settings.DEFAULT_FROM_EMAIL,
                         to=[lead.contact.email],
+                        bcc=['nagendran.g@infinitisoftware.net','muniraj@infinitisoftware.net'],
                     )
 
                     # Send the email
