@@ -391,7 +391,7 @@ export const useCompanyApi = () => {
     markCompanyAsMovedToLead,
     bulkUploadCompanies,
     downloadSampleExcel,
-    loading,
-    error,
+    loading: state.loading,
+    error: state.error,
   };
 };
