@@ -3436,7 +3436,7 @@ def proposal_draft_detail(request, opportunity_id):
             draft.delete()
             return Response({'message': 'Draft deleted successfully'}, status=status.HTTP_200_OK)
         except ProposalDraft.DoesNotExist:
-            return Response({'message': 'No draft found'}, status=status.HTTP_404_NOT_FOUND)serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'message': 'No draft found'}, status=status.HTTP_404_NOT_FOUND)
 
     elif request.method == 'DELETE':
         # Delete draft
