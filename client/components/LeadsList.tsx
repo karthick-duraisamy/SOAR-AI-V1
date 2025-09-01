@@ -1765,11 +1765,11 @@ SOAR-AI Team`,
                   <CardContent className="p-4">
                     <div className="flex items-center justify-between">
                       <div className="flex-1">
-                        <Skeleton className="h-4 w-24 mb-1" />
-                        <Skeleton className="h-8 w-12 mb-1" />
-                        <Skeleton className="h-3 w-32" />
+                        <Skeleton className="bg-gray-200 h-4 w-24 mb-1" />
+                        <Skeleton className="bg-gray-200 h-8 w-12 mb-1" />
+                        <Skeleton className="bg-gray-200 h-3 w-32" />
                       </div>
-                      <Skeleton className="w-10 h-10 rounded-lg" />
+                      <Skeleton className="bg-gray-200 w-10 h-10 rounded-lg" />
                     </div>
                   </CardContent>
                 </Card>

@@ -1313,7 +1313,7 @@ export function CorporateSearch({
                   placeholder="Filter by company name..."
                   value={nameFilter}
                   onChange={(e) => handleNameFilterChange(e.target.value)}
-                  className="pl-10 w-64 h-9"
+                  className="pl-10 w-64 h-9 cls-search-filter"
                 />
                 {nameFilter && (
                   <button

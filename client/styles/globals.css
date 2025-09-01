@@ -1249,6 +1249,9 @@ html {
     overflow: auto !important;
     
   }
+  .cls-search-filter{
+    background-color: white!important;
+  }
   /* Text selection cursor for text inputs */
   input[type="text"],
   input[type="email"],
