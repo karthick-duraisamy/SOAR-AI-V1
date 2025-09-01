@@ -773,9 +773,9 @@ const leadApi = useLeadApi();
     const [leadData,setleads] = useState([]);
      
   const handleViewProfile = (opportunity: Opportunity) => {
-  const companyName = opportunity.lead_info?.company?.name;
-  console.log(leadData,'leadData');
-  
+    const companyName = opportunity.lead_info?.company?.name;
+    console.log(leadData,'leadData');
+    
     const item = leadData.find(entry => entry.company === companyName);
     console.log(item, 'item');
     setSelectedCorporate(item);
@@ -785,14 +785,13 @@ const leadApi = useLeadApi();
   
  const fetchLeads = async () => {
         try {
-           // Reset to first page on new fetch
-          // Apply current filtrs when fetching
+          // Apply current filters when fetching
           const filterParams = {
-            search: filters.search || '',
-            status: filters.status !== 'all' ? filters.status : '',
-            industry: filters.industry !== 'all' ? filters.industry : '',
-            score: filters.score !== 'all' ? filters.score : '',
-            engagement: filters.engagement !== 'all' ? filters.engagement : ''
+            search: '',
+            status: '',
+            industry: '',
+            score: '',
+            engagement: ''
           };
     
           console.log('Fetching leads with filters:', filterParams);
@@ -821,22 +820,19 @@ const leadApi = useLeadApi();
           });
     
           const transformedLeadsforViewProfile = apiLeads.map((apiLead: any) => {
-            console.log('Transforming leadfor view profile:', apiLead);
+            console.log('Transforming lead for view profile:', apiLead);
             return transformCompanyDataForViewProfile(apiLead);
           });
     
-          console.log("ddddddddddddddddd",transformedLeadsforViewProfile);
-          setleads(transformedLeads);
-          // setLeadsForViewProfile(transformedLeadsforViewProfile);
+          console.log("Transformed leads for view profile:", transformedLeadsforViewProfile);
+          setleads(transformedLeadsforViewProfile); // Use the correct transformed data
     
         } catch (error) {
           console.error('Error fetching leads:', error);
-          console.error('Error details:', error.response?.data);
-          toast.error('Failed to fetch leads from server');
+          console.error('Error details:', error?.response?.data);
+          // Don't show toast error for leads since it's optional for opportunities view
           // Set empty array on error to avoid showing static data
           setleads([]);
-        } finally {
-          // setLoading(false);
         }
       };
       useEffect(() => {
@@ -844,7 +840,7 @@ const leadApi = useLeadApi();
     fetchLeads();
   }, []);
     const transformApiLeadToUILead = (apiLead: any) => {
-  // Get the latest note from lead_notes array if available
+    // Get the latest note from lead_notes array if available
     const latestNote = apiLead.lead_notes && apiLead.lead_notes.length > 0 
       ? apiLead.lead_notes[0] // Notes are ordered by -created_at in the backend
       : null;
@@ -1394,6 +1390,7 @@ const getRandomRiskLevel = () => {
       setIsLoading(true);
       setCurrentPage(1); // Reset to first page on filter change
       try {
+        console.log("Fetching opportunities with filters:", filters);
         const data = await getOpportunities({ ...filters }); // Fetch all opportunities
         console.log("Fetched opportunities data:", data);
 
@@ -1405,6 +1402,8 @@ const getRandomRiskLevel = () => {
           opportunitiesArray = data.results;
         } else if (data && Array.isArray(data.opportunities)) {
           opportunitiesArray = data.opportunities;
+        } else if (data && data.data && Array.isArray(data.data)) {
+          opportunitiesArray = data.data;
         } else {
           console.warn("Unexpected opportunities data format:", data);
           opportunitiesArray = [];
@@ -1412,7 +1411,7 @@ const getRandomRiskLevel = () => {
 
         console.log("Setting opportunities:", opportunitiesArray);
         setOpportunities(opportunitiesArray);
-        // fetchLeads()
+        fetchLeads(); // Fetch leads for profile viewing
       } catch (error) {
         console.error("Error fetching opportunities:", error);
         setOpportunities([]);
@@ -1424,7 +1423,7 @@ const getRandomRiskLevel = () => {
 
     fetchOpportunities();
     
-  }, [getOpportunities,  filters]);
+  }, [getOpportunities, filters]);
 
 
   // Handle new opportunity from leads
@@ -2467,9 +2466,19 @@ const getRandomRiskLevel = () => {
                   <h3 className="text-lg font-medium mb-2">
                     No Opportunities Found
                   </h3>
-                  <p className="text-gray-600">
-                    No opportunities match your current filters.
+                  <p className="text-gray-600 mb-4">
+                    {opportunities.length === 0 
+                      ? "No opportunities available. Create your first opportunity from the leads section."
+                      : "No opportunities match your current filters. Try adjusting your search criteria."
+                    }
                   </p>
+                  <Button 
+                    onClick={() => onNavigate('leads')}
+                    className="bg-orange-500 hover:bg-orange-600 text-white"
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Go to Leads
+                  </Button>
                 </CardContent>
               </Card>
             ) : (

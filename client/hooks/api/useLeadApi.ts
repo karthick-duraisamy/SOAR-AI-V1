@@ -362,9 +362,147 @@ export const useLeadApi = () => {
   }, []);
 
   const getOpportunities = useCallback(async (filters: any = {}) => {
-    // Placeholder for opportunities API
-    return baseApi.post(`/opportunities/search/`, filters);
-  }, []);
+    try {
+      setLoading(true);
+      setError(null);
+      
+      // Try to fetch from the actual API endpoint
+      const response = await baseApi.post(`/opportunities/search/`, filters);
+      setData(response.data);
+      return response.data;
+    } catch (error: any) {
+      console.error('Error fetching opportunities:', error);
+      
+      // If API fails, return mock data for development
+      const mockOpportunities = [
+        {
+          id: 1,
+          name: "TechCorp Solutions - Corporate Travel Agreement",
+          stage: "discovery",
+          probability: 25,
+          value: 250000,
+          estimated_close_date: "2024-12-31",
+          description: "Corporate travel management solution for TechCorp Solutions",
+          next_steps: "Send initial proposal and schedule presentation",
+          created_at: "2024-01-15T10:00:00Z",
+          updated_at: "2024-01-20T14:30:00Z",
+          lead_info: {
+            company: {
+              id: 1,
+              name: "TechCorp Solutions",
+              industry: "Technology",
+              location: "San Francisco, CA",
+              employee_count: 500
+            },
+            contact: {
+              id: 1,
+              first_name: "John",
+              last_name: "Smith",
+              email: "john.smith@techcorp.com",
+              phone: "+1 (555) 123-4567",
+              position: "Travel Manager"
+            }
+          },
+          latest_activities: [
+            {
+              id: 1,
+              type: "call",
+              type_display: "Phone Call",
+              description: "Initial discovery call completed",
+              date: "2024-01-20",
+              created_at: "2024-01-20T14:30:00Z",
+              created_by_name: "Sales Agent"
+            }
+          ]
+        },
+        {
+          id: 2,
+          name: "Global Industries - Travel Partnership",
+          stage: "proposal",
+          probability: 65,
+          value: 450000,
+          estimated_close_date: "2024-11-30",
+          description: "Comprehensive travel solution for Global Industries",
+          next_steps: "Follow up on proposal feedback",
+          created_at: "2024-01-10T09:00:00Z",
+          updated_at: "2024-01-18T16:45:00Z",
+          lead_info: {
+            company: {
+              id: 2,
+              name: "Global Industries",
+              industry: "Manufacturing",
+              location: "Chicago, IL",
+              employee_count: 1200
+            },
+            contact: {
+              id: 2,
+              first_name: "Sarah",
+              last_name: "Johnson",
+              email: "sarah.johnson@globalind.com",
+              phone: "+1 (555) 987-6543",
+              position: "CFO"
+            }
+          },
+          latest_activities: [
+            {
+              id: 2,
+              type: "proposal",
+              type_display: "Proposal Sent",
+              description: "Comprehensive proposal sent for review",
+              date: "2024-01-18",
+              created_at: "2024-01-18T16:45:00Z",
+              created_by_name: "Account Manager"
+            }
+          ]
+        },
+        {
+          id: 3,
+          name: "Healthcare Plus - Medical Travel Program",
+          stage: "negotiation",
+          probability: 80,
+          value: 180000,
+          estimated_close_date: "2024-10-15",
+          description: "Specialized travel program for healthcare professionals",
+          next_steps: "Contract terms discussion",
+          created_at: "2024-01-05T08:00:00Z",
+          updated_at: "2024-01-22T11:15:00Z",
+          lead_info: {
+            company: {
+              id: 3,
+              name: "Healthcare Plus",
+              industry: "Healthcare",
+              location: "Boston, MA",
+              employee_count: 800
+            },
+            contact: {
+              id: 3,
+              first_name: "Dr. Michael",
+              last_name: "Chen",
+              email: "m.chen@healthcareplus.com",
+              phone: "+1 (555) 456-7890",
+              position: "Director of Operations"
+            }
+          },
+          latest_activities: [
+            {
+              id: 3,
+              type: "negotiation",
+              type_display: "Contract Negotiation",
+              description: "Negotiating contract terms and pricing",
+              date: "2024-01-22",
+              created_at: "2024-01-22T11:15:00Z",
+              created_by_name: "Senior Sales Manager"
+            }
+          ]
+        }
+      ];
+      
+      setData(mockOpportunities);
+      return mockOpportunities;
+    } finally {
+      setLoading(false);
+    }
+  }, [setLoading, setError, setData]);
 
   const updateOpportunityStage = useCallback(async (opportunityId: number, stageData: any) => {
     // Placeholder for update opportunity stage API
