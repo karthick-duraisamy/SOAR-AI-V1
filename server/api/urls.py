@@ -31,6 +31,8 @@ urlpatterns = [
     # SMTP status endpoints
     path('email-campaigns/smtp-status/', views.check_smtp_status, name='check_smtp_status'),
     path('email-campaigns/<int:campaign_id>/smtp-status/', views.check_smtp_status, name='check_campaign_smtp_status'),
+    # Corporate message sending
+    path('leads/send_message/', views.send_corporate_message, name='send_corporate_message'),
     path('', include(router.urls)),
     # Proposal Draft Management
     path('opportunities/<int:opportunity_id>/proposal-draft/', views.proposal_draft_detail, name='proposal-draft-detail'),
