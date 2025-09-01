@@ -1185,51 +1185,42 @@ class LeadViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['post'])
     def create_lead_from_company(self, request):
-        """Create a lead from company data (similar to companies endpoint but creates lead)"""
+        """Create a lead from corporate search data"""
         try:
             data = request.data
+            company_data = data.get('company', {})
 
-            # Map frontend fields to Django model fields
-            company_data = {
-                'name': data.get('name'),
-                'company_type': data.get('type'),
-                'industry': data.get('industry'),
-                'location': data.get('location'),
-                'email': data.get('email'),
-                'phone': data.get('phone'),
-                'website': data.get('website') or '',
-                'employee_count': int(data.get('employees')) if data.get('employees') else None,
-                'annual_revenue': float(data.get('revenue')) * 1000000 if data.get('revenue') else None,
-                'year_established': int(data.get('established')) if data.get('established') else None,
-                'size': data.get('companySize'),
-                'credit_rating': data.get('creditRating'),
-                'payment_terms': data.get('paymentTerms'),
-                'travel_budget': float(data.get('travelBudget')) * 1000000 if data.get('travelBudget') else None,
-                'annual_travel_volume': data.get('annualTravelVolume'),
-                'travel_frequency': data.get('travelFrequency'),
-                'preferred_class': data.get('preferredClass'),
-                'sustainability_focus': data.get('sustainabilityFocus'),
-                'risk_level': data.get('riskLevel'),
-                'current_airlines': data.get('currentAirlines'),
-                'expansion_plans': data.get('expansionPlans'),
-                'specialties': data.get('specialties'),
-                'technology_integration': data.get('technologyIntegration'),
-                'description': data.get('notes') or ''
+            # Extract company information - prioritize top-level name if company.name is missing
+            company_name = company_data.get('name') or data.get('name')
+            if not company_name:
+                return Response({'error': 'Company name is required'}, status=status.HTTP_400_BAD_REQUEST)
+
+            company_data_to_save = {
+                'name': company_name,
+                'industry': company_data.get('industry', 'other'),
+                'location': company_data.get('location', ''),
+                'size': company_data.get('size', 'medium'),
+                'annual_revenue': company_data.get('annual_revenue'),
+                'travel_budget': company_data.get('travel_budget'),
+                'employee_count': company_data.get('employee_count'),
+                'email': company_data.get('email', ''),
+                'phone': company_data.get('phone', ''),
+                'description': data.get('notes', '')
             }
 
             # Create or get company
             company, created = Company.objects.get_or_create(
-                name=company_data['name'],
-                defaults=company_data
+                name=company_name,
+                defaults=company_data_to_save
             )
 
             # Create default contact
             contact, contact_created = Contact.objects.get_or_create(
                 company=company,
-                email=company_data.get('email', f"contact@{company_data['name'].lower().replace(' ', '')}.com"),
+                email=company_data.get('email', f"contact@{company_name.lower().replace(' ', '')}.com"),
                 defaults={
-                    'first_name': data.get('name', 'Contact').split(' ')[0],
-                    'last_name': data.get('name', 'Person').split(' ')[-1] if len(data.get('name', '').split(' ')) > 1 else '',
+                    'first_name': company_name.split(' ')[0],
+                    'last_name': company_name.split(' ')[-1] if len(company_name.split(' ')) > 1 else '',
                     'phone': company_data.get('phone', ''),
                     'position': 'Decision Maker',
                     'is_decision_maker': True
@@ -1244,7 +1235,7 @@ class LeadViewSet(viewsets.ModelViewSet):
                 source='manual_entry',
                 priority='medium',
                 score=50,  # Default score
-                estimated_value=company_data.get('travel_budget'),
+                estimated_value=company_data_to_save.get('travel_budget'),
                 notes=f"Lead created from company entry. {data.get('notes', '')}",
                 next_action='Initial outreach and qualification'
             )
@@ -2744,7 +2735,6 @@ def download_sample_excel(request):
         )
 
 @api_view(['GET', 'POST'])
-@permission_classes([AllowAny])
 def lead_stats(request):
     """Get comprehensive lead statistics for dashboard"""
     try:

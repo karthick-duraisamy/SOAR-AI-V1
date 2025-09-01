@@ -766,6 +766,7 @@ export function CorporateSearch({
     try {
       // Prepare the lead data in the format expected by the Django backend
       const leadData = {
+        name: corporate.name, // Add the company name at the top level
         company: {
           name: corporate.name,
           industry:
