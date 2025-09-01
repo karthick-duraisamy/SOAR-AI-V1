@@ -848,7 +848,7 @@ const leadApi = useLeadApi();
       useEffect(() => {
     // Always fetch leads on component mount
     fetchLeads();
-  }, []);
+  }, []); // Keep empty dependency array to run only once on mount
     const transformApiLeadToUILead = (apiLead: any) => {
     // Get the latest note from lead_notes array if available
     const latestNote = apiLead.lead_notes && apiLead.lead_notes.length > 0 
@@ -1458,72 +1458,80 @@ const getRandomRiskLevel = () => {
 
     fetchOpportunities();
 
-  }, [getOpportunities, filters]);
+  }, [filters.stage, filters.search]); // Remove getOpportunities from dependencies to prevent loops
 
 
-  // Handle new opportunity from leads
+  // Handle new opportunity from leads - process only once
   useEffect(() => {
-    if (initialFilters?.newOpportunity) {
-      const newOpportunity = {
-        id:
-          initialFilters.newOpportunity.id ||
-          Math.max(...opportunities.map((o) => o.id), 0) + 1,
-        leadId: initialFilters.newOpportunity.leadId || null,
-        name: `${initialFilters.newOpportunity.company || "Unknown Company"} - Corporate Travel Solution`,
-        stage: initialFilters.newOpportunity.stage || "discovery",
-        probability: initialFilters.newOpportunity.probability || 25,
-        value:
-          initialFilters.newOpportunity.value ||
-          initialFilters.newOpportunity.dealValue ||
-          250000,
-        estimated_close_date:
-          initialFilters.newOpportunity.estimated_close_date ||
-          initialFilters.newOpportunity.expectedCloseDate ||
-          new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
-            .toISOString()
-            .split("T")[0],
-        description:
-          initialFilters.newOpportunity.description ||
-          initialFilters.newOpportunity.notes ||
-          "Converted from qualified lead",
-        next_steps:
-          initialFilters.newOpportunity.next_steps ||
-          "Send initial proposal and schedule presentation",
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        lead_info: {
-          company: {
-            id: 1,
-            name: initialFilters.newOpportunity.company || "Unknown Company",
-            industry: initialFilters.newOpportunity.industry || "Unknown",
-            location:
-              initialFilters.newOpportunity.location || "Unknown Location",
-            employee_count: initialFilters.newOpportunity.employees || 0,
-          },
-          contact: {
-            id: 1,
-            first_name:
-              initialFilters.newOpportunity.contact?.split(" ")[0] || "Unknown",
-            last_name:
-              initialFilters.newOpportunity.contact
-                ?.split(" ")
-                .slice(1)
-                .join(" ") || "Contact",
-            email: initialFilters.newOpportunity.email || "unknown@email.com",
-            phone: initialFilters.newOpportunity.phone || "N/A",
-            position: initialFilters.newOpportunity.title || "Contact",
-          },
-        },
-      };
-
-      setOpportunities((prev) => [newOpportunity, ...prev]);
-      setSuccessMessage(
-        initialFilters.message ||
-          `${newOpportunity.lead_info.company.name} has been converted to an opportunity`,
+    if (initialFilters?.newOpportunity && opportunities.length > 0) {
+      // Check if this opportunity was already added to prevent duplicates
+      const existingOpportunity = opportunities.find(opp => 
+        opp.leadId === initialFilters.newOpportunity.leadId ||
+        opp.lead_info?.company?.name === initialFilters.newOpportunity.company
       );
-      setTimeout(() => setSuccessMessage(""), 5000);
+
+      if (!existingOpportunity) {
+        const newOpportunity = {
+          id:
+            initialFilters.newOpportunity.id ||
+            Math.max(...opportunities.map((o) => o.id), 0) + 1,
+          leadId: initialFilters.newOpportunity.leadId || null,
+          name: `${initialFilters.newOpportunity.company || "Unknown Company"} - Corporate Travel Solution`,
+          stage: initialFilters.newOpportunity.stage || "discovery",
+          probability: initialFilters.newOpportunity.probability || 25,
+          value:
+            initialFilters.newOpportunity.value ||
+            initialFilters.newOpportunity.dealValue ||
+            250000,
+          estimated_close_date:
+            initialFilters.newOpportunity.estimated_close_date ||
+            initialFilters.newOpportunity.expectedCloseDate ||
+            new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
+              .toISOString()
+              .split("T")[0],
+          description:
+            initialFilters.newOpportunity.description ||
+            initialFilters.newOpportunity.notes ||
+            "Converted from qualified lead",
+          next_steps:
+            initialFilters.newOpportunity.next_steps ||
+            "Send initial proposal and schedule presentation",
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          lead_info: {
+            company: {
+              id: 1,
+              name: initialFilters.newOpportunity.company || "Unknown Company",
+              industry: initialFilters.newOpportunity.industry || "Unknown",
+              location:
+                initialFilters.newOpportunity.location || "Unknown Location",
+              employee_count: initialFilters.newOpportunity.employees || 0,
+            },
+            contact: {
+              id: 1,
+              first_name:
+                initialFilters.newOpportunity.contact?.split(" ")[0] || "Unknown",
+              last_name:
+                initialFilters.newOpportunity.contact
+                  ?.split(" ")
+                  .slice(1)
+                  .join(" ") || "Contact",
+              email: initialFilters.newOpportunity.email || "unknown@email.com",
+              phone: initialFilters.newOpportunity.phone || "N/A",
+              position: initialFilters.newOpportunity.title || "Contact",
+            },
+          },
+        };
+
+        setOpportunities((prev) => [newOpportunity, ...prev]);
+        setSuccessMessage(
+          initialFilters.message ||
+            `${newOpportunity.lead_info.company.name} has been converted to an opportunity`,
+        );
+        setTimeout(() => setSuccessMessage(""), 5000);
+      }
     }
-  }, [initialFilters, opportunities]);
+  }, [initialFilters?.newOpportunity]); // Only depend on the newOpportunity data
 
   // Calculate pipeline metrics
   const safeOpportunities = useMemo(
