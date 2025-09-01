@@ -2074,21 +2074,22 @@ def download_proposal_attachment(request, opportunity_id):
     """
     import os
     from django.http import FileResponse, Http404
-    
+    from django.core.exceptions import ObjectDoesNotExist
+
     try:
         opportunity = Opportunity.objects.get(id=opportunity_id)
         draft = ProposalDraft.objects.get(opportunity=opportunity)
-        
+
         if not draft.attachment_path or not os.path.exists(draft.attachment_path):
             raise Http404("Attachment not found")
-        
+
         # Return file response
         response = FileResponse(
             open(draft.attachment_path, 'rb'),
             filename=draft.attachment_original_name or 'attachment'
         )
         return response
-        
+
     except (Opportunity.DoesNotExist, ProposalDraft.DoesNotExist):
         raise Http404("Draft or opportunity not found")
 
@@ -2470,7 +2471,6 @@ def bulk_upload_companies(request):
         )
 
 @api_view(['GET', 'POST'])
-@permission_classes([AllowAny])
 def download_sample_excel(request):
     """
     Generate and return a sample Excel file with dummy corporate data
@@ -2759,7 +2759,7 @@ def download_sample_excel(request):
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
 
-@api_view(['GET', 'POST'])
+@api_view(['GET'])
 def lead_stats(request):
     """Get comprehensive lead statistics for dashboard"""
     try:
@@ -3339,7 +3339,7 @@ def proposal_draft_detail(request, opportunity_id):
     import uuid
     from django.core.files.storage import default_storage
     from django.core.files.base import ContentFile
-    
+
     try:
         opportunity = Opportunity.objects.get(id=opportunity_id)
     except Opportunity.DoesNotExist:
@@ -3351,7 +3351,7 @@ def proposal_draft_detail(request, opportunity_id):
             draft = ProposalDraft.objects.get(opportunity=opportunity)
             serializer = ProposalDraftSerializer(draft)
             draft_data = serializer.data
-            
+
             # Include attachment information if exists
             if draft.attachment_path and os.path.exists(draft.attachment_path):
                 draft_data['attachment_info'] = {
@@ -3361,7 +3361,7 @@ def proposal_draft_detail(request, opportunity_id):
                 }
             else:
                 draft_data['attachment_info'] = {'exists': False}
-                
+
             return Response(draft_data, status=status.HTTP_200_OK)
         except ProposalDraft.DoesNotExist:
             return Response({'message': 'No draft found'}, status=status.HTTP_404_NOT_FOUND)
@@ -3370,34 +3370,34 @@ def proposal_draft_detail(request, opportunity_id):
         # Handle file upload if present
         attachment_path = None
         attachment_original_name = None
-        
+
         if 'attachment' in request.FILES:
             uploaded_file = request.FILES['attachment']
-            
+
             # Create unique filename with corporate ID and timestamp
             file_extension = os.path.splitext(uploaded_file.name)[1]
             unique_filename = f"proposal_{opportunity.lead.company.id}_{opportunity.id}_{uuid.uuid4().hex[:8]}{file_extension}"
-            
+
             # Create attachments directory if it doesn't exist
             attachments_dir = 'proposal_attachments'
             os.makedirs(attachments_dir, exist_ok=True)
-            
+
             # Save file with unique name
             attachment_path = os.path.join(attachments_dir, unique_filename)
-            
+
             # Write file to disk
             with open(attachment_path, 'wb') as f:
                 for chunk in uploaded_file.chunks():
                     f.write(chunk)
-            
+
             attachment_original_name = uploaded_file.name
-        
+
         # Prepare data for serializer
         data = request.data.copy()
         if attachment_path:
             data['attachment_path'] = attachment_path
             data['attachment_original_name'] = attachment_original_name
-        
+
         # Create or update draft
         try:
             draft = ProposalDraft.objects.get(opportunity=opportunity)
@@ -3408,7 +3408,7 @@ def proposal_draft_detail(request, opportunity_id):
 
         if serializer.is_valid():
             saved_draft = serializer.save()
-            
+
             # Include attachment info in response
             response_data = serializer.data
             if saved_draft.attachment_path and os.path.exists(saved_draft.attachment_path):
@@ -3417,7 +3417,7 @@ def proposal_draft_detail(request, opportunity_id):
                     'path': saved_draft.attachment_path,
                     'exists': True
                 }
-            
+
             return Response(response_data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -3425,23 +3425,14 @@ def proposal_draft_detail(request, opportunity_id):
         # Delete draft and associated files
         try:
             draft = ProposalDraft.objects.get(opportunity=opportunity)
-            
+
             # Delete attachment file if exists
             if draft.attachment_path and os.path.exists(draft.attachment_path):
                 try:
                     os.remove(draft.attachment_path)
                 except OSError:
                     pass  # File might be already deleted
-            
-            draft.delete()
-            return Response({'message': 'Draft deleted successfully'}, status=status.HTTP_200_OK)
-        except ProposalDraft.DoesNotExist:
-            return Response({'message': 'No draft found'}, status=status.HTTP_404_NOT_FOUND)
 
-    elif request.method == 'DELETE':
-        # Delete draft
-        try:
-            draft = ProposalDraft.objects.get(opportunity=opportunity)
             draft.delete()
             return Response({'message': 'Draft deleted successfully'}, status=status.HTTP_200_OK)
         except ProposalDraft.DoesNotExist:
