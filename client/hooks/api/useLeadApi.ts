@@ -311,7 +311,7 @@ export const useLeadApi = () => {
   // Save proposal draft for an opportunity
   const saveProposalDraft = useCallback(async (opportunityId: number, draftData: any, file?: File) => {
     const formData = new FormData();
-    
+
     // Add all draft data to form data
     Object.keys(draftData).forEach(key => {
       if (typeof draftData[key] === 'object' && draftData[key] !== null) {
@@ -320,12 +320,12 @@ export const useLeadApi = () => {
         formData.append(key, draftData[key]);
       }
     });
-    
+
     // Add file if provided
     if (file) {
       formData.append('attachment', file);
     }
-    
+
     return baseApi.post(`/opportunities/${opportunityId}/proposal-draft/`, formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
@@ -336,7 +336,7 @@ export const useLeadApi = () => {
   // Update proposal draft for an opportunity
   const updateProposalDraft = useCallback(async (opportunityId: number, draftData: any, file?: File) => {
     const formData = new FormData();
-    
+
     // Add all draft data to form data
     Object.keys(draftData).forEach(key => {
       if (typeof draftData[key] === 'object' && draftData[key] !== null) {
@@ -345,12 +345,12 @@ export const useLeadApi = () => {
         formData.append(key, draftData[key]);
       }
     });
-    
+
     // Add file if provided
     if (file) {
       formData.append('attachment', file);
     }
-    
+
     return baseApi.put(`/opportunities/${opportunityId}/proposal-draft/`, formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
@@ -367,6 +367,24 @@ export const useLeadApi = () => {
   const getAttachmentDownloadUrl = useCallback((opportunityId: number) => {
     return `${API_BASE_URL}/opportunities/${opportunityId}/proposal-draft/attachment/`;
   }, []);
+
+  // Send proposal email
+  const sendProposal = useCallback(async (opportunityId: number, proposalData: any) => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const response = await baseApi.post(`/opportunities/${opportunityId}/send-proposal/`, proposalData);
+      setData(response.data);
+      return response.data;
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.detail || error.message || 'Failed to send proposal';
+      setError(errorMessage);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  }, [setLoading, setError, setData]);
 
   // Send message function
   const sendMessage = useCallback((message: string) => {
@@ -605,5 +623,6 @@ export const useLeadApi = () => {
     updateProposalDraft,
     deleteProposalDraft,
     getAttachmentDownloadUrl,
+    sendProposal,
   };
 };

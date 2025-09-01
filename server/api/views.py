@@ -8,7 +8,7 @@ from django.utils import timezone
 from datetime import datetime, timedelta
 from .models import (
     Company, Contact, Lead, Opportunity, OpportunityActivity, Contract, ContractBreach,
-    CampaignTemplate, EmailCampaign, TravelOffer, SupportTicket, 
+    CampaignTemplate, EmailCampaign, TravelOffer, SupportTicket,
     RevenueForecast, LeadNote, LeadHistory, ActivityLog, AIConversation, ProposalDraft
 )
 from .serializers import (
@@ -1605,6 +1605,364 @@ class OpportunityViewSet(viewsets.ModelViewSet):
         serializer = OptimizedOpportunitySerializer(queryset, many=True)
         return Response(serializer.data)
 
+    @action(detail=True, methods=['post'])
+    def send_proposal(self, request, pk=None):
+        """Send proposal via email and update opportunity stage"""
+        try:
+            opportunity = self.get_object()
+            proposal_data = request.data
+
+            # Import required modules
+            from django.core.mail import EmailMessage
+            from django.template import Template, Context
+            from django.conf import settings
+            import os
+
+            # Get company and contact info
+            company = opportunity.lead.company if hasattr(opportunity, 'lead') and opportunity.lead else None
+            contact = opportunity.lead.contact if hasattr(opportunity, 'lead') and opportunity.lead and opportunity.lead.contact else None
+
+            if not company or not contact or not contact.email:
+                return Response({
+                    'success': False,
+                    'error': 'Missing company or contact information'
+                }, status=status.HTTP_400_BAD_REQUEST)
+
+            # Generate email content
+            subject = proposal_data.get('title', f'Travel Solutions Proposal - {company.name}')
+
+            # Create email body with proposal details
+            email_body = f"""
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; }}
+        .header {{ background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; text-align: center; }}
+        .content {{ padding: 30px; }}
+        .highlight {{ background: #e3f2fd; padding: 15px; border-left: 4px solid #2196f3; margin: 20px 0; }}
+        .terms {{ background: #f5f5f5; padding: 15px; border-radius: 4px; margin: 20px 0; }}
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🛫 Travel Solutions Proposal</h1>
+        <p>Your Corporate Travel Partnership Opportunity</p>
+    </div>
+
+    <div class="content">
+        <p><strong>Dear {contact.first_name} {contact.last_name},</strong></p>
+
+        <p>Thank you for your interest in our corporate travel solutions. We are pleased to present this comprehensive proposal for <strong>{company.name}</strong>.</p>
+
+        <div class="highlight">
+            <h3>📋 {proposal_data.get('title', 'Travel Solutions Proposal')}</h3>
+            <p>{proposal_data.get('description', 'Comprehensive travel management solution tailored for your needs.')}</p>
+        </div>
+
+        <h3>🎯 Key Benefits for {company.name}:</h3>
+        <ul>
+            <li><strong>Cost Optimization:</strong> Significant savings through corporate rates and volume discounts</li>
+            <li><strong>Travel Policy Compliance:</strong> Automated policy enforcement and reporting</li>
+            <li><strong>24/7 Support:</strong> Dedicated account management and emergency assistance</li>
+            <li><strong>Advanced Analytics:</strong> Comprehensive reporting and travel insights</li>
+            <li><strong>Seamless Integration:</strong> Easy integration with your existing systems</li>
+        </ul>
+
+        <h3>💼 Proposal Details:</h3>
+        <div class="terms">
+            <p><strong>Delivery Method:</strong> {proposal_data.get('deliveryMethod', 'Email Delivery')}</p>
+            <p><strong>Proposal Validity:</strong> {proposal_data.get('validityPeriod', '30')} days from date of receipt</p>
+            <p><strong>Estimated Deal Value:</strong> ${opportunity.value:,.0f}</p>
+            <p><strong>Expected Implementation:</strong> 2-4 weeks after contract signing</p>
+        </div>
+
+        {f'''
+        <h3>📝 Special Terms & Conditions:</h3>
+        <div class="terms">
+            <p>{proposal_data.get('specialTerms')}</p>
+        </div>
+        ''' if proposal_data.get('specialTerms') else ''}
+
+        <h3>🚀 Next Steps:</h3>
+        <ol>
+            <li>Review the proposal details</li>
+            <li>Schedule a presentation meeting with our team</li>
+            <li>Discuss customization requirements</li>
+            <li>Finalize contract terms and implementation timeline</li>
+        </ol>
+
+        <p>We are excited about the opportunity to partner with {company.name} and help optimize your corporate travel program. Our team is ready to answer any questions and provide additional information as needed.</p>
+
+        <p>Thank you for considering our proposal. We look forward to hearing from you soon.</p>
+
+        <p>Best regards,<br>
+        <strong>SOAR AI Corporate Travel Team</strong><br>
+        📧 corporate@soar-ai.com<br>
+        📞 +1 (555) 123-4567</p>
+    </div>
+
+    <div style="background: #f8f9fa; padding: 20px; text-align: center; border-top: 1px solid #ddd;">
+        <p><small>This proposal is confidential and intended solely for {company.name}. Please do not distribute without permission.</small></p>
+        <p><small>© 2024 SOAR AI. All rights reserved.</small></p>
+    </div>
+</body>
+</html>
+            """
+
+            # Create email message
+            email = EmailMessage(
+                subject=subject,
+                body=email_body,
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                to=[contact.email],
+            )
+            email.content_subtype = 'html'  # Set email type to HTML
+
+            # Handle file attachment if provided
+            if 'attachment' in request.FILES:
+                attachment_file = request.FILES['attachment']
+                email.attach(attachment_file.name, attachment_file.read(), attachment_file.content_type)
+
+            # Send the email
+            try:
+                email.send()
+
+                # Update opportunity stage to 'proposal'
+                opportunity.stage = 'proposal'
+                opportunity.probability = 65  # Update probability for proposal stage
+                opportunity.updated_at = timezone.now()
+                opportunity.save()
+
+                # Create activity record
+                OpportunityActivity.objects.create(
+                    opportunity=opportunity,
+                    type='proposal',
+                    description=f'Proposal "{subject}" sent to {contact.email}',
+                    date=timezone.now().date(),
+                    created_by=request.user if request.user.is_authenticated else None
+                )
+
+                # Save proposal draft if provided
+                if hasattr(opportunity, 'proposal_draft'):
+                    # Update existing draft
+                    draft = opportunity.proposal_draft
+                    for key, value in proposal_data.items():
+                        if hasattr(draft, key):
+                            setattr(draft, key, value)
+                    draft.save()
+                else:
+                    # Create new draft
+                    from .models import ProposalDraft
+                    ProposalDraft.objects.create(
+                        opportunity=opportunity,
+                        title=proposal_data.get('title', ''),
+                        description=proposal_data.get('description', ''),
+                        validity_period=proposal_data.get('validityPeriod', '30'),
+                        special_terms=proposal_data.get('specialTerms', ''),
+                        delivery_method=proposal_data.get('deliveryMethod', 'email')
+                    )
+
+                return Response({
+                    'success': True,
+                    'message': f'Proposal sent successfully to {contact.email}',
+                    'opportunity': OpportunitySerializer(opportunity).data
+                }, status=status.HTTP_200_OK)
+
+            except Exception as email_error:
+                return Response({
+                    'success': False,
+                    'error': f'Failed to send email: {str(email_error)}'
+                }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        except Exception as e:
+            return Response({
+                'success': False,
+                'error': f'Failed to send proposal: {str(e)}'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    @action(detail=True, methods=['get'])
+    def history(self, request, pk=None):
+        """Get comprehensive history for opportunity including lead history"""
+        try:
+            opportunity = self.get_object()
+
+            # Get opportunity activities
+            activities = opportunity.activities.all().order_by('-created_at')
+            history_items = []
+
+            # Format activities as history items
+            for activity in activities:
+                try:
+                    # Handle created_by user safely
+                    user_name = 'System'
+                    if activity.created_by:
+                        user_name = f"{activity.created_by.first_name} {activity.created_by.last_name}".strip()
+                        if not user_name:
+                            user_name = activity.created_by.username
+
+                    # Format timestamp safely
+                    formatted_timestamp = activity.created_at.strftime('%m/%d/%Y at %I:%M:%S %p') if activity.created_at else 'Unknown'
+
+                    history_items.append({
+                        'id': f"activity_{activity.id}",
+                        'history_type': 'activity',
+                        'action': f"{activity.get_type_display()} - {activity.description[:50]}{'...' if len(activity.description) > 50 else ''}",
+                        'details': activity.description,
+                        'icon': 'activity',
+                        'timestamp': activity.created_at.isoformat() if activity.created_at else '',
+                        'user_name': user_name,
+                        'user_role': 'Sales Representative',
+                        'formatted_timestamp': formatted_timestamp,
+                        'metadata': {'activity_type': activity.type, 'activity_date': str(activity.date)}
+                    })
+                except Exception as activity_error:
+                    print(f"Error processing activity {activity.id}: {activity_error}")
+                    continue
+
+            # If opportunity is linked to a lead, get lead history
+            if hasattr(opportunity, 'lead') and opportunity.lead:
+                try:
+                    lead_history = LeadHistory.objects.filter(lead=opportunity.lead).order_by('-timestamp')
+                    for history in lead_history:
+                        try:
+                            # Handle user safely
+                            user_name = 'System'
+                            user_role = 'System'
+                            if history.user:
+                                user_name = f"{history.user.first_name} {history.user.last_name}".strip()
+                                if not user_name:
+                                    user_name = history.user.username
+                                user_role = 'Sales Manager' if history.user.is_staff else 'Sales Representative'
+
+                            # Handle metadata safely
+                            metadata = {}
+                            if hasattr(history, 'metadata') and history.metadata:
+                                metadata = history.metadata
+
+                            # Format timestamp
+                            formatted_timestamp = history.timestamp.strftime('%m/%d/%Y at %I:%M:%S %p') if history.timestamp else 'Unknown'
+
+                            history_items.append({
+                                'id': f"lead_history_{history.id}",
+                                'history_type': history.history_type,
+                                'action': history.action,
+                                'details': history.details,
+                                'icon': history.icon,
+                                'timestamp': history.timestamp.isoformat() if history.timestamp else '',
+                                'user_name': user_name,
+                                'user_role': user_role,
+                                'formatted_timestamp': formatted_timestamp,
+                                'metadata': metadata
+                            })
+                        except Exception as history_error:
+                            print(f"Error processing lead history {history.id}: {history_error}")
+                            continue
+                except Exception as lead_history_error:
+                    print(f"Error fetching lead history: {lead_history_error}")
+
+            # Sort by timestamp (newest first)
+            try:
+                history_items.sort(key=lambda x: x['timestamp'] if x['timestamp'] else '', reverse=True)
+            except Exception as sort_error:
+                print(f"Error sorting history items: {sort_error}")
+
+            return Response(history_items)
+
+        except Exception as e:
+            print(f"Error in opportunity history endpoint: {str(e)}")
+            return Response({
+                'error': f'Failed to fetch opportunity history: {str(e)}',
+                'history': []
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    @action(detail=False, methods=['get'])
+    def pipeline_value(self, request):
+        pipeline = {}
+        total_value = 0
+        total_weighted_value = 0
+
+        for stage, stage_label in Opportunity.OPPORTUNITY_STAGES:
+            opportunities = self.queryset.filter(stage=stage)
+            stage_value = sum(float(opp.value) for opp in opportunities)
+            weighted_value = sum(float(opp.value) * (opp.probability / 100) for opp in opportunities)
+
+            pipeline[stage] = {
+                'count': opportunities.count(),
+                'label': stage_label,
+                'total_value': stage_value,
+                'weighted_value': weighted_value
+            }
+
+            total_value += stage_value
+            total_weighted_value += weighted_value
+
+        pipeline['summary'] = {
+            'total_opportunities': self.queryset.count(),
+            'total_value': total_value,
+            'total_weighted_value': total_weighted_value,
+            'average_deal_size': total_value / self.queryset.count() if self.queryset.count() > 0 else 0
+        }
+
+        return Response(pipeline)
+
+    @action(detail=False, methods=['get'])
+    def closing_soon(self, request):
+        days = int(request.query_params.get('days', 30))
+        end_date = timezone.now().date() + timedelta(days=days)
+
+        opportunities = self.queryset.filter(
+            estimated_close_date__lte=end_date,
+            stage__in=['proposal', 'negotiation']
+        ).order_by('estimated_close_date')
+
+        serializer = self.get_serializer(opportunities, many=True)
+        return Response(serializer.data)
+
+    @action(detail=False, methods=['post'])
+    def search(self, request):
+        """
+        Search opportunities with filters and pagination
+        """
+        filters = request.data
+
+        queryset = self.queryset.select_related(
+            'lead__company', 'lead__contact'
+        )
+
+        search = filters.get('search', '')
+        stage = filters.get('stage', '')
+        owner = filters.get('owner', '')
+        industry = filters.get('industry', '')
+        limit = int(filters.get('limit', 100))  # Default limit of 100
+        page = int(filters.get('page', 1))
+
+        if search:
+            queryset = queryset.filter(
+                Q(name__icontains=search) |
+                Q(lead__company__name__icontains=search) |
+                Q(lead__contact__first_name__icontains=search) |
+                Q(lead__contact__last_name__icontains=search)
+            )
+
+        if stage and stage != 'all':
+            queryset = queryset.filter(stage=stage)
+
+        if industry and industry != 'all':
+            queryset = queryset.filter(lead__company__industry=industry)
+
+        # Order by probability and value for better prioritization
+        queryset = queryset.order_by('-probability', '-value')
+
+        # Apply pagination
+        offset = (page - 1) * limit
+        queryset = queryset[offset:offset + limit]
+
+        # Use optimized serializer for faster response
+        from .serializers import OptimizedOpportunitySerializer
+        serializer = OptimizedOpportunitySerializer(queryset, many=True)
+        return Response(serializer.data)
+
 class OpportunityActivityViewSet(viewsets.ModelViewSet):
     queryset = OpportunityActivity.objects.all()
     serializer_class = OpportunityActivitySerializer
@@ -2074,21 +2432,21 @@ def download_proposal_attachment(request, opportunity_id):
     """
     import os
     from django.http import FileResponse, Http404
-    
+
     try:
         opportunity = Opportunity.objects.get(id=opportunity_id)
         draft = ProposalDraft.objects.get(opportunity=opportunity)
-        
+
         if not draft.attachment_path or not os.path.exists(draft.attachment_path):
             raise Http404("Attachment not found")
-        
+
         # Return file response
         response = FileResponse(
             open(draft.attachment_path, 'rb'),
             filename=draft.attachment_original_name or 'attachment'
         )
         return response
-        
+
     except (Opportunity.DoesNotExist, ProposalDraft.DoesNotExist):
         raise Http404("Draft or opportunity not found")
 
@@ -2470,7 +2828,6 @@ def bulk_upload_companies(request):
         )
 
 @api_view(['GET', 'POST'])
-@permission_classes([AllowAny])
 def download_sample_excel(request):
     """
     Generate and return a sample Excel file with dummy corporate data
@@ -3339,7 +3696,7 @@ def proposal_draft_detail(request, opportunity_id):
     import uuid
     from django.core.files.storage import default_storage
     from django.core.files.base import ContentFile
-    
+
     try:
         opportunity = Opportunity.objects.get(id=opportunity_id)
     except Opportunity.DoesNotExist:
@@ -3351,7 +3708,7 @@ def proposal_draft_detail(request, opportunity_id):
             draft = ProposalDraft.objects.get(opportunity=opportunity)
             serializer = ProposalDraftSerializer(draft)
             draft_data = serializer.data
-            
+
             # Include attachment information if exists
             if draft.attachment_path and os.path.exists(draft.attachment_path):
                 draft_data['attachment_info'] = {
@@ -3361,7 +3718,7 @@ def proposal_draft_detail(request, opportunity_id):
                 }
             else:
                 draft_data['attachment_info'] = {'exists': False}
-                
+
             return Response(draft_data, status=status.HTTP_200_OK)
         except ProposalDraft.DoesNotExist:
             return Response({'message': 'No draft found'}, status=status.HTTP_404_NOT_FOUND)
@@ -3370,34 +3727,34 @@ def proposal_draft_detail(request, opportunity_id):
         # Handle file upload if present
         attachment_path = None
         attachment_original_name = None
-        
+
         if 'attachment' in request.FILES:
             uploaded_file = request.FILES['attachment']
-            
+
             # Create unique filename with corporate ID and timestamp
             file_extension = os.path.splitext(uploaded_file.name)[1]
             unique_filename = f"proposal_{opportunity.lead.company.id}_{opportunity.id}_{uuid.uuid4().hex[:8]}{file_extension}"
-            
+
             # Create attachments directory if it doesn't exist
             attachments_dir = 'proposal_attachments'
             os.makedirs(attachments_dir, exist_ok=True)
-            
+
             # Save file with unique name
             attachment_path = os.path.join(attachments_dir, unique_filename)
-            
+
             # Write file to disk
             with open(attachment_path, 'wb') as f:
                 for chunk in uploaded_file.chunks():
                     f.write(chunk)
-            
+
             attachment_original_name = uploaded_file.name
-        
+
         # Prepare data for serializer
         data = request.data.copy()
         if attachment_path:
             data['attachment_path'] = attachment_path
             data['attachment_original_name'] = attachment_original_name
-        
+
         # Create or update draft
         try:
             draft = ProposalDraft.objects.get(opportunity=opportunity)
@@ -3408,7 +3765,7 @@ def proposal_draft_detail(request, opportunity_id):
 
         if serializer.is_valid():
             saved_draft = serializer.save()
-            
+
             # Include attachment info in response
             response_data = serializer.data
             if saved_draft.attachment_path and os.path.exists(saved_draft.attachment_path):
@@ -3417,7 +3774,7 @@ def proposal_draft_detail(request, opportunity_id):
                     'path': saved_draft.attachment_path,
                     'exists': True
                 }
-            
+
             return Response(response_data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -3425,14 +3782,14 @@ def proposal_draft_detail(request, opportunity_id):
         # Delete draft and associated files
         try:
             draft = ProposalDraft.objects.get(opportunity=opportunity)
-            
+
             # Delete attachment file if exists
             if draft.attachment_path and os.path.exists(draft.attachment_path):
                 try:
                     os.remove(draft.attachment_path)
                 except OSError:
                     pass  # File might be already deleted
-            
+
             draft.delete()
             return Response({'message': 'Draft deleted successfully'}, status=status.HTTP_200_OK)
         except ProposalDraft.DoesNotExist:
