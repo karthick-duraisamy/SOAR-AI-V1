@@ -1204,20 +1204,36 @@ SOAR-AI Team`,
     }
 
     try {
-      // This API call should ideally create the message and a history entry
-      await leadApi.sendMessage(selectedLeadForContact.id, {
+      // Call the backend API to send email via SMTP
+      const response = await leadApi.sendMessage(selectedLeadForContact.id, {
         method: contactForm.method,
         subject: contactForm.subject,
         message: contactForm.message,
-        followUpDate: contactForm.followUpDate
+        followUpDate: contactForm.followUpDate,
+        followUpMode: contactForm.followUpMode
       });
 
-      // Refresh leads list to show updated status (e.g., contacted) and history
-      await fetchLeads();
+      // Update the lead status locally if the email was sent successfully
+      if (response && response.success) {
+        setLeads(prev => prev.map(l => 
+          l.id === selectedLeadForContact.id 
+            ? { ...l, status: 'contacted', lastContact: new Date().toISOString().split('T')[0] } 
+            : l
+        ));
 
-      setSuccessMessage(`Message sent to ${selectedLeadForContact.company} successfully!`);
-      setTimeout(() => setSuccessMessage(''), 5000);
-      toast.success('Message sent successfully!');
+        // Clear history cache for this lead to force refresh
+        setLeadHistory(prev => {
+          const newHistory = { ...prev };
+          delete newHistory[selectedLeadForContact.id];
+          return newHistory;
+        });
+
+        setSuccessMessage(`Email sent to ${selectedLeadForContact.company} successfully!`);
+        setTimeout(() => setSuccessMessage(''), 5000);
+        toast.success('Email sent successfully');
+      } else {
+        throw new Error(response?.message || 'Failed to send email');
+      }
 
       // Close dialog and reset state
       setShowContactDialog(false);
@@ -1231,7 +1247,8 @@ SOAR-AI Team`,
       });
     } catch (error) {
       console.error('Error sending message:', error);
-      toast.error('Failed to send message. Please try again.');
+      const errorMessage = error.response?.data?.error || error.message || 'Failed to send message';
+      toast.error(errorMessage);
     }
   };
 

@@ -1345,6 +1345,108 @@ class LeadViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
+    @action(detail=True, methods=['post'])
+    def send_message(self, request, pk=None):
+        """Send message via email to lead contact and update lead status"""
+        try:
+            lead = self.get_object()
+            method = request.data.get('method', 'Email')
+            subject = request.data.get('subject', '')
+            message = request.data.get('message', '')
+            follow_up_date = request.data.get('followUpDate', '')
+            follow_up_mode = request.data.get('followUpMode', '')
+
+            if not subject or not message:
+                return Response(
+                    {'error': 'Subject and message are required'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            if not lead.contact.email:
+                return Response(
+                    {'error': 'Lead contact does not have an email address'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            # Send email via SMTP if method is Email
+            if method == 'Email':
+                from django.core.mail import EmailMessage
+                from django.conf import settings
+
+                try:
+                    # Create email message
+                    email = EmailMessage(
+                        subject=subject,
+                        body=message,
+                        from_email=settings.DEFAULT_FROM_EMAIL,
+                        to=[lead.contact.email],
+                    )
+
+                    # Send the email
+                    email.send(fail_silently=False)
+
+                    # Update lead status to 'contacted' if it was 'new'
+                    old_status = lead.status
+                    if lead.status == 'new':
+                        lead.status = 'contacted'
+                        lead.save()
+
+                    # Create history entry for contact made
+                    create_lead_history(
+                        lead=lead,
+                        history_type='contact_made',
+                        action=f'Email sent: "{subject}"',
+                        details=f'Email sent to {lead.contact.email}. Subject: {subject}. Follow-up scheduled for {follow_up_date or "not specified"}.',
+                        icon='mail',
+                        user=request.user if request.user.is_authenticated else None
+                    )
+
+                    # Create history entry for status change if applicable
+                    if old_status != lead.status:
+                        create_lead_history(
+                            lead=lead,
+                            history_type='status_change',
+                            action=f'Status changed to {lead.get_status_display()}',
+                            details=f'Lead status updated from {old_status} to {lead.status} after email contact.',
+                            icon='mail',
+                            user=request.user if request.user.is_authenticated else None
+                        )
+
+                    return Response({
+                        'success': True,
+                        'message': f'Email sent successfully to {lead.contact.email}',
+                        'lead_status': lead.status
+                    }, status=status.HTTP_200_OK)
+
+                except Exception as email_error:
+                    return Response({
+                        'success': False,
+                        'error': f'Failed to send email: {str(email_error)}'
+                    }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+            else:
+                # For non-email methods, just create a history entry
+                create_lead_history(
+                    lead=lead,
+                    history_type='contact_made',
+                    action=f'{method} contact made',
+                    details=f'{method} contact made with {lead.contact.first_name}. Message: {message[:100]}...',
+                    icon='message-circle',
+                    user=request.user if request.user.is_authenticated else None
+                )
+
+                return Response({
+                    'success': True,
+                    'message': f'{method} message logged successfully',
+                    'lead_status': lead.status
+                }, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            return Response(
+                {'error': f'Failed to send message: {str(e)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
 class OpportunityViewSet(viewsets.ModelViewSet):
     queryset = Opportunity.objects.prefetch_related('activities').all()
     serializer_class = OpportunitySerializer
