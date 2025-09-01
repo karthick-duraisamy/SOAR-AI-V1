@@ -4569,7 +4569,7 @@ const getRandomRiskLevel = () => {
                       <Edit className="h-4 w-4 mr-2" />
                       Edit Proposal
                     </Button>
-                    <Button
+                    {/* <Button
                       onClick={() => {
                         setShowEmailPreview(false);
                         setShowProposalDialog(false);
@@ -4580,7 +4580,7 @@ const getRandomRiskLevel = () => {
                     >
                       <Mail className="h-4 w-4 mr-2" />
                       Send Now
-                    </Button>
+                    </Button> */}
                   </div>
                 </div>
               </div>
