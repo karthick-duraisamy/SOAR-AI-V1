@@ -387,11 +387,25 @@ export const useLeadApi = () => {
   }, [setLoading, setError, setData]);
 
   // Send message function
-  const sendMessage = useCallback((message: string) => {
-    console.log('Message:', message);
-    // This function can be used for sending messages or notifications
-    // Implementation depends on your messaging system requirements
-  }, []);
+  const sendMessage = useCallback(async (leadId: number, messageData: any) => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const response = await baseApi.post(`/leads/${leadId}/send_message/`, messageData);
+      setData(response.data);
+      return response.data;
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.error || 
+                          error.response?.data?.detail || 
+                          error.message || 
+                          'Failed to send message';
+      setError(errorMessage);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  }, [setLoading, setError, setData]);
 
   // Placeholder functions for missing API endpoints
   const getLeadStats = useCallback(async () => {
