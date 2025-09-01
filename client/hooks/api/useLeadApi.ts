@@ -323,6 +323,74 @@ export const useLeadApi = () => {
     return baseApi.delete(`/opportunities/${opportunityId}/proposal-draft/`);
   }, [baseApi]);
 
+  // Send message function
+  const sendMessage = useCallback((message: string) => {
+    console.log('Message:', message);
+    // This function can be used for sending messages or notifications
+    // Implementation depends on your messaging system requirements
+  }, []);
+
+  // Placeholder functions for missing API endpoints
+  const getLeadStats = useCallback(async () => {
+    // Placeholder for lead stats API
+    return {};
+  }, []);
+
+  const getRecentActivity = useCallback(async () => {
+    // Placeholder for recent activity API
+    return [];
+  }, []);
+
+  const getTopLeads = useCallback(async () => {
+    // Placeholder for top leads API
+    return [];
+  }, []);
+
+  const moveToOpportunity = useCallback(async (leadId: number, opportunityData: any) => {
+    // Placeholder for move to opportunity API
+    return baseApi.post(`/leads/${leadId}/move-to-opportunity/`, opportunityData);
+  }, []);
+
+  const assignAgent = useCallback(async (leadId: number, agentId: number) => {
+    // Placeholder for assign agent API
+    return baseApi.post(`/leads/${leadId}/assign-agent/`, { agent_id: agentId });
+  }, []);
+
+  const createLeadFromCompany = useCallback(async (companyData: any) => {
+    // Placeholder for create lead from company API
+    return baseApi.post(`/leads/from-company/`, companyData);
+  }, []);
+
+  const getOpportunities = useCallback(async (filters: any = {}) => {
+    // Placeholder for opportunities API
+    return baseApi.post(`/opportunities/search/`, filters);
+  }, []);
+
+  const updateOpportunityStage = useCallback(async (opportunityId: number, stageData: any) => {
+    // Placeholder for update opportunity stage API
+    return baseApi.patch(`/opportunities/${opportunityId}/`, stageData);
+  }, []);
+
+  const getOpportunityPipeline = useCallback(async () => {
+    // Placeholder for opportunity pipeline API
+    return baseApi.get(`/opportunities/pipeline/`);
+  }, []);
+
+  const addOpportunityActivity = useCallback(async (opportunityId: number, activityData: any) => {
+    // Placeholder for add opportunity activity API
+    return baseApi.post(`/opportunities/${opportunityId}/activities/`, activityData);
+  }, []);
+
+  const getOpportunityActivities = useCallback(async (opportunityId: number) => {
+    // Placeholder for get opportunity activities API
+    return baseApi.get(`/opportunities/${opportunityId}/activities/`);
+  }, []);
+
+  const getOpportunityHistory = useCallback(async (opportunityId: number) => {
+    // Placeholder for get opportunity history API
+    return baseApi.get(`/opportunities/${opportunityId}/history/`);
+  }, []);
+
   return {
     ...state,
     getLeads,

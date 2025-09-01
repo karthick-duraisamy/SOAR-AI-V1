@@ -744,12 +744,7 @@ export function Opportunities({
     
   } = useLeadApi();
 
-  // Add missing sendMessage function
-  const sendMessage = (message: string) => {
-    console.log('Message:', message);
-    // This function can be used for sending messages or notifications
-    // Implementation depends on your messaging system requirements
-  };
+  
   const [opportunities, setOpportunities] = useState<Opportunity[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
