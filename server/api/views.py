@@ -764,12 +764,43 @@ class LeadViewSet(viewsets.ModelViewSet):
     def disqualify(self, request, pk=None):
         try:
             lead = self.get_object()
-            reason = request.data.get('reason', '')
+            
+            # Handle different request data formats
+            if hasattr(request, 'data') and request.data:
+                if isinstance(request.data, dict):
+                    reason = request.data.get('reason', '')
+                    created_by = request.data.get('created_by', '')
+                else:
+                    # If request.data is a string, try to extract reason
+                    reason = str(request.data) if request.data else ''
+                    created_by = ''
+            else:
+                reason = ''
+                created_by = ''
+                
             old_status = lead.status
 
             lead.status = 'unqualified'
-            lead.notes = f"{lead.notes}\n\n[{timezone.now().strftime('%Y-%m-%d %H:%M')}] Disqualified: {reason}" if lead.notes else f"[{timezone.now().strftime('%Y-%m-%d %H:%M')}] Disqualified: {reason}"
+            # Append disqualification reason to notes
+            timestamp = timezone.now().strftime('%Y-%m-%d %H:%M')
+            disqualify_note = f"[{timestamp}] Disqualified: {reason}" if reason else f"[{timestamp}] Disqualified"
+            
+            if lead.notes:
+                lead.notes = f"{lead.notes}\n\n{disqualify_note}"
+            else:
+                lead.notes = disqualify_note
+                
             lead.save()
+
+            # Create history entry for disqualification
+            create_lead_history(
+                lead=lead,
+                history_type='disqualification',
+                action='Lead disqualified',
+                details=f'Lead disqualified. Reason: {reason}' if reason else 'Lead disqualified.',
+                icon='x-circle',
+                user=request.user if request.user.is_authenticated else None
+            )
 
             # Create history entry for status change
             create_lead_history(
@@ -783,6 +814,9 @@ class LeadViewSet(viewsets.ModelViewSet):
 
             return Response({'message': 'Lead disqualified successfully'}, status=status.HTTP_200_OK)
         except Exception as e:
+            print(f"Disqualify error: {str(e)}")
+            print(f"Request data: {request.data}")
+            print(f"Request data type: {type(request.data)}")
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=True, methods=['post'])

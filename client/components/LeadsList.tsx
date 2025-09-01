@@ -1155,11 +1155,16 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
 
     try {
       setDisqualifyingLeadId(selectedLeadForDisqualify.id); // Start loading spinner
-      await leadApi.disqualifyLead(selectedLeadForDisqualify.id, disqualifyReason);
+      
+      // Send reason as an object
+      await leadApi.disqualifyLead(selectedLeadForDisqualify.id, {
+        reason: disqualifyReason || 'No reason provided',
+        created_by: 'Current User'
+      });
 
       // Update the local state
       setLeads(prev => prev.map(l => 
-        l.id === selectedLeadForDisqualify.id ? { ...l, status: 'unqualified', notes: `${l.notes}\n\nDisqualified: ${disqualifyReason}` } : l
+        l.id === selectedLeadForDisqualify.id ? { ...l, status: 'unqualified' } : l
       ));
 
       // Clear history for this lead to force refresh
@@ -1174,9 +1179,10 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
       setShowDisqualifyDialog(false);
       setSelectedLeadForDisqualify(null);
       setDisqualifyReason('');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error disqualifying lead:', error);
-      toast.error('Failed to disqualify lead. Please try again.');
+      const errorMessage = error?.response?.data?.error || error?.message || 'Failed to disqualify lead. Please try again.';
+      toast.error(errorMessage);
     } finally {
       setDisqualifyingLeadId(null); // Stop loading spinner
     }

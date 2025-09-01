@@ -220,15 +220,26 @@ export const useLeadApi = () => {
   }, [setLoading, setError]);
 
   // Disqualify lead
-  const disqualifyLead = useCallback(async (id: number, data: { reason?: string; created_by?: string }) => {
+  const disqualifyLead = useCallback(async (id: number, reasonOrData: string | { reason?: string; created_by?: string }) => {
     setLoading(true);
     setError(null);
 
     try {
-      const response = await baseApi.post(`/leads/${id}/disqualify/`, data);
+      // Handle both string reason and object data formats
+      let requestData;
+      if (typeof reasonOrData === 'string') {
+        requestData = { reason: reasonOrData };
+      } else {
+        requestData = reasonOrData || {};
+      }
+
+      const response = await baseApi.post(`/leads/${id}/disqualify/`, requestData);
       return response.data;
     } catch (error: any) {
-      const errorMessage = error.response?.data?.detail || error.message || 'Failed to disqualify lead';
+      const errorMessage = error.response?.data?.error || 
+                          error.response?.data?.detail || 
+                          error.message || 
+                          'Failed to disqualify lead';
       setError(errorMessage);
       throw error;
     } finally {
