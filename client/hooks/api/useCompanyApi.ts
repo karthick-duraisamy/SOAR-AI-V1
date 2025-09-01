@@ -354,19 +354,44 @@ export const useCompanyApi = () => {
     window.URL.revokeObjectURL(url);
   };
 
+  // Move company to lead
+  const moveToLead = useCallback(async (leadData: any) => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const response: AxiosResponse<any> = await axios.post(
+        `${API_BASE_URL}/leads/create_lead_from_company/`,
+        leadData,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+
+      return response.data;
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.error ||
+                          error.response?.data?.detail ||
+                          error.message ||
+                          'Failed to move company to lead';
+      setError(errorMessage);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  }, [setLoading, setError]);
+
   return {
-    ...state,
     searchCompanies,
-    getCompanies,
-    getCompanyById,
     createCompany,
-    updateCompany,
-    deleteCompany,
-    createLead,
+    moveToLead,
     checkLeadsStatus,
     markCompanyAsMovedToLead,
-    uploadCompanies,
     bulkUploadCompanies,
     downloadSampleExcel,
+    loading,
+    error,
   };
 };
