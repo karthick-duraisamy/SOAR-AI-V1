@@ -896,16 +896,17 @@ TechCorp Solutions can achieve complete travel governance without slowing down y
     <div className="min-h-screen bg-gray-50 p-6">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" size="sm" onClick={onBack}>
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Leads
-          </Button>
+
           <div>
             <h1 className="text-2xl font-bold text-gray-900">Marketing Campaign</h1>
             <p className="text-gray-600">Create and launch targeted multi-channel marketing campaigns</p>
-          </div>
+            <div className="flex items-center gap-4">      
+          </div>           
         </div>
+        <Button variant="ghost" size="sm" onClick={onBack}>
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Back to Leads
+        </Button>
       </div>
 
       {/* Progress Steps */}
