@@ -2,7 +2,7 @@ from rest_framework import serializers
 from .models import (
     Company, Contact, Lead, Opportunity, OpportunityActivity, Contract, ContractBreach,
     EmailCampaign, TravelOffer, SupportTicket, RevenueForecast,
-    ActivityLog, AIConversation, LeadNote, LeadHistory, CampaignTemplate
+    ActivityLog, AIConversation, LeadNote, LeadHistory, CampaignTemplate, ProposalDraft
 )
 
 class CompanySerializer(serializers.ModelSerializer):
@@ -492,7 +492,7 @@ class ActivityLogSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ActivityLog
-        fields = '__all__'
+        fields = ['id', 'user', 'action_type', 'action', 'entity_type', 'entity_id', 'details', 'ip_address', 'timestamp']
 
     def get_user_full_name(self, obj):
         return f"{obj.user.first_name} {obj.user.last_name}" if obj.user.first_name else obj.user.username
@@ -508,4 +508,9 @@ class CampaignTemplateSerializer(serializers.ModelSerializer):
     """Serializer for Campaign Templates"""
     class Meta:
         model = CampaignTemplate
+        fields = '__all__'
+
+class ProposalDraftSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ProposalDraft
         fields = '__all__'

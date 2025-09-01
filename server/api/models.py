@@ -851,3 +851,54 @@ class AIConversation(models.Model):
 
     class Meta:
         ordering = ['-created_at']
+
+class ProposalDraft(models.Model):
+    opportunity = models.OneToOneField(Opportunity, on_delete=models.CASCADE, related_name='proposal_draft')
+    
+    # Proposal Information
+    title = models.CharField(max_length=255, blank=True)
+    description = models.TextField(blank=True)
+    validity_period = models.CharField(max_length=10, default="30")
+    special_terms = models.TextField(blank=True)
+    delivery_method = models.CharField(max_length=20, default="email")
+    
+    # Volume Commitment
+    travel_frequency = models.CharField(max_length=20, default="monthly")
+    annual_booking_volume = models.CharField(max_length=100, blank=True)
+    projected_spend = models.CharField(max_length=100, blank=True)
+    preferred_routes = models.TextField(blank=True)
+    domestic_economy = models.IntegerField(default=60)
+    domestic_business = models.IntegerField(default=25)
+    international = models.IntegerField(default=15)
+    
+    # Discount/Offer Terms
+    base_discount = models.CharField(max_length=10, blank=True)
+    route_discounts = models.JSONField(default=list, blank=True)
+    loyalty_benefits = models.JSONField(default=dict, blank=True)
+    volume_incentives = models.TextField(blank=True)
+    
+    # Financial & Contract Terms
+    contract_duration = models.CharField(max_length=10, default="24")
+    auto_renewal = models.BooleanField(default=True)
+    payment_terms = models.CharField(max_length=20, default="net_30")
+    settlement_type = models.CharField(max_length=20, default="bsp")
+    
+    # Negotiation Strategy
+    airline_concessions = models.TextField(blank=True)
+    corporate_commitments = models.TextField(blank=True)
+    internal_notes = models.TextField(blank=True)
+    priority_level = models.CharField(max_length=20, default="medium")
+    
+    # Approvals Workflow
+    discount_approval_required = models.BooleanField(default=False)
+    revenue_manager_assigned = models.CharField(max_length=100, blank=True)
+    legal_approval_required = models.BooleanField(default=False)
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"Draft - {self.opportunity.name}"
+
+    class Meta:
+        ordering = ['-updated_at']

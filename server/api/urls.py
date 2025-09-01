@@ -38,4 +38,5 @@ urlpatterns = [
     path('email-campaigns/smtp-status/', check_smtp_status, name='check_smtp_status'),
     path('email-campaigns/<int:campaign_id>/smtp-status/', check_smtp_status, name='check_campaign_smtp_status'),
     path('', include(router.urls)),
+    path('opportunities/<int:opportunity_id>/proposal-draft/', views.proposal_draft_detail, name='proposal_draft_detail'),
 ]
