@@ -2067,6 +2067,177 @@ class AIConversationViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(conversation)
         return Response(serializer.data)
 
+@api_view(['GET', 'POST', 'PUT', 'DELETE'])
+@permission_classes([AllowAny])
+def proposal_draft_view(request, opportunity_id):
+    """
+    Handle proposal draft operations for a specific opportunity
+    """
+    import os
+    from django.conf import settings
+
+    try:
+        opportunity = Opportunity.objects.get(id=opportunity_id)
+    except Opportunity.DoesNotExist:
+        return Response({'error': 'Opportunity not found'}, status=status.HTTP_404_NOT_FOUND)
+
+    if request.method == 'GET':
+        # Get draft
+        try:
+            draft = ProposalDraft.objects.get(opportunity=opportunity)
+            serializer = ProposalDraftSerializer(draft)
+            
+            # Add attachment info if exists
+            data = serializer.data
+            if draft.attachment_path and os.path.exists(draft.attachment_path):
+                data['attachment_info'] = {
+                    'exists': True,
+                    'filename': draft.attachment_original_name or 'attachment',
+                    'path': draft.attachment_path
+                }
+            else:
+                data['attachment_info'] = {
+                    'exists': False,
+                    'filename': '',
+                    'path': ''
+                }
+            
+            return Response(data, status=status.HTTP_200_OK)
+        except ProposalDraft.DoesNotExist:
+            return Response({'message': 'No draft found'}, status=status.HTTP_404_NOT_FOUND)
+
+    elif request.method == 'POST':
+        # Create draft
+        try:
+            # Check if draft already exists
+            if ProposalDraft.objects.filter(opportunity=opportunity).exists():
+                return Response({'error': 'Draft already exists for this opportunity'}, status=status.HTTP_400_BAD_REQUEST)
+
+            # Handle file upload
+            attached_file = request.FILES.get('attached_file')
+            attachment_path = None
+            attachment_original_name = None
+
+            if attached_file:
+                # Create attachments directory if it doesn't exist
+                attachments_dir = os.path.join(settings.BASE_DIR, 'proposal_attachments')
+                os.makedirs(attachments_dir, exist_ok=True)
+
+                # Generate unique filename
+                import uuid
+                file_extension = attached_file.name.split('.')[-1] if '.' in attached_file.name else ''
+                unique_filename = f"proposal_{opportunity_id}_{uuid.uuid4().hex[:8]}.{file_extension}"
+                attachment_path = os.path.join(attachments_dir, unique_filename)
+                attachment_original_name = attached_file.name
+
+                # Save file
+                with open(attachment_path, 'wb+') as destination:
+                    for chunk in attached_file.chunks():
+                        destination.write(chunk)
+
+            # Create draft with form data
+            draft_data = request.data.copy()
+            draft_data['opportunity'] = opportunity.id
+            draft_data['attachment_path'] = attachment_path
+            draft_data['attachment_original_name'] = attachment_original_name
+
+            serializer = ProposalDraftSerializer(data=draft_data)
+            if serializer.is_valid():
+                draft = serializer.save()
+                
+                # Add attachment info to response
+                response_data = serializer.data
+                if attachment_path:
+                    response_data['attachment_info'] = {
+                        'exists': True,
+                        'filename': attachment_original_name,
+                        'path': attachment_path
+                    }
+                else:
+                    response_data['attachment_info'] = {
+                        'exists': False,
+                        'filename': '',
+                        'path': ''
+                    }
+                
+                return Response(response_data, status=status.HTTP_201_CREATED)
+            else:
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    elif request.method == 'PUT':
+        # Update draft
+        try:
+            draft = ProposalDraft.objects.get(opportunity=opportunity)
+
+            # Handle file upload for update
+            attached_file = request.FILES.get('attached_file')
+            if attached_file:
+                # Remove old file if exists
+                if draft.attachment_path and os.path.exists(draft.attachment_path):
+                    os.remove(draft.attachment_path)
+
+                # Create attachments directory if it doesn't exist
+                attachments_dir = os.path.join(settings.BASE_DIR, 'proposal_attachments')
+                os.makedirs(attachments_dir, exist_ok=True)
+
+                # Generate unique filename
+                import uuid
+                file_extension = attached_file.name.split('.')[-1] if '.' in attached_file.name else ''
+                unique_filename = f"proposal_{opportunity_id}_{uuid.uuid4().hex[:8]}.{file_extension}"
+                attachment_path = os.path.join(attachments_dir, unique_filename)
+                attachment_original_name = attached_file.name
+
+                # Save file
+                with open(attachment_path, 'wb+') as destination:
+                    for chunk in attached_file.chunks():
+                        destination.write(chunk)
+
+                # Update draft data
+                draft.attachment_path = attachment_path
+                draft.attachment_original_name = attachment_original_name
+
+            # Update other fields
+            serializer = ProposalDraftSerializer(draft, data=request.data, partial=True)
+            if serializer.is_valid():
+                updated_draft = serializer.save()
+                
+                # Add attachment info to response
+                response_data = serializer.data
+                if updated_draft.attachment_path and os.path.exists(updated_draft.attachment_path):
+                    response_data['attachment_info'] = {
+                        'exists': True,
+                        'filename': updated_draft.attachment_original_name or 'attachment',
+                        'path': updated_draft.attachment_path
+                    }
+                else:
+                    response_data['attachment_info'] = {
+                        'exists': False,
+                        'filename': '',
+                        'path': ''
+                    }
+                
+                return Response(response_data, status=status.HTTP_200_OK)
+            else:
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except ProposalDraft.DoesNotExist:
+            return Response({'message': 'No draft found'}, status=status.HTTP_404_NOT_FOUND)
+
+    elif request.method == 'DELETE':
+        # Delete draft
+        try:
+            draft = ProposalDraft.objects.get(opportunity=opportunity)
+            
+            # Remove file if exists
+            if draft.attachment_path and os.path.exists(draft.attachment_path):
+                os.remove(draft.attachment_path)
+            
+            draft.delete()
+            return Response({'message': 'Draft deleted successfully'}, status=status.HTTP_200_OK)
+        except ProposalDraft.DoesNotExist:
+            return Response({'message': 'No draft found'}, status=status.HTTP_404_NOT_FOUND)
+
 @api_view(['GET'])
 def download_proposal_attachment(request, opportunity_id):
     """
