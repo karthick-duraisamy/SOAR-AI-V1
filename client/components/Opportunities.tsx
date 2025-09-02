@@ -519,7 +519,7 @@ const OpportunityCard = memo(
               className="h-8 px-3 text-xs border-gray-300 text-gray-700 hover:bg-gray-50 rounded-md font-medium"
               onClick={(e) => {
                 e.stopPropagation();
-                handleViewProfile(opportunity);
+                handleViewProfile(String(opportunity.lead_info?.company?.id));
               }}
             >
               <Eye className="h-3 w-3 mr-1" />
@@ -782,8 +782,8 @@ const leadApi = useLeadApi();
     const [showCorporateProfile, setShowCorporateProfile] = useState(false);   
     const [leadData,setleads] = useState([]);
 
-  const handleViewProfile = (opportunity: Opportunity) => {
-    const companyName = opportunity.lead_info?.company?.name;
+  const handleViewProfile = (opportunityId: string) => {
+    const companyName = opportunities.find(opp => String(opp.id) === opportunityId)?.lead_info?.company?.name;
     console.log(leadData,'leadData');
 
     const item = leadData.find(entry => entry.company === companyName);
@@ -2094,51 +2094,24 @@ const getRandomRiskLevel = () => {
     toast.success("Proposal sent successfully!");
   }, [selectedOpportunity, proposalForm.attachedFile, clearDraft]);
 
-  const handleSaveProposalDraft = useCallback(async () => {
-    if (!selectedOpportunity) {
-      toast.error("No opportunity selected");
-      return;
-    }
+  const handleSaveDraft = useCallback(async () => {
+    if (!selectedOpportunity) return;
 
     try {
       setIsDraftLoading(true);
 
-      // Include all current form data including negotiation form data
-      const draftData = {
+      // Combine proposal and negotiation form data
+      const combinedFormData = {
         ...proposalForm,
-        // Also save the negotiation form data that's part of the proposal
-        negotiationData: {
-          travelFrequency: negotiationForm.travelFrequency,
-          annualBookingVolume: negotiationForm.annualBookingVolume,
-          projectedSpend: negotiationForm.projectedSpend,
-          preferredRoutes: negotiationForm.preferredRoutes,
-          domesticEconomy: negotiationForm.domesticEconomy,
-          domesticBusiness: negotiationForm.domesticBusiness,
-          international: negotiationForm.international,
-          baseDiscount: negotiationForm.baseDiscount,
-          routeDiscounts: negotiationForm.routeDiscounts,
-          loyaltyBenefits: negotiationForm.loyaltyBenefits,
-          volumeIncentives: negotiationForm.volumeIncentives,
-          contractDuration: negotiationForm.contractDuration,
-          autoRenewal: negotiationForm.autoRenewal,
-          paymentTerms: negotiationForm.paymentTerms,
-          settlementType: negotiationForm.settlementType,
-          airlineConcessions: negotiationForm.airlineConcessions,
-          corporateCommitments: negotiationForm.corporateCommitments,
-          internalNotes: negotiationForm.internalNotes,
-          priorityLevel: negotiationForm.priorityLevel,
-          discountApprovalRequired: negotiationForm.discountApprovalRequired,
-          revenueManagerAssigned: negotiationForm.revenueManagerAssigned,
-          legalApprovalRequired: negotiationForm.legalApprovalRequired
-        }
+        negotiationData: negotiationForm
       };
 
-      // Pass the attached file if it exists
-      await saveDraft(selectedOpportunity.id, draftData, proposalForm.attachedFile);
-      toast.success("Proposal draft saved successfully!");
-    } catch (error) {
+      await saveDraft(selectedOpportunity.id, combinedFormData, proposalForm.attachedFile);
+      toast.success("Draft saved successfully");
+    } catch (error: any) {
       console.error("Error saving draft:", error);
-      toast.error("Failed to save draft");
+      const errorMessage = error?.response?.data?.error || error?.message || "Failed to save draft";
+      toast.error(errorMessage);
     } finally {
       setIsDraftLoading(false);
     }
@@ -3671,7 +3644,7 @@ const getRandomRiskLevel = () => {
                   <div className="flex gap-3">
                     <Button
                       variant="outline"
-                      onClick={handleSaveNegotiationDraft}
+                      onClick={handleSaveDraft}
                       className="border-gray-300"
                     >
                       <FileText className="h-4 w-4 mr-2" />
