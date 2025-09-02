@@ -2145,7 +2145,6 @@ def check_smtp_status(request, campaign_id=None):
                 except Exception as close_error:
                     smtp_logger.error(f"Error closing SMTP connection: {close_error}")
 
-
     except Exception as e:
         # This catches errors related to accessing settings
         return Response({
