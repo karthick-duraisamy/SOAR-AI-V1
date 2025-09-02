@@ -2784,6 +2784,102 @@ class ProposalDraftViewSet(viewsets.ModelViewSet):
                 'error': str(e)
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+class CampaignTemplateViewSet(viewsets.ModelViewSet):
+    queryset = CampaignTemplate.objects.all()
+    serializer_class = CampaignTemplateSerializer
+
+# Missing view functions referenced in URLs
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def lead_stats(request):
+    """Get lead statistics for dashboard"""
+    try:
+        stats = {
+            'total_leads': Lead.objects.count(),
+            'qualified_leads': Lead.objects.filter(status='qualified').count(),
+            'unqualified_leads': Lead.objects.filter(status='unqualified').count(),
+            'contacted_leads': Lead.objects.filter(status='contacted').count(),
+            'new_leads': Lead.objects.filter(status='new').count(),
+        }
+        return Response(stats)
+    except Exception as e:
+        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def recent_activity(request):
+    """Get recent lead activity"""
+    try:
+        recent_leads = Lead.objects.select_related('company', 'contact').order_by('-updated_at')[:10]
+        serializer = LeadSerializer(recent_leads, many=True)
+        return Response(serializer.data)
+    except Exception as e:
+        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def top_leads(request):
+    """Get top qualified leads"""
+    try:
+        top_leads = Lead.objects.filter(status='qualified').select_related('company', 'contact').order_by('-score')[:10]
+        serializer = LeadSerializer(top_leads, many=True)
+        return Response(serializer.data)
+    except Exception as e:
+        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def bulk_upload_companies(request):
+    """Bulk upload companies from file"""
+    try:
+        return Response({'message': 'Bulk upload endpoint not implemented yet'}, status=status.HTTP_501_NOT_IMPLEMENTED)
+    except Exception as e:
+        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def download_sample_excel(request):
+    """Download sample Excel file for company upload"""
+    try:
+        return Response({'message': 'Sample download endpoint not implemented yet'}, status=status.HTTP_501_NOT_IMPLEMENTED)
+    except Exception as e:
+        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def proposal_draft_detail(request, opportunity_id):
+    """Get proposal draft for opportunity"""
+    try:
+        opportunity = Opportunity.objects.get(id=opportunity_id)
+        draft = ProposalDraft.objects.filter(opportunity=opportunity).first()
+        
+        if draft:
+            serializer = ProposalDraftSerializer(draft)
+            return Response(serializer.data)
+        else:
+            return Response({'error': 'No draft found'}, status=status.HTTP_404_NOT_FOUND)
+    except Opportunity.DoesNotExist:
+        return Response({'error': 'Opportunity not found'}, status=status.HTTP_404_NOT_FOUND)
+    except Exception as e:
+        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def get_history(request):
+    """Generic history endpoint"""
+    try:
+        entity_type = request.GET.get('entity_type')
+        entity_id = request.GET.get('entity_id')
+        
+        if entity_type == 'lead' and entity_id:
+            history = LeadHistory.objects.filter(lead_id=entity_id).order_by('-timestamp')
+            serializer = LeadHistorySerializer(history, many=True)
+            return Response(serializer.data)
+        
+        return Response({'error': 'Invalid entity type or ID'}, status=status.HTTP_400_BAD_REQUEST)
+    except Exception as e:
+        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 # Dashboard API Views
 class DashboardAPIView(viewsets.ViewSet):
 
