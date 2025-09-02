@@ -3171,6 +3171,63 @@ def get_history(request):
                             user_name = f"{activity.created_by.first_name} {activity.created_by.last_name}".strip()
                             if not user_name:
                                 user_name = activity.created_by.username
+                        
+                        # Format timestamp
+                        formatted_timestamp = 'Recently'
+                        if activity.created_at:
+                            try:
+                                formatted_timestamp = activity.created_at.strftime('%B %d, %Y at %I:%M %p')
+                            except:
+                                formatted_timestamp = str(activity.created_at)
+
+                        history_items.append({
+                            'id': f"opportunity_activity_{activity.id}",
+                            'history_type': activity.type,
+                            'action': activity.type.replace('_', ' ').title(),
+                            'details': activity.description,
+                            'icon': 'activity',
+                            'timestamp': activity.created_at.isoformat() if activity.created_at else '',
+                            'user_name': user_name,
+                            'user_role': 'Team Member',
+                            'formatted_timestamp': formatted_timestamp,
+                            'metadata': {}
+                        })
+                    except Exception as activity_error:
+                        print(f"Error processing opportunity activity {activity.id}: {activity_error}")
+                        continue
+
+                # Add opportunity creation history
+                try:
+                    formatted_timestamp = 'Recently'
+                    if opportunity.created_at:
+                        try:
+                            formatted_timestamp = opportunity.created_at.strftime('%B %d, %Y at %I:%M %p')
+                        except:
+                            formatted_timestamp = str(opportunity.created_at)
+
+                    history_items.append({
+                        'id': f"opportunity_created_{opportunity.id}",
+                        'history_type': 'creation',
+                        'action': 'Opportunity Created',
+                        'details': f'Opportunity "{opportunity.name}" was created with estimated value of ${opportunity.value:,.0f}',
+                        'icon': 'plus',
+                        'timestamp': opportunity.created_at.isoformat() if opportunity.created_at else '',
+                        'user_name': 'System',
+                        'user_role': 'System',
+                        'formatted_timestamp': formatted_timestamp,
+                        'metadata': {
+                            'stage': opportunity.stage,
+                            'probability': opportunity.probability,
+                            'value': opportunity.value
+                        }
+                    })
+                except Exception as creation_error:
+                    print(f"Error creating opportunity creation history: {creation_error}")
+
+                # Sort by timestamp (newest first)
+                history_items.sort(key=lambda x: x['timestamp'] if x['timestamp'] else '', reverse=True)
+
+                return Response(history_items)ivity.created_by.username
 
                         formatted_timestamp = activity.created_at.strftime('%m/%d/%Y at %I:%M:%S %p') if activity.created_at else 'Unknown'
 

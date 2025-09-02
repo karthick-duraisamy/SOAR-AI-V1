@@ -663,8 +663,11 @@ export const useLeadApi = () => {
   }, []);
 
   const getOpportunityHistory = useCallback(async (opportunityId: number) => {
-    // Placeholder for get opportunity history API
-    return baseApi.get(`/opportunities/${opportunityId}/history/`);
+    // Use the generic history endpoint with proper parameters
+    return baseApi.post('/get-history/', {
+      entity_type: 'opportunity',
+      entity_id: opportunityId
+    });
   }, []);
 
   return {
