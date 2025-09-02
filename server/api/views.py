@@ -1792,6 +1792,61 @@ class ContractBreachViewSet(viewsets.ModelViewSet):
 
         return Response({'status': 'breach resolved'})
 
+class CampaignTemplateViewSet(viewsets.ModelViewSet):
+    queryset = CampaignTemplate.objects.all()
+    serializer_class = CampaignTemplateSerializer
+
+    @action(detail=False, methods=['get'])
+    def by_channel(self, request):
+        channel = request.query_params.get('channel', 'email')
+        templates = self.queryset.filter(channel_type=channel)
+        serializer = self.get_serializer(templates, many=True)
+        return Response(serializer.data)
+
+class TravelOfferViewSet(viewsets.ModelViewSet):
+    queryset = TravelOffer.objects.all()
+    serializer_class = TravelOfferSerializer
+
+    @action(detail=False, methods=['get'])
+    def active_offers(self, request):
+        offers = self.queryset.filter(status='active', valid_until__gte=timezone.now())
+        serializer = self.get_serializer(offers, many=True)
+        return Response(serializer.data)
+
+class SupportTicketViewSet(viewsets.ModelViewSet):
+    queryset = SupportTicket.objects.all()
+    serializer_class = SupportTicketSerializer
+
+    @action(detail=False, methods=['get'])
+    def open_tickets(self, request):
+        tickets = self.queryset.filter(status__in=['open', 'in_progress'])
+        serializer = self.get_serializer(tickets, many=True)
+        return Response(serializer.data)
+
+class RevenueForecastViewSet(viewsets.ModelViewSet):
+    queryset = RevenueForecast.objects.all()
+    serializer_class = RevenueForecastSerializer
+
+class ActivityLogViewSet(viewsets.ModelViewSet):
+    queryset = ActivityLog.objects.all()
+    serializer_class = ActivityLogSerializer
+
+class LeadNoteViewSet(viewsets.ModelViewSet):
+    queryset = LeadNote.objects.all()
+    serializer_class = LeadNoteSerializer
+
+class LeadHistoryViewSet(viewsets.ModelViewSet):
+    queryset = LeadHistory.objects.all()
+    serializer_class = LeadHistorySerializer
+
+class AIConversationViewSet(viewsets.ModelViewSet):
+    queryset = AIConversation.objects.all()
+    serializer_class = AIConversationSerializer
+
+class ProposalDraftViewSet(viewsets.ModelViewSet):
+    queryset = ProposalDraft.objects.all()
+    serializer_class = ProposalDraftSerializer
+
 class EmailCampaignViewSet(viewsets.ModelViewSet):
     queryset = EmailCampaign.objects.all()
     serializer_class = EmailCampaignSerializer
@@ -1972,6 +2027,376 @@ class EmailCampaignViewSet(viewsets.ModelViewSet):
             return Response({
                 'error': f'Failed to get campaign analytics: {str(e)}'
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+@api_view(['GET'])
+def lead_stats(request):
+    """Get lead dashboard statistics"""
+    try:
+        period = request.GET.get('period', 'all_time')
+        
+        # Calculate stats based on period
+        if period == 'this_month':
+            from datetime import datetime
+            start_date = datetime.now().replace(day=1)
+            leads_queryset = Lead.objects.filter(created_at__gte=start_date)
+        elif period == 'this_week':
+            from datetime import datetime, timedelta
+            start_date = datetime.now() - timedelta(days=7)
+            leads_queryset = Lead.objects.filter(created_at__gte=start_date)
+        else:
+            leads_queryset = Lead.objects.all()
+
+        total_leads = leads_queryset.count()
+        qualified_leads = leads_queryset.filter(status='qualified').count()
+        unqualified_leads = leads_queryset.filter(status='unqualified').count()
+        new_leads = leads_queryset.filter(status='new').count()
+        conversion_rate = (qualified_leads / total_leads * 100) if total_leads > 0 else 0
+
+        stats = {
+            'total_leads': total_leads,
+            'qualified_leads': qualified_leads,
+            'unqualified_leads': unqualified_leads,
+            'new_leads': new_leads,
+            'conversion_rate': round(conversion_rate, 2),
+            'avg_score': leads_queryset.aggregate(avg_score=Avg('score'))['avg_score'] or 0
+        }
+
+        return Response(stats)
+    except Exception as e:
+        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+@api_view(['GET'])
+def recent_activity(request):
+    """Get recent lead activity"""
+    try:
+        limit = int(request.GET.get('limit', 10))
+        
+        # Get recent leads and activities
+        recent_leads = Lead.objects.select_related('company', 'contact').order_by('-updated_at')[:limit]
+        
+        activities = []
+        for lead in recent_leads:
+            activities.append({
+                'id': lead.id,
+                'company_name': lead.company.name,
+                'contact_name': f"{lead.contact.first_name} {lead.contact.last_name}",
+                'status': lead.status,
+                'score': lead.score,
+                'updated_at': lead.updated_at,
+                'action': lead.next_action or 'No action specified'
+            })
+
+        return Response(activities)
+    except Exception as e:
+        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+@api_view(['GET'])
+def top_leads(request):
+    """Get top qualified leads"""
+    try:
+        limit = int(request.GET.get('limit', 5))
+        
+        top_leads = Lead.objects.select_related('company', 'contact').filter(
+            status='qualified'
+        ).order_by('-score', '-estimated_value')[:limit]
+
+        leads_data = []
+        for lead in top_leads:
+            leads_data.append({
+                'id': lead.id,
+                'company_name': lead.company.name,
+                'contact_name': f"{lead.contact.first_name} {lead.contact.last_name}",
+                'score': lead.score,
+                'estimated_value': float(lead.estimated_value) if lead.estimated_value else 0,
+                'next_action': lead.next_action,
+                'created_at': lead.created_at
+            })
+
+        return Response(leads_data)
+    except Exception as e:
+        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+@api_view(['POST'])
+def bulk_upload_companies(request):
+    """Bulk upload companies from Excel/CSV file"""
+    # This functionality is already implemented in CompanyViewSet.upload
+    # Redirect to that method
+    company_viewset = CompanyViewSet()
+    company_viewset.request = request
+    return company_viewset.upload(request)
+
+@api_view(['GET'])
+def download_sample_excel(request):
+    """Download sample Excel file for company upload"""
+    import pandas as pd
+    from django.http import HttpResponse
+    import io
+
+    try:
+        # Create sample data
+        sample_data = {
+            'Company Name': ['Sample Tech Corp', 'Example Finance Ltd'],
+            'Industry': ['Technology', 'Finance'],
+            'Company Size Category': ['Large', 'Enterprise'],
+            'Location': ['San Francisco, CA', 'New York, NY'],
+            'Email': ['contact@sampletech.com', 'info@examplefinance.com'],
+            'Phone': ['+1-555-0123', '+1-555-0456'],
+            'Website': ['https://sampletech.com', 'https://examplefinance.com'],
+            'Number of Employees': [500, 2000],
+            'Annual Revenue (Millions)': [50, 200],
+            'Annual Travel Budget (Millions)': [2, 5]
+        }
+
+        df = pd.DataFrame(sample_data)
+
+        # Create Excel file in memory
+        output = io.BytesIO()
+        with pd.ExcelWriter(output, engine='openpyxl') as writer:
+            df.to_excel(writer, index=False, sheet_name='Companies')
+
+        output.seek(0)
+
+        response = HttpResponse(
+            output.getvalue(),
+            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
+        response['Content-Disposition'] = 'attachment; filename="company_upload_sample.xlsx"'
+
+        return response
+    except Exception as e:
+        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+@api_view(['GET'])
+def check_smtp_status(request):
+    """Check SMTP server status"""
+    try:
+        from django.core.mail import get_connection
+        from django.conf import settings
+
+        connection = get_connection()
+        connection.open()
+        connection.close()
+
+        return Response({
+            'status': 'connected',
+            'message': 'SMTP server is accessible',
+            'host': settings.EMAIL_HOST,
+            'port': settings.EMAIL_PORT
+        })
+    except Exception as e:
+        return Response({
+            'status': 'error',
+            'message': f'SMTP connection failed: {str(e)}',
+            'host': getattr(settings, 'EMAIL_HOST', 'Not configured'),
+            'port': getattr(settings, 'EMAIL_PORT', 'Not configured')
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+@api_view(['GET'])
+def email_campaign_performance(request):
+    """Get email campaign performance data"""
+    try:
+        campaigns = EmailCampaign.objects.filter(status__in=['active', 'completed'])
+        
+        performance_data = []
+        for campaign in campaigns:
+            open_rate = (campaign.emails_opened / campaign.emails_sent * 100) if campaign.emails_sent > 0 else 0
+            click_rate = (campaign.emails_clicked / campaign.emails_sent * 100) if campaign.emails_sent > 0 else 0
+            
+            performance_data.append({
+                'id': campaign.id,
+                'name': campaign.name,
+                'emails_sent': campaign.emails_sent,
+                'emails_opened': campaign.emails_opened,
+                'emails_clicked': campaign.emails_clicked,
+                'open_rate': round(open_rate, 2),
+                'click_rate': round(click_rate, 2),
+                'status': campaign.status
+            })
+
+        return Response(performance_data)
+    except Exception as e:
+        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+@api_view(['POST'])
+def track_email_open(request, campaign_id):
+    """Track email open for campaign"""
+    try:
+        tracking_id = request.data.get('tracking_id')
+        if tracking_id:
+            tracking = EmailTracking.objects.filter(tracking_id=tracking_id).first()
+            if tracking:
+                tracking.open_count += 1
+                if not tracking.first_opened:
+                    tracking.first_opened = timezone.now()
+                tracking.last_opened = timezone.now()
+                tracking.save()
+
+                # Update campaign stats
+                campaign = tracking.campaign
+                campaign.emails_opened = EmailTracking.objects.filter(
+                    campaign=campaign, 
+                    first_opened__isnull=False
+                ).count()
+                campaign.save()
+
+        return Response({'status': 'tracked'})
+    except Exception as e:
+        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+@api_view(['POST'])
+def track_email_click(request, campaign_id):
+    """Track email click for campaign"""
+    try:
+        tracking_id = request.data.get('tracking_id')
+        if tracking_id:
+            tracking = EmailTracking.objects.filter(tracking_id=tracking_id).first()
+            if tracking:
+                tracking.click_count += 1
+                if not tracking.first_clicked:
+                    tracking.first_clicked = timezone.now()
+                tracking.last_clicked = timezone.now()
+                tracking.save()
+
+                # Update campaign stats
+                campaign = tracking.campaign
+                campaign.emails_clicked = EmailTracking.objects.filter(
+                    campaign=campaign,
+                    first_clicked__isnull=False
+                ).count()
+                campaign.save()
+
+        return Response({'status': 'tracked'})
+    except Exception as e:
+        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+@api_view(['GET'])
+def proposal_draft_detail(request, opportunity_id):
+    """Get or create proposal draft for opportunity"""
+    try:
+        opportunity = get_object_or_404(Opportunity, id=opportunity_id)
+        draft, created = ProposalDraft.objects.get_or_create(
+            opportunity=opportunity,
+            defaults={
+                'title': f"Proposal for {opportunity.name}",
+                'description': opportunity.description
+            }
+        )
+        
+        serializer = ProposalDraftSerializer(draft)
+        return Response(serializer.data)
+    except Exception as e:
+        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+@api_view(['GET'])
+def download_proposal_attachment(request, opportunity_id):
+    """Download proposal attachment"""
+    try:
+        opportunity = get_object_or_404(Opportunity, id=opportunity_id)
+        draft = get_object_or_404(ProposalDraft, opportunity=opportunity)
+        
+        if not draft.attachment_path:
+            return Response({'error': 'No attachment found'}, status=status.HTTP_404_NOT_FOUND)
+
+        import os
+        from django.http import FileResponse
+
+        file_path = draft.attachment_path
+        if os.path.exists(file_path):
+            response = FileResponse(
+                open(file_path, 'rb'),
+                as_attachment=True,
+                filename=draft.attachment_original_name or 'proposal_attachment.pdf'
+            )
+            return response
+        else:
+            return Response({'error': 'File not found'}, status=status.HTTP_404_NOT_FOUND)
+
+    except Exception as e:
+        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+@api_view(['GET'])
+def track_email_open_pixel(request, tracking_id):
+    """Track email open via pixel"""
+    try:
+        tracking = EmailTracking.objects.filter(tracking_id=tracking_id).first()
+        if tracking:
+            tracking.open_count += 1
+            if not tracking.first_opened:
+                tracking.first_opened = timezone.now()
+            tracking.last_opened = timezone.now()
+            tracking.save()
+
+        # Return 1x1 transparent pixel
+        from django.http import HttpResponse
+        pixel_data = b'\x47\x49\x46\x38\x39\x61\x01\x00\x01\x00\x80\x00\x00\x00\x00\x00\x00\x00\x00\x21\xF9\x04\x01\x00\x00\x00\x00\x2C\x00\x00\x00\x00\x01\x00\x01\x00\x00\x02\x02\x04\x01\x00\x3B'
+        return HttpResponse(pixel_data, content_type='image/gif')
+    except Exception as e:
+        return HttpResponse(status=200)  # Always return success for tracking pixels
+
+@api_view(['GET'])
+def track_email_click_redirect(request, tracking_id):
+    """Track email click and redirect"""
+    try:
+        tracking = EmailTracking.objects.filter(tracking_id=tracking_id).first()
+        if tracking:
+            tracking.click_count += 1
+            if not tracking.first_clicked:
+                tracking.first_clicked = timezone.now()
+            tracking.last_clicked = timezone.now()
+            tracking.save()
+
+        # Get redirect URL
+        redirect_url = request.GET.get('url', 'https://example.com')
+        return HttpResponseRedirect(redirect_url)
+    except Exception as e:
+        return HttpResponseRedirect('https://example.com')
+
+@api_view(['POST'])
+def get_history(request):
+    """Get history for any entity"""
+    try:
+        entity_type = request.data.get('entity_type', 'lead')
+        entity_id = request.data.get('entity_id') or request.data.get('lead_id')
+
+        if not entity_id:
+            return Response({'error': 'Entity ID is required'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if entity_type == 'lead':
+            try:
+                lead = Lead.objects.get(id=entity_id)
+                history_entries = lead.history_entries.all().order_by('-timestamp')
+                serializer = LeadHistorySerializer(history_entries, many=True)
+                return Response(serializer.data)
+            except Lead.DoesNotExist:
+                return Response({'error': 'Lead not found'}, status=status.HTTP_404_NOT_FOUND)
+            except Exception:
+                return Response([])  # Return empty if LeadHistory table doesn't exist
+
+        elif entity_type == 'opportunity':
+            try:
+                opportunity = Opportunity.objects.get(id=entity_id)
+                activities = opportunity.activities.all().order_by('-created_at')
+                history_items = []
+
+                for activity in activities:
+                    history_items.append({
+                        'id': f"opportunity_activity_{activity.id}",
+                        'history_type': activity.type,
+                        'action': activity.get_type_display(),
+                        'details': activity.description,
+                        'icon': 'activity',
+                        'timestamp': activity.created_at,
+                        'user_name': activity.created_by.username if activity.created_by else 'System'
+                    })
+
+                return Response(history_items)
+            except Opportunity.DoesNotExist:
+                return Response({'error': 'Opportunity not found'}, status=status.HTTP_404_NOT_FOUND)
+
+        return Response({'error': 'Invalid entity type'}, status=status.HTTP_400_BAD_REQUEST)
+
+    except Exception as e:
+        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 @api_view(['POST'])
 def send_corporate_message(request):
