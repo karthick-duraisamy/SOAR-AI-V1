@@ -828,84 +828,71 @@ class LeadViewSet(viewsets.ModelViewSet):
             print(f"Request data type: {type(request.data)}")
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
-    @action(detail=True, methods=['post'])
-    def add_note(self, request, pk=None):
+    @action(detail=True, methods=['get'])
+    def notes(self, request, pk=None):
+        """
+        Get all notes for a specific lead
+        """
         try:
             lead = self.get_object()
-            note_text = request.data.get('note', '')
-            next_action = request.data.get('next_action', '')
-            urgency = request.data.get('urgency', 'Medium')
-            old_status = lead.status
-            old_priority = lead.priority
-            old_next_action = lead.next_action # Capture old next_action for potential history entry
+            notes = lead.lead_notes.all().order_by('-created_at')
+            serializer = LeadNoteSerializer(notes, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response(
+                {'error': f'Failed to fetch notes: {str(e)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
-            if not note_text.strip():
-                return Response({'error': 'Note text is required'}, status=status.HTTP_400_BAD_REQUEST)
+    @action(detail=True, methods=['post'])
+    def add_note(self, request, pk=None):
+        """
+        Add a note to a lead
+        """
+        lead = self.get_object()
+        note_text = request.data.get('note', '')
+        next_action = request.data.get('nextAction', '')
+        urgency = request.data.get('urgency', 'Medium')
 
+        if not note_text:
+            return Response({'error': 'Note text is required'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
             # Create the note
             note = LeadNote.objects.create(
                 lead=lead,
                 note=note_text,
                 next_action=next_action,
-                urgency=urgency,
-                created_by=request.user if request.user.is_authenticated else None
+                urgency=urgency
             )
 
-            # Update lead's next action and urgency if provided
+            # Update lead's next action if provided
             if next_action:
                 lead.next_action = next_action
-            if urgency and urgency in ['Low', 'Medium', 'High', 'Urgent']:
-                # Map urgency to priority
-                priority_map = {'Low': 'low', 'Medium': 'medium', 'High': 'high', 'Urgent': 'urgent'}
-                lead.priority = priority_map.get(urgency, 'medium')
+                lead.save()
 
-            lead.save()
-
-            # Create history entry for note addition
+            # Create history entry
             create_lead_history(
                 lead=lead,
                 history_type='note_added',
-                action=f'Note added: "{note_text[:30]}..."',
-                details=f"Note content: {note_text}. Next action: {next_action if next_action else 'None'}. Urgency: {urgency}.",
-                icon='file-text',
-                user=request.user if request.user.is_authenticated else None
+                action=f'Note added: {note_text[:50]}{"..." if len(note_text) > 50 else ""}',
+                details=f'Note: {note_text}\nNext Action: {next_action}\nUrgency: {urgency}',
+                user=request.user if request.user.is_authenticated else None,
+                icon='message-square'
             )
 
-            # If priority changed due to urgency, create history for that too
-            if old_priority != lead.priority and lead.priority != 'medium':
-                create_lead_history(
-                    lead=lead,
-                    history_type='priority_change',
-                    action=f'Priority changed to {lead.priority}',
-                    details=f'Priority updated from {old_priority} to {lead.priority} due to note urgency.',
-                    icon='trending-up',
-                    user=request.user if request.user.is_authenticated else None
-                )
-
-            # If next action changed, create history for that too
-            if old_next_action != lead.next_action:
-                create_lead_history(
-                    lead=lead,
-                    history_type='next_action_update',
-                    action=f'Next action updated to "{lead.next_action[:30]}..."',
-                    details=f'Next action updated from "{old_next_action}" to "{lead.next_action}".',
-                    icon='calendar',
-                    user=request.user if request.user.is_authenticated else None
-                )
-
-
-            # Return both the note data and updated lead information
+            # Serialize the note and updated lead
             note_serializer = LeadNoteSerializer(note)
             lead_serializer = LeadSerializer(lead)
 
             return Response({
+                'message': 'Note added successfully',
                 'note': note_serializer.data,
-                'lead': lead_serializer.data,
-                'message': 'Note added successfully'
+                'lead': lead_serializer.data
             }, status=status.HTTP_201_CREATED)
 
         except Exception as e:
-            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'error': f'Failed to add note: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     def update(self, request, *args, **kwargs):
         """Handle opportunity updates with proper validation"""
@@ -1835,9 +1822,30 @@ class LeadNoteViewSet(viewsets.ModelViewSet):
     queryset = LeadNote.objects.all()
     serializer_class = LeadNoteSerializer
 
+    def perform_create(self, serializer):
+        serializer.save(created_by=self.request.user if self.request.user.is_authenticated else None)
+
+    def get_queryset(self):
+        queryset = self.queryset
+        lead_id = self.request.query_params.get('lead_id', None)
+
+        if lead_id:
+            queryset = queryset.filter(lead_id=lead_id)
+
+        return queryset
+
 class LeadHistoryViewSet(viewsets.ModelViewSet):
     queryset = LeadHistory.objects.all()
     serializer_class = LeadHistorySerializer
+
+    def get_queryset(self):
+        queryset = self.queryset
+        lead_id = self.request.query_params.get('lead_id', None)
+
+        if lead_id:
+            queryset = queryset.filter(lead_id=lead_id)
+
+        return queryset.order_by('timestamp')
 
 class AIConversationViewSet(viewsets.ModelViewSet):
     queryset = AIConversation.objects.all()
@@ -2033,7 +2041,7 @@ def lead_stats(request):
     """Get lead dashboard statistics"""
     try:
         period = request.GET.get('period', 'all_time')
-        
+
         # Calculate stats based on period
         if period == 'this_month':
             from datetime import datetime
@@ -2070,11 +2078,11 @@ def recent_activity(request):
     """Get recent lead activity"""
     try:
         limit = int(request.GET.get('limit', 10))
-        
+
+        activities = []
         # Get recent leads and activities
         recent_leads = Lead.objects.select_related('company', 'contact').order_by('-updated_at')[:limit]
-        
-        activities = []
+
         for lead in recent_leads:
             activities.append({
                 'id': lead.id,
@@ -2095,7 +2103,7 @@ def top_leads(request):
     """Get top qualified leads"""
     try:
         limit = int(request.GET.get('limit', 5))
-        
+
         top_leads = Lead.objects.select_related('company', 'contact').filter(
             status='qualified'
         ).order_by('-score', '-estimated_value')[:limit]
@@ -2196,12 +2204,12 @@ def email_campaign_performance(request):
     """Get email campaign performance data"""
     try:
         campaigns = EmailCampaign.objects.filter(status__in=['active', 'completed'])
-        
+
         performance_data = []
         for campaign in campaigns:
             open_rate = (campaign.emails_opened / campaign.emails_sent * 100) if campaign.emails_sent > 0 else 0
             click_rate = (campaign.emails_clicked / campaign.emails_sent * 100) if campaign.emails_sent > 0 else 0
-            
+
             performance_data.append({
                 'id': campaign.id,
                 'name': campaign.name,
@@ -2281,7 +2289,7 @@ def proposal_draft_detail(request, opportunity_id):
                 'description': opportunity.description
             }
         )
-        
+
         serializer = ProposalDraftSerializer(draft)
         return Response(serializer.data)
     except Exception as e:
@@ -2293,7 +2301,7 @@ def download_proposal_attachment(request, opportunity_id):
     try:
         opportunity = get_object_or_404(Opportunity, id=opportunity_id)
         draft = get_object_or_404(ProposalDraft, opportunity=opportunity)
-        
+
         if not draft.attachment_path:
             return Response({'error': 'No attachment found'}, status=status.HTTP_404_NOT_FOUND)
 
@@ -2780,36 +2788,33 @@ def download_proposal_attachment(request, opportunity_id):
 def email_campaign_performance(request):
     """Get email campaign performance metrics"""
     try:
-        campaigns = EmailCampaign.objects.filter(status__in=['active', 'completed'])
+        campaigns = EmailCampaign.objects.all()
+        analytics_data = []
 
-        performance_data = []
         for campaign in campaigns:
             open_rate = (campaign.emails_opened / campaign.emails_sent * 100) if campaign.emails_sent > 0 else 0
             click_rate = (campaign.emails_clicked / campaign.emails_sent * 100) if campaign.emails_sent > 0 else 0
 
-            performance_data.append({
+            analytics_data.append({
                 'id': campaign.id,
                 'name': campaign.name,
+                'status': campaign.status,
                 'emails_sent': campaign.emails_sent,
                 'emails_opened': campaign.emails_opened,
                 'emails_clicked': campaign.emails_clicked,
                 'open_rate': round(open_rate, 2),
                 'click_rate': round(click_rate, 2),
-                'status': campaign.status,
-                'created_at': campaign.created_at.isoformat() if campaign.created_at else None,
-                'target_count': campaign.target_count
+                'created_at': campaign.created_at
             })
 
         return Response({
             'success': True,
-            'data': performance_data,
-            'total_campaigns': len(performance_data)
+            'analytics': analytics_data
         })
-
     except Exception as e:
         return Response({
             'success': False,
-            'error': f'Failed to fetch campaign performance: {str(e)}'
+            'error': str(e)
         }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 @api_view(['POST'])

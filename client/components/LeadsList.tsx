@@ -217,7 +217,7 @@ const transformApiLeadToUILead = (apiLead: any) => {
     tags: [apiLead.company?.industry || 'General', apiLead.status || 'New'],
     contractReady: apiLead.status === 'qualified',
     lastActivity: apiLead.updated_at ? new Date(apiLead.updated_at).toISOString().split('T')[0] : apiLead.created_at ? new Date(apiLead.created_at).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
-    followUpDate: apiLead.next_action_date || new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+    followUpDate: apiLead.next_action_date || new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
     assignedAgent: apiLead.assigned_to?.username || null,
     assigned_agent_details: apiLead.assigned_to ? { // Map assigned agent details if available
       name: apiLead.assigned_to.full_name || apiLead.assigned_to.username,
@@ -578,22 +578,6 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
   });
   const [expandedNotes, setExpandedNotes] = useState<{[key: number]: boolean}>({});
   const [showHistoryDialog, setShowHistoryDialog] = useState(false);
-   const [showAddCompanyDialog, setShowAddCompanyDialog] = useState(false);
-
-  // Actions dropdown states
-  const [showInitiateCallModal, setShowInitiateCallModal] = useState(false);
-  const [showScheduleMeetingModal, setShowScheduleMeetingModal] = useState(false);
-  const [showScheduleDemoModal, setShowScheduleDemoModal] = useState(false);
-  const [selectedLeadForAction, setSelectedLeadForAction] = useState<any>(null);
-
-  // Assign Agent states
-  const [showAssignAgentModal, setShowAssignAgentModal] = useState(false);
-  const [selectedLeadForAssign, setSelectedLeadForAssign] = useState<any>(null);
-  const [selectedAgent, setSelectedAgent] = useState('');
-  const [assignmentPriority, setAssignmentPriority] = useState('Medium Priority');
-  const [assignmentNotes, setAssignmentNotes] = useState('');
-  const [isAssigning, setIsAssigning] = useState(false);
-
   const [selectedLeadForHistory, setSelectedLeadForHistory] = useState<any>(null);
   const [leadHistory, setLeadHistory] = useState<{ [key: number]: HistoryEntry[] }>({}); // Stores history entries fetched from API
   const [isLoadingHistory, setIsLoadingHistory] = useState(false); // Loading state for history fetch
@@ -666,6 +650,9 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
   const [isSavingNote, setIsSavingNote] = useState(false);
   const [qualifyingLeadId, setQualifyingLeadId] = useState<number | null>(null);
   const [disqualifyingLeadId, setDisqualifyingLeadId] = useState<number | null>(null);
+  const [leadNotes, setLeadNotes] = useState<{ [key: number]: any[] }>({}); // Stores lead notes fetched from API
+  const [isLoadingNotes, setIsLoadingNotes] = useState<{ [key: number]: boolean }>({}); // Loading state for notes fetch
+
 
   const isFormValid = () => {
     return newCompany.name.trim() !== '' && 
@@ -731,6 +718,21 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
       setLeads([]);
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Fetch lead notes from API for a specific lead
+  const fetchLeadNotes = async (leadId: number) => {
+    setIsLoadingNotes((prev) => ({ ...prev, [leadId]: true }));
+    try {
+      const notes = await leadApi.getLeadNotes(leadId); // Assuming this API endpoint exists
+      setLeadNotes((prev) => ({ ...prev, [leadId]: notes.sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()) }));
+    } catch (error) {
+      console.error('Error fetching lead notes:', error);
+      toast.error('Failed to load notes for this lead.');
+      setLeadNotes((prev) => ({ ...prev, [leadId]: [] })); // Set empty array on error
+    } finally {
+      setIsLoadingNotes((prev) => ({ ...prev, [leadId]: false }));
     }
   };
 
@@ -1310,6 +1312,12 @@ SOAR-AI Team`,
           };
         }
         return l;
+      }));
+
+      // Update the fetched lead notes as well
+      setLeadNotes(prev => ({
+        ...prev,
+        [selectedLeadForNote.id]: [response.note, ...(prev[selectedLeadForNote.id] || [])]
       }));
 
       setShowAddNoteDialog(false);
@@ -2205,7 +2213,7 @@ SOAR-AI Team`,
               </Alert>
 
               {/* Notes Section */}
-              {(lead.notes || (lead.leadNotes && lead.leadNotes.length > 0)) && (
+              {(lead.notes || (lead.leadNotes && lead.leadNotes.length > 0) || leadNotes[lead.id]?.length > 0) && (
                 <div className="mb-4 p-3 bg-gray-50 rounded-lg">
                   <Collapsible 
                     open={expandedNotes[lead.id] || false} 
@@ -2232,43 +2240,103 @@ SOAR-AI Team`,
 
                     <CollapsibleContent className="space-y-2">
                       {/* Original notes */}
-                      {/* {lead.notes && (
-                        <div className="text-sm text-gray-700 mb-2">
-                          <strong>Original Notes:</strong> {lead.notes.split(' | ')[0]}
-                        </div>
-                      )} */}
-
+                      {/* <div className="text-xs text-gray-600 mb-1">
+                            <strong>Original Notes:</strong> {lead.notes.split(' | ')[0]}
+                          </div>
+                        */}
                       {/* Recent lead notes */}
-                      {lead.leadNotes && lead.leadNotes.length > 0 && (
-                        <div className="space-y-2">
-                          <div className="text-xs font-medium text-gray-600">Recent Activity:</div>
-                          {(expandedNotes[lead.id] ? lead.leadNotes : lead.leadNotes.slice(0, 2)).map((note: any, index: number) => (
-                            <div key={note.id || index} className="text-sm bg-white p-2 rounded border-l-2 border-blue-200">
-                              <div className="flex items-center justify-between mb-1">
-                                <span className="text-xs text-gray-500">
-                                  {new Date(note.created_at).toLocaleDateString()} • {note.created_by?.username || 'User'}
-                                </span>
-                                {note.urgency && note.urgency !== 'Medium' && (
-                                  <Badge className={`text-xs px-1 py-0 ${getUrgencyBadgeStyle(note.urgency)}`}>
+                      <div>
+                        <div className="flex items-center justify-between mb-2">
+                          <h4 className="font-medium text-gray-900 flex items-center gap-2">
+                            <MessageSquare className="h-4 w-4" />
+                            Recent Notes ({lead.leadNotes?.length || 0})
+                          </h4>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleAddNote(lead)}
+                            className="text-blue-600 border-blue-300 hover:bg-blue-50"
+                          >
+                            <Plus className="h-3 w-3 mr-1" />
+                            Add Note
+                          </Button>
+                        </div>
+                        {lead.leadNotes && lead.leadNotes.length > 0 ? (
+                          <div className="space-y-2">
+                            {lead.leadNotes.slice(0, expandedNotes[lead.id] ? lead.leadNotes.length : 2).map((note: any, index: number) => (
+                              <div key={note.id || index} className="bg-gray-50 rounded-lg p-3 border border-gray-200">
+                                <div className="flex items-start justify-between mb-2">
+                                  <span className="text-xs text-gray-500">
+                                    {new Date(note.created_at).toLocaleDateString()} at {new Date(note.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                                  </span>
+                                  <Badge className={`text-xs ${getUrgencyBadgeStyle(note.urgency)}`}>
                                     {note.urgency}
                                   </Badge>
+                                </div>
+                                <p className="text-sm text-gray-700 mb-2">{note.note}</p>
+                                {note.next_action && (
+                                  <div className="text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded mb-1">
+                                    Next: {note.next_action}
+                                  </div>
                                 )}
+                                <div className="text-xs text-gray-500">
+                                  By: {note.created_by || 'System'}
+                                </div>
                               </div>
-                              <p className="text-gray-700">{note.note}</p>
-                              {note.next_action && (
-                                <p className="text-xs text-blue-600 mt-1">
-                                  <strong>Next:</strong> {note.next_action}
-                                </p>
+                            ))}
+
+                            {lead.leadNotes.length > 2 && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => toggleNotesExpansion(lead.id)}
+                                className="text-blue-600 hover:text-blue-700"
+                              >
+                                {expandedNotes[lead.id] ? (
+                                  <>
+                                    <ChevronUp className="h-4 w-4 mr-1" />
+                                    Show Less
+                                  </>
+                                ) : (
+                                  <>
+                                    <ChevronDown className="h-4 w-4 mr-1" />
+                                    Show All ({lead.leadNotes.length} notes)
+                                  </>
+                                )}
+                              </Button>
+                            )}
+                          </div>
+                        ) : (
+                          <div className="text-center py-4">
+                            <MessageSquare className="h-8 w-8 mx-auto mb-2 text-gray-400" />
+                            <p className="text-sm text-gray-500 mb-2">
+                              {leadNotes[lead.id] !== undefined ? 'No notes available for this lead' : 'Notes not loaded yet'}
+                            </p>
+                            <div className="flex gap-2 justify-center">
+                              {leadNotes[lead.id] === undefined && (
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => fetchLeadNotes(lead.id)}
+                                  className="text-gray-600 border-gray-300 hover:bg-gray-50"
+                                >
+                                  <RefreshCw className="h-3 w-3 mr-1" />
+                                  Load Notes
+                                </Button>
                               )}
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => handleAddNote(lead)}
+                                className="text-blue-600 border-blue-300 hover:bg-blue-50"
+                              >
+                                <Plus className="h-3 w-3 mr-1" />
+                                {leadNotes[lead.id]?.length > 0 ? 'Add Note' : 'Add First Note'}
+                              </Button>
                             </div>
-                          ))}
-                          {!expandedNotes[lead.id] && lead.leadNotes.length > 2 && (
-                            <div className="text-xs text-gray-500 text-center">
-                              +{lead.leadNotes.length - 2} more note{lead.leadNotes.length - 2 !== 1 ? 's' : ''} (click to expand)
-                            </div>
-                          )}
-                        </div>
-                      )}
+                          </div>
+                        )}
+                      </div>
                     </CollapsibleContent>
                   </Collapsible>
                 </div>

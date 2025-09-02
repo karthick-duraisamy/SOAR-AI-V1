@@ -379,6 +379,24 @@ export const useLeadApi = () => {
     return `${API_BASE_URL}/opportunities/${opportunityId}/proposal-draft/attachment/`;
   }, []);
 
+  // Get lead notes for a specific lead
+  const getLeadNotes = useCallback(async (leadId: number) => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const response = await baseApi.get(`/leads/${leadId}/notes/`);
+      setData(response.data);
+      return response.data;
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.error || error.message || 'Failed to fetch lead notes';
+      setError(errorMessage);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  }, [setLoading, setError, setData]);
+
   // Send proposal email
   const sendProposal = useCallback(async (opportunityId: number, proposalData: any) => {
     setLoading(true);
@@ -720,6 +738,7 @@ export const useLeadApi = () => {
     updateLeadScore,
     getPipelineStats,
     addNote,
+    getLeadNotes,
     sendMessage,
     getHistory,
     getLeadStats,
