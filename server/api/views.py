@@ -711,7 +711,6 @@ class LeadViewSet(viewsets.ModelViewSet):
         leads = leads.order_by('-created_at')[:100]  # Limit to 100 results for performance
 
         # Use optimized serializer for better performance
-        from .serializers import OptimizedLeadSerializer
         serializer = OptimizedLeadSerializer(leads, many=True)
         return Response(serializer.data)
 
@@ -894,13 +893,22 @@ class LeadViewSet(viewsets.ModelViewSet):
                 )
 
 
-            # Return both the note data and updated lead information
+            # Return optimized response with minimal data for faster performance
             note_serializer = LeadNoteSerializer(note)
-            lead_serializer = LeadSerializer(lead)
+            
+            # Return only essential lead data to avoid heavy serialization
+            essential_lead_data = {
+                'id': lead.id,
+                'notes': lead.notes,
+                'next_action': lead.next_action,
+                'priority': lead.priority,
+                'updated_at': lead.updated_at.isoformat() if lead.updated_at else None,
+                'lead_notes': [note_serializer.data]  # Include the new note
+            }
 
             return Response({
                 'note': note_serializer.data,
-                'lead': lead_serializer.data,
+                'lead': essential_lead_data,
                 'message': 'Note added successfully'
             }, status=status.HTTP_201_CREATED)
 

@@ -67,6 +67,9 @@ export const useLeadApi = () => {
     error: null,
   });
 
+  // Simple cache to avoid unnecessary API calls
+  const [cache, setCache] = useState<{[key: string]: {data: any, timestamp: number}}>({});
+
   const setLoading = useCallback((loading: boolean) => {
     setState(prev => ({ ...prev, loading }));
   }, []);
@@ -79,8 +82,18 @@ export const useLeadApi = () => {
     setState(prev => ({ ...prev, data }));
   }, []);
 
-  // Get all leads
+  // Get all leads with caching
   const getLeads = useCallback(async (filters?: LeadFilters) => {
+    const cacheKey = JSON.stringify(filters || {});
+    const cachedData = cache[cacheKey];
+    const now = Date.now();
+    
+    // Use cached data if it's less than 30 seconds old
+    if (cachedData && (now - cachedData.timestamp) < 30000) {
+      setData(cachedData.data);
+      return cachedData.data;
+    }
+
     setLoading(true);
     setError(null);
 
@@ -98,6 +111,15 @@ export const useLeadApi = () => {
         requestBody,
       );
 
+      // Cache the response
+      setCache(prev => ({
+        ...prev,
+        [cacheKey]: {
+          data: response.data,
+          timestamp: now
+        }
+      }));
+
       setData(response.data);
       return response.data;
     } catch (error: any) {
@@ -107,7 +129,7 @@ export const useLeadApi = () => {
     } finally {
       setLoading(false);
     }
-  }, [setLoading, setError, setData]);
+  }, [setLoading, setError, setData, cache]);
 
   // Get lead by ID
   const getLeadById = useCallback(async (id: number) => {
@@ -294,6 +316,9 @@ export const useLeadApi = () => {
         `/leads/${leadId}/add_note/`,
         noteData,
       );
+
+      // Clear cache when note is added to ensure fresh data
+      setCache({});
 
       setData(response.data);
       return response.data;
@@ -498,6 +523,10 @@ export const useLeadApi = () => {
 
     try {
       const response = await baseApi.post(`/leads/${leadId}/move_to_opportunity/`, opportunityData);
+      
+      // Clear cache when lead is updated
+      setCache({});
+      
       setData(response.data);
       return response.data;
     } catch (error: any) {
@@ -511,6 +540,11 @@ export const useLeadApi = () => {
       setLoading(false);
     }
   }, [setLoading, setError, setData]);
+
+  // Clear cache method for external use
+  const clearCache = useCallback(() => {
+    setCache({});
+  }, []);
 
   const assignAgent = useCallback(async (leadId: number, assignmentData: any) => {
     setLoading(true);
@@ -740,5 +774,6 @@ export const useLeadApi = () => {
     deleteProposalDraft,
     getAttachmentDownloadUrl,
     sendProposal,
+    clearCache,
   };
 };
