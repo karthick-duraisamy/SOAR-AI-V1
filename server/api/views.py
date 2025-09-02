@@ -764,7 +764,7 @@ class LeadViewSet(viewsets.ModelViewSet):
     def disqualify(self, request, pk=None):
         try:
             lead = self.get_object()
-            
+
             # Handle different request data formats
             if hasattr(request, 'data') and request.data:
                 if isinstance(request.data, dict):
@@ -777,19 +777,19 @@ class LeadViewSet(viewsets.ModelViewSet):
             else:
                 reason = ''
                 created_by = ''
-                
+
             old_status = lead.status
 
             lead.status = 'unqualified'
             # Append disqualification reason to notes
             timestamp = timezone.now().strftime('%Y-%m-%d %H:%M')
             disqualify_note = f"[{timestamp}] Disqualified: {reason}" if reason else f"[{timestamp}] Disqualified"
-            
+
             if lead.notes:
                 lead.notes = f"{lead.notes}\n\n{disqualify_note}"
             else:
                 lead.notes = disqualify_note
-                
+
             lead.save()
 
             # Create history entry for disqualification
@@ -3106,7 +3106,7 @@ def get_history(request):
                                 'won': 'Lead successfully converted to customer. Deal closed!',
                                 'lost': 'Lead was lost to competitor or decided not to proceed.'
                             }
-                            
+
                             status_icon_map = {
                                 'contacted': 'mail',
                                 'qualified': 'check-circle',
@@ -3158,7 +3158,7 @@ def get_history(request):
             # Get opportunity history
             try:
                 opportunity = Opportunity.objects.get(id=entity_id)
-                
+
                 # Get opportunity activities
                 activities = opportunity.activities.all().order_by('-created_at')
                 history_items = []
@@ -3171,7 +3171,7 @@ def get_history(request):
                             user_name = f"{activity.created_by.first_name} {activity.created_by.last_name}".strip()
                             if not user_name:
                                 user_name = activity.created_by.username
-                        
+
                         # Format timestamp
                         formatted_timestamp = 'Recently'
                         if activity.created_at:
@@ -3226,69 +3226,6 @@ def get_history(request):
 
                 # Sort by timestamp (newest first)
                 history_items.sort(key=lambda x: x['timestamp'] if x['timestamp'] else '', reverse=True)
-
-                return Response(history_items)
-
-        except Exception as e:
-            print(f"Error in get_history endpoint: {str(e)}")
-            return Response({
-                'error': f'Failed to fetch history: {str(e)}',
-                'history': []
-            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-                            'icon': 'activity',
-                            'timestamp': activity.created_at.isoformat() if activity.created_at else '',
-                            'user_name': user_name,
-                            'user_role': 'Sales Representative',
-                            'formatted_timestamp': formatted_timestamp,
-                            'metadata': {'activity_type': activity.type, 'activity_date': str(activity.date)}
-                        })
-                    except Exception as activity_error:
-                        print(f"Error processing activity {activity.id}: {activity_error}")
-                        continue
-
-                # If opportunity is linked to a lead, get lead history
-                if hasattr(opportunity, 'lead') and opportunity.lead:
-                    try:
-                        lead_history = LeadHistory.objects.filter(lead=opportunity.lead).order_by('-timestamp')
-                        for history in lead_history:
-                            try:
-                                user_name = 'System'
-                                user_role = 'System'
-                                if history.user:
-                                    user_name = f"{history.user.first_name} {history.user.last_name}".strip()
-                                    if not user_name:
-                                        user_name = history.user.username
-                                    user_role = 'Sales Manager' if history.user.is_staff else 'Sales Representative'
-
-                                metadata = {}
-                                if hasattr(history, 'metadata') and history.metadata:
-                                    metadata = history.metadata
-
-                                formatted_timestamp = history.timestamp.strftime('%m/%d/%Y at %I:%M:%S %p') if history.timestamp else 'Unknown'
-
-                                history_items.append({
-                                    'id': f"lead_history_{history.id}",
-                                    'history_type': history.history_type,
-                                    'action': history.action,
-                                    'details': history.details,
-                                    'icon': history.icon,
-                                    'timestamp': history.timestamp.isoformat() if history.timestamp else '',
-                                    'user_name': user_name,
-                                    'user_role': user_role,
-                                    'formatted_timestamp': formatted_timestamp,
-                                    'metadata': metadata
-                                })
-                            except Exception as history_error:
-                                print(f"Error processing lead history {history.id}: {history_error}")
-                                continue
-                    except Exception as lead_history_error:
-                        print(f"Error fetching lead history: {lead_history_error}")
-
-                # Sort by timestamp (newest first)
-                try:
-                    history_items.sort(key=lambda x: x['timestamp'] if x['timestamp'] else '', reverse=True)
-                except Exception as sort_error:
-                    print(f"Error sorting history items: {sort_error}")
 
                 return Response(history_items)
 
@@ -3805,7 +3742,7 @@ def recent_activity(request):
                     'action': f'Lead {lead.status} - Recent update',
                     'time': lead.updated_at.strftime('%d %b %Y, %I:%M %p'),
                     'status': lead.status,
-                    'value': f"${lead.estimated_value:,.0f} potential" if lead.estimated_value else "No value set"
+                    'value': f"${int(lead.estimated_value/1000)}K" if lead.estimated_value else "No value set"
                 })
 
         # If no activities found, return empty list
