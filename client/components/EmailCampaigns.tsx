@@ -622,7 +622,7 @@ export function EmailCampaigns({ onNavigate }: EmailCampaignsProps) {
           >
             Templates
           </TabsTrigger>
-          <TabsTrigger 
+          {/* <TabsTrigger 
             value="automation"
             style={{
               fontFamily: 'var(--font-family)',
@@ -647,7 +647,7 @@ export function EmailCampaigns({ onNavigate }: EmailCampaignsProps) {
             }}
           >
             Analytics
-          </TabsTrigger>
+          </TabsTrigger> */}
         </TabsList>
 
         <TabsContent value="campaigns" className="space-y-6" style={{ marginTop: 'var(--space-lg)' }}>
