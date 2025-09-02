@@ -725,10 +725,13 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
       console.log('Final transformed leads:', transformedLeads, "transformed leads for view profile:", transformedLeadsforViewProfile);
       setLeads(transformedLeads);
       
-      // Fetch notes for each lead
+      // Initialize leadNotes state with data from the leads response
+      const notesData: { [key: number]: any[] } = {};
       transformedLeads.forEach((lead: any) => {
-        fetchLeadNotes(lead.id);
+        // Use the leadNotes that are already included in the API response
+        notesData[lead.id] = lead.leadNotes || [];
       });
+      setLeadNotes(notesData);
       
       setLeadsForViewProfile(transformedLeadsforViewProfile);
 
@@ -743,20 +746,7 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
     }
   };
 
-  // Fetch lead notes from API for a specific lead
-  const fetchLeadNotes = async (leadId: number) => {
-    setIsLoadingNotes((prev) => ({ ...prev, [leadId]: true }));
-    try {
-      const notes = await leadApi.getLeadNotes(leadId); // Assuming this API endpoint exists
-      setLeadNotes((prev) => ({ ...prev, [leadId]: notes.sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()) }));
-    } catch (error) {
-      console.error('Error fetching lead notes:', error);
-      toast.error('Failed to load notes for this lead.');
-      setLeadNotes((prev) => ({ ...prev, [leadId]: [] })); // Set empty array on error
-    } finally {
-      setIsLoadingNotes((prev) => ({ ...prev, [leadId]: false }));
-    }
-  };
+  // Note: fetchLeadNotes function removed since notes are now included in the leads response
 
   useEffect(() => {
     // Always fetch leads on component mount
@@ -1341,6 +1331,10 @@ SOAR-AI Team`,
         ...prev,
         [selectedLeadForNote.id]: [response.note, ...(prev[selectedLeadForNote.id] || [])]
       }));
+
+      // Optionally refresh the leads list to get updated notes from backend
+      // This ensures consistency with the backend data
+      // fetchLeads();
 
       setShowAddNoteDialog(false);
       setSelectedLeadForNote(null);
