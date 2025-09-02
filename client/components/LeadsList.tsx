@@ -909,7 +909,7 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
           travel_budget: newCompanyForm.travelBudget ? parseFloat(newCompanyForm.travelBudget.replace(/[^0-9.]/g, '')) * 1000 : null, // Parse budget, assume K
           annual_travel_volume: newCompanyForm.annualTravelVolume || null,
           travel_frequency: newCompanyForm.travelFrequency || null,
-          preferred_class: newCompanyForm.preferredClass || null,
+          preferredClass: newCompanyForm.preferredClass || null,
           sustainability_focus: newCompanyForm.sustainabilityFocus || null,
           risk_level: newCompanyForm.riskLevel || null,
           expansion_plans: newCompanyForm.expansionPlans || null,
@@ -1117,6 +1117,8 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
       setIsSubmitting(false);
     }
   };
+
+
   // Function to qualify a lead via API
   const handleQualifyLead = async (leadId: number) => {
     try {
@@ -1273,9 +1275,58 @@ SOAR-AI Team`,
     setNoteForm({
       note: '',
       nextAction: lead.nextAction || '',
-      urgency: lead.urgency || 'Medium'
+      urgency: 'Medium'
     });
     setShowAddNoteDialog(true);
+  };
+
+  // Function to save note via API
+  const handleSaveNote = async () => {
+    if (!selectedLeadForNote || !noteForm.note.trim()) {
+      toast.error('Please enter a note');
+      return;
+    }
+
+    try {
+      setIsSavingNote(true);
+
+      const response = await leadApi.addNote(selectedLeadForNote.id, {
+        note: noteForm.note,
+        nextAction: noteForm.nextAction,
+        urgency: noteForm.urgency
+      });
+
+      // Update the local lead data with the new note and updated lead info
+      setLeads(prev => prev.map(l => {
+        if (l.id === selectedLeadForNote.id) {
+          // Add the new note to the beginning of the notes array
+          const updatedLeadNotes = [response.note, ...(l.leadNotes || [])];
+          return {
+            ...l,
+            leadNotes: updatedLeadNotes,
+            nextAction: response.lead.next_action || l.nextAction,
+            urgency: response.lead.priority || l.urgency,
+            notes: `${l.notes}\n[${new Date().toLocaleDateString()}] ${noteForm.note}`.trim()
+          };
+        }
+        return l;
+      }));
+
+      setShowAddNoteDialog(false);
+      setSelectedLeadForNote(null);
+      setNoteForm({
+        note: '',
+        nextAction: '',
+        urgency: 'Medium'
+      });
+
+      toast.success('Note added successfully');
+    } catch (error) {
+      console.error('Error saving note:', error);
+      toast.error('Failed to save note');
+    } finally {
+      setIsSavingNote(false);
+    }
   };
 
   // Function to open dialog for viewing lead history
@@ -1322,54 +1373,6 @@ SOAR-AI Team`,
       }));
     } finally {
       setIsLoadingHistory(false);
-    }
-  };
-
-  // Function to save a note via API
-  const handleSaveNote = async () => {
-    if (!selectedLeadForNote || !noteForm.note.trim()) {
-      toast.error('Please enter a note');
-      return;
-    }
-
-    try {
-      setIsSavingNote(true);
-      // Call API to add note, which should also create a history entry
-      await leadApi.addNote(selectedLeadForNote.id, { 
-        note: noteForm.note,
-        next_action: noteForm.nextAction,
-        urgency: noteForm.urgency,
-        created_by: 'Current User' // This should ideally be handled by backend based on auth
-      });
-
-      // Refresh the leads list to get the latest data including the new note
-      await fetchLeads();
-
-      // Clear history cache for this lead to force a fresh fetch on next view
-      setLeadHistory(prev => {
-        const newHistory = { ...prev };
-        delete newHistory[selectedLeadForNote.id];
-        return newHistory;
-      });
-
-      // Close dialog and reset state
-      setShowAddNoteDialog(false);
-      setSelectedLeadForNote(null);
-      setNoteForm({
-        note: '',
-        nextAction: '',
-        urgency: 'Medium'
-      });
-
-      setSuccessMessage(`Note added to ${selectedLeadForNote.company} successfully!`);
-      setTimeout(() => setSuccessMessage(''), 5000);
-      toast.success('Note saved successfully!');
-
-    } catch (error) {
-      console.error('Error saving note:', error);
-      toast.error('Failed to save note. Please try again.');
-    } finally {
-      setIsSavingNote(false);
     }
   };
 
@@ -2641,46 +2644,38 @@ SOAR-AI Team`,
 
       {/* Add Note Dialog */}
       <Dialog open={showAddNoteDialog} onOpenChange={setShowAddNoteDialog}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <MessageSquare className="h-5 w-5 text-orange-600" />
-              Add Note for {selectedLeadForNote?.company}
-            </DialogTitle>
+            <DialogTitle>Add Note</DialogTitle>
             <DialogDescription>
-              Update lead information and next actions
+              Add a note for {selectedLeadForNote?.company}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div>
-              <Label className="text-sm font-medium text-gray-700 mb-2 block">Note</Label>
+              <Label htmlFor="note">Note *</Label>
               <Textarea
+                id="note"
+                placeholder="Enter your note here..."
                 value={noteForm.note}
-                onChange={(e) => setNoteForm({...noteForm, note: e.target.value})}
-                placeholder="Add your notes..."
-                className="min-h-[120px] resize-none border-gray-300 focus:border-orange-500 focus:ring-orange-500"
-                rows={5}
+                onChange={(e) => setNoteForm(prev => ({ ...prev, note: e.target.value }))}
+                className="min-h-[100px]"
               />
             </div>
-
             <div>
-              <Label className="text-sm font-medium text-gray-700 mb-2 block">Next Action</Label>
+              <Label htmlFor="nextAction">Next Action (Optional)</Label>
               <Input
+                id="nextAction"
+                placeholder="What's the next step?"
                 value={noteForm.nextAction}
-                onChange={(e) => setNoteForm({...noteForm, nextAction: e.target.value})}
-                placeholder="Contract negotiation"
-                className="border-gray-300 focus:border-orange-500 focus:ring-orange-500"
+                onChange={(e) => setNoteForm(prev => ({ ...prev, nextAction: e.target.value }))}
               />
             </div>
-
             <div>
-              <Label className="text-sm font-medium text-gray-700 mb-2 block">Urgency</Label>
-              <Select 
-                value={noteForm.urgency}  
-                onValueChange={(value) => setNoteForm({...noteForm, urgency: value})}
-              >
-                <SelectTrigger className="border-orange-200 focus:border-orange-500 focus:ring-orange-500">
-                  <SelectValue/>
+              <Label htmlFor="urgency">Urgency</Label>
+              <Select value={noteForm.urgency} onValueChange={(value) => setNoteForm(prev => ({ ...prev, urgency: value }))}>
+                <SelectTrigger>
+                  <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="Low">Low</SelectItem>
@@ -2691,33 +2686,22 @@ SOAR-AI Team`,
               </Select>
             </div>
           </div>
-          <DialogFooter className="flex gap-2">
-            <Button 
-              variant="outline" 
-              onClick={() => {
-                setShowAddNoteDialog(false);
-                setSelectedLeadForNote(null);
-                setNoteForm({
-                  note: '',
-                  nextAction: '',
-                  urgency: 'Medium'
-                });
-              }}
-              className="text-gray-600 border-gray-300"
-            >
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowAddNoteDialog(false)}>
               Cancel
             </Button>
-            <Button 
-              className="bg-orange-600 hover:bg-orange-700 text-white"
-              onClick={handleSaveNote}
-              disabled={isSavingNote}
-            >
+            <Button onClick={handleSaveNote} disabled={isSavingNote || !noteForm.note.trim()}>
               {isSavingNote ? (
-                <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                <>
+                  <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                  Saving...
+                </>
               ) : (
-                <Save className="h-4 w-4 mr-2" />
+                <>
+                  <Save className="mr-2 h-4 w-4" />
+                  Save Note
+                </>
               )}
-              {isSavingNote ? 'Saving...' : 'Save Note'}
             </Button>
           </DialogFooter>
         </DialogContent>
