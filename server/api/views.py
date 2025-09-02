@@ -1542,12 +1542,17 @@ class OpportunityViewSet(viewsets.ModelViewSet):
                             user_name = activity.created_by.username
 
                     # Format timestamp safely
-                    formatted_timestamp = activity.created_at.strftime('%m/%d/%Y at %I:%M:%S %p') if activity.created_at else 'Unknown'
+                    formatted_timestamp = 'Recently'
+                    if activity.created_at:
+                        try:
+                            formatted_timestamp = activity.created_at.strftime('%B %d, %Y at %I:%M %p')
+                        except:
+                            formatted_timestamp = str(activity.created_at)
 
                     history_items.append({
-                        'id': f"activity_{activity.id}",
-                        'history_type': 'activity',
-                        'action': f"{activity.get_type_display()} - {activity.description[:50]}{'...' if len(activity.description) > 50 else ''}",
+                        'id': f"opportunity_activity_{activity.id}",
+                        'history_type': activity.type,
+                        'action': activity.type.replace('_', ' ').title(),
                         'details': activity.description,
                         'icon': 'activity',
                         'timestamp': activity.created_at.isoformat() if activity.created_at else '',
@@ -1581,7 +1586,12 @@ class OpportunityViewSet(viewsets.ModelViewSet):
                                 metadata = history.metadata
 
                             # Format timestamp
-                            formatted_timestamp = history.timestamp.strftime('%m/%d/%Y at %I:%M:%S %p') if history.timestamp else 'Unknown'
+                            formatted_timestamp = 'Recently'
+                            if history.timestamp:
+                                try:
+                                    formatted_timestamp = history.timestamp.strftime('%B %d, %Y at %I:%M %p')
+                                except:
+                                    formatted_timestamp = str(history.timestamp)
 
                             history_items.append({
                                 'id': f"lead_history_{history.id}",
@@ -1602,10 +1612,7 @@ class OpportunityViewSet(viewsets.ModelViewSet):
                     print(f"Error fetching lead history: {lead_history_error}")
 
             # Sort by timestamp (newest first)
-            try:
-                history_items.sort(key=lambda x: x['timestamp'] if x['timestamp'] else '', reverse=True)
-            except Exception as sort_error:
-                print(f"Error sorting history items: {sort_error}")
+            history_items.sort(key=lambda x: x['timestamp'] if x['timestamp'] else '', reverse=True)
 
             return Response(history_items)
 
@@ -3672,45 +3679,49 @@ def top_leads(request):
 
         leads_data = []
         for lead in top_qualified_leads:
-            # Calculate engagement level based on score
-            if lead.score >= 80:
-                engagement = 'High'
-            elif lead.score >= 60:
-                engagement = 'Medium'
-            else:
-                engagement = 'Low'
+            try:
+                # Calculate engagement level based on score
+                if lead.score >= 80:
+                    engagement = 'High'
+                elif lead.score >= 60:
+                    engagement = 'Medium'
+                else:
+                    engagement = 'Low'
 
-            # Determine next action based on status and priority
-            if lead.status == 'qualified':
-                next_action = 'Send proposal'
-            elif lead.status == 'contacted':
-                next_action = 'Follow up call'
-            else:
-                next_action = 'Contact prospect'
+                # Determine next action based on status and priority
+                if lead.status == 'qualified':
+                    next_action = 'Send proposal'
+                elif lead.status == 'contacted':
+                    next_action = 'Follow up call'
+                else:
+                    next_action = 'Contact prospect'
 
-            # Format last contact time
-            time_since_update = timezone.now() - lead.updated_at
-            if time_since_update.days > 0:
-                last_contact = f"{time_since_update.days} days ago"
-            elif time_since_update.seconds > 3600:
-                last_contact = f"{time_since_update.seconds // 3600} hours ago"
-            else:
-                last_contact = f"{time_since_update.seconds // 60} minutes ago"
+                # Format last contact time
+                time_since_update = timezone.now() - lead.updated_at
+                if time_since_update.days > 0:
+                    last_contact = f"{time_since_update.days} days ago"
+                elif time_since_update.seconds > 3600:
+                    last_contact = f"{time_since_update.seconds // 3600} hours ago"
+                else:
+                    last_contact = f"{time_since_update.seconds // 60} minutes ago"
 
-            leads_data.append({
-                'id': lead.id,
-                'company': lead.company.name,
-                'contact': f"{lead.contact.first_name} {lead.contact.last_name}",
-                'title': lead.contact.position or 'Contact',
-                'industry': lead.company.industry or 'Unknown',
-                'employees': lead.company.employee_count or 100,
-                'engagement': engagement,
-                'status': lead.status,
-                'score': lead.score,
-                'value': f"${int(lead.estimated_value/1000)}K" if lead.estimated_value else "TBD",
-                'nextAction': next_action,
-                'lastContact': last_contact
-            })
+                leads_data.append({
+                    'id': lead.id,
+                    'company': lead.company.name,
+                    'contact': f"{lead.contact.first_name} {lead.contact.last_name}",
+                    'title': lead.contact.position or 'Contact',
+                    'industry': lead.company.industry or 'Unknown',
+                    'employees': lead.company.employee_count or 100,
+                    'engagement': engagement,
+                    'status': lead.status,
+                    'score': lead.score,
+                    'value': f"${int(lead.estimated_value/1000)}K" if lead.estimated_value else "TBD",
+                    'nextAction': next_action,
+                    'lastContact': last_contact
+                })
+            except Exception as lead_error:
+                print(f"Error processing lead {lead.id}: {lead_error}")
+                continue
 
         # If no leads found, return empty list
         if not leads_data:
