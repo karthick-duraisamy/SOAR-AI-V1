@@ -652,6 +652,7 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
   const [disqualifyingLeadId, setDisqualifyingLeadId] = useState<number | null>(null);
   const [leadNotes, setLeadNotes] = useState<{ [key: number]: any[] }>({}); // Stores lead notes fetched from API
   const [isLoadingNotes, setIsLoadingNotes] = useState<{ [key: number]: boolean }>({}); // Loading state for notes fetch
+  const [showAddCompanyDialog, setShowAddCompanyDialog] = useState(false); // State for Add Company Dialog
 
 
   const isFormValid = () => {
