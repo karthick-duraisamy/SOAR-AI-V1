@@ -172,6 +172,7 @@ class LeadSerializer(serializers.ModelSerializer):
     assigned_agent = serializers.CharField(read_only=True)
     assigned_agent_details = serializers.SerializerMethodField()
     lead_notes = LeadNoteSerializer(many=True, read_only=True)
+    latest_note = serializers.SerializerMethodField()
     history_entries = serializers.SerializerMethodField()
 
     class Meta:
@@ -221,6 +222,11 @@ class LeadSerializer(serializers.ModelSerializer):
     def get_days_since_created(self, obj):
         from django.utils import timezone
         return (timezone.now() - obj.created_at).days
+
+    def get_latest_note(self, obj):
+        """Get all lead notes formatted as an array of objects"""
+        notes = obj.lead_notes.all().order_by('-created_at')
+        return LeadNoteSerializer(notes, many=True).data
 
     def get_assigned_agent_details(self, obj):
         """Get detailed information about the assigned agent"""

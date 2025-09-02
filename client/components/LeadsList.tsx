@@ -179,9 +179,9 @@ const transformHistoryEntry = (entry: any) => {
 
 // Transform API lead data to match the component's expected format
 const transformApiLeadToUILead = (apiLead: any) => {
-  // Get the latest note from lead_notes array if available
-  const latestNote = apiLead.lead_notes && apiLead.lead_notes.length > 0 
-    ? apiLead.lead_notes[0] // Notes are ordered by -created_at in the backend
+  // Get the latest note from latest_note array if available
+  const latestNote = apiLead.latest_note && apiLead.latest_note.length > 0 
+    ? apiLead.latest_note[0] // Notes are ordered by -created_at in the backend
     : null;
 
   // Combine original notes with latest lead notes
@@ -208,7 +208,7 @@ const transformApiLeadToUILead = (apiLead: any) => {
     lastContact: apiLead.last_contact_at ? new Date(apiLead.last_contact_at).toISOString().split('T')[0] : apiLead.created_at ? new Date(apiLead.created_at).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
     nextAction: apiLead.next_action || 'Follow up',
     notes: combinedNotes,
-    leadNotes: apiLead.lead_notes || [], // Store all notes for display
+    leadNotes: apiLead.latest_note || [], // Store all notes for display
     engagement: apiLead.score >= 80 ? 'High' : apiLead.score >= 60 ? 'Medium' : 'Low',
     travelBudget: apiLead.company?.travel_budget ? `$${Math.floor(apiLead.company.travel_budget / 1000)}K` : '$0K',
     decisionMaker: apiLead.contact?.is_decision_maker || Math.random() > 0.5,
@@ -727,9 +727,9 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
       
       // Initialize leadNotes state with data from the leads response
       const notesData: { [key: number]: any[] } = {};
-      transformedLeads.forEach((lead: any) => {
-        // Use the leadNotes that are already included in the API response
-        notesData[lead.id] = lead.leadNotes || [];
+      apiLeads.forEach((apiLead: any) => {
+        // Use the latest_note that are already included in the API response
+        notesData[apiLead.id] = apiLead.latest_note || [];
       });
       setLeadNotes(notesData);
       
