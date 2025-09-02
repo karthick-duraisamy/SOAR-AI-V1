@@ -3036,7 +3036,6 @@ def bulk_upload_companies(request):
 
 @csrf_exempt
 @api_view(['GET', 'POST'])
-@permission_classes([AllowAny])
 def get_history(request):
     """
     Generic history endpoint that can handle different entity types
@@ -3566,7 +3565,7 @@ def lead_stats(request):
         elif date_range == 'this_month':
             period_start = now.replace(day=1)
         elif date_range == 'this_year':
-            period_start = now.replace(month=1, day=1)
+            period_start = now.replace(month=1, day=1, hour=0, minute=0, second=0, microsecond=0)
         # If date_range is 'all_time' or any other value, don't filter by date
 
         # Basic counts - use date filter if specified
@@ -3610,7 +3609,7 @@ def lead_stats(request):
             ).count()
 
             if previous_period_leads > 0:
-                total_change = ((total_leads - previous_period_leads) / previous_period_leads) * 100
+                total_change = ((total_leads - previous_leads) / previous_leads) * 100
 
         # Calculate progress statuses
         responded_leads = Lead.objects.filter(status__in=['qualified', 'unqualified']).count()
@@ -4224,3 +4223,199 @@ def proposal_draft_detail(request, opportunity_id):
             return Response({'message': 'Draft deleted successfully'}, status=status.HTTP_200_OK)
         except ProposalDraft.DoesNotExist:
             return Response({'message': 'No draft found'}, status=status.HTTP_404_NOT_FOUND)
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def lead_dashboard_stats(request):
+    """Get comprehensive lead dashboard statistics"""
+    try:
+        time_period = request.GET.get('period', 'all_time')
+
+        # Calculate date range based on period
+        end_date = timezone.now()
+        if time_period == 'last_30_days':
+            start_date = end_date - timedelta(days=30)
+        elif time_period == 'last_90_days':
+            start_date = end_date - timedelta(days=90)
+        elif time_period == 'this_year':
+            start_date = end_date.replace(month=1, day=1, hour=0, minute=0, second=0, microsecond=0)
+        else:
+            start_date = None
+
+        # Base queryset
+        leads_queryset = Lead.objects.all()
+        if start_date:
+            leads_queryset = leads_queryset.filter(created_at__gte=start_date)
+
+        # Calculate basic stats
+        total_leads = leads_queryset.count()
+        qualified_leads = leads_queryset.filter(status='qualified').count()
+        unqualified_leads = leads_queryset.filter(status='unqualified').count()
+        contacted_leads = leads_queryset.filter(status='contacted').count()
+        responded_leads = leads_queryset.filter(status='responded').count()
+
+        # Calculate conversion rate
+        conversion_rate = (qualified_leads / total_leads * 100) if total_leads > 0 else 0
+
+        # Calculate email stats (mock data for now - can be enhanced with actual email tracking)
+        email_open_rate = 68.5  # This would come from email campaign data
+        email_open_rate_change = 5.2
+
+        # Calculate average response time (mock data)
+        avg_response_time = "2.4 hours"
+        avg_response_time_change = "15% faster"
+
+        # Calculate period-over-period changes
+        if start_date:
+            previous_period_start = start_date - (end_date - start_date)
+            previous_leads = Lead.objects.filter(
+                created_at__gte=previous_period_start, 
+                created_at__lt=start_date
+            ).count()
+            total_change = ((total_leads - previous_leads) / max(previous_leads, 1) * 100) if previous_leads > 0 else 0
+        else:
+            total_change = 12.5  # Mock data for all time
+
+        stats = {
+            'totalLeads': total_leads,
+            'qualifiedLeads': qualified_leads,
+            'unqualified': unqualified_leads,
+            'contacted': contacted_leads,
+            'responded': responded_leads,
+            'conversionRate': round(conversion_rate, 1),
+            'emailOpenRate': email_open_rate,
+            'emailOpenRateChange': email_open_rate_change,
+            'avgResponseTime': avg_response_time,
+            'avgResponseTimeChange': avg_response_time_change,
+            'totalChange': round(total_change, 1),
+            'period': time_period
+        }
+
+        return Response(stats)
+
+    except Exception as e:
+        return Response({
+            'error': f'Failed to fetch lead stats: {str(e)}',
+            'totalLeads': 0,
+            'qualifiedLeads': 0,
+            'unqualified': 0,
+            'contacted': 0,
+            'responded': 0,
+            'conversionRate': 0,
+            'emailOpenRate': 0,
+            'emailOpenRateChange': 0,
+            'avgResponseTime': '0 hours',
+            'avgResponseTimeChange': 'No change',
+            'totalChange': 0
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def recent_lead_activity(request):
+    """Get recent lead activity for dashboard"""
+    try:
+        limit = int(request.GET.get('limit', 10))
+
+        activities = []
+
+        # Get recent lead history entries
+        try:
+            recent_history = LeadHistory.objects.select_related('lead__company', 'lead__contact', 'user').order_by('-timestamp')[:limit]
+
+            for history in recent_history:
+                try:
+                    activity = {
+                        'id': f"history_{history.id}",
+                        'type': history.history_type,
+                        'lead': history.lead.company.name if history.lead and history.lead.company else 'Unknown Company',
+                        'contact': f"{history.lead.contact.first_name} {history.lead.contact.last_name}" if history.lead and history.lead.contact else 'Unknown Contact',
+                        'action': history.action,
+                        'status': history.lead.status if history.lead else 'unknown',
+                        'time': history.timestamp.strftime('%m/%d/%Y at %I:%M %p') if history.timestamp else 'Unknown time',
+                        'value': f"${int(history.lead.estimated_value/1000)}K" if history.lead and history.lead.estimated_value else 'TBD',
+                        'user': history.user.get_full_name() if history.user else 'System'
+                    }
+                    activities.append(activity)
+                except Exception as activity_error:
+                    print(f"Error processing history {history.id}: {activity_error}")
+                    continue
+
+        except Exception as history_error:
+            print(f"Error fetching lead history: {history_error}")
+
+        # If no history available, get recent leads as activities
+        if not activities:
+            recent_leads = Lead.objects.select_related('company', 'contact').order_by('-created_at')[:limit]
+
+            for lead in recent_leads:
+                try:
+                    activity = {
+                        'id': f"lead_{lead.id}",
+                        'type': 'lead_created',
+                        'lead': lead.company.name if lead.company else 'Unknown Company',
+                        'contact': f"{lead.contact.first_name} {lead.contact.last_name}" if lead.contact else 'Unknown Contact',
+                        'action': f'New lead created from {lead.source}',
+                        'status': lead.status,
+                        'time': lead.created_at.strftime('%m/%d/%Y at %I:%M %p'),
+                        'value': f"${int(lead.estimated_value/1000)}K" if lead.estimated_value else 'TBD',
+                        'user': 'System'
+                    }
+                    activities.append(activity)
+                except Exception as lead_error:
+                    print(f"Error processing lead {lead.id}: {lead_error}")
+                    continue
+
+        return Response(activities)
+
+    except Exception as e:
+        print(f"Error in recent activity endpoint: {str(e)}")
+        return Response([], status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def top_qualified_leads(request):
+    """Get top qualified leads for dashboard"""
+    try:
+        limit = int(request.GET.get('limit', 5))
+
+        # Get top qualified leads ordered by score and estimated value
+        top_leads = Lead.objects.select_related('company', 'contact').filter(
+            status='qualified'
+        ).order_by('-score', '-estimated_value')[:limit]
+
+        leads_data = []
+        for lead in top_leads:
+            try:
+                # Determine engagement level based on score
+                if lead.score >= 80:
+                    engagement = 'High'
+                elif lead.score >= 60:
+                    engagement = 'Medium'
+                else:
+                    engagement = 'Low'
+
+                lead_data = {
+                    'id': lead.id,
+                    'company': lead.company.name if lead.company else 'Unknown Company',
+                    'contact': f"{lead.contact.first_name} {lead.contact.last_name}" if lead.contact else 'Unknown Contact',
+                    'title': lead.contact.position if lead.contact else 'Unknown Position',
+                    'industry': lead.company.industry.title() if lead.company and lead.company.industry else 'Unknown',
+                    'employees': lead.company.employee_count if lead.company else 0,
+                    'status': lead.status,
+                    'score': lead.score,
+                    'value': f"${int(lead.estimated_value/1000)}K" if lead.estimated_value else 'TBD',
+                    'engagement': engagement,
+                    'nextAction': lead.next_action or 'Follow up required',
+                    'lastContact': lead.updated_at.strftime('%m/%d/%Y') if lead.updated_at else 'Unknown'
+                }
+                leads_data.append(lead_data)
+
+            except Exception as lead_error:
+                print(f"Error processing lead {lead.id}: {lead_error}")
+                continue
+
+        return Response(leads_data)
+
+    except Exception as e:
+        print(f"Error in top leads endpoint: {str(e)}")
+        return Response([], status=status.HTTP_500_INTERNAL_SERVER_ERROR)

@@ -47,37 +47,80 @@ interface LeadManagementProps {
 
 export function LeadManagement({ onNavigate }: LeadManagementProps) {
   const [activeTab, setActiveTab] = useState('overview');
+  const [selectedPeriod, setSelectedPeriod] = useState('all_time');
   const { getLeadStats, getRecentActivity, getTopLeads } = useLeadApi();
   const [leadStats, setLeadStats] = useState<any>(null);
   const [recentActivity, setRecentActivity] = useState<any[]>([]);
   const [topLeads, setTopLeads] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [dataError, setDataError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
       setIsLoading(true);
+      setDataError(null);
+      
       try {
-        // Fetch lead statistics
-        const stats = await getLeadStats('all_time');
-        setLeadStats(stats);
+        // Fetch all data in parallel for better performance
+        const [stats, activity, leads] = await Promise.allSettled([
+          getLeadStats(selectedPeriod),
+          getRecentActivity(10),
+          getTopLeads(5)
+        ]);
 
-        // Fetch recent activity
-        const activity = await getRecentActivity();
-        setRecentActivity(activity);
+        // Handle lead statistics
+        if (stats.status === 'fulfilled') {
+          setLeadStats(stats.value);
+        } else {
+          console.error('Failed to fetch lead stats:', stats.reason);
+          setLeadStats({
+            totalLeads: 0,
+            qualifiedLeads: 0,
+            unqualified: 0,
+            contacted: 0,
+            responded: 0,
+            conversionRate: 0,
+            emailOpenRate: 0,
+            emailOpenRateChange: 0,
+            avgResponseTime: '0 hours',
+            avgResponseTimeChange: 'No change',
+            totalChange: 0
+          });
+        }
 
-        // Fetch top qualified leads
-        const leads = await getTopLeads();
-        setTopLeads(leads);
+        // Handle recent activity
+        if (activity.status === 'fulfilled') {
+          setRecentActivity(activity.value);
+        } else {
+          console.error('Failed to fetch recent activity:', activity.reason);
+          setRecentActivity([]);
+        }
+
+        // Handle top leads
+        if (leads.status === 'fulfilled') {
+          setTopLeads(leads.value);
+        } else {
+          console.error('Failed to fetch top leads:', leads.reason);
+          setTopLeads([]);
+        }
+
+        // Check if all requests failed
+        const allFailed = [stats, activity, leads].every(result => result.status === 'rejected');
+        if (allFailed) {
+          setDataError('Failed to load dashboard data. Please check your connection and try again.');
+        }
+
       } catch (error) {
-        toast.error('Failed to fetch lead data. Please try again.');
         console.error('Error fetching lead data:', error);
+        setDataError('An unexpected error occurred while loading the dashboard.');
+        toast.error('Failed to fetch lead data. Please try again.');
       } finally {
         setIsLoading(false);
       }
     };
 
     fetchData();
-  }, [getLeadStats, getRecentActivity, getTopLeads]);
+  }, [getLeadStats, getRecentActivity, getTopLeads, selectedPeriod]);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -105,6 +148,31 @@ export function LeadManagement({ onNavigate }: LeadManagementProps) {
       case 'Medium': return 'text-yellow-600';
       case 'Low': return 'text-red-600';
       default: return 'text-gray-600';
+    }
+  };
+
+  // Refresh dashboard data
+  const refreshDashboard = async () => {
+    setIsLoading(true);
+    setDataError(null);
+    
+    try {
+      const [stats, activity, leads] = await Promise.allSettled([
+        getLeadStats(selectedPeriod),
+        getRecentActivity(10),
+        getTopLeads(5)
+      ]);
+
+      if (stats.status === 'fulfilled') setLeadStats(stats.value);
+      if (activity.status === 'fulfilled') setRecentActivity(activity.value);
+      if (leads.status === 'fulfilled') setTopLeads(leads.value);
+
+      toast.success('Dashboard data refreshed successfully');
+    } catch (error) {
+      setDataError('Failed to refresh dashboard data');
+      toast.error('Failed to refresh dashboard data');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -179,8 +247,33 @@ export function LeadManagement({ onNavigate }: LeadManagementProps) {
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Lead Management</h1>
           <p className="text-gray-600 mt-1">Manage qualified and unqualified leads with automated email campaigns</p>
+          {dataError && (
+            <Alert className="mt-2 bg-red-50 border-red-200">
+              <AlertTriangle className="h-4 w-4 text-red-600" />
+              <AlertDescription className="text-red-800">
+                {dataError}
+                <Button 
+                  variant="link" 
+                  className="p-0 ml-2 text-red-700 hover:text-red-800" 
+                  onClick={refreshDashboard}
+                  disabled={isLoading}
+                >
+                  Try again
+                </Button>
+              </AlertDescription>
+            </Alert>
+          )}
         </div>
         <div className="flex gap-3">
+          <Button 
+            variant="outline" 
+            className="bg-white border-gray-200 hover:bg-gray-50" 
+            onClick={refreshDashboard}
+            disabled={isLoading}
+          >
+            <Activity className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
+            {isLoading ? 'Loading...' : 'Refresh'}
+          </Button>
           <Button variant="outline" className="bg-white border-gray-200 hover:bg-gray-50" onClick={() => onNavigate('email-campaigns')}>
             <Mail className="h-4 w-4 mr-2" />
             Email Campaigns

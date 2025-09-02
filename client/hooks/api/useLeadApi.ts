@@ -438,21 +438,59 @@ export const useLeadApi = () => {
     }
   }, [setLoading, setError, setData]);
 
-  // Placeholder functions for missing API endpoints
-  const getLeadStats = useCallback(async () => {
-    // Placeholder for lead stats API
-    return {};
-  }, []);
+  // Get lead dashboard statistics
+  const getLeadStats = useCallback(async (period: string = 'all_time') => {
+    setLoading(true);
+    setError(null);
 
-  const getRecentActivity = useCallback(async () => {
-    // Placeholder for recent activity API
-    return [];
-  }, []);
+    try {
+      const response = await baseApi.get(`/leads/dashboard/stats/?period=${period}`);
+      setData(response.data);
+      return response.data;
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.error || error.message || 'Failed to fetch lead statistics';
+      setError(errorMessage);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  }, [setLoading, setError, setData]);
 
-  const getTopLeads = useCallback(async () => {
-    // Placeholder for top leads API
-    return [];
-  }, []);
+  // Get recent lead activity
+  const getRecentActivity = useCallback(async (limit: number = 10) => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const response = await baseApi.get(`/leads/dashboard/recent-activity/?limit=${limit}`);
+      setData(response.data);
+      return response.data;
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.error || error.message || 'Failed to fetch recent activity';
+      setError(errorMessage);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  }, [setLoading, setError, setData]);
+
+  // Get top qualified leads
+  const getTopLeads = useCallback(async (limit: number = 5) => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const response = await baseApi.get(`/leads/dashboard/top-qualified/?limit=${limit}`);
+      setData(response.data);
+      return response.data;
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.error || error.message || 'Failed to fetch top leads';
+      setError(errorMessage);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  }, [setLoading, setError, setData]);
 
   const moveToOpportunity = useCallback(async (leadId: number, opportunityData: any) => {
     setLoading(true);

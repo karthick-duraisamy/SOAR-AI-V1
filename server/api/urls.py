@@ -39,4 +39,9 @@ urlpatterns = [
     path('opportunities/<int:opportunity_id>/proposal-draft/attachment/', views.download_proposal_attachment, name='proposal-draft-attachment'),
     # Generic history endpoint
     path('get-history/', views.get_history, name='get_history'),
+
+    # Lead Dashboard API endpoints
+    path('leads/dashboard/stats/', views.lead_dashboard_stats, name='lead-dashboard-stats'),
+    path('leads/dashboard/recent-activity/', views.recent_lead_activity, name='lead-recent-activity'),
+    path('leads/dashboard/top-qualified/', views.top_qualified_leads, name='lead-top-qualified'),
 ]
