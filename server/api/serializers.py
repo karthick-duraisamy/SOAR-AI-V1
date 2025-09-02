@@ -2,7 +2,8 @@ from rest_framework import serializers
 from .models import (
     Company, Contact, Lead, Opportunity, OpportunityActivity, Contract, ContractBreach,
     EmailCampaign, TravelOffer, SupportTicket, RevenueForecast,
-    ActivityLog, AIConversation, LeadNote, LeadHistory, CampaignTemplate, ProposalDraft
+    ActivityLog, AIConversation, LeadNote, LeadHistory, CampaignTemplate, ProposalDraft,
+    EmailTracking
 )
 
 class CompanySerializer(serializers.ModelSerializer):
@@ -396,6 +397,19 @@ class ContractBreachSerializer(serializers.ModelSerializer):
 class ContractSerializer(serializers.ModelSerializer):
     company_name = serializers.CharField(source='company.name', read_only=True)
     breaches = ContractBreachSerializer(many=True, read_only=True)
+
+
+class EmailTrackingSerializer(serializers.ModelSerializer):
+    lead_name = serializers.CharField(source='lead.company.name', read_only=True)
+    contact_name = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = EmailTracking
+        fields = '__all__'
+    
+    def get_contact_name(self, obj):
+        return f"{obj.lead.contact.first_name} {obj.lead.contact.last_name}"
+
     days_until_expiry = serializers.SerializerMethodField()
     breach_count = serializers.SerializerMethodField()
 
@@ -414,6 +428,8 @@ class EmailCampaignSerializer(serializers.ModelSerializer):
     target_leads_count = serializers.SerializerMethodField()
     open_rate = serializers.SerializerMethodField()
     click_rate = serializers.SerializerMethodField()
+    click_to_open_rate = serializers.SerializerMethodField()
+    engagement_metrics = serializers.SerializerMethodField()
 
     class Meta:
         model = EmailCampaign
@@ -425,12 +441,32 @@ class EmailCampaignSerializer(serializers.ModelSerializer):
     def get_open_rate(self, obj):
         if obj.emails_sent == 0:
             return 0
-        return (obj.emails_opened / obj.emails_sent) * 100
+        return round((obj.emails_opened / obj.emails_sent) * 100, 2)
 
     def get_click_rate(self, obj):
         if obj.emails_sent == 0:
             return 0
-        return (obj.emails_clicked / obj.emails_sent) * 100
+        return round((obj.emails_clicked / obj.emails_sent) * 100, 2)
+
+    def get_click_to_open_rate(self, obj):
+        if obj.emails_opened == 0:
+            return 0
+        return round((obj.emails_clicked / obj.emails_opened) * 100, 2)
+
+    def get_engagement_metrics(self, obj):
+        tracking_records = obj.email_tracking.all()
+        total_opens = tracking_records.aggregate(total=models.Sum('open_count'))['total'] or 0
+        total_clicks = tracking_records.aggregate(total=models.Sum('click_count'))['total'] or 0
+        
+        return {
+            'total_opens': total_opens,
+            'total_clicks': total_clicks,
+            'unique_opens': obj.emails_opened,
+            'unique_clicks': obj.emails_clicked,
+            'engaged_leads': tracking_records.filter(
+                models.Q(open_count__gt=1) | models.Q(click_count__gt=0)
+            ).count()
+        }
 
 class TravelOfferSerializer(serializers.ModelSerializer):
     created_by_name = serializers.CharField(source='created_by.username', read_only=True)

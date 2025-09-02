@@ -1,3 +1,13 @@
+
+from django.http import HttpResponse, HttpResponseRedirect
+from django.shortcuts import get_object_or_404
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_http_methods
+from django.utils.decorators import method_decorator
+from .models import EmailTracking
+import urllib.parse
+
+
 from rest_framework import viewsets, status
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.permissions import AllowAny
@@ -1487,6 +1497,155 @@ class OpportunityViewSet(viewsets.ModelViewSet):
     serializer_class = OpportunitySerializer
 
     def update(self, request, *args, **kwargs):
+
+
+@csrf_exempt
+@require_http_methods(["GET"])
+def track_email_open(request, tracking_id):
+    """Track email opens via tracking pixel"""
+    try:
+        tracking = get_object_or_404(EmailTracking, tracking_id=tracking_id)
+        
+        # Record the open
+        current_time = timezone.now()
+        if not tracking.first_opened:
+            tracking.first_opened = current_time
+            # Update campaign open count only for first open
+            tracking.campaign.emails_opened += 1
+            tracking.campaign.save()
+        
+        tracking.last_opened = current_time
+        tracking.open_count += 1
+        tracking.user_agent = request.META.get('HTTP_USER_AGENT', '')
+        tracking.ip_address = request.META.get('REMOTE_ADDR')
+        tracking.save()
+        
+        # Return 1x1 transparent pixel
+        pixel_data = b'\x47\x49\x46\x38\x39\x61\x01\x00\x01\x00\x80\x00\x00\x00\x00\x00\x00\x00\x00\x21\xF9\x04\x01\x00\x00\x00\x00\x2C\x00\x00\x00\x00\x01\x00\x01\x00\x00\x02\x02\x04\x01\x00\x3B'
+        response = HttpResponse(pixel_data, content_type='image/gif')
+        response['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+        response['Pragma'] = 'no-cache'
+        response['Expires'] = '0'
+        return response
+        
+    except EmailTracking.DoesNotExist:
+        # Return empty pixel even if tracking not found
+        pixel_data = b'\x47\x49\x46\x38\x39\x61\x01\x00\x01\x00\x80\x00\x00\x00\x00\x00\x00\x00\x00\x21\xF9\x04\x01\x00\x00\x00\x00\x2C\x00\x00\x00\x00\x01\x00\x01\x00\x00\x02\x02\x04\x01\x00\x3B'
+        return HttpResponse(pixel_data, content_type='image/gif')
+
+@csrf_exempt
+@require_http_methods(["GET"])
+def track_email_click(request, tracking_id):
+    """Track email clicks and redirect to original URL"""
+    try:
+        tracking = get_object_or_404(EmailTracking, tracking_id=tracking_id)
+        original_url = request.GET.get('url', '')
+        
+        if not original_url:
+            return HttpResponse('Invalid tracking link', status=400)
+        
+        # Record the click
+        current_time = timezone.now()
+        if not tracking.first_clicked:
+            tracking.first_clicked = current_time
+            # Update campaign click count only for first click
+            tracking.campaign.emails_clicked += 1
+            tracking.campaign.save()
+        
+        tracking.last_clicked = current_time
+        tracking.click_count += 1
+        tracking.user_agent = request.META.get('HTTP_USER_AGENT', '')
+        tracking.ip_address = request.META.get('REMOTE_ADDR')
+        tracking.save()
+        
+        # Decode and redirect to original URL
+        decoded_url = urllib.parse.unquote(original_url)
+        return HttpResponseRedirect(decoded_url)
+        
+    except EmailTracking.DoesNotExist:
+        # Redirect to home page if tracking not found
+        return HttpResponseRedirect('/')
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def campaign_analytics(request, campaign_id):
+    """Get detailed analytics for a campaign"""
+    try:
+        campaign = get_object_or_404(EmailCampaign, id=campaign_id)
+        tracking_records = EmailTracking.objects.filter(campaign=campaign)
+        
+        # Calculate detailed metrics
+        total_sent = tracking_records.count()
+        unique_opens = tracking_records.filter(first_opened__isnull=False).count()
+        unique_clicks = tracking_records.filter(first_clicked__isnull=False).count()
+        
+        # Calculate rates
+        open_rate = (unique_opens / total_sent * 100) if total_sent > 0 else 0
+        click_rate = (unique_clicks / total_sent * 100) if total_sent > 0 else 0
+        click_to_open_rate = (unique_clicks / unique_opens * 100) if unique_opens > 0 else 0
+        
+        # Get engagement timeline
+        timeline_data = []
+        for tracking in tracking_records.filter(first_opened__isnull=False).order_by('first_opened')[:10]:
+            timeline_data.append({
+                'company': tracking.lead.company.name,
+                'contact': f"{tracking.lead.contact.first_name} {tracking.lead.contact.last_name}",
+                'opened_at': tracking.first_opened,
+                'clicked': tracking.first_clicked is not None,
+                'clicked_at': tracking.first_clicked,
+                'open_count': tracking.open_count,
+                'click_count': tracking.click_count
+            })
+        
+        analytics_data = {
+            'campaign': {
+                'id': campaign.id,
+                'name': campaign.name,
+                'status': campaign.status,
+                'sent_date': campaign.sent_date
+            },
+            'metrics': {
+                'total_sent': total_sent,
+                'unique_opens': unique_opens,
+                'unique_clicks': unique_clicks,
+                'open_rate': round(open_rate, 2),
+                'click_rate': round(click_rate, 2),
+                'click_to_open_rate': round(click_to_open_rate, 2),
+                'total_opens': tracking_records.aggregate(total=models.Sum('open_count'))['total'] or 0,
+                'total_clicks': tracking_records.aggregate(total=models.Sum('click_count'))['total'] or 0
+            },
+            'engagement_timeline': timeline_data
+        }
+        
+        return Response(analytics_data)
+        
+    except Exception as e:
+        return Response({
+            'error': f'Failed to get campaign analytics: {str(e)}'
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class EmailTracking(models.Model):
+    """Track individual email opens and clicks"""
+    campaign = models.ForeignKey(EmailCampaign, on_delete=models.CASCADE, related_name='email_tracking')
+    lead = models.ForeignKey(Lead, on_delete=models.CASCADE)
+    tracking_id = models.UUIDField(default=uuid.uuid4, unique=True)
+    email_sent = models.DateTimeField(auto_now_add=True)
+    first_opened = models.DateTimeField(null=True, blank=True)
+    last_opened = models.DateTimeField(null=True, blank=True)
+    open_count = models.IntegerField(default=0)
+    first_clicked = models.DateTimeField(null=True, blank=True)
+    last_clicked = models.DateTimeField(null=True, blank=True)
+    click_count = models.IntegerField(default=0)
+    user_agent = models.TextField(blank=True)
+    ip_address = models.GenericIPAddressField(null=True, blank=True)
+
+    def __str__(self):
+        return f"Tracking {self.campaign.name} - {self.lead.company.name}"
+
+    class Meta:
+        unique_together = ['campaign', 'lead']
+</new_str>
+
         """Handle opportunity updates with proper validation"""
         try:
             instance = self.get_object()
@@ -2282,17 +2441,86 @@ class EmailCampaignViewSet(viewsets.ModelViewSet):
         for campaign in campaigns:
             open_rate = (campaign.emails_opened / campaign.emails_sent * 100) if campaign.emails_sent > 0 else 0
             click_rate = (campaign.emails_clicked / campaign.emails_sent * 100) if campaign.emails_sent > 0 else 0
+            click_to_open_rate = (campaign.emails_clicked / campaign.emails_opened * 100) if campaign.emails_opened > 0 else 0
 
             performance_data.append({
                 'id': campaign.id,
                 'name': campaign.name,
                 'emails_sent': campaign.emails_sent,
-                'open_rate': open_rate,
-                'click_rate': click_rate,
+                'emails_opened': campaign.emails_opened,
+                'emails_clicked': campaign.emails_clicked,
+                'open_rate': round(open_rate, 2),
+                'click_rate': round(click_rate, 2),
+                'click_to_open_rate': round(click_to_open_rate, 2),
                 'status': campaign.status
             })
 
         return Response(performance_data)
+
+    @action(detail=True, methods=['get'])
+    def analytics(self, request, pk=None):
+        """Get detailed analytics for a specific campaign"""
+        try:
+            campaign = self.get_object()
+            tracking_records = campaign.email_tracking.all()
+            
+            # Calculate detailed metrics
+            total_sent = tracking_records.count()
+            unique_opens = tracking_records.filter(first_opened__isnull=False).count()
+            unique_clicks = tracking_records.filter(first_clicked__isnull=False).count()
+            
+            # Calculate rates
+            open_rate = (unique_opens / total_sent * 100) if total_sent > 0 else 0
+            click_rate = (unique_clicks / total_sent * 100) if total_sent > 0 else 0
+            click_to_open_rate = (unique_clicks / unique_opens * 100) if unique_opens > 0 else 0
+            
+            # Get top performers
+            top_openers = tracking_records.filter(open_count__gt=1).order_by('-open_count')[:5]
+            top_clickers = tracking_records.filter(click_count__gt=0).order_by('-click_count')[:5]
+            
+            # Get engagement timeline
+            timeline_data = []
+            for tracking in tracking_records.filter(first_opened__isnull=False).order_by('first_opened'):
+                timeline_data.append({
+                    'company': tracking.lead.company.name,
+                    'contact': f"{tracking.lead.contact.first_name} {tracking.lead.contact.last_name}",
+                    'opened_at': tracking.first_opened,
+                    'clicked': tracking.first_clicked is not None,
+                    'clicked_at': tracking.first_clicked,
+                    'open_count': tracking.open_count,
+                    'click_count': tracking.click_count
+                })
+            
+            analytics_data = {
+                'campaign': {
+                    'id': campaign.id,
+                    'name': campaign.name,
+                    'status': campaign.status,
+                    'sent_date': campaign.sent_date
+                },
+                'metrics': {
+                    'total_sent': total_sent,
+                    'unique_opens': unique_opens,
+                    'unique_clicks': unique_clicks,
+                    'open_rate': round(open_rate, 2),
+                    'click_rate': round(click_rate, 2),
+                    'click_to_open_rate': round(click_to_open_rate, 2),
+                    'total_opens': tracking_records.aggregate(total=models.Sum('open_count'))['total'] or 0,
+                    'total_clicks': tracking_records.aggregate(total=models.Sum('click_count'))['total'] or 0
+                },
+                'top_performers': {
+                    'top_openers': EmailTrackingSerializer(top_openers, many=True).data,
+                    'top_clickers': EmailTrackingSerializer(top_clickers, many=True).data
+                },
+                'engagement_timeline': timeline_data
+            }
+            
+            return Response(analytics_data)
+            
+        except Exception as e:
+            return Response({
+                'error': f'Failed to get campaign analytics: {str(e)}'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 @api_view(['POST'])
 @permission_classes([AllowAny])

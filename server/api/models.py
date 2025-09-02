@@ -393,6 +393,27 @@ class EmailCampaign(models.Model):
     def __str__(self):
         return self.name
 
+class EmailTracking(models.Model):
+    """Track individual email opens and clicks"""
+    campaign = models.ForeignKey(EmailCampaign, on_delete=models.CASCADE, related_name='email_tracking')
+    lead = models.ForeignKey(Lead, on_delete=models.CASCADE)
+    tracking_id = models.UUIDField(default=uuid.uuid4, unique=True)
+    email_sent = models.DateTimeField(auto_now_add=True)
+    first_opened = models.DateTimeField(null=True, blank=True)
+    last_opened = models.DateTimeField(null=True, blank=True)
+    open_count = models.IntegerField(default=0)
+    first_clicked = models.DateTimeField(null=True, blank=True)
+    last_clicked = models.DateTimeField(null=True, blank=True)
+    click_count = models.IntegerField(default=0)
+    user_agent = models.TextField(blank=True)
+    ip_address = models.GenericIPAddressField(null=True, blank=True)
+
+    def __str__(self):
+        return f"Tracking {self.campaign.name} - {self.lead.company.name}"
+
+    class Meta:
+        unique_together = ['campaign', 'lead']
+
     def send_emails(self):
         """Send emails to target leads with detailed SMTP logging"""
         import logging
@@ -462,14 +483,35 @@ class EmailCampaign(models.Model):
                 rendered_subject = subject_template.render(context)
                 rendered_content = content_template.render(context)
 
+                # Create tracking record
+                tracking, created = EmailTracking.objects.get_or_create(
+                    campaign=self,
+                    lead=lead,
+                    defaults={'tracking_id': uuid.uuid4()}
+                )
+
+                # Add tracking pixel and click tracking to email content
+                tracking_pixel = f'<img src="{settings.DOMAIN_URL}/api/email-tracking/open/{tracking.tracking_id}/" width="1" height="1" style="display:none;" alt="" />'
+                
+                # Replace any links with tracked links
+                import re
+                def replace_links(match):
+                    original_url = match.group(1)
+                    tracked_url = f"{settings.DOMAIN_URL}/api/email-tracking/click/{tracking.tracking_id}/?url={original_url}"
+                    return f'href="{tracked_url}"'
+                
+                tracked_content = re.sub(r'href="([^"]+)"', replace_links, rendered_content)
+                tracked_content += tracking_pixel
+
                 # Create EmailMessage for individual tracking
                 email_msg = EmailMessage(
                     subject=rendered_subject,
-                    body=rendered_content,
+                    body=tracked_content,
                     from_email=settings.DEFAULT_FROM_EMAIL,
                     to=[email_address]
                 )
-                emails_to_send.append((email_msg, lead))
+                email_msg.content_subtype = 'html'  # Set as HTML email
+                emails_to_send.append((email_msg, lead, tracking))
 
                 smtp_logger.info(f"Prepared email for {email_address} ({lead.company.name})")
 
@@ -489,19 +531,24 @@ class EmailCampaign(models.Model):
                     connection.open()
                     smtp_logger.info("SMTP connection opened successfully")
                     
-                    for email_msg, lead in emails_to_send:
+                    for email_msg, lead, tracking in emails_to_send:
                         try:
                             # Send individual email
                             result = connection.send_messages([email_msg])
                             
                             if result == 1:
                                 sent_count += 1
+                                # Update tracking record
+                                tracking.email_sent = timezone.now()
+                                tracking.save()
+                                
                                 smtp_logger.info(f"✓ Email sent successfully to {lead.contact.email} ({lead.company.name})")
                                 smtp_responses.append({
                                     'email': lead.contact.email,
                                     'company': lead.company.name,
                                     'status': 'SUCCESS',
-                                    'message': 'Email sent successfully'
+                                    'message': 'Email sent successfully',
+                                    'tracking_id': str(tracking.tracking_id)
                                 })
                             else:
                                 failed_count += 1
