@@ -724,6 +724,8 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
 
       console.log('Final transformed leads:', transformedLeads,"ddddddddddddddddd",transformedLeadsforViewProfile);
       setLeads(transformedLeads);
+      transformedLeads.map((lead: any) => fetchLeadNotes(lead.id));
+      // fetchLeadNotes(transformedLeads.id);
       setLeadsForViewProfile(transformedLeadsforViewProfile);
 
     } catch (error) {
