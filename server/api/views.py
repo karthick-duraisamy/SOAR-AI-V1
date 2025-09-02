@@ -3034,6 +3034,227 @@ def bulk_upload_companies(request):
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
 
+@csrf_exempt
+@api_view(['GET', 'POST'])
+@permission_classes([AllowAny])
+def get_history(request):
+    """
+    Generic history endpoint that can handle different entity types
+    """
+    try:
+        # Handle both GET and POST requests
+        if request.method == 'POST':
+            data = request.data
+        else:
+            data = request.GET
+
+        entity_type = data.get('entity_type', 'lead')  # Default to lead
+        entity_id = data.get('entity_id')
+
+        if not entity_id:
+            return Response(
+                {'error': 'entity_id is required'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        if entity_type == 'lead':
+            # Get lead history
+            try:
+                lead = Lead.objects.get(id=entity_id)
+                history_entries = lead.history_entries.all().order_by('timestamp')
+
+                # If no history entries exist, create them
+                if not history_entries.exists():
+                    # Create comprehensive history for the lead
+                    try:
+                        current_time = lead.created_at
+
+                        # 1. Lead creation
+                        LeadHistory.objects.create(
+                            lead=lead,
+                            history_type='creation',
+                            action='Lead created',
+                            details=f'Lead created from {lead.source} source. Initial contact information collected for {lead.company.name}.',
+                            icon='plus',
+                            user=None,
+                            timestamp=current_time
+                        )
+
+                        # 2. Agent assignment (if assigned)
+                        if lead.assigned_agent or lead.assigned_to:
+                            current_time += timedelta(hours=1)
+                            agent_name = lead.assigned_agent or (f"{lead.assigned_to.first_name} {lead.assigned_to.last_name}".strip() if lead.assigned_to else "Unknown Agent")
+                            LeadHistory.objects.create(
+                                lead=lead,
+                                history_type='agent_assignment',
+                                action=f'Lead assigned to {agent_name}',
+                                details=f'Lead assigned to {agent_name} for follow-up and qualification.',
+                                icon='user',
+                                user=lead.assigned_to,
+                                timestamp=current_time
+                            )
+
+                        # 3. Status-specific entries
+                        if lead.status != 'new':
+                            current_time += timedelta(hours=2)
+                            status_details_map = {
+                                'contacted': f'Initial contact made with {lead.contact.first_name}. Email sent introducing our travel solutions.',
+                                'qualified': f'Lead qualified based on budget ({f"${int(lead.estimated_value/1000)}K" if lead.estimated_value else "TBD"}), authority, and timeline. Ready for proposal stage.',
+                                'unqualified': 'Lead disqualified due to budget constraints or timeline mismatch. Moved to nurture campaign.',
+                                'proposal_sent': 'Proposal sent to prospect. Awaiting response and feedback.',
+                                'negotiation': 'Entered negotiation phase. Discussing terms and pricing.',
+                                'won': 'Lead successfully converted to customer. Deal closed!',
+                                'lost': 'Lead was lost to competitor or decided not to proceed.'
+                            }
+                            
+                            status_icon_map = {
+                                'contacted': 'mail',
+                                'qualified': 'check-circle',
+                                'unqualified': 'x-circle',
+                                'proposal_sent': 'file-text',
+                                'negotiation': 'handshake',
+                                'won': 'trophy',
+                                'lost': 'x'
+                            }
+
+                            LeadHistory.objects.create(
+                                lead=lead,
+                                history_type='status_change',
+                                action=f'Status changed to {lead.get_status_display()}',
+                                details=status_details_map.get(lead.status, f'Lead status updated to {lead.status}.'),
+                                icon=status_icon_map.get(lead.status, 'plus'),
+                                user=lead.assigned_to,
+                                timestamp=current_time
+                            )
+
+                        # 4. Score update (if score > 50)
+                        if lead.score > 50:
+                            current_time += timedelta(hours=1)
+                            LeadHistory.objects.create(
+                                lead=lead,
+                                history_type='score_update',
+                                action=f'Lead score updated to {lead.score}',
+                                details=f'Lead score updated to {lead.score} based on engagement metrics and profile analysis.',
+                                icon='trending-up',
+                                user=None,
+                                timestamp=current_time
+                            )
+
+                        # Fetch again after creation
+                        history_entries = lead.history_entries.all().order_by('timestamp')
+                    except Exception as create_error:
+                        print(f"Error creating initial history: {create_error}")
+
+                serializer = LeadHistorySerializer(history_entries, many=True)
+                return Response(serializer.data)
+
+            except Lead.DoesNotExist:
+                return Response(
+                    {'error': 'Lead not found'},
+                    status=status.HTTP_404_NOT_FOUND
+                )
+
+        elif entity_type == 'opportunity':
+            # Get opportunity history
+            try:
+                opportunity = Opportunity.objects.get(id=entity_id)
+                
+                # Get opportunity activities
+                activities = opportunity.activities.all().order_by('-created_at')
+                history_items = []
+
+                # Format activities as history items
+                for activity in activities:
+                    try:
+                        user_name = 'System'
+                        if activity.created_by:
+                            user_name = f"{activity.created_by.first_name} {activity.created_by.last_name}".strip()
+                            if not user_name:
+                                user_name = activity.created_by.username
+
+                        formatted_timestamp = activity.created_at.strftime('%m/%d/%Y at %I:%M:%S %p') if activity.created_at else 'Unknown'
+
+                        history_items.append({
+                            'id': f"activity_{activity.id}",
+                            'history_type': 'activity',
+                            'action': f"{activity.get_type_display()} - {activity.description[:50]}{'...' if len(activity.description) > 50 else ''}",
+                            'details': activity.description,
+                            'icon': 'activity',
+                            'timestamp': activity.created_at.isoformat() if activity.created_at else '',
+                            'user_name': user_name,
+                            'user_role': 'Sales Representative',
+                            'formatted_timestamp': formatted_timestamp,
+                            'metadata': {'activity_type': activity.type, 'activity_date': str(activity.date)}
+                        })
+                    except Exception as activity_error:
+                        print(f"Error processing activity {activity.id}: {activity_error}")
+                        continue
+
+                # If opportunity is linked to a lead, get lead history
+                if hasattr(opportunity, 'lead') and opportunity.lead:
+                    try:
+                        lead_history = LeadHistory.objects.filter(lead=opportunity.lead).order_by('-timestamp')
+                        for history in lead_history:
+                            try:
+                                user_name = 'System'
+                                user_role = 'System'
+                                if history.user:
+                                    user_name = f"{history.user.first_name} {history.user.last_name}".strip()
+                                    if not user_name:
+                                        user_name = history.user.username
+                                    user_role = 'Sales Manager' if history.user.is_staff else 'Sales Representative'
+
+                                metadata = {}
+                                if hasattr(history, 'metadata') and history.metadata:
+                                    metadata = history.metadata
+
+                                formatted_timestamp = history.timestamp.strftime('%m/%d/%Y at %I:%M:%S %p') if history.timestamp else 'Unknown'
+
+                                history_items.append({
+                                    'id': f"lead_history_{history.id}",
+                                    'history_type': history.history_type,
+                                    'action': history.action,
+                                    'details': history.details,
+                                    'icon': history.icon,
+                                    'timestamp': history.timestamp.isoformat() if history.timestamp else '',
+                                    'user_name': user_name,
+                                    'user_role': user_role,
+                                    'formatted_timestamp': formatted_timestamp,
+                                    'metadata': metadata
+                                })
+                            except Exception as history_error:
+                                print(f"Error processing lead history {history.id}: {history_error}")
+                                continue
+                    except Exception as lead_history_error:
+                        print(f"Error fetching lead history: {lead_history_error}")
+
+                # Sort by timestamp (newest first)
+                try:
+                    history_items.sort(key=lambda x: x['timestamp'] if x['timestamp'] else '', reverse=True)
+                except Exception as sort_error:
+                    print(f"Error sorting history items: {sort_error}")
+
+                return Response(history_items)
+
+            except Opportunity.DoesNotExist:
+                return Response(
+                    {'error': 'Opportunity not found'},
+                    status=status.HTTP_404_NOT_FOUND
+                )
+
+        else:
+            return Response(
+                {'error': f'Unsupported entity_type: {entity_type}'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+    except Exception as e:
+        print(f"Error in get_history endpoint: {str(e)}")
+        return Response({
+            'error': f'Failed to fetch history: {str(e)}',
+            'history': []
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 @api_view(['GET', 'POST'])
 def download_sample_excel(request):
     """

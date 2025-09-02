@@ -37,4 +37,6 @@ urlpatterns = [
     # Proposal Draft Management
     path('opportunities/<int:opportunity_id>/proposal-draft/', views.proposal_draft_detail, name='proposal-draft-detail'),
     path('opportunities/<int:opportunity_id>/proposal-draft/attachment/', views.download_proposal_attachment, name='proposal-draft-attachment'),
+    # Generic history endpoint
+    path('get-history/', views.get_history, name='get_history'),
 ]
