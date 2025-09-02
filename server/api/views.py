@@ -3227,9 +3227,7 @@ def get_history(request):
                 # Sort by timestamp (newest first)
                 history_items.sort(key=lambda x: x['timestamp'] if x['timestamp'] else '', reverse=True)
 
-                return Response(history_items)ivity.created_by.username
-
-                        formatted_timestamp = activity.created_at.strftime('%m/%d/%Y at %I:%M:%S %p') if activity.created_at else 'Unknown'
+                return Response(history_items)
 
                         history_items.append({
                             'id': f"activity_{activity.id}",
