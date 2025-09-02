@@ -3235,9 +3235,6 @@ def get_history(request):
                 'error': f'Failed to fetch history: {str(e)}',
                 'history': []
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-                            'history_type': 'activity',
-                            'action': f"{activity.get_type_display()} - {activity.description[:50]}{'...' if len(activity.description) > 50 else ''}",
-                            'details': activity.description,
                             'icon': 'activity',
                             'timestamp': activity.created_at.isoformat() if activity.created_at else '',
                             'user_name': user_name,
