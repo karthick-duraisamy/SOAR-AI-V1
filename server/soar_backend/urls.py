@@ -1,5 +1,7 @@
 from django.contrib import admin
 from django.urls import path, include
+from django.conf import settings
+from django.conf.urls.static import static
 from django.http import JsonResponse
 
 def api_root(request):
@@ -20,3 +22,7 @@ urlpatterns = [
     path('api/', include('api.urls')),
     path('', api_root),
 ]
+
+# Add static files handling for development
+if settings.DEBUG:
+    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
