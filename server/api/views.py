@@ -1974,7 +1974,6 @@ class EmailCampaignViewSet(viewsets.ModelViewSet):
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 @api_view(['POST'])
-@permission_classes([AllowAny])
 def send_corporate_message(request):
     """Send message to corporate contact via email"""
     try:
@@ -2482,1263 +2481,6 @@ class CampaignTemplateViewSet(viewsets.ModelViewSet):
     queryset = CampaignTemplate.objects.all()
     serializer_class = CampaignTemplateSerializer
 
-# Missing view functions referenced in URLs
-@api_view(['GET'])
-@permission_classes([AllowAny])
-def lead_stats(request):
-    """Get lead statistics for dashboard"""
-    try:
-        stats = {
-            'total_leads': Lead.objects.count(),
-            'qualified_leads': Lead.objects.filter(status='qualified').count(),
-            'unqualified_leads': Lead.objects.filter(status='unqualified').count(),
-            'contacted_leads': Lead.objects.filter(status='contacted').count(),
-            'new_leads': Lead.objects.filter(status='new').count(),
-        }
-        return Response(stats)
-    except Exception as e:
-        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-@api_view(['GET'])
-@permission_classes([AllowAny])
-def recent_activity(request):
-    """Get recent lead activity"""
-    try:
-        recent_leads = Lead.objects.select_related('company', 'contact').order_by('-updated_at')[:10]
-        serializer = LeadSerializer(recent_leads, many=True)
-        return Response(serializer.data)
-    except Exception as e:
-        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-@api_view(['GET'])
-@permission_classes([AllowAny])
-def top_leads(request):
-    """Get top qualified leads"""
-    try:
-        top_leads = Lead.objects.filter(status='qualified').select_related('company', 'contact').order_by('-score')[:10]
-        serializer = LeadSerializer(top_leads, many=True)
-        return Response(serializer.data)
-    except Exception as e:
-        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-@api_view(['POST'])
-@permission_classes([AllowAny])
-def bulk_upload_companies(request):
-    """Bulk upload companies from file"""
-    try:
-        return Response({'message': 'Bulk upload endpoint not implemented yet'}, status=status.HTTP_501_NOT_IMPLEMENTED)
-    except Exception as e:
-        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-@api_view(['GET'])
-@permission_classes([AllowAny])
-def download_sample_excel(request):
-    """Download sample Excel file for company upload"""
-    try:
-        return Response({'message': 'Sample download endpoint not implemented yet'}, status=status.HTTP_501_NOT_IMPLEMENTED)
-    except Exception as e:
-        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-@api_view(['GET'])
-@permission_classes([AllowAny])
-def proposal_draft_detail(request, opportunity_id):
-    """Get proposal draft for opportunity"""
-    try:
-        opportunity = Opportunity.objects.get(id=opportunity_id)
-        draft = ProposalDraft.objects.filter(opportunity=opportunity).first()
-
-        if draft:
-            serializer = ProposalDraftSerializer(draft)
-            return Response(serializer.data)
-        else:
-            return Response({'error': 'No draft found'}, status=status.HTTP_404_NOT_FOUND)
-    except Opportunity.DoesNotExist:
-        return Response({'error': 'Opportunity not found'}, status=status.HTTP_404_NOT_FOUND)
-    except Exception as e:
-        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-@api_view(['GET'])
-@permission_classes([AllowAny])
-def get_history(request):
-    """Generic history endpoint"""
-    try:
-        entity_type = request.GET.get('entity_type')
-        entity_id = request.GET.get('entity_id')
-
-        if entity_type == 'lead' and entity_id:
-            history = LeadHistory.objects.filter(lead_id=entity_id).order_by('-timestamp')
-            serializer = LeadHistorySerializer(history, many=True)
-            return Response(serializer.data)
-
-        return Response({'error': 'Invalid entity type or ID'}, status=status.HTTP_400_BAD_REQUEST)
-    except Exception as e:
-        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-# Dashboard API Views
-class DashboardAPIView(viewsets.ViewSet):
-
-    @action(detail=False, methods=['get'])
-    def overview(self, request):
-        # Get overview stats for the main dashboard
-        overview_data = {
-            'companies': {
-                'total': Company.objects.filter(is_active=True).count(),
-                'new_this_month': Company.objects.filter(
-                    created_at__gte=timezone.now().replace(day=1)
-                ).count()
-            },
-            'leads': {
-                'total': Lead.objects.count(),
-                'qualified': Lead.objects.filter(status='qualified').count(),
-                'conversion_rate': (Lead.objects.filter(status='won').count() / max(Lead.objects.count(), 1)) * 100
-            },
-            'opportunities': {
-                'total': Opportunity.objects.count(),
-                'total_value': Opportunity.objects.aggregate(total=Sum('value'))['total'] or 0,
-                'weighted_value': sum(
-                    float(opp.value) * (opp.probability / 100)
-                    for opp in Opportunity.objects.all()
-                )
-            },
-            'contracts': {
-                'active': Contract.objects.filter(status='active').count(),
-                'expiring_soon': Contract.objects.filter(
-                    end_date__lte=timezone.now().date() + timedelta(days=30),
-                    status='active'
-                ).count(),
-                'total_value': Contract.objects.aggregate(total=Sum('value'))['total'] or 0
-            },
-            'support': {
-                'open_tickets': SupportTicket.objects.filter(status__in=['open', 'in_progress']).count(),
-                'high_priority': SupportTicket.objects.filter(
-                    priority__in=['high', 'urgent'],
-                    status__in=['open', 'in_progress']
-                ).count()
-            }
-        }
-
-        return Response(overview_data)
-
-# Add the new endpoints
-# Helper functions for bulk upload
-def _map_industry(industry):
-    """Map industry values to model choices"""
-    industry_mapping = {
-        'technology': 'technology',
-        'tech': 'technology',
-        'finance': 'finance',
-        'finance & banking': 'finance',
-        'banking': 'finance',
-        'healthcare': 'healthcare',
-        'health': 'healthcare',
-        'manufacturing': 'manufacturing',
-        'retail': 'retail',
-        'consulting': 'consulting',
-        'telecommunications': 'telecommunications',
-        'telecom': 'telecommunications',
-        'energy': 'energy',
-        'energy & utilities': 'energy',
-        'utilities': 'energy',
-        'transportation': 'transportation',
-        'education': 'education',
-        'government': 'government',
-        'other': 'other'
-    }
-    return industry_mapping.get(industry.lower(), 'other')
-
-def _map_company_size(size):
-    """Map company size values to model choices"""
-    size_mapping = {
-        'startup': 'startup',
-        'startup (1-50)': 'startup',
-        'small': 'small',
-        'small (51-200)': 'small',
-        'medium': 'medium',
-        'medium (201-1000)': 'medium',
-        'large': 'large',
-        'large (1001-5000)': 'large',
-        'enterprise': 'enterprise',
-        'enterprise (5000+)': 'enterprise'
-    }
-    return size_mapping.get(size.lower(), 'medium')
-
-def _map_company_type(company_type):
-    """Map company type values to model choices"""
-    type_mapping = {
-        'corporation': 'corporation',
-        'llc': 'llc',
-        'partnership': 'partnership',
-        'nonprofit': 'nonprofit',
-        'non-profit': 'nonprofit'
-    }
-    return type_mapping.get(company_type.lower(), 'corporation')
-
-def _map_travel_frequency(frequency):
-    """Map travel frequency values to model choices"""
-    frequency_mapping = {
-        'daily': 'Daily',
-        'weekly': 'Weekly',
-        'monthly': 'Monthly',
-        'quarterly': 'Quarterly',
-        'bi-weekly': 'Bi-weekly'
-    }
-    return frequency_mapping.get(frequency.lower(), '')
-
-def _map_preferred_class(pref_class):
-    """Map preferred class values to model choices"""
-    class_mapping = {
-        'economy': 'Economy',
-        'economy plus': 'Economy Plus',
-        'business': 'Business',
-        'first': 'First',
-        'first class': 'First',
-        'business/first': 'Business/First'
-    }
-    return class_mapping.get(pref_class.lower(), '')
-
-def _map_credit_rating(rating):
-    """Map credit rating values to model choices"""
-    rating_mapping = {
-        'aaa': 'AAA',
-        'aa': 'AA',
-        'a': 'A',
-        'bbb': 'BBB',
-        'bb': 'BB'
-    }
-    return rating_mapping.get(rating.lower(), '')
-
-def _map_payment_terms(terms):
-    """Map payment terms values to model choices"""
-    terms_mapping = {
-        'net 15': 'Net 15',
-        'net 30': 'Net 30',
-        'net 45': 'Net 45',
-        'net 60': 'Net 60'
-    }
-    return terms_mapping.get(terms.lower(), '')
-
-def _map_sustainability(sustainability):
-    """Map sustainability values to model choices"""
-    sustainability_mapping = {
-        'very high': 'Very High',
-        'high': 'High',
-        'medium': 'Medium',
-        'low': 'Low'
-    }
-    return sustainability_mapping.get(sustainability.lower(), '')
-
-def _map_risk_level(risk):
-    """Map risk level values to model choices"""
-    risk_mapping = {
-        'very low': 'Very Low',
-        'low': 'Low',
-        'medium': 'Medium',
-        'high': 'High'
-    }
-    return risk_mapping.get(risk.lower(), '')
-
-def _map_expansion_plans(plans):
-    """Map expansion plans values to model choices"""
-    plans_mapping = {
-        'aggressive': 'Aggressive',
-        'moderate': 'Moderate',
-        'conservative': 'Conservative',
-        'rapid': 'Rapid',
-        'stable': 'Stable'
-    }
-    return plans_mapping.get(plans.lower(), '')
-
-def _safe_int(value):
-    """Safely convert value to integer"""
-    import pandas as pd
-    if pd.isna(value) or value == '':
-        return None
-    try:
-        return int(float(value))
-    except (ValueError, TypeError):
-        return None
-
-def _safe_decimal(value, multiplier=1):
-    """Safely convert value to decimal with optional multiplier"""
-    import pandas as pd
-    if pd.isna(value) or value == '':
-        return None
-    try:
-        return float(value) * multiplier
-    except (ValueError, TypeError):
-        return None
-
-@api_view(['POST'])
-def bulk_upload_companies(request):
-    """Upload companies from Excel/CSV file"""
-    import pandas as pd
-    import io
-
-    try:
-        if 'file' not in request.FILES:
-            return Response(
-                {'error': 'No file provided'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
-        uploaded_file = request.FILES['file']
-
-        # Validate file type
-        allowed_extensions = ['.xlsx', '.xls', '.csv']
-        file_extension = uploaded_file.name.lower().split('.')[-1]
-        if f'.{file_extension}' not in allowed_extensions:
-            return Response(
-                {'error': 'Invalid file type. Please upload Excel (.xlsx, .xls) or CSV (.csv) files only.'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
-        # Validate file size (10MB limit)
-        if uploaded_file.size > 10 * 1024 * 1024:
-            return Response(
-                {'error': 'File size exceeds 10MB limit'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
-        # Read the file
-        try:
-            if file_extension == 'csv':
-                df = pd.read_csv(io.BytesIO(uploaded_file.read()))
-            else:
-                df = pd.read_excel(io.BytesIO(uploaded_file.read()))
-        except Exception as e:
-            return Response(
-                {'error': f'Failed to read file: {str(e)}'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
-        # Validate required columns
-        required_columns = [
-            'name', 'industry', 'size', 'location', 'email'
-        ]
-
-        # Check if the columns exist (case-insensitive)
-        df_columns = [col.lower() for col in df.columns]
-        missing_columns = []
-
-        for required_col in required_columns:
-            if required_col not in df_columns:
-                missing_columns.append(required_col)
-
-        if missing_columns:
-            return Response(
-                {'error': f'Missing required columns: {", ".join(missing_columns)}. Found columns: {", ".join(df.columns)}'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
-        # Process the data
-        created_count = 0
-        skipped_count = 0
-        errors = []
-
-        for index, row in df.iterrows():
-            try:
-                # Get company name (handle different column name formats)
-                company_name = None
-                for col in df.columns:
-                    if 'name' in col.lower():
-                        company_name = str(row[col]).strip() if not pd.isna(row[col]) else None
-                        break
-
-                if not company_name or company_name == 'nan':
-                    skipped_count += 1
-                    continue
-
-                # Check if company already exists
-                if Company.objects.filter(name__iexact=company_name).exists():
-                    skipped_count += 1
-                    continue
-
-                # Map form fields to model fields using helper functions
-                company_data = {
-                    'name': company_name,
-                    'industry': _map_industry(str(row.get('industry', '')).strip()),
-                    'size': _map_company_size(str(row.get('size', '')).strip()),
-                    'location': str(row.get('location', '')).strip(),
-                    'email': str(row.get('email', '')).strip(),
-                    'phone': str(row.get('phone', '')).strip(),
-                    'website': str(row.get('website', '')).strip(),
-                    'company_type': _map_company_type(str(row.get('company_type', '')).strip()),
-                    'year_established': _safe_int(row.get('year_established')),
-                    'employee_count': _safe_int(row.get('employee_count')),
-                    'annual_revenue': _safe_decimal(row.get('annual_revenue')),
-                    'travel_budget': _safe_decimal(row.get('travel_budget')),
-                    'annual_travel_volume': str(row.get('annual_travel_volume', '')).strip(),
-                    'travel_frequency': _map_travel_frequency(str(row.get('travel_frequency', '')).strip()),
-                    'preferred_class': _map_preferred_class(str(row.get('preferred_class', '')).strip()),
-                    'credit_rating': _map_credit_rating(str(row.get('credit_rating', '')).strip()),
-                    'payment_terms': _map_payment_terms(str(row.get('payment_terms', '')).strip()),
-                    'sustainability_focus': _map_sustainability(str(row.get('sustainability_focus', '')).strip()),
-                    'risk_level': _map_risk_level(str(row.get('risk_level', '')).strip()),
-                    'expansion_plans': _map_expansion_plans(str(row.get('expansion_plans', '')).strip()),
-                    'specialties': str(row.get('specialties', '')).strip(),
-                    'technology_integration': str(row.get('technology_integration', '')).strip(),
-                    'current_airlines': str(row.get('current_airlines', '')).strip(),
-                    'description': str(row.get('description', '')).strip(),
-                    'is_active': True
-                }
-
-                # Remove empty strings and None values
-                company_data = {k: v for k, v in company_data.items() if v not in ['', None, 'nan']}
-
-                # Create the company
-                Company.objects.create(**company_data)
-                created_count += 1
-
-            except Exception as e:
-                errors.append(f'Row {index + 2}: {str(e)}')
-                continue
-
-        response_data = {
-            'success': True,
-            'message': f'Upload completed successfully',
-            'created_count': created_count,
-            'skipped_count': skipped_count,
-            'total_rows': len(df)
-        }
-
-        if errors:
-            response_data['errors'] = errors[:10]  # Limit to first 10 errors
-            response_data['total_errors'] = len(errors)
-
-        return Response(response_data, status=status.HTTP_201_CREATED)
-
-    except Exception as e:
-        return Response(
-            {'error': f'Upload failed: {str(e)}'},
-            status=status.HTTP_500_INTERNAL_SERVER_ERROR
-        )
-
-@csrf_exempt
-@api_view(['GET', 'POST'])
-def get_history(request):
-    """
-    Generic history endpoint that can handle different entity types
-    """
-    try:
-        # Handle both GET and POST requests
-        if request.method == 'POST':
-            data = request.data
-        else:
-            data = request.GET
-
-        entity_type = data.get('entity_type', 'lead')  # Default to lead
-        entity_id = data.get('entity_id')
-
-        if not entity_id:
-            return Response(
-                {'error': 'entity_id is required'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
-        if entity_type == 'lead':
-            # Get lead history
-            try:
-                lead = Lead.objects.get(id=entity_id)
-                history_entries = lead.history_entries.all().order_by('timestamp')
-
-                # If no history entries exist, create them
-                if not history_entries.exists():
-                    # Create comprehensive history for the lead
-                    try:
-                        current_time = lead.created_at
-
-                        # 1. Lead creation
-                        LeadHistory.objects.create(
-                            lead=lead,
-                            history_type='creation',
-                            action='Lead created',
-                            details=f'Lead created from {lead.source} source. Initial contact information collected for {lead.company.name}.',
-                            icon='plus',
-                            user=None,
-                            timestamp=current_time
-                        )
-
-                        # 2. Agent assignment (if assigned)
-                        if lead.assigned_agent or lead.assigned_to:
-                            current_time += timedelta(hours=1)
-                            agent_name = lead.assigned_agent or (f"{lead.assigned_to.first_name} {lead.assigned_to.last_name}".strip() if lead.assigned_to else "Unknown Agent")
-                            LeadHistory.objects.create(
-                                lead=lead,
-                                history_type='agent_assignment',
-                                action=f'Lead assigned to {agent_name}',
-                                details=f'Lead assigned to {agent_name} for follow-up and qualification.',
-                                icon='user',
-                                user=lead.assigned_to,
-                                timestamp=current_time
-                            )
-
-                        # 3. Status-specific entries
-                        if lead.status != 'new':
-                            current_time += timedelta(hours=2)
-                            status_details_map = {
-                                'contacted': f'Initial contact made with {lead.contact.first_name}. Email sent introducing our travel solutions.',
-                                'qualified': f'Lead qualified based on budget ({f"${int(lead.estimated_value/1000)}K" if lead.estimated_value else "TBD"}), authority, and timeline. Ready for proposal stage.',
-                                'unqualified': 'Lead disqualified due to budget constraints or timeline mismatch. Moved to nurture campaign.',
-                                'proposal_sent': 'Proposal sent to prospect. Awaiting response and feedback.',
-                                'negotiation': 'Entered negotiation phase. Discussing terms and pricing.',
-                                'won': 'Lead successfully converted to customer. Deal closed!',
-                                'lost': 'Lead was lost to competitor or decided not to proceed.'
-                            }
-
-                            status_icon_map = {
-                                'contacted': 'mail',
-                                'qualified': 'check-circle',
-                                'unqualified': 'x-circle',
-                                'proposal_sent': 'file-text',
-                                'negotiation': 'handshake',
-                                'won': 'trophy',
-                                'lost': 'x'
-                            }
-
-                            LeadHistory.objects.create(
-                                lead=lead,
-                                history_type='status_change',
-                                action=f'Status changed to {lead.get_status_display()}',
-                                details=status_details_map.get(lead.status, f'Lead status updated to {lead.status}.'),
-                                icon=status_icon_map.get(lead.status, 'plus'),
-                                user=lead.assigned_to,
-                                timestamp=current_time
-                            )
-
-                        # 4. Score update (if score > 50)
-                        if lead.score > 50:
-                            current_time += timedelta(hours=1)
-                            LeadHistory.objects.create(
-                                lead=lead,
-                                history_type='score_update',
-                                action=f'Lead score updated to {lead.score}',
-                                details=f'Lead score updated to {lead.score} based on engagement metrics and profile analysis.',
-                                icon='trending-up',
-                                user=None,
-                                timestamp=current_time
-                            )
-
-                        # Fetch again after creation
-                        history_entries = lead.history_entries.all().order_by('timestamp')
-                    except Exception as create_error:
-                        print(f"Error creating initial history: {create_error}")
-
-                serializer = LeadHistorySerializer(history_entries, many=True)
-                return Response(serializer.data)
-
-            except Lead.DoesNotExist:
-                return Response(
-                    {'error': 'Lead not found'},
-                    status=status.HTTP_404_NOT_FOUND
-                )
-
-        elif entity_type == 'opportunity':
-            # Get opportunity history
-            try:
-                opportunity = Opportunity.objects.get(id=entity_id)
-
-                # Get opportunity activities
-                activities = opportunity.activities.all().order_by('-created_at')
-                history_items = []
-
-                # Format activities as history items
-                for activity in activities:
-                    try:
-                        user_name = 'System'
-                        if activity.created_by:
-                            user_name = f"{activity.created_by.first_name} {activity.created_by.last_name}".strip()
-                            if not user_name:
-                                user_name = activity.created_by.username
-
-                        # Format timestamp
-                        formatted_timestamp = 'Recently'
-                        if activity.created_at:
-                            try:
-                                formatted_timestamp = activity.created_at.strftime('%B %d, %Y at %I:%M %p')
-                            except:
-                                formatted_timestamp = str(activity.created_at)
-
-                        history_items.append({
-                            'id': f"opportunity_activity_{activity.id}",
-                            'history_type': activity.type,
-                            'action': activity.type.replace('_', ' ').title(),
-                            'details': activity.description,
-                            'icon': 'activity',
-                            'timestamp': activity.created_at.isoformat() if activity.created_at else '',
-                            'user_name': user_name,
-                            'user_role': 'Team Member',
-                            'formatted_timestamp': formatted_timestamp,
-                            'metadata': {}
-                        })
-                    except Exception as activity_error:
-                        print(f"Error processing opportunity activity {activity.id}: {activity_error}")
-                        continue
-
-                # Add opportunity creation history
-                try:
-                    formatted_timestamp = 'Recently'
-                    if opportunity.created_at:
-                        try:
-                            formatted_timestamp = opportunity.created_at.strftime('%B %d, %Y at %I:%M %p')
-                        except:
-                            formatted_timestamp = str(opportunity.created_at)
-
-                    history_items.append({
-                        'id': f"opportunity_created_{opportunity.id}",
-                        'history_type': 'creation',
-                        'action': 'Opportunity Created',
-                        'details': f'Opportunity "{opportunity.name}" was created with estimated value of ${opportunity.value:,.0f}',
-                        'icon': 'plus',
-                        'timestamp': opportunity.created_at.isoformat() if opportunity.created_at else '',
-                        'user_name': 'System',
-                        'user_role': 'System',
-                        'formatted_timestamp': formatted_timestamp,
-                        'metadata': {
-                            'stage': opportunity.stage,
-                            'probability': opportunity.probability,
-                            'value': opportunity.value
-                        }
-                    })
-                except Exception as creation_error:
-                    print(f"Error creating opportunity creation history: {creation_error}")
-
-                # Sort by timestamp (newest first)
-                history_items.sort(key=lambda x: x['timestamp'] if x['timestamp'] else '', reverse=True)
-
-                return Response(history_items)
-
-            except Opportunity.DoesNotExist:
-                return Response(
-                    {'error': 'Opportunity not found'},
-                    status=status.HTTP_404_NOT_FOUND
-                )
-
-        else:
-            return Response(
-                {'error': f'Unsupported entity_type: {entity_type}'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
-    except Exception as e:
-        print(f"Error in get_history endpoint: {str(e)}")
-        return Response({
-            'error': f'Failed to fetch history: {str(e)}',
-            'history': []
-        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-@api_view(['GET'])
-@permission_classes([AllowAny])
-def download_sample_excel(request):
-    """
-    Generate and return a sample Excel file with dummy corporate data
-    """
-    import io
-    from django.http import HttpResponse
-    from datetime import datetime
-
-    try:
-        # Try pandas first, fall back to openpyxl if pandas fails
-        try:
-            import pandas as pd
-            use_pandas = True
-        except (ImportError, ValueError) as e:
-            print(f"Pandas import failed: {e}, using openpyxl fallback")
-            use_pandas = False
-
-        if not use_pandas:
-            # Fallback implementation using openpyxl directly
-            from openpyxl import Workbook
-            from openpyxl.utils.dataframe import dataframe_to_rows
-
-            # Create workbook
-            wb = Workbook()
-            ws = wb.active
-            ws.title = "Corporate Data Sample"
-
-            # Define headers
-            headers = [
-                'name', 'company_type', 'industry', 'location', 'email', 'phone', 'website',
-                'employee_count', 'annual_revenue', 'year_established', 'size', 'credit_rating',
-                'payment_terms', 'travel_budget', 'annual_travel_volume', 'travel_frequency',
-                'preferred_class', 'sustainability_focus', 'risk_level', 'current_airlines',
-                'expansion_plans', 'specialties', 'technology_integration', 'description'
-            ]
-
-            # Add headers
-            ws.append(headers)
-
-            # Sample data
-            sample_rows = [
-                [
-                    'TechCorp Solutions', 'corporation', 'technology', 'San Francisco, CA',
-                    'contact@techcorp.com', '+1-555-0123', 'https://techcorp.com', 500,
-                    50000000, 2010, 'medium', 'AA', 'Net 30', 2000000, '$2M annually',
-                    'Weekly', 'Business', 'High', 'Low', 'United, Delta, American',
-                    'Aggressive', 'AI, Machine Learning, Cloud Computing',
-                    'Advanced CRM, API Integration, Mobile Apps',
-                    'Leading technology solutions provider specializing in enterprise software and cloud services.'
-                ],
-                [
-                    'Global Manufacturing Inc', 'corporation', 'manufacturing', 'Detroit, MI',
-                    'info@globalmanuf.com', '+1-555-0456', 'https://globalmanuf.com', 1200,
-                    120000000, 1995, 'large', 'AAA', 'Net 45', 5000000, '$5M annually',
-                    'Monthly', 'Economy Plus', 'Very High', 'Very Low', 'Southwest, JetBlue',
-                    'Moderate', 'Automotive Parts, Industrial Equipment, Supply Chain',
-                    'ERP Systems, IoT Sensors, Automation',
-                    'Leading manufacturer of automotive components and industrial equipment with global operations.'
-                ],
-                [
-                    'HealthCare Partners LLC', 'llc', 'healthcare', 'Boston, MA',
-                    'contact@healthpartners.com', '+1-555-0789', 'https://healthpartners.com', 300,
-                    25000000, 2005, 'medium', 'A', 'Net 30', 800000, '$800K annually',
-                    'Bi-weekly', 'Economy', 'Medium', 'Medium', 'Delta, American',
-                    'Conservative', 'Medical Devices, Patient Care, Telemedicine',
-                    'EMR Systems, Patient Portals, Telehealth',
-                    'Healthcare services provider focused on innovative patient care and medical technology solutions.'
-                ],
-                [
-                    'Financial Advisors Group', 'partnership', 'finance', 'New York, NY',
-                    'info@finadvgroup.com', '+1-555-0321', 'https://finadvgroup.com', 150,
-                    35000000, 2000, 'small', 'BBB', 'Net 15', 1200000, '$1.2M annually',
-                    'Daily', 'First', 'Low', 'High', 'United, Delta',
-                    'Rapid', 'Investment Banking, Portfolio Management, Risk Assessment',
-                    'Trading Platforms, Risk Analytics, Mobile Banking',
-                    'Premier financial advisory firm providing comprehensive investment and wealth management services.'
-                ],
-                [
-                    'Green Energy Solutions', 'corporation', 'energy', 'Austin, TX',
-                    'contact@greenenergy.com', '+1-555-0654', 'https://greenenergy.com', 800,
-                    75000000, 2012, 'large', 'AA', 'Net 60', 3000000, '$3M annually',
-                    'Quarterly', 'Business/First', 'Very High', 'Low', 'Southwest, United',
-                    'Aggressive', 'Solar Power, Wind Energy, Battery Storage, Grid Solutions',
-                    'Smart Grid, IoT Monitoring, AI Optimization',
-                    'Leading renewable energy company specializing in solar and wind power solutions for commercial and residential markets.'
-                ]
-            ]
-
-            # Add sample data
-            for row in sample_rows:
-                ws.append(row)
-
-            # Auto-adjust column widths
-            for column in ws.columns:
-                max_length = 0
-                column_letter = column[0].column_letter
-                for cell in column:
-                    try:
-                        if len(str(cell.value)) > max_length:
-                            max_length = len(str(cell.value))
-                    except:
-                        pass
-                adjusted_width = min(max_length + 2, 50)
-                ws.column_dimensions[column_letter].width = adjusted_width
-
-            # Save to memory
-            output = io.BytesIO()
-            wb.save(output)
-            output.seek(0)
-
-        else:
-            # Original pandas implementation
-            # Sample data that matches the Company model fields
-            sample_data = [
-                {
-                    'name': 'TechCorp Solutions',
-                    'company_type': 'corporation',
-                    'industry': 'technology',
-                    'location': 'San Francisco, CA',
-                    'email': 'contact@techcorp.com',
-                    'phone': '+1-555-0123',
-                    'website': 'https://techcorp.com',
-                    'employee_count': 500,
-                    'annual_revenue': 50000000,
-                    'year_established': 2010,
-                    'size': 'medium',
-                    'credit_rating': 'AA',
-                    'payment_terms': 'Net 30',
-                    'travel_budget': 2000000,
-                    'annual_travel_volume': '$2M annually',
-                    'travel_frequency': 'Weekly',
-                    'preferred_class': 'Business',
-                    'sustainability_focus': 'High',
-                    'risk_level': 'Low',
-                    'current_airlines': 'United, Delta, American',
-                    'expansion_plans': 'Aggressive',
-                    'specialties': 'AI, Machine Learning, Cloud Computing',
-                    'technology_integration': 'Advanced CRM, API Integration, Mobile Apps',
-                    'description': 'Leading technology solutions provider specializing in enterprise software and cloud services.'
-                },
-                {
-                    'name': 'Global Manufacturing Inc',
-                    'company_type': 'corporation',
-                    'industry': 'manufacturing',
-                    'location': 'Detroit, MI',
-                    'email': 'info@globalmanuf.com',
-                    'phone': '+1-555-0456',
-                    'website': 'https://globalmanuf.com',
-                    'employee_count': 1200,
-                    'annual_revenue': 120000000,
-                    'year_established': 1995,
-                    'size': 'large',
-                    'credit_rating': 'AAA',
-                    'payment_terms': 'Net 45',
-                    'travel_budget': 5000000,
-                    'annual_travel_volume': '$5M annually',
-                    'travel_frequency': 'Monthly',
-                    'preferred_class': 'Economy Plus',
-                    'sustainability_focus': 'Very High',
-                    'risk_level': 'Very Low',
-                    'current_airlines': 'Southwest, JetBlue',
-                    'expansion_plans': 'Moderate',
-                    'specialties': 'Automotive Parts, Industrial Equipment, Supply Chain',
-                    'technology_integration': 'ERP Systems, IoT Sensors, Automation',
-                    'description': 'Leading manufacturer of automotive components and industrial equipment with global operations.'
-                },
-                {
-                    'name': 'HealthCare Partners LLC',
-                    'company_type': 'llc',
-                    'industry': 'healthcare',
-                    'location': 'Boston, MA',
-                    'email': 'contact@healthpartners.com',
-                    'phone': '+1-555-0789',
-                    'website': 'https://healthpartners.com',
-                    'employee_count': 300,
-                    'annual_revenue': 25000000,
-                    'year_established': 2005,
-                    'size': 'medium',
-                    'credit_rating': 'A',
-                    'payment_terms': 'Net 30',
-                    'travel_budget': 800000,
-                    'annual_travel_volume': '$800K annually',
-                    'travel_frequency': 'Bi-weekly',
-                    'preferred_class': 'Economy',
-                    'sustainability_focus': 'Medium',
-                    'risk_level': 'Medium',
-                    'current_airlines': 'Delta, American',
-                    'expansion_plans': 'Conservative',
-                    'specialties': 'Medical Devices, Patient Care, Telemedicine',
-                    'technology_integration': 'EMR Systems, Patient Portals, Telehealth',
-                    'description': 'Healthcare services provider focused on innovative patient care and medical technology solutions.'
-                },
-                {
-                    'name': 'Financial Advisors Group',
-                    'company_type': 'partnership',
-                    'industry': 'finance',
-                    'location': 'New York, NY',
-                    'email': 'info@finadvgroup.com',
-                    'phone': '+1-555-0321',
-                    'website': 'https://finadvgroup.com',
-                    'employee_count': 150,
-                    'annual_revenue': 35000000,
-                    'year_established': 2000,
-                    'size': 'small',
-                    'credit_rating': 'BBB',
-                    'payment_terms': 'Net 15',
-                    'travel_budget': 1200000,
-                    'annual_travel_volume': '$1.2M annually',
-                    'travel_frequency': 'Daily',
-                    'preferred_class': 'First',
-                    'sustainability_focus': 'Low',
-                    'risk_level': 'High',
-                    'current_airlines': 'United, Delta',
-                    'expansion_plans': 'Rapid',
-                    'specialties': 'Investment Banking, Portfolio Management, Risk Assessment',
-                    'technology_integration': 'Trading Platforms, Risk Analytics, Mobile Banking',
-                    'description': 'Premier financial advisory firm providing comprehensive investment and wealth management services.'
-                },
-                {
-                    'name': 'Green Energy Solutions',
-                    'company_type': 'corporation',
-                    'industry': 'energy',
-                    'location': 'Austin, TX',
-                    'email': 'contact@greenenergy.com',
-                    'phone': '+1-555-0654',
-                    'website': 'https://greenenergy.com',
-                    'employee_count': 800,
-                    'annual_revenue': 75000000,
-                    'year_established': 2012,
-                    'size': 'large',
-                    'credit_rating': 'AA',
-                    'payment_terms': 'Net 60',
-                    'travel_budget': 3000000,
-                    'annual_travel_volume': '$3M annually',
-                    'travel_frequency': 'Quarterly',
-                    'preferred_class': 'Business/First',
-                    'sustainability_focus': 'Very High',
-                    'risk_level': 'Low',
-                    'current_airlines': 'Southwest, United',
-                    'expansion_plans': 'Aggressive',
-                    'specialties': 'Solar Power, Wind Energy, Battery Storage, Grid Solutions',
-                    'technology_integration': 'Smart Grid, IoT Monitoring, AI Optimization',
-                    'description': 'Leading renewable energy company specializing in solar and wind power solutions for commercial and residential markets.'
-                }
-            ]
-
-            # Create DataFrame
-            df = pd.DataFrame(sample_data)
-
-            # Create Excel file in memory
-            output = io.BytesIO()
-            with pd.ExcelWriter(output, engine='openpyxl') as writer:
-                df.to_excel(writer, sheet_name='Corporate Data Sample', index=False)
-
-                # Get the workbook and worksheet to add some formatting
-                workbook = writer.book
-                worksheet = writer.sheets['Corporate Data Sample']
-
-                # Auto-adjust column widths
-                for col in worksheet.columns:
-                    max_length = 0
-                    column = col[0].column_letter
-                    for cell in col:
-                        try:
-                            if len(str(cell.value)) > max_length:
-                                max_length = len(str(cell.value))
-                        except:
-                            pass
-                    adjusted_width = min(max_length + 2, 50)
-                    worksheet.column_dimensions[column].width = adjusted_width
-
-            output.seek(0)
-
-        # Create response
-        response = HttpResponse(
-            output.getvalue(),
-            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-        )
-        response['Content-Disposition'] = f'attachment; filename="corporate_data_sample_{datetime.now().strftime("%Y%m%d")}.xlsx"'
-
-        return response
-
-    except Exception as e:
-        return Response(
-            {'error': f'Failed to generate sample file: {str(e)}'},
-            status=status.HTTP_500_INTERNAL_SERVER_ERROR
-        )
-
-@api_view(['GET', 'POST'])
-def lead_stats(request):
-    """Get comprehensive lead statistics for dashboard"""
-    try:
-        # Parse the request body for POST or query params for GET
-        if request.method == 'POST':
-            data = request.data if hasattr(request, 'data') else {}
-        else:
-            data = request.GET
-        date_range = data.get('dateRange', 'all_time')
-
-        # Calculate date ranges based on the requested period
-        now = timezone.now()
-        period_start = None
-        period_end = now
-
-        if date_range == 'last_month':
-            current_month_start = now.replace(day=1)
-            last_month_start = (current_month_start - timedelta(days=1)).replace(day=1)
-            last_month_end = current_month_start - timedelta(days=1)
-            period_start = last_month_start
-            period_end = last_month_end
-        elif date_range == 'last_week':
-            period_start = now - timedelta(days=7)
-        elif date_range == 'last_30_days':
-            period_start = now - timedelta(days=30)
-        elif date_range == 'this_month':
-            period_start = now.replace(day=1)
-        elif date_range == 'this_year':
-            period_start = now.replace(month=1, day=1, hour=0, minute=0, second=0, microsecond=0)
-        # If date_range is 'all_time' or any other value, don't filter by date
-
-        # Basic counts - use date filter if specified
-        if period_start:
-            total_leads = Lead.objects.filter(
-                created_at__gte=period_start,
-                created_at__lte=period_end
-            ).count()
-            qualified_leads = Lead.objects.filter(
-                status='qualified',
-                created_at__gte=period_start,
-                created_at__lte=period_end
-            ).count()
-            unqualified_leads = Lead.objects.filter(
-                status='unqualified',
-                created_at__gte=period_start,
-                created_at__lte=period_end
-            ).count()
-            contacted_leads = Lead.objects.filter(
-                status__in=['contacted', 'qualified', 'unqualified'],
-                created_at__gte=period_start,
-                created_at__lte=period_end
-            ).count()
-        else:
-            # All time data
-            total_leads = Lead.objects.count()
-            qualified_leads = Lead.objects.filter(status='qualified').count()
-            unqualified_leads = Lead.objects.filter(status='unqualified').count()
-            contacted_leads = Lead.objects.filter(status__in=['contacted', 'qualified', 'unqualified']).count()
-
-        # Calculate percentage change (comparing current period to previous period)
-        total_change = 0
-        if period_start:
-            period_duration = period_end - period_start
-            previous_period_start = period_start - period_duration
-            previous_period_end = period_start
-
-            previous_period_leads = Lead.objects.filter(
-                created_at__gte=previous_period_start,
-                created_at__lte=previous_period_end
-            ).count()
-
-            if previous_period_leads > 0:
-                total_change = ((total_leads - previous_leads) / previous_leads) * 100
-
-        # Calculate progress statuses
-        responded_leads = Lead.objects.filter(status__in=['qualified', 'unqualified']).count()
-
-        # Calculate conversion rate
-        conversion_rate = (qualified_leads / total_leads * 100) if total_leads > 0 else 0
-
-        # Email metrics calculation
-        email_campaigns = EmailCampaign.objects.filter(status__in=['active', 'completed'])
-        if email_campaigns.exists():
-            total_sent = sum(campaign.emails_sent for campaign in email_campaigns)
-            total_opened = sum(campaign.emails_opened for campaign in email_campaigns)
-            email_open_rate = (total_opened / total_sent * 100) if total_sent > 0 else 0
-
-            # Calculate change from last campaign
-            last_two_campaigns = email_campaigns.order_by('-created_at')[:2]
-            if len(last_two_campaigns) >= 2:
-                current_rate = (last_two_campaigns[0].emails_opened / last_two_campaigns[0].emails_sent * 100) if last_two_campaigns[0].emails_sent > 0 else 0
-                previous_rate = (last_two_campaigns[1].emails_opened / last_two_campaigns[1].emails_sent * 100) if last_two_campaigns[1].emails_sent > 0 else 0
-                email_open_rate_change = current_rate - previous_rate
-            else:
-                email_open_rate_change = 0
-        else:
-            email_open_rate = 0
-            email_open_rate_change = 0
-
-        # Calculate average response time
-        responded_leads_with_history = Lead.objects.filter(
-            status__in=['qualified', 'unqualified']
-        ).exclude(created_at=None, updated_at=None)
-
-        if responded_leads_with_history.exists():
-            total_response_time = 0
-            count = 0
-            for lead in responded_leads_with_history:
-                time_diff = lead.updated_at - lead.created_at
-                total_response_time += time_diff.total_seconds()
-                count += 1
-
-            avg_seconds = total_response_time / count if count > 0 else 0
-            avg_hours = avg_seconds / 3600
-
-            if avg_hours < 1:
-                avg_response_time = f"{int(avg_seconds / 60)} minutes"
-            elif avg_hours < 24:
-                avg_response_time = f"{avg_hours:.1f} hours"
-            else:
-                avg_response_time = f"{avg_hours / 24:.1f} days"
-
-            # Calculate improvement (comparing to previous period if available)
-            avg_response_time_change = "0% change"
-            if period_start:
-                previous_responded_leads = Lead.objects.filter(
-                    status__in=['qualified', 'unqualified'],
-                    created_at__gte=previous_period_start,
-                    created_at__lte=previous_period_end
-                ).exclude(created_at=None, updated_at=None)
-
-                if previous_responded_leads.exists():
-                    prev_total_time = sum((lead.updated_at - lead.created_at).total_seconds() for lead in previous_responded_leads)
-                    prev_avg_seconds = prev_total_time / previous_responded_leads.count()
-
-                    if prev_avg_seconds > 0:
-                        change_percent = ((prev_avg_seconds - avg_seconds) / prev_avg_seconds) * 100
-                        if change_percent > 0:
-                            avg_response_time_change = f"{change_percent:.1f}% faster"
-                        else:
-                            avg_response_time_change = f"{abs(change_percent):.1f}% slower"
-        else:
-            avg_response_time = "No data"
-            avg_response_time_change = "No data"
-
-        return Response({
-            'totalLeads': total_leads,
-            'totalChange': round(total_change, 1),
-            'qualifiedLeads': qualified_leads,
-            'unqualified': unqualified_leads,
-            'contacted': contacted_leads,
-            'responded': responded_leads,
-            'conversionRate': round(conversion_rate, 1),
-            'emailOpenRate': round(email_open_rate, 1),
-            'emailOpenRateChange': round(email_open_rate_change, 1)
-        })
-    except Exception as e:
-        return Response(
-            {'error': str(e)},
-            status=status.HTTP_500_INTERNAL_SERVER_ERROR
-        )
-
-@csrf_exempt
-@api_view(['GET', 'POST'])
-@permission_classes([AllowAny])
-def recent_activity(request):
-    """Get recent lead activity"""
-    try:
-        # Get recent history entries (if table exists)
-        recent_activities = []
-
-        try:
-            # Try to get from LeadHistory model
-            recent_history = LeadHistory.objects.select_related('lead').order_by('-timestamp')[:10]
-
-            for history in recent_history:
-                activity_type = 'qualification' if 'qualified' in history.action.lower() else \
-                              'disqualification' if 'disqualified' in history.action.lower() else \
-                              'email' if 'email' in history.action.lower() else \
-                              'response'
-
-                recent_activities.append({
-                    'id': history.id,
-                    'type': activity_type,
-                    'lead': f"{history.lead.company.name}",
-                    'action': history.action,
-                    'time': history.timestamp.strftime('%d %b %Y, %I:%M %p'),
-                    'status': history.lead.status,
-                    'value': f"Score: {history.lead.score}" if history.lead.score else "No score"
-                })
-        except:
-            # Fallback to recent leads if history table doesn't exist
-            recent_leads = Lead.objects.select_related('company').order_by('-updated_at')[:5]
-
-            for i, lead in enumerate(recent_leads):
-                recent_activities.append({
-                    'id': lead.id,
-                    'type': 'qualification' if lead.status == 'qualified' else 'response',
-                    'lead': lead.company.name,
-                    'action': f'Lead {lead.status} - Recent update',
-                    'time': lead.updated_at.strftime('%d %b %Y, %I:%M %p'),
-                    'status': lead.status,
-                    'value': f"${int(lead.estimated_value/1000)}K" if lead.estimated_value else "No value set"
-                })
-
-        # If no activities found, return empty list
-        if not recent_activities:
-            return Response([])
-
-        return Response(recent_activities)
-    except Exception as e:
-        return Response(
-            {'error': str(e)},
-            status=status.HTTP_500_INTERNAL_SERVER_ERROR
-        )
-
-@csrf_exempt
-@api_view(['GET', 'POST'])
-@permission_classes([AllowAny])
-def lead_pipeline_stats(request):
-    """Get lead pipeline statistics"""
-    try:
-        stats = {}
-        total_leads = Lead.objects.count()
-
-        for status, status_label in Lead.LEAD_STATUS_CHOICES:
-            count = Lead.objects.filter(status=status).count()
-            stats[status] = {
-                'count': count,
-                'label': status_label,
-                'percentage': (count / total_leads * 100) if total_leads > 0 else 0
-            }
-
-        stats['summary'] = {
-            'total_leads': total_leads,
-            'qualified_leads': Lead.objects.filter(status='qualified').count(),
-            'unqualified_leads': Lead.objects.filter(status='unqualified').count(),
-            'active_leads': Lead.objects.filter(status__in=['new', 'contacted', 'qualified']).count(),
-            'conversion_rate': (Lead.objects.filter(status='won').count() / max(Lead.objects.count(), 1)) * 100 if total_leads > 0 else 0
-        }
-
-        return Response(stats)
-    except Exception as e:
-        return Response(
-            {'error': str(e)},
-            status=status.HTTP_500_INTERNAL_SERVER_ERROR
-        )
-
-@csrf_exempt
-@api_view(['GET', 'POST'])
-@permission_classes([AllowAny])
-def top_leads(request):
-    """Get top qualified leads for dashboard"""
-    try:
-        # Get top qualified leads ordered by score and estimated value
-        top_qualified_leads = Lead.objects.filter(
-            status__in=['qualified', 'contacted']
-        ).select_related('company', 'contact').order_by('-score', '-estimated_value')[:5]
-
-        leads_data = []
-        for lead in top_qualified_leads:
-            try:
-                # Calculate engagement level based on score
-                if lead.score >= 80:
-                    engagement = 'High'
-                elif lead.score >= 60:
-                    engagement = 'Medium'
-                else:
-                    engagement = 'Low'
-
-                # Determine next action based on status and priority
-                if lead.status == 'qualified':
-                    next_action = 'Send proposal'
-                elif lead.status == 'contacted':
-                    next_action = 'Follow up call'
-                else:
-                    next_action = 'Contact prospect'
-
-                # Format last contact time
-                time_since_update = timezone.now() - lead.updated_at
-                if time_since_update.days > 0:
-                    last_contact = f"{time_since_update.days} days ago"
-                elif time_since_update.seconds > 3600:
-                    last_contact = f"{time_since_update.seconds // 3600} hours ago"
-                else:
-                    last_contact = f"{time_since_update.seconds // 60} minutes ago"
-
-                leads_data.append({
-                    'id': lead.id,
-                    'company': lead.company.name,
-                    'contact': f"{lead.contact.first_name} {lead.contact.last_name}",
-                    'title': lead.contact.position or 'Contact',
-                    'industry': lead.company.industry or 'Unknown',
-                    'employees': lead.company.employee_count or 100,
-                    'engagement': engagement,
-                    'status': lead.status,
-                    'score': lead.score,
-                    'value': f"${int(lead.estimated_value/1000)}K" if lead.estimated_value else "TBD",
-                    'nextAction': next_action,
-                    'lastContact': last_contact
-                })
-            except Exception as lead_error:
-                print(f"Error processing lead {lead.id}: {lead_error}")
-                continue
-
-        # If no leads found, return empty list
-        if not leads_data:
-            return Response([])
-
-        return Response(leads_data)
-    except Exception as e:
-        return Response(
-            {'error': str(e)},
-            status=status.HTTP_500_INTERNAL_SERVER_ERROR
-        )
-
-
-# New CampaignTemplate and EmailCampaign API Views
-class CampaignTemplateViewSet(viewsets.ModelViewSet):
-    queryset = CampaignTemplate.objects.all()
-    serializer_class = CampaignTemplateSerializer
-
     def list(self, request, *args, **kwargs):
         """Get all templates including both custom and default templates"""
         # Get custom templates from database
@@ -4213,13 +2955,11 @@ def recent_lead_activity(request):
                 activities.append({
                     'id': history.id,
                     'type': activity_type,
-                    'lead': history.lead.company.name if history.lead and history.lead.company else 'Unknown Company',
-                    'contact': f"{history.lead.contact.first_name} {history.lead.contact.last_name}" if history.lead and history.lead.contact else 'Unknown Contact',
+                    'lead': f"{history.lead.company.name}",
                     'action': history.action,
-                    'status': history.lead.status if history.lead else 'unknown',
-                    'time': history.timestamp.strftime('%m/%d/%Y at %I:%M %p') if history.timestamp else 'Unknown time',
-                    'value': f"${int(history.lead.estimated_value/1000)}K" if history.lead and history.lead.estimated_value else 'TBD',
-                    'user': history.user.get_full_name() if history.user else 'System'
+                    'time': history.timestamp.strftime('%d %b %Y, %I:%M %p'),
+                    'status': history.lead.status,
+                    'value': f"Score: {history.lead.score}" if history.lead.score else "No score"
                 })
         except Exception as activity_error:
             print(f"Error processing history {history.id}: {activity_error}")
@@ -4227,31 +2967,29 @@ def recent_lead_activity(request):
 
         # If no history available, get recent leads as activities
         if not activities:
-            recent_leads = Lead.objects.select_related('company', 'contact').order_by('-created_at')[:limit]
+            recent_leads = Lead.objects.select_related('company').order_by('-updated_at')[:5]
 
-            for lead in recent_leads:
-                try:
-                    activity = {
-                        'id': f"lead_{lead.id}",
-                        'type': 'lead_created',
-                        'lead': lead.company.name if lead.company else 'Unknown Company',
-                        'contact': f"{lead.contact.first_name} {lead.contact.last_name}" if lead.contact else 'Unknown Contact',
-                        'action': f'New lead created from {lead.source}',
-                        'status': lead.status,
-                        'time': lead.created_at.strftime('%m/%d/%Y at %I:%M %p'),
-                        'value': f"${int(lead.estimated_value/1000)}K" if lead.estimated_value else 'TBD',
-                        'user': 'System'
-                    }
-                    activities.append(activity)
-                except Exception as lead_error:
-                    print(f"Error processing lead {lead.id}: {lead_error}")
-                    continue
+            for i, lead in enumerate(recent_leads):
+                activities.append({
+                    'id': lead.id,
+                    'type': 'qualification' if lead.status == 'qualified' else 'response',
+                    'lead': lead.company.name,
+                    'action': f'Lead {lead.status} - Recent update',
+                    'time': lead.updated_at.strftime('%d %b %Y, %I:%M %p'),
+                    'status': lead.status,
+                    'value': f"${int(lead.estimated_value/1000)}K" if lead.estimated_value else "No value set"
+                })
+
+        # If no activities found, return empty list
+        if not activities:
+            return Response([])
 
         return Response(activities)
-
     except Exception as e:
-        print(f"Error in recent activity endpoint: {str(e)}")
-        return Response([], status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        return Response(
+            {'error': str(e)},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
 
 @api_view(['GET'])
 @permission_classes([AllowAny])
@@ -4301,3 +3039,977 @@ def top_qualified_leads(request):
     except Exception as e:
         print(f"Error in top leads endpoint: {str(e)}")
         return Response([], status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+# New CampaignTemplate and EmailCampaign API Views
+class CampaignTemplateViewSet(viewsets.ModelViewSet):
+    queryset = CampaignTemplate.objects.all()
+    serializer_class = CampaignTemplateSerializer
+
+    def list(self, request, *args, **kwargs):
+        """Get all templates including both custom and default templates"""
+        # Get custom templates from database
+        custom_templates_response = super().list(request, *args, **kwargs)
+
+        # Extract the actual list from the response data
+        if hasattr(custom_templates_response, 'data'):
+            custom_templates_data = custom_templates_response.data
+            # Handle both paginated (OrderedDict) and non-paginated (list) responses
+            if isinstance(custom_templates_data, dict) and 'results' in custom_templates_data:
+                custom_templates = custom_templates_data['results']
+            elif isinstance(custom_templates_data, list):
+                custom_templates = custom_templates_data
+            else:
+                custom_templates = []
+        else:
+            custom_templates = []
+
+        # Define default templates
+        default_templates = [
+            {
+                'id': 'welcome-series',
+                'name': 'Welcome Series',
+                'description': 'Multi-touch welcome sequence for new leads',
+                'channel_type': 'email',
+                'target_industry': 'All',
+                'subject_line': 'Welcome to the future of corporate travel - {{company_name}}',
+                'content': '''Hi {{contact_name}},
+
+Welcome to SOAR-AI! We're excited to help {{company_name}} transform your corporate travel experience.
+
+Based on your {{industry}} background and {{employees}} team size, we've identified several opportunities to optimize your travel operations:
+
+✈️ Reduce travel costs by up to 35%
+📊 Streamline booking and approval processes  
+🌍 Access our global partner network
+🤖 AI-powered travel recommendations
+
+Ready to see how we can help? Let's schedule a 15-minute discovery call.''',
+                'cta': 'Schedule Discovery Call',
+                'linkedin_type': None,
+                'estimated_open_rate': 45.0,
+                'estimated_click_rate': 12.0,
+                'is_custom': False,
+                'created_by': 'System',
+                'created_at': '2024-01-01T00:00:00Z',
+                'updated_at': '2024-01-01T00:00:00Z'
+            },
+            {
+                'id': 'cost-savings',
+                'name': 'Cost Savings Focus',
+                'description': 'Emphasizes ROI and cost reduction benefits',
+                'channel_type': 'email',
+                'target_industry': 'Manufacturing',
+                'subject_line': '{{company_name}}: Cut travel costs by 35% with SOAR-AI',
+                'content': '''{{contact_name}},
+
+Companies like {{company_name}} in the {{industry}} sector are saving an average of 35% on travel costs with SOAR-AI.
+
+Here's what {{company_name}} could save annually:
+• Current estimated budget: {{travel_budget}}
+• Potential savings: {{calculated_savings}}
+• ROI timeline: 3-6 months
+
+Our AI-powered platform optimizes:
+- Flight routing and pricing
+- Hotel negotiations
+- Policy compliance
+- Expense management
+
+Ready to see your personalized savings analysis?''',
+                'cta': 'View Savings Report',
+                'linkedin_type': None,
+                'estimated_open_rate': 52.0,
+                'estimated_click_rate': 15.0,
+                'is_custom': False,
+                'created_by': 'System',
+                'created_at': '2024-01-01T00:00:00Z',
+                'updated_at': '2024-01-01T00:00:00Z'
+            },
+            {
+                'id': 'linkedin-connection',
+                'name': 'LinkedIn Connection Request',
+                'description': 'Professional connection request for LinkedIn outreach',
+                'channel_type': 'linkedin',
+                'target_industry': 'All',
+                'subject_line': None,
+                'content': '''Hi {{contact_name}},
+
+I noticed {{company_name}} is expanding in the {{industry}} space. I'd love to connect and share how we're helping similar companies optimize their corporate travel operations.
+
+Would you be open to connecting?''',
+                'cta': 'Connect on LinkedIn',
+                'linkedin_type': 'connection',
+                'estimated_open_rate': 65.0,
+                'estimated_click_rate': 25.0,
+                'is_custom': False,
+                'created_by': 'System',
+                'created_at': '2024-01-01T00:00:00Z',
+                'updated_at': '2024-01-01T00:00:00Z'
+            },
+            {
+                'id': 'multi-channel-sequence',
+                'name': 'Multi-Channel Sequence',
+                'description': 'Coordinated outreach across email, LinkedIn, and WhatsApp',
+                'channel_type': 'mixed',
+                'target_industry': 'All',
+                'subject_line': 'Partnership opportunity with {{company_name}}',
+                'content': '''Hi {{contact_name}},
+
+I hope this message finds you well. I've been researching {{company_name}} and I'm impressed by your growth in the {{industry}} sector.
+
+We're helping companies like yours:
+• Reduce travel costs by 25-40%
+• Improve policy compliance
+• Streamline approval workflows
+• Access exclusive corporate rates
+
+Would you be interested in a brief conversation about how we could support {{company_name}}'s travel operations?''',
+                'cta': 'Schedule 15-min Call',
+                'linkedin_type': 'message',
+                'estimated_open_rate': 58.0,
+                'estimated_click_rate': 18.0,
+                'is_custom': False,
+                'created_by': 'System',
+                'created_at': '2024-01-01T00:00:00Z',
+                'updated_at': '2024-01-01T00:00:00Z'
+            }
+        ]
+
+        # Combine default templates first, then custom templates
+        all_templates = default_templates + custom_templates
+        return Response(all_templates)
+
+    @action(detail=False, methods=['get'])
+    def default_templates(self, request):
+        """Get default/built-in campaign templates (legacy endpoint)"""
+        default_templates = [
+            {
+                'id': 'welcome-series',
+                'name': 'Welcome Series',
+                'description': 'Multi-touch welcome sequence for new leads',
+                'channel_type': 'email',
+                'target_industry': 'All',
+                'subject_line': 'Welcome to the future of corporate travel - {{company_name}}',
+                'content': '''Hi {{contact_name}},
+
+Welcome to SOAR-AI! We're excited to help {{company_name}} transform your corporate travel experience.
+
+Based on your {{industry}} background and {{employees}} team size, we've identified several opportunities to optimize your travel operations:
+
+✈️ Reduce travel costs by up to 35%
+📊 Streamline booking and approval processes  
+🌍 Access our global partner network
+🤖 AI-powered travel recommendations
+
+Ready to see how we can help? Let's schedule a 15-minute discovery call.''',
+                'cta': 'Schedule Discovery Call',
+                'linkedin_type': None,
+                'estimated_open_rate': 45.0,
+                'estimated_click_rate': 12.0,
+                'is_custom': False,
+                'created_by': 'System',
+                'created_at': '2024-01-01T00:00:00Z',
+                'updated_at': '2024-01-01T00:00:00Z'
+            },
+            {
+                'id': 'cost-savings',
+                'name': 'Cost Savings Focus',
+                'description': 'Emphasizes ROI and cost reduction benefits',
+                'channel_type': 'email',
+                'target_industry': 'Manufacturing',
+                'subject_line': '{{company_name}}: Cut travel costs by 35% with SOAR-AI',
+                'content': '''{{contact_name}},
+
+Companies like {{company_name}} in the {{industry}} sector are saving an average of 35% on travel costs with SOAR-AI.
+
+Here's what {{company_name}} could save annually:
+• Current estimated budget: {{travel_budget}}
+• Potential savings: {{calculated_savings}}
+• ROI timeline: 3-6 months
+
+Our AI-powered platform optimizes:
+- Flight routing and pricing
+- Hotel negotiations
+- Policy compliance
+- Expense management
+
+Ready to see your personalized savings analysis?''',
+                'cta': 'View Savings Report',
+                'linkedin_type': None,
+                'estimated_open_rate': 52.0,
+                'estimated_click_rate': 15.0,
+                'is_custom': False,
+                'created_by': 'System',
+                'created_at': '2024-01-01T00:00:00Z',
+                'updated_at': '2024-01-01T00:00:00Z'
+            },
+            {
+                'id': 'linkedin-connection',
+                'name': 'LinkedIn Connection Request',
+                'description': 'Professional connection request for LinkedIn outreach',
+                'channel_type': 'linkedin',
+                'target_industry': 'All',
+                'subject_line': None,
+                'content': '''Hi {{contact_name}},
+
+I noticed {{company_name}} is expanding in the {{industry}} space. I'd love to connect and share how we're helping similar companies optimize their corporate travel operations.
+
+Would you be open to connecting?''',
+                'cta': 'Connect on LinkedIn',
+                'linkedin_type': 'connection',
+                'estimated_open_rate': 65.0,
+                'estimated_click_rate': 25.0,
+                'is_custom': False,
+                'created_by': 'System',
+                'created_at': '2024-01-01T00:00:00Z',
+                'updated_at': '2024-01-01T00:00:00Z'
+            },
+            {
+                'id': 'multi-channel-sequence',
+                'name': 'Multi-Channel Sequence',
+                'description': 'Coordinated outreach across email, LinkedIn, and WhatsApp',
+                'channel_type': 'mixed',
+                'target_industry': 'All',
+                'subject_line': 'Partnership opportunity with {{company_name}}',
+                'content': '''Hi {{contact_name}},
+
+I hope this message finds you well. I've been researching {{company_name}} and I'm impressed by your growth in the {{industry}} sector.
+
+We're helping companies like yours:
+• Reduce travel costs by 25-40%
+• Improve policy compliance
+• Streamline approval workflows
+• Access exclusive corporate rates
+
+Would you be interested in a brief conversation about how we could support {{company_name}}'s travel operations?''',
+                'cta': 'Schedule 15-min Call',
+                'linkedin_type': 'message',
+                'estimated_open_rate': 58.0,
+                'estimated_click_rate': 18.0,
+                'is_custom': False,
+                'created_by': 'System',
+                'created_at': '2024-01-01T00:00:00Z',
+                'updated_at': '2024-01-01T00:00:00Z'
+            }
+        ]
+
+        return Response(default_templates)
+
+@api_view(['GET', 'POST'])
+def proposal_draft_detail(request, opportunity_id):
+    """
+    Handle proposal draft operations for a specific opportunity
+    """
+    import os
+    import uuid
+    from django.core.files.storage import default_storage
+    from django.core.files.base import ContentFile
+
+    try:
+        opportunity = Opportunity.objects.get(id=opportunity_id)
+    except Opportunity.DoesNotExist:
+        return Response({'error': 'Opportunity not found'}, status=status.HTTP_404_NOT_FOUND)
+
+    if request.method == 'GET':
+        # Get existing draft if it exists
+        try:
+            draft = ProposalDraft.objects.get(opportunity=opportunity)
+            serializer = ProposalDraftSerializer(draft)
+            draft_data = serializer.data
+
+            # Include attachment information if exists
+            if draft.attachment_path and os.path.exists(draft.attachment_path):
+                draft_data['attachment_info'] = {
+                    'filename': draft.attachment_original_name,
+                    'path': draft.attachment_path,
+                    'exists': True
+                }
+            else:
+                draft_data['attachment_info'] = {'exists': False}
+
+            return Response(draft_data, status=status.HTTP_200_OK)
+        except ProposalDraft.DoesNotExist:
+            return Response({'message': 'No draft found'}, status=status.HTTP_404_NOT_FOUND)
+
+    elif request.method == 'POST' or request.method == 'PUT':
+        # Handle file upload if present
+        attachment_path = None
+        attachment_original_name = None
+
+        if 'attachment' in request.FILES:
+            uploaded_file = request.FILES['attachment']
+
+            # Create unique filename with corporate ID and timestamp
+            file_extension = os.path.splitext(uploaded_file.name)[1]
+            unique_filename = f"proposal_{opportunity.lead.company.id}_{opportunity.id}_{uuid.uuid4().hex[:8]}{file_extension}"
+
+            # Create attachments directory if it doesn't exist
+            attachments_dir = 'proposal_attachments'
+            os.makedirs(attachments_dir, exist_ok=True)
+
+            # Save file with unique name
+            attachment_path = os.path.join(attachments_dir, unique_filename)
+
+            # Write file to disk
+            with open(attachment_path, 'wb') as f:
+                for chunk in uploaded_file.chunks():
+                    f.write(chunk)
+
+            attachment_original_name = uploaded_file.name
+
+        # Prepare data for serializer
+        data = request.data.copy()
+        if attachment_path:
+            data['attachment_path'] = attachment_path
+            data['attachment_original_name'] = attachment_original_name
+
+        # Create or update draft
+        try:
+            draft = ProposalDraft.objects.get(opportunity=opportunity)
+            serializer = ProposalDraftSerializer(draft, data=data, partial=True)
+        except ProposalDraft.DoesNotExist:
+            data['opportunity'] = opportunity.id
+            serializer = ProposalDraftSerializer(data=data)
+
+        if serializer.is_valid():
+            saved_draft = serializer.save()
+
+            # Include attachment info in response
+            response_data = serializer.data
+            if saved_draft.attachment_path and os.path.exists(saved_draft.attachment_path):
+                response_data['attachment_info'] = {
+                    'filename': saved_draft.attachment_original_name,
+                    'path': saved_draft.attachment_path,
+                    'exists': True
+                }
+
+            return Response(response_data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    elif request.method == 'DELETE':
+        # Delete draft and associated files
+        try:
+            draft = ProposalDraft.objects.get(opportunity=opportunity)
+
+            # Delete attachment file if exists
+            if draft.attachment_path and os.path.exists(draft.attachment_path):
+                try:
+                    os.remove(draft.attachment_path)
+                except OSError:
+                    pass  # File might be already deleted
+
+            draft.delete()
+            return Response({'message': 'Draft deleted successfully'}, status=status.HTTP_200_OK)
+        except ProposalDraft.DoesNotExist:
+            return Response({'message': 'No draft found'}, status=status.HTTP_404_NOT_FOUND)
+
+    elif request.method == 'DELETE':
+        # Delete draft
+        try:
+            draft = ProposalDraft.objects.get(opportunity=opportunity)
+            draft.delete()
+            return Response({'message': 'Draft deleted successfully'}, status=status.HTTP_200_OK)
+        except ProposalDraft.DoesNotExist:
+            return Response({'message': 'No draft found'}, status=status.HTTP_404_NOT_FOUND)
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def lead_dashboard_stats(request):
+    """Get lead dashboard statistics"""
+    try:
+        time_period = request.GET.get('period', 'all_time')
+
+        # Calculate date range based on period
+        end_date = timezone.now()
+        if time_period == 'last_30_days':
+            start_date = end_date - timedelta(days=30)
+        elif time_period == 'last_90_days':
+            start_date = end_date - timedelta(days=90)
+        elif time_period == 'this_year':
+            start_date = end_date.replace(month=1, day=1, hour=0, minute=0, second=0, microsecond=0)
+        else:
+            start_date = None
+
+        # Base queryset
+        leads_queryset = Lead.objects.all()
+        if start_date:
+            leads_queryset = leads_queryset.filter(created_at__gte=start_date)
+
+        # Calculate basic stats
+        total_leads = leads_queryset.count()
+        qualified_leads = leads_queryset.filter(status='qualified').count()
+        unqualified_leads = leads_queryset.filter(status='unqualified').count()
+        contacted_leads = leads_queryset.filter(status='contacted').count()
+        responded_leads = leads_queryset.filter(status='responded').count()
+
+        # Calculate conversion rate
+        conversion_rate = (qualified_leads / total_leads * 100) if total_leads > 0 else 0
+
+        # Calculate email stats (mock data for now - can be enhanced with actual email tracking)
+        email_open_rate = 68.5  # This would come from email campaign data
+        email_open_rate_change = 5.2
+
+        # Calculate average response time (mock data)
+        avg_response_time = "2.4 hours"
+        avg_response_time_change = "15% faster"
+
+        # Calculate period-over-period changes
+        if start_date:
+            previous_period_start = start_date - (end_date - start_date)
+            previous_leads = Lead.objects.filter(
+                created_at__gte=previous_period_start,
+                created_at__lt=start_date
+            ).count()
+            total_change = ((total_leads - previous_leads) / max(previous_leads, 1) * 100) if previous_leads > 0 else 0
+        else:
+            total_change = 12.5  # Mock data for all time
+
+        stats = {
+            'totalLeads': total_leads,
+            'qualifiedLeads': qualified_leads,
+            'unqualified': unqualified_leads,
+            'contacted': contacted_leads,
+            'responded': responded_leads,
+            'conversionRate': round(conversion_rate, 1),
+            'emailOpenRate': email_open_rate,
+            'emailOpenRateChange': email_open_rate_change,
+            'avgResponseTime': avg_response_time,
+            'avgResponseTimeChange': avg_response_time_change,
+            'totalChange': round(total_change, 1),
+            'period': time_period
+        }
+
+        return Response(stats)
+
+    except Exception as e:
+        return Response({
+            'error': f'Failed to fetch lead stats: {str(e)}',
+            'totalLeads': 0,
+            'qualifiedLeads': 0,
+            'unqualified': 0,
+            'contacted': 0,
+            'responded': 0,
+            'conversionRate': 0,
+            'emailOpenRate': 0,
+            'emailOpenRateChange': 0,
+            'avgResponseTime': '0 hours',
+            'avgResponseTimeChange': 'No change',
+            'totalChange': 0
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def recent_lead_activity(request):
+    """Get recent lead activity for dashboard"""
+    try:
+        limit = int(request.GET.get('limit', 10))
+
+        activities = []
+
+        # Get recent lead history entries
+        try:
+            recent_history = LeadHistory.objects.select_related('lead').order_by('-timestamp')[:limit]
+
+            for history in recent_history:
+                activity_type = 'qualification' if 'qualified' in history.action.lower() else \
+                              'disqualification' if 'disqualified' in history.action.lower() else \
+                              'email' if 'email' in history.action.lower() else \
+                              'response'
+
+                activities.append({
+                    'id': history.id,
+                    'type': activity_type,
+                    'lead': f"{history.lead.company.name}",
+                    'action': history.action,
+                    'time': history.timestamp.strftime('%d %b %Y, %I:%M %p'),
+                    'status': history.lead.status,
+                    'value': f"Score: {history.lead.score}" if history.lead.score else "No score"
+                })
+        except Exception as activity_error:
+            print(f"Error processing history {history.id}: {activity_error}")
+            # continue
+
+        # If no history available, get recent leads as activities
+        if not activities:
+            recent_leads = Lead.objects.select_related('company').order_by('-updated_at')[:5]
+
+            for i, lead in enumerate(recent_leads):
+                activities.append({
+                    'id': lead.id,
+                    'type': 'qualification' if lead.status == 'qualified' else 'response',
+                    'lead': lead.company.name,
+                    'action': f'Lead {lead.status} - Recent update',
+                    'time': lead.updated_at.strftime('%d %b %Y, %I:%M %p'),
+                    'status': lead.status,
+                    'value': f"${int(lead.estimated_value/1000)}K" if lead.estimated_value else "No value set"
+                })
+
+        # If no activities found, return empty list
+        if not activities:
+            return Response([])
+
+        return Response(activities)
+    except Exception as e:
+        return Response(
+            {'error': str(e)},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def top_qualified_leads(request):
+    """Get top qualified leads for dashboard"""
+    try:
+        limit = int(request.GET.get('limit', 5))
+
+        # Get top qualified leads ordered by score and estimated value
+        top_leads = Lead.objects.select_related('company', 'contact').filter(
+            status='qualified'
+        ).order_by('-score', '-estimated_value')[:limit]
+
+        leads_data = []
+        for lead in top_leads:
+            try:
+                # Determine engagement level based on score
+                if lead.score >= 80:
+                    engagement = 'High'
+                elif lead.score >= 60:
+                    engagement = 'Medium'
+                else:
+                    engagement = 'Low'
+
+                lead_data = {
+                    'id': lead.id,
+                    'company': lead.company.name if lead.company else 'Unknown Company',
+                    'contact': f"{lead.contact.first_name} {lead.contact.last_name}" if lead.contact else 'Unknown Contact',
+                    'title': lead.contact.position if lead.contact else 'Unknown Position',
+                    'industry': lead.company.industry.title() if lead.company and lead.company.industry else 'Unknown',
+                    'employees': lead.company.employee_count if lead.company else 0,
+                    'status': lead.status,
+                    'score': lead.score,
+                    'value': f"${int(lead.estimated_value/1000)}K" if lead.estimated_value else 'TBD',
+                    'engagement': engagement,
+                    'nextAction': lead.next_action or 'Follow up required',
+                    'lastContact': lead.updated_at.strftime('%m/%d/%Y') if lead.updated_at else 'Unknown'
+                }
+                leads_data.append(lead_data)
+
+            except Exception as lead_error:
+                print(f"Error processing lead {lead.id}: {lead_error}")
+                continue
+
+        return Response(leads_data)
+
+    except Exception as e:
+        print(f"Error in top leads endpoint: {str(e)}")
+        return Response([], status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+# New CampaignTemplate and EmailCampaign API Views
+class CampaignTemplateViewSet(viewsets.ModelViewSet):
+    queryset = CampaignTemplate.objects.all()
+    serializer_class = CampaignTemplateSerializer
+
+    def list(self, request, *args, **kwargs):
+        """Get all templates including both custom and default templates"""
+        # Get custom templates from database
+        custom_templates_response = super().list(request, *args, **kwargs)
+
+        # Extract the actual list from the response data
+        if hasattr(custom_templates_response, 'data'):
+            custom_templates_data = custom_templates_response.data
+            # Handle both paginated (OrderedDict) and non-paginated (list) responses
+            if isinstance(custom_templates_data, dict) and 'results' in custom_templates_data:
+                custom_templates = custom_templates_data['results']
+            elif isinstance(custom_templates_data, list):
+                custom_templates = custom_templates_data
+            else:
+                custom_templates = []
+        else:
+            custom_templates = []
+
+        # Define default templates
+        default_templates = [
+            {
+                'id': 'welcome-series',
+                'name': 'Welcome Series',
+                'description': 'Multi-touch welcome sequence for new leads',
+                'channel_type': 'email',
+                'target_industry': 'All',
+                'subject_line': 'Welcome to the future of corporate travel - {{company_name}}',
+                'content': '''Hi {{contact_name}},
+
+Welcome to SOAR-AI! We're excited to help {{company_name}} transform your corporate travel experience.
+
+Based on your {{industry}} background and {{employees}} team size, we've identified several opportunities to optimize your travel operations:
+
+✈️ Reduce travel costs by up to 35%
+📊 Streamline booking and approval processes  
+🌍 Access our global partner network
+🤖 AI-powered travel recommendations
+
+Ready to see how we can help? Let's schedule a 15-minute discovery call.''',
+                'cta': 'Schedule Discovery Call',
+                'linkedin_type': None,
+                'estimated_open_rate': 45.0,
+                'estimated_click_rate': 12.0,
+                'is_custom': False,
+                'created_by': 'System',
+                'created_at': '2024-01-01T00:00:00Z',
+                'updated_at': '2024-01-01T00:00:00Z'
+            },
+            {
+                'id': 'cost-savings',
+                'name': 'Cost Savings Focus',
+                'description': 'Emphasizes ROI and cost reduction benefits',
+                'channel_type': 'email',
+                'target_industry': 'Manufacturing',
+                'subject_line': '{{company_name}}: Cut travel costs by 35% with SOAR-AI',
+                'content': '''{{contact_name}},
+
+Companies like {{company_name}} in the {{industry}} sector are saving an average of 35% on travel costs with SOAR-AI.
+
+Here's what {{company_name}} could save annually:
+• Current estimated budget: {{travel_budget}}
+• Potential savings: {{calculated_savings}}
+• ROI timeline: 3-6 months
+
+Our AI-powered platform optimizes:
+- Flight routing and pricing
+- Hotel negotiations
+- Policy compliance
+- Expense management
+
+Ready to see your personalized savings analysis?''',
+                'cta': 'View Savings Report',
+                'linkedin_type': None,
+                'estimated_open_rate': 52.0,
+                'estimated_click_rate': 15.0,
+                'is_custom': False,
+                'created_by': 'System',
+                'created_at': '2024-01-01T00:00:00Z',
+                'updated_at': '2024-01-01T00:00:00Z'
+            },
+            {
+                'id': 'linkedin-connection',
+                'name': 'LinkedIn Connection Request',
+                'description': 'Professional connection request for LinkedIn outreach',
+                'channel_type': 'linkedin',
+                'target_industry': 'All',
+                'subject_line': None,
+                'content': '''Hi {{contact_name}},
+
+I noticed {{company_name}} is expanding in the {{industry}} space. I'd love to connect and share how we're helping similar companies optimize their corporate travel operations.
+
+Would you be open to connecting?''',
+                'cta': 'Connect on LinkedIn',
+                'linkedin_type': 'connection',
+                'estimated_open_rate': 65.0,
+                'estimated_click_rate': 25.0,
+                'is_custom': False,
+                'created_by': 'System',
+                'created_at': '2024-01-01T00:00:00Z',
+                'updated_at': '2024-01-01T00:00:00Z'
+            },
+            {
+                'id': 'multi-channel-sequence',
+                'name': 'Multi-Channel Sequence',
+                'description': 'Coordinated outreach across email, LinkedIn, and WhatsApp',
+                'channel_type': 'mixed',
+                'target_industry': 'All',
+                'subject_line': 'Partnership opportunity with {{company_name}}',
+                'content': '''Hi {{contact_name}},
+
+I hope this message finds you well. I've been researching {{company_name}} and I'm impressed by your growth in the {{industry}} sector.
+
+We're helping companies like yours:
+• Reduce travel costs by 25-40%
+• Improve policy compliance
+• Streamline approval workflows
+• Access exclusive corporate rates
+
+Would you be interested in a brief conversation about how we could support {{company_name}}'s travel operations?''',
+                'cta': 'Schedule 15-min Call',
+                'linkedin_type': 'message',
+                'estimated_open_rate': 58.0,
+                'estimated_click_rate': 18.0,
+                'is_custom': False,
+                'created_by': 'System',
+                'created_at': '2024-01-01T00:00:00Z',
+                'updated_at': '2024-01-01T00:00:00Z'
+            }
+        ]
+
+        # Combine default templates first, then custom templates
+        all_templates = default_templates + custom_templates
+        return Response(all_templates)
+
+    @action(detail=False, methods=['get'])
+    def default_templates(self, request):
+        """Get default/built-in campaign templates (legacy endpoint)"""
+        default_templates = [
+            {
+                'id': 'welcome-series',
+                'name': 'Welcome Series',
+                'description': 'Multi-touch welcome sequence for new leads',
+                'channel_type': 'email',
+                'target_industry': 'All',
+                'subject_line': 'Welcome to the future of corporate travel - {{company_name}}',
+                'content': '''Hi {{contact_name}},
+
+Welcome to SOAR-AI! We're excited to help {{company_name}} transform your corporate travel experience.
+
+Based on your {{industry}} background and {{employees}} team size, we've identified several opportunities to optimize your travel operations:
+
+✈️ Reduce travel costs by up to 35%
+📊 Streamline booking and approval processes  
+🌍 Access our global partner network
+🤖 AI-powered travel recommendations
+
+Ready to see how we can help? Let's schedule a 15-minute discovery call.''',
+                'cta': 'Schedule Discovery Call',
+                'linkedin_type': None,
+                'estimated_open_rate': 45.0,
+                'estimated_click_rate': 12.0,
+                'is_custom': False,
+                'created_by': 'System',
+                'created_at': '2024-01-01T00:00:00Z',
+                'updated_at': '2024-01-01T00:00:00Z'
+            },
+            {
+                'id': 'cost-savings',
+                'name': 'Cost Savings Focus',
+                'description': 'Emphasizes ROI and cost reduction benefits',
+                'channel_type': 'email',
+                'target_industry': 'Manufacturing',
+                'subject_line': '{{company_name}}: Cut travel costs by 35% with SOAR-AI',
+                'content': '''{{contact_name}},
+
+Companies like {{company_name}} in the {{industry}} sector are saving an average of 35% on travel costs with SOAR-AI.
+
+Here's what {{company_name}} could save annually:
+• Current estimated budget: {{travel_budget}}
+• Potential savings: {{calculated_savings}}
+• ROI timeline: 3-6 months
+
+Our AI-powered platform optimizes:
+- Flight routing and pricing
+- Hotel negotiations
+- Policy compliance
+- Expense management
+
+Ready to see your personalized savings analysis?''',
+                'cta': 'View Savings Report',
+                'linkedin_type': None,
+                'estimated_open_rate': 52.0,
+                'estimated_click_rate': 15.0,
+                'is_custom': False,
+                'created_by': 'System',
+                'created_at': '2024-01-01T00:00:00Z',
+                'updated_at': '2024-01-01T00:00:00Z'
+            },
+            {
+                'id': 'linkedin-connection',
+                'name': 'LinkedIn Connection Request',
+                'description': 'Professional connection request for LinkedIn outreach',
+                'channel_type': 'linkedin',
+                'target_industry': 'All',
+                'subject_line': None,
+                'content': '''Hi {{contact_name}},
+
+I noticed {{company_name}} is expanding in the {{industry}} space. I'd love to connect and share how we're helping similar companies optimize their corporate travel operations.
+
+Would you be open to connecting?''',
+                'cta': 'Connect on LinkedIn',
+                'linkedin_type': 'connection',
+                'estimated_open_rate': 65.0,
+                'estimated_click_rate': 25.0,
+                'is_custom': False,
+                'created_by': 'System',
+                'created_at': '2024-01-01T00:00:00Z',
+                'updated_at': '2024-01-01T00:00:00Z'
+            },
+            {
+                'id': 'multi-channel-sequence',
+                'name': 'Multi-Channel Sequence',
+                'description': 'Coordinated outreach across email, LinkedIn, and WhatsApp',
+                'channel_type': 'mixed',
+                'target_industry': 'All',
+                'subject_line': 'Partnership opportunity with {{company_name}}',
+                'content': '''Hi {{contact_name}},
+
+I hope this message finds you well. I've been researching {{company_name}} and I'm impressed by your growth in the {{industry}} sector.
+
+We're helping companies like yours:
+• Reduce travel costs by 25-40%
+• Improve policy compliance
+• Streamline approval workflows
+• Access exclusive corporate rates
+
+Would you be interested in a brief conversation about how we could support {{company_name}}'s travel operations?''',
+                'cta': 'Schedule 15-min Call',
+                'linkedin_type': 'message',
+                'estimated_open_rate': 58.0,
+                'estimated_click_rate': 18.0,
+                'is_custom': False,
+                'created_by': 'System',
+                'created_at': '2024-01-01T00:00:00Z',
+                'updated_at': '2024-01-01T00:00:00Z'
+            }
+        ]
+
+        return Response(default_templates)
+
+@api_view(['GET', 'POST'])
+def proposal_draft_detail(request, opportunity_id):
+    """
+    Handle proposal draft operations for a specific opportunity
+    """
+    import os
+    import uuid
+    from django.core.files.storage import default_storage
+    from django.core.files.base import ContentFile
+
+    try:
+        opportunity = Opportunity.objects.get(id=opportunity_id)
+    except Opportunity.DoesNotExist:
+        return Response({'error': 'Opportunity not found'}, status=status.HTTP_404_NOT_FOUND)
+
+    if request.method == 'GET':
+        # Get existing draft if it exists
+        try:
+            draft = ProposalDraft.objects.get(opportunity=opportunity)
+            serializer = ProposalDraftSerializer(draft)
+            draft_data = serializer.data
+
+            # Include attachment information if exists
+            if draft.attachment_path and os.path.exists(draft.attachment_path):
+                draft_data['attachment_info'] = {
+                    'filename': draft.attachment_original_name,
+                    'path': draft.attachment_path,
+                    'exists': True
+                }
+            else:
+                draft_data['attachment_info'] = {'exists': False}
+
+            return Response(draft_data, status=status.HTTP_200_OK)
+        except ProposalDraft.DoesNotExist:
+            return Response({'message': 'No draft found'}, status=status.HTTP_404_NOT_FOUND)
+
+    elif request.method == 'POST' or request.method == 'PUT':
+        # Handle file upload if present
+        attachment_path = None
+        attachment_original_name = None
+
+        if 'attachment' in request.FILES:
+            uploaded_file = request.FILES['attachment']
+
+            # Create unique filename with corporate ID and timestamp
+            file_extension = os.path.splitext(uploaded_file.name)[1]
+            unique_filename = f"proposal_{opportunity.lead.company.id}_{opportunity.id}_{uuid.uuid4().hex[:8]}{file_extension}"
+
+            # Create attachments directory if it doesn't exist
+            attachments_dir = 'proposal_attachments'
+            os.makedirs(attachments_dir, exist_ok=True)
+
+            # Save file with unique name
+            attachment_path = os.path.join(attachments_dir, unique_filename)
+
+            # Write file to disk
+            with open(attachment_path, 'wb') as f:
+                for chunk in uploaded_file.chunks():
+                    f.write(chunk)
+
+            attachment_original_name = uploaded_file.name
+
+        # Prepare data for serializer
+        data = request.data.copy()
+        if attachment_path:
+            data['attachment_path'] = attachment_path
+            data['attachment_original_name'] = attachment_original_name
+
+        # Create or update draft
+        try:
+            draft = ProposalDraft.objects.get(opportunity=opportunity)
+            serializer = ProposalDraftSerializer(draft, data=data, partial=True)
+        except ProposalDraft.DoesNotExist:
+            data['opportunity'] = opportunity.id
+            serializer = ProposalDraftSerializer(data=data)
+
+        if serializer.is_valid():
+            saved_draft = serializer.save()
+
+            # Include attachment info in response
+            response_data = serializer.data
+            if saved_draft.attachment_path and os.path.exists(saved_draft.attachment_path):
+                response_data['attachment_info'] = {
+                    'filename': saved_draft.attachment_original_name,
+                    'path': saved_draft.attachment_path,
+                    'exists': True
+                }
+
+            return Response(response_data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    elif request.method == 'DELETE':
+        # Delete draft and associated files
+        try:
+            draft = ProposalDraft.objects.get(opportunity=opportunity)
+
+            # Delete attachment file if exists
+            if draft.attachment_path and os.path.exists(draft.attachment_path):
+                try:
+                    os.remove(draft.attachment_path)
+                except OSError:
+                    pass  # File might be already deleted
+
+            draft.delete()
+            return Response({'message': 'Draft deleted successfully'}, status=status.HTTP_200_OK)
+        except ProposalDraft.DoesNotExist:
+            return Response({'message': 'No draft found'}, status=status.HTTP_404_NOT_FOUND)
+
+    elif request.method == 'DELETE':
+        # Delete draft
+        try:
+            draft = ProposalDraft.objects.get(opportunity=opportunity)
+            draft.delete()
+            return Response({'message': 'Draft deleted successfully'}, status=status.HTTP_200_OK)
+        except ProposalDraft.DoesNotExist:
+            return Response({'message': 'No draft found'}, status=status.HTTP_404_NOT_FOUND)
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def campaign_analytics(request):
+    """Get campaign analytics data"""
+    try:
+        campaigns = EmailCampaign.objects.all()
+        analytics_data = []
+
+        for campaign in campaigns:
+            open_rate = (campaign.emails_opened / campaign.emails_sent * 100) if campaign.emails_sent > 0 else 0
+            click_rate = (campaign.emails_clicked / campaign.emails_sent * 100) if campaign.emails_sent > 0 else 0
+
+            analytics_data.append({
+                'id': campaign.id,
+                'name': campaign.name,
+                'status': campaign.status,
+                'emails_sent': campaign.emails_sent,
+                'emails_opened': campaign.emails_opened,
+                'emails_clicked': campaign.emails_clicked,
+                'open_rate': round(open_rate, 2),
+                'click_rate': round(click_rate, 2),
+                'created_at': campaign.created_at
+            })
+
+        return Response({
+            'success': True,
+            'analytics': analytics_data
+        })
+    except Exception as e:
+        return Response({
+            'success': False,
+            'error': str(e)
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+</new_str>
+</changes>
