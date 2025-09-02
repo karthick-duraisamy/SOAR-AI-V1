@@ -2076,7 +2076,7 @@ def check_smtp_status(request, campaign_id=None):
             )
 
             connection.open()
-            connection.close()
+            # Add any other necessary checks here, like sending a test email
 
             return Response({
                 'status': 'connected',
@@ -2114,17 +2114,33 @@ def check_smtp_status(request, campaign_id=None):
             }, status=status.HTTP_503_SERVICE_UNAVAILABLE)
 
         except Exception as e:
+            # This catches any other unexpected errors during connection or operation
             return Response({
                 'status': 'error',
-                'message': f'SMTP Error: {str(e)}',
+                'message': f'An unexpected SMTP error occurred: {str(e)}',
                 'details': {
                     'host': smtp_host,
                     'port': smtp_port,
-                    'error_type': 'general_error'
+                    'username': smtp_user,
+                    'error_type': 'unexpected_error'
                 }
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+        finally:
+            # Ensure the connection is closed if it was opened, regardless of success or failure
+            if 'connection' in locals() and connection:
+                try:
+                    connection.close()
+                    # Add logging for connection closure
+                    import logging
+                    smtp_logger = logging.getLogger('smtp_check')
+                    smtp_logger.info("SMTP connection closed")
+                except Exception as close_error:
+                    smtp_logger.error(f"Error closing SMTP connection: {close_error}")
+
+
     except Exception as e:
+        # This catches errors related to accessing settings
         return Response({
             'status': 'error',
             'message': f'Configuration error: {str(e)}',
