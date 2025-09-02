@@ -4224,7 +4224,7 @@ def recent_lead_activity(request):
                 })
         except Exception as activity_error:
             print(f"Error processing history {history.id}: {activity_error}")
-            continue
+            # continue
 
         # If no history available, get recent leads as activities
         if not activities:
