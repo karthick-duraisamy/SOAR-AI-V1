@@ -654,6 +654,21 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
   const [isLoadingNotes, setIsLoadingNotes] = useState<{ [key: number]: boolean }>({}); // Loading state for notes fetch
   const [showAddCompanyDialog, setShowAddCompanyDialog] = useState(false); // State for Add Company Dialog
 
+  // Modal states
+  const [showInitiateCallModal, setShowInitiateCallModal] = useState(false);
+  const [showScheduleMeetingModal, setShowScheduleMeetingModal] = useState(false);
+  const [showScheduleDemoModal, setShowScheduleDemoModal] = useState(false);
+  const [showAssignAgentModal, setShowAssignAgentModal] = useState(false);
+  
+  // Selected lead for actions
+  const [selectedLeadForAction, setSelectedLeadForAction] = useState<any>(null);
+  const [selectedLeadForAssign, setSelectedLeadForAssign] = useState<any>(null);
+  
+  // Agent assignment states
+  const [selectedAgent, setSelectedAgent] = useState('');
+  const [assignmentPriority, setAssignmentPriority] = useState('Medium Priority');
+  const [assignmentNotes, setAssignmentNotes] = useState('');
+  const [isAssigning, setIsAssigning] = useState(false);
 
   const isFormValid = () => {
     return newCompany.name.trim() !== '' && 
