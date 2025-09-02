@@ -2232,11 +2232,11 @@ SOAR-AI Team`,
 
                     <CollapsibleContent className="space-y-2">
                       {/* Original notes */}
-                      {lead.notes && (
+                      {/* {lead.notes && (
                         <div className="text-sm text-gray-700 mb-2">
                           <strong>Original Notes:</strong> {lead.notes.split(' | ')[0]}
                         </div>
-                      )}
+                      )} */}
 
                       {/* Recent lead notes */}
                       {lead.leadNotes && lead.leadNotes.length > 0 && (
