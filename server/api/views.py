@@ -2657,6 +2657,95 @@ def download_proposal_attachment(request, opportunity_id):
     except (Opportunity.DoesNotExist, ProposalDraft.DoesNotExist):
         raise Http404("Draft or opportunity not found")
 
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def email_campaign_performance(request):
+    """Get email campaign performance metrics"""
+    try:
+        campaigns = EmailCampaign.objects.filter(status__in=['active', 'completed'])
+        
+        performance_data = []
+        for campaign in campaigns:
+            open_rate = (campaign.emails_opened / campaign.emails_sent * 100) if campaign.emails_sent > 0 else 0
+            click_rate = (campaign.emails_clicked / campaign.emails_sent * 100) if campaign.emails_sent > 0 else 0
+            
+            performance_data.append({
+                'id': campaign.id,
+                'name': campaign.name,
+                'emails_sent': campaign.emails_sent,
+                'emails_opened': campaign.emails_opened,
+                'emails_clicked': campaign.emails_clicked,
+                'open_rate': round(open_rate, 2),
+                'click_rate': round(click_rate, 2),
+                'status': campaign.status,
+                'created_at': campaign.created_at.isoformat() if campaign.created_at else None,
+                'target_count': campaign.target_count
+            })
+        
+        return Response({
+            'success': True,
+            'data': performance_data,
+            'total_campaigns': len(performance_data)
+        })
+        
+    except Exception as e:
+        return Response({
+            'success': False,
+            'error': f'Failed to fetch campaign performance: {str(e)}'
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def track_email_open(request, campaign_id):
+    """Track email open event"""
+    try:
+        campaign = EmailCampaign.objects.get(id=campaign_id)
+        campaign.emails_opened += 1
+        campaign.save()
+        
+        return Response({
+            'success': True,
+            'message': 'Email open tracked',
+            'opens': campaign.emails_opened
+        })
+        
+    except EmailCampaign.DoesNotExist:
+        return Response({
+            'success': False,
+            'error': 'Campaign not found'
+        }, status=status.HTTP_404_NOT_FOUND)
+    except Exception as e:
+        return Response({
+            'success': False,
+            'error': f'Failed to track email open: {str(e)}'
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def track_email_click(request, campaign_id):
+    """Track email click event"""
+    try:
+        campaign = EmailCampaign.objects.get(id=campaign_id)
+        campaign.emails_clicked += 1
+        campaign.save()
+        
+        return Response({
+            'success': True,
+            'message': 'Email click tracked',
+            'clicks': campaign.emails_clicked
+        })
+        
+    except EmailCampaign.DoesNotExist:
+        return Response({
+            'success': False,
+            'error': 'Campaign not found'
+        }, status=status.HTTP_404_NOT_FOUND)
+    except Exception as e:
+        return Response({
+            'success': False,
+            'error': f'Failed to track email click: {str(e)}'
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 class ProposalDraftViewSet(viewsets.ModelViewSet):
     queryset = ProposalDraft.objects.all()
     serializer_class = ProposalDraftSerializer

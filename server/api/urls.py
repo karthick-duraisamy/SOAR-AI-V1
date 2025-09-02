@@ -40,11 +40,10 @@ urlpatterns = [
     # Generic history endpoint
     path('get-history/', views.get_history, name='get_history'),
 
-    # Lead Dashboard API endpoints
-    path('leads/dashboard/stats/', views.lead_dashboard_stats, name='lead-dashboard-stats'),
-    path('leads/dashboard/recent-activity/', views.recent_lead_activity, name='lead-recent-activity'),
-    path('leads/dashboard/top-qualified/', views.top_qualified_leads, name='lead-top-qualified'),
-    path('email-campaigns/performance/', views.email_campaign_performance, name='email_campaign_performance'),
-    path('email-campaigns/<int:campaign_id>/track-open/', views.track_email_open, name='track_email_open'),
-    path('email-campaigns/<int:campaign_id>/track-click/', views.track_email_click, name='track_email_click'),
+    urlpatterns = [
+    path('', include(router.urls)),
+    path('send-corporate-message/', views.send_corporate_message, name='send_corporate_message'),
+    path('check-smtp-status/', views.check_smtp_status, name='check_smtp_status'),
+    path('check-smtp-status/<int:campaign_id>/', views.check_smtp_status, name='check_smtp_status_campaign'),
+    path('proposal-attachment/<int:opportunity_id>/', views.download_proposal_attachment, name='download_proposal_attachment'),
 ]
