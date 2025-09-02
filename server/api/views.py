@@ -3229,8 +3229,12 @@ def get_history(request):
 
                 return Response(history_items)
 
-                        history_items.append({
-                            'id': f"activity_{activity.id}",
+        except Exception as e:
+            print(f"Error in get_history endpoint: {str(e)}")
+            return Response({
+                'error': f'Failed to fetch history: {str(e)}',
+                'history': []
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
                             'history_type': 'activity',
                             'action': f"{activity.get_type_display()} - {activity.description[:50]}{'...' if len(activity.description) > 50 else ''}",
                             'details': activity.description,
