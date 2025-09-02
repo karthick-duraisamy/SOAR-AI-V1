@@ -1335,42 +1335,15 @@ SOAR-AI Team`,
     try {
       setIsSavingNote(true);
       // Call API to add note, which should also create a history entry
-      const response = await leadApi.addNote(selectedLeadForNote.id, { 
+      await leadApi.addNote(selectedLeadForNote.id, { 
         note: noteForm.note,
         next_action: noteForm.nextAction,
         urgency: noteForm.urgency,
         created_by: 'Current User' // This should ideally be handled by backend based on auth
       });
 
-      // Update the local state directly instead of refetching all leads
-      if (response && response.lead) {
-        setLeads(prev => prev.map(lead => {
-          if (lead.id === selectedLeadForNote.id) {
-            // Update the lead with new data from API response
-            const updatedLead = transformApiLeadToUILead(response.lead);
-            return updatedLead;
-          }
-          return lead;
-        }));
-      } else {
-        // Fallback: update only the notes and next action locally
-        setLeads(prev => prev.map(lead => {
-          if (lead.id === selectedLeadForNote.id) {
-            const timestamp = new Date().toLocaleDateString();
-            const newNote = `[${timestamp}] ${noteForm.note}`;
-            const updatedNotes = lead.notes ? `${lead.notes} | ${newNote}` : newNote;
-            
-            return {
-              ...lead,
-              notes: updatedNotes,
-              nextAction: noteForm.nextAction || lead.nextAction,
-              urgency: noteForm.urgency || lead.urgency,
-              lastActivity: new Date().toISOString().split('T')[0]
-            };
-          }
-          return lead;
-        }));
-      }
+      // Refresh the leads list to get the latest data including the new note
+      await fetchLeads();
 
       // Clear history cache for this lead to force a fresh fetch on next view
       setLeadHistory(prev => {

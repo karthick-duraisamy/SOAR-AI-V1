@@ -1,18 +1,10 @@
 from rest_framework import serializers
-from rest_framework.validators import UniqueValidator
-from django.utils.translation import gettext_lazy as _
-from django.contrib.auth import get_user_model
-from django.db.models import Sum, Avg, Count
-from django.db import models
-
 from .models import (
     Company, Contact, Lead, Opportunity, OpportunityActivity, Contract, ContractBreach,
     EmailCampaign, TravelOffer, SupportTicket, RevenueForecast,
     ActivityLog, AIConversation, LeadNote, LeadHistory, CampaignTemplate, ProposalDraft,
     EmailTracking
 )
-
-User = get_user_model()
 
 class CompanySerializer(serializers.ModelSerializer):
     contacts_count = serializers.SerializerMethodField()
@@ -84,52 +76,118 @@ class LeadNoteSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class LeadHistorySerializer(serializers.ModelSerializer):
-    user_name = serializers.CharField(source='user.username', read_only=True)
+    user_name = serializers.SerializerMethodField()
     user_role = serializers.SerializerMethodField()
     formatted_timestamp = serializers.SerializerMethodField()
+    assigned_agent = serializers.SerializerMethodField()
+    previous_agent = serializers.SerializerMethodField()
+    assignment_priority = serializers.SerializerMethodField()
+    assignment_notes = serializers.SerializerMethodField()
 
     class Meta:
         model = LeadHistory
-        fields = ['id', 'history_type', 'action', 'details', 'icon', 'timestamp', 
-                 'user_name', 'user_role', 'formatted_timestamp', 'metadata']
+        fields = ['id', 'history_type', 'action', 'details', 'icon', 'timestamp', 'metadata', 'user_name', 'user_role', 'formatted_timestamp', 'assigned_agent', 'previous_agent', 'assignment_priority', 'assignment_notes']
+
+    def get_user_name(self, obj):
+        if obj.user:
+            return obj.user.get_full_name() or obj.user.username
+        return 'System'
+
+    def get_user_role(self, obj):
+        return 'Agent' if obj.user else 'System'
+
+    def get_formatted_timestamp(self, obj):
+        return obj.timestamp.strftime('%m/%d/%Y at %I:%M %p')
+
+    def get_assigned_agent(self, obj):
+        if obj.user:
+            return obj.user.get_full_name() or obj.user.username
+        return None
+
+    def get_user_name(self, obj):
+        if obj.user:
+            return f"{obj.user.first_name} {obj.user.last_name}".strip() or obj.user.username
+        return "System"
 
     def get_user_role(self, obj):
         if obj.user:
-            return 'Sales Manager' if obj.user.is_staff else 'Sales Representative'
-        return 'System'
+            # You can customize this based on your user model
+            if obj.user.is_staff:
+                return "Sales Manager"
+            return "Sales Representative"
+        return "System"
 
     def get_formatted_timestamp(self, obj):
+        from django.utils import timezone
+        from datetime import datetime
+
         if obj.timestamp:
-            return obj.timestamp.strftime('%B %d, %Y at %I:%M %p')
-        return 'Recently'
+            # Format as "7/8/2024 at 9:15:00 AM"
+            return obj.timestamp.strftime('%m/%d/%Y at %I:%M:%S %p')
+        return ""
 
-class UserSerializer(serializers.ModelSerializer):
-    full_name = serializers.SerializerMethodField()
+    def get_assigned_agent(self, obj):
+        """Extract assigned agent name from metadata or action text"""
+        if obj.history_type in ['agent_assignment', 'agent_reassignment']:
+            # First try to get from metadata
+            if hasattr(obj, 'metadata') and obj.metadata:
+                agent_name = obj.metadata.get('agent_name')
+                if agent_name:
+                    return agent_name
 
-    class Meta:
-        model = User
-        fields = ('id', 'username', 'email', 'first_name', 'last_name', 'full_name')
+            # Fallback to extracting from action text
+            if 'assigned to' in obj.action.lower() or 'reassigned to' in obj.action.lower():
+                import re
+                match = re.search(r'(?:assigned|reassigned) to (.+)', obj.action, re.IGNORECASE)
+                if match:
+                    return match.group(1).strip()
+            elif 'assigned:' in obj.action.lower():
+                parts = obj.action.split(': ')
+                if len(parts) > 1:
+                    return parts[1].strip()
+        return obj.lead.assigned_agent if obj.lead else None
 
-    def get_full_name(self, obj):
-        return obj.get_full_name()
+    def get_previous_agent(self, obj):
+        """Extract previous agent name from metadata"""
+        if obj.history_type == 'agent_reassignment' and hasattr(obj, 'metadata') and obj.metadata:
+            return obj.metadata.get('previous_agent')
+        return None
+
+    def get_assignment_priority(self, obj):
+        """Extract assignment priority from metadata"""
+        if obj.history_type in ['agent_assignment', 'agent_reassignment'] and hasattr(obj, 'metadata') and obj.metadata:
+            return obj.metadata.get('priority')
+        return None
+
+    def get_assignment_notes(self, obj):
+        """Extract assignment notes from metadata"""
+        if obj.history_type in ['agent_assignment', 'agent_reassignment'] and hasattr(obj, 'metadata') and obj.metadata:
+            return obj.metadata.get('assignment_notes')
+        return None
 
 class LeadSerializer(serializers.ModelSerializer):
     company = CompanySerializer(read_only=True)
     contact = ContactSerializer(read_only=True)
-    assigned_to = UserSerializer(read_only=True)
+    assigned_to = serializers.StringRelatedField(read_only=True)
+    assigned_agent = serializers.CharField(read_only=True)
+    assigned_agent_details = serializers.SerializerMethodField()
     lead_notes = LeadNoteSerializer(many=True, read_only=True)
     history_entries = serializers.SerializerMethodField()
-    assigned_agent_details = serializers.SerializerMethodField()
 
     class Meta:
         model = Lead
         fields = '__all__'
 
     def get_history_entries(self, obj):
+        """
+        Get history entries, handling case where LeadHistory table doesn't exist yet
+        """
         try:
+            from .models import LeadHistory
             history_entries = obj.history_entries.all()
             return LeadHistorySerializer(history_entries, many=True).data
         except Exception:
+            # Return empty list if LeadHistory table doesn't exist
             return []
 
     def get_company(self, obj):
@@ -152,14 +210,24 @@ class LeadSerializer(serializers.ModelSerializer):
 
     def get_assigned_to(self, obj):
         if obj.assigned_to:
-            return UserSerializer(obj.assigned_to).data
+            return {
+                'id': obj.assigned_to.id,
+                'username': obj.assigned_to.username,
+                'first_name': obj.assigned_to.first_name,
+                'last_name': obj.assigned_to.last_name,
+            }
         return None
+
+    def get_days_since_created(self, obj):
+        from django.utils import timezone
+        return (timezone.now() - obj.created_at).days
 
     def get_assigned_agent_details(self, obj):
         """Get detailed information about the assigned agent"""
         if not obj.assigned_agent:
             return None
 
+        # Map agent names to their details (in a real system, this would come from a User/Agent model)
         agent_details = {
             'John Smith': {
                 'name': 'John Smith',
@@ -204,19 +272,28 @@ class OptimizedLeadSerializer(serializers.ModelSerializer):
     """Optimized serializer for list views with minimal data"""
     company = CompanySerializer(read_only=True)
     contact = ContactSerializer(read_only=True)
-    assigned_to = UserSerializer(read_only=True)
-    full_name = serializers.SerializerMethodField()
+    assigned_to = serializers.StringRelatedField(read_only=True)
+    latest_note = serializers.SerializerMethodField()
 
     class Meta:
         model = Lead
-        fields = ['id', 'status', 'source', 'priority', 'score', 'estimated_value', 
-                 'notes', 'next_action', 'next_action_date', 'created_at', 'updated_at',
-                 'company', 'contact', 'assigned_to', 'full_name']
+        fields = [
+            'id', 'status', 'source', 'priority', 'score', 'estimated_value',
+            'notes', 'next_action', 'next_action_date', 'created_at', 'updated_at',
+            'company', 'contact', 'assigned_to', 'latest_note'
+        ]
 
-    def get_full_name(self, obj):
-        if obj.contact:
-            return f"{obj.contact.first_name} {obj.contact.last_name}".strip()
-        return ""
+    def get_latest_note(self, obj):
+        latest_note = obj.lead_notes.first()
+        if latest_note:
+            return {
+                'id': latest_note.id,
+                'note': latest_note.note,
+                'created_at': latest_note.created_at,
+                'created_by': latest_note.created_by.username if latest_note.created_by else None
+            }
+        return None
+
 
 class OpportunityActivitySerializer(serializers.ModelSerializer):
     created_by_name = serializers.SerializerMethodField()
@@ -321,14 +398,15 @@ class ContractSerializer(serializers.ModelSerializer):
     company_name = serializers.CharField(source='company.name', read_only=True)
     breaches = ContractBreachSerializer(many=True, read_only=True)
 
+
 class EmailTrackingSerializer(serializers.ModelSerializer):
     lead_name = serializers.CharField(source='lead.company.name', read_only=True)
     contact_name = serializers.SerializerMethodField()
-
+    
     class Meta:
         model = EmailTracking
         fields = '__all__'
-
+    
     def get_contact_name(self, obj):
         return f"{obj.lead.contact.first_name} {obj.lead.contact.last_name}"
 
@@ -379,7 +457,7 @@ class EmailCampaignSerializer(serializers.ModelSerializer):
         tracking_records = obj.email_tracking.all()
         total_opens = tracking_records.aggregate(total=models.Sum('open_count'))['total'] or 0
         total_clicks = tracking_records.aggregate(total=models.Sum('click_count'))['total'] or 0
-
+        
         return {
             'total_opens': total_opens,
             'total_clicks': total_clicks,
