@@ -68,7 +68,8 @@ import {
   Save, // Added for Save button in dialog
   X, // Added for close button in dialog
   FileText, // Added for FileText
-  XCircle // Added for XCircle
+  XCircle, // Added for XCircle
+  ChevronUp // Added for ChevronUp
 } from 'lucide-react';
 import { toast } from "sonner";
 import { format } from 'date-fns';
@@ -1034,7 +1035,7 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
 
       // Step 2: Create lead from the saved company
       console.log('Step 2: Creating lead from company ID:', savedCompany.id);
-      
+
       const leadData = {
         company: {
           id: savedCompany.id,
@@ -1099,7 +1100,7 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
 
       // Refresh the leads list to show the new lead
       await fetchLeads();
-      
+
       setTimeout(() => setSuccessMessage(''), 5000);
       toast.success('Company and lead created successfully!');
 
@@ -1155,7 +1156,7 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
 
     try {
       setDisqualifyingLeadId(selectedLeadForDisqualify.id); // Start loading spinner
-      
+
       // Send reason as an object
       await leadApi.disqualifyLead(selectedLeadForDisqualify.id, {
         reason: disqualifyReason || 'No reason provided',
@@ -1298,7 +1299,7 @@ SOAR-AI Team`,
         user_role: item.user_role,
         timestamp: item.timestamp,
         details: item.details,
-        icon: item.icon || 'plus', // Use icon from API, or 'plus' as default
+        icon: item.icon || 'activity', // Use icon from API, or 'activity' as default
         metadata: item.metadata, // Pass metadata directly
         formatted_timestamp: item.formatted_timestamp, // Use formatted timestamp if available from API
         assigned_agent: item.assigned_agent, // Include assigned_agent if available
@@ -1490,7 +1491,7 @@ SOAR-AI Team`,
     } catch (error) {
       console.error('Error moving lead to opportunity:', error);
       toast.error('Failed to move lead to opportunities. Please try again.');
-      
+
       // If there's an error, refresh the leads to ensure consistency
       await fetchLeads();
     }
@@ -2675,7 +2676,7 @@ SOAR-AI Team`,
             <div>
               <Label className="text-sm font-medium text-gray-700 mb-2 block">Urgency</Label>
               <Select 
-                value="Low" 
+                value={noteForm.urgency}  
                 onValueChange={(value) => setNoteForm({...noteForm, urgency: value})}
               >
                 <SelectTrigger className="border-orange-200 focus:border-orange-500 focus:ring-orange-500">
@@ -2707,12 +2708,16 @@ SOAR-AI Team`,
               Cancel
             </Button>
             <Button 
+              className="bg-orange-600 hover:bg-orange-700 text-white"
               onClick={handleSaveNote}
-              className="bg-orange-500 hover:bg-orange-600 text-white"
-              disabled={!noteForm.note.trim()}
+              disabled={isSavingNote}
             >
-              <Plus className="h-4 w-4 mr-2" />
-              Save Note
+              {isSavingNote ? (
+                <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <Save className="h-4 w-4 mr-2" />
+              )}
+              {isSavingNote ? 'Saving...' : 'Save Note'}
             </Button>
           </DialogFooter>
         </DialogContent>
