@@ -2675,11 +2675,11 @@ SOAR-AI Team`,
             <div>
               <Label className="text-sm font-medium text-gray-700 mb-2 block">Urgency</Label>
               <Select 
-                value={noteForm.urgency} 
+                value="Low" 
                 onValueChange={(value) => setNoteForm({...noteForm, urgency: value})}
               >
                 <SelectTrigger className="border-orange-200 focus:border-orange-500 focus:ring-orange-500">
-                  <SelectValue />
+                  <SelectValue/>
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="Low">Low</SelectItem>
