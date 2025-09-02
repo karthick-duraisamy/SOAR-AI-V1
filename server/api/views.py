@@ -1,4 +1,3 @@
-
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404
 from django.views.decorators.csrf import csrf_exempt
@@ -909,74 +908,26 @@ class LeadViewSet(viewsets.ModelViewSet):
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
     def update(self, request, *args, **kwargs):
-        instance = self.get_object()
-        old_status = instance.status
-        old_score = instance.score
-        old_priority = instance.priority
-        old_next_action = instance.next_action
+        """Handle opportunity updates with proper validation"""
+        try:
+            instance = self.get_object()
+            serializer = self.get_serializer(instance, data=request.data, partial=True)
 
-        response = super().update(request, *args, **kwargs)
-        updated_instance = self.get_object()
-
-        # Track changes and create history entries
-        if instance:
-            # Track status changes
-            if old_status != updated_instance.status:
-                try:
-                    LeadHistory.objects.create(
-                        lead=updated_instance,
-                        history_type='status_change',
-                        action=f'Status changed to {updated_instance.get_status_display()}',
-                        details=f'Lead status updated from {old_status} to {updated_instance.status}. Lead is now {updated_instance.get_status_display().lower()}.',
-                        icon=self.get_status_icon(updated_instance.status),
-                        user=request.user if request.user.is_authenticated else None
-                    )
-                except Exception as e:
-                    print(f"Error creating lead history: {e}")
-
-            # Track score changes
-            if old_score != updated_instance.score:
-                try:
-                    LeadHistory.objects.create(
-                        lead=updated_instance,
-                        history_type='score_update',
-                        action=f'Lead score updated to {updated_instance.score}',
-                        details=f'Lead score updated from {old_score} to {updated_instance.score} based on engagement metrics and profile analysis.',
-                        icon='trending-up',
-                        user=request.user if request.user.is_authenticated else None
-                    )
-                except Exception as e:
-                    print(f"Error creating lead history: {e}")
-
-            # Track priority changes
-            if old_priority != updated_instance.priority:
-                try:
-                    LeadHistory.objects.create(
-                        lead=updated_instance,
-                        history_type='score_update',
-                        action=f'Priority changed to {updated_instance.priority}',
-                        details=f'Lead priority updated from {old_priority} to {updated_instance.priority}.',
-                        icon='trending-up',
-                        user=request.user if request.user.is_authenticated else None
-                    )
-                except Exception as e:
-                    print(f"Error creating lead history: {e}")
-
-            # Track next action changes
-            if old_next_action != updated_instance.next_action:
-                try:
-                    LeadHistory.objects.create(
-                        lead=updated_instance,
-                        history_type='next_action_update',
-                        action=f'Next action updated to "{updated_instance.next_action[:30]}..."',
-                        details=f'Next action updated from "{old_next_action}" to "{updated_instance.next_action}".',
-                        icon='calendar',
-                        user=request.user if request.user.is_authenticated else None
-                    )
-                except Exception as e:
-                    print(f"Error creating lead history: {e}")
-
-        return response
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data)
+            else:
+                print(f"Validation errors: {serializer.errors}")
+                return Response(
+                    {'error': 'Validation failed', 'details': serializer.errors},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+        except Exception as e:
+            print(f"Error updating opportunity: {str(e)}")
+            return Response(
+                {'error': f'Update failed: {str(e)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
     def _get_status_change_details(self, old_status, new_status, lead):
         """Get detailed description for status changes"""
@@ -1497,217 +1448,6 @@ class OpportunityViewSet(viewsets.ModelViewSet):
     serializer_class = OpportunitySerializer
 
     def update(self, request, *args, **kwargs):
-
-
-@csrf_exempt
-@require_http_methods(["GET"])
-def track_email_open(request, tracking_id):
-    """Track email opens via tracking pixel"""
-    try:
-        tracking = get_object_or_404(EmailTracking, tracking_id=tracking_id)
-        
-        # Record the open
-        current_time = timezone.now()
-        if not tracking.first_opened:
-            tracking.first_opened = current_time
-            # Update campaign open count only for first open
-            tracking.campaign.emails_opened += 1
-            tracking.campaign.save()
-        
-        tracking.last_opened = current_time
-        tracking.open_count += 1
-        tracking.user_agent = request.META.get('HTTP_USER_AGENT', '')
-        tracking.ip_address = request.META.get('REMOTE_ADDR')
-        tracking.save()
-        
-        # Return 1x1 transparent pixel
-        pixel_data = b'\x47\x49\x46\x38\x39\x61\x01\x00\x01\x00\x80\x00\x00\x00\x00\x00\x00\x00\x00\x21\xF9\x04\x01\x00\x00\x00\x00\x2C\x00\x00\x00\x00\x01\x00\x01\x00\x00\x02\x02\x04\x01\x00\x3B'
-        response = HttpResponse(pixel_data, content_type='image/gif')
-        response['Cache-Control'] = 'no-cache, no-store, must-revalidate'
-        response['Pragma'] = 'no-cache'
-        response['Expires'] = '0'
-        return response
-        
-    except EmailTracking.DoesNotExist:
-        # Return empty pixel even if tracking not found
-        pixel_data = b'\x47\x49\x46\x38\x39\x61\x01\x00\x01\x00\x80\x00\x00\x00\x00\x00\x00\x00\x00\x21\xF9\x04\x01\x00\x00\x00\x00\x2C\x00\x00\x00\x00\x01\x00\x01\x00\x00\x02\x02\x04\x01\x00\x3B'
-        return HttpResponse(pixel_data, content_type='image/gif')
-
-@csrf_exempt
-@require_http_methods(["GET"])
-def track_email_click(request, tracking_id):
-    """Track email clicks and redirect to original URL"""
-    try:
-        tracking = get_object_or_404(EmailTracking, tracking_id=tracking_id)
-        original_url = request.GET.get('url', '')
-        
-        if not original_url:
-            return HttpResponse('Invalid tracking link', status=400)
-        
-        # Record the click
-        current_time = timezone.now()
-        if not tracking.first_clicked:
-            tracking.first_clicked = current_time
-            # Update campaign click count only for first click
-            tracking.campaign.emails_clicked += 1
-            tracking.campaign.save()
-        
-        tracking.last_clicked = current_time
-        tracking.click_count += 1
-        tracking.user_agent = request.META.get('HTTP_USER_AGENT', '')
-        tracking.ip_address = request.META.get('REMOTE_ADDR')
-        tracking.save()
-        
-        # Decode and redirect to original URL
-        decoded_url = urllib.parse.unquote(original_url)
-        return HttpResponseRedirect(decoded_url)
-        
-    except EmailTracking.DoesNotExist:
-        # Redirect to home page if tracking not found
-        return HttpResponseRedirect('/')
-
-@api_view(['GET'])
-@permission_classes([AllowAny])
-def campaign_analytics(request, campaign_id):
-    """Get detailed analytics for a campaign"""
-    try:
-        campaign = get_object_or_404(EmailCampaign, id=campaign_id)
-        tracking_records = EmailTracking.objects.filter(campaign=campaign)
-        
-        # Calculate detailed metrics
-        total_sent = tracking_records.count()
-        unique_opens = tracking_records.filter(first_opened__isnull=False).count()
-        unique_clicks = tracking_records.filter(first_clicked__isnull=False).count()
-        
-        # Calculate rates
-        open_rate = (unique_opens / total_sent * 100) if total_sent > 0 else 0
-        click_rate = (unique_clicks / total_sent * 100) if total_sent > 0 else 0
-        click_to_open_rate = (unique_clicks / unique_opens * 100) if unique_opens > 0 else 0
-        
-        # Get engagement timeline
-        timeline_data = []
-        for tracking in tracking_records.filter(first_opened__isnull=False).order_by('first_opened')[:10]:
-            timeline_data.append({
-                'company': tracking.lead.company.name,
-                'contact': f"{tracking.lead.contact.first_name} {tracking.lead.contact.last_name}",
-                'opened_at': tracking.first_opened,
-                'clicked': tracking.first_clicked is not None,
-                'clicked_at': tracking.first_clicked,
-                'open_count': tracking.open_count,
-                'click_count': tracking.click_count
-            })
-        
-        analytics_data = {
-            'campaign': {
-                'id': campaign.id,
-                'name': campaign.name,
-                'status': campaign.status,
-                'sent_date': campaign.sent_date
-            },
-            'metrics': {
-                'total_sent': total_sent,
-                'unique_opens': unique_opens,
-                'unique_clicks': unique_clicks,
-                'open_rate': round(open_rate, 2),
-                'click_rate': round(click_rate, 2),
-                'click_to_open_rate': round(click_to_open_rate, 2),
-                'total_opens': tracking_records.aggregate(total=models.Sum('open_count'))['total'] or 0,
-                'total_clicks': tracking_records.aggregate(total=models.Sum('click_count'))['total'] or 0
-            },
-            'engagement_timeline': timeline_data
-        }
-        
-        return Response(analytics_data)
-        
-    except Exception as e:
-        return Response({
-            'error': f'Failed to get campaign analytics: {str(e)}'
-        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-@csrf_exempt
-def track_email_open(request, tracking_id):
-    """Track email opens via tracking pixel"""
-    if request.method == 'GET':
-        try:
-            tracking = EmailTracking.objects.get(tracking_id=tracking_id)
-            
-            # Update tracking record
-            now = timezone.now()
-            if not tracking.first_opened:
-                tracking.first_opened = now
-            tracking.last_opened = now
-            tracking.open_count += 1
-            tracking.user_agent = request.META.get('HTTP_USER_AGENT', '')
-            tracking.ip_address = get_client_ip(request)
-            tracking.save()
-            
-            # Update campaign stats
-            tracking.campaign.emails_opened = EmailTracking.objects.filter(
-                campaign=tracking.campaign,
-                first_opened__isnull=False
-            ).count()
-            tracking.campaign.save()
-            
-            # Return 1x1 transparent pixel
-            from django.http import HttpResponse
-            pixel_data = b'\x47\x49\x46\x38\x39\x61\x01\x00\x01\x00\x80\x00\x00\xff\xff\xff\x00\x00\x00\x21\xf9\x04\x01\x00\x00\x00\x00\x2c\x00\x00\x00\x00\x01\x00\x01\x00\x00\x02\x02\x04\x01\x00\x3b'
-            response = HttpResponse(pixel_data, content_type='image/gif')
-            response['Cache-Control'] = 'no-cache, no-store, must-revalidate'
-            return response
-            
-        except EmailTracking.DoesNotExist:
-            pass
-    
-    # Return empty response for invalid requests
-    from django.http import HttpResponse
-    return HttpResponse(status=204)
-
-@csrf_exempt
-def track_email_click(request, tracking_id):
-    """Track email clicks and redirect to target URL"""
-    if request.method == 'GET':
-        try:
-            tracking = EmailTracking.objects.get(tracking_id=tracking_id)
-            
-            # Update tracking record
-            now = timezone.now()
-            if not tracking.first_clicked:
-                tracking.first_clicked = now
-            tracking.last_clicked = now
-            tracking.click_count += 1
-            tracking.user_agent = request.META.get('HTTP_USER_AGENT', '')
-            tracking.ip_address = get_client_ip(request)
-            tracking.save()
-            
-            # Update campaign stats
-            tracking.campaign.emails_clicked = EmailTracking.objects.filter(
-                campaign=tracking.campaign,
-                first_clicked__isnull=False
-            ).count()
-            tracking.campaign.save()
-            
-            # Redirect to target URL
-            target_url = request.GET.get('url', 'https://example.com')
-            from django.shortcuts import redirect
-            return redirect(target_url)
-            
-        except EmailTracking.DoesNotExist:
-            pass
-    
-    # Redirect to default URL for invalid requests
-    from django.shortcuts import redirect
-    return redirect('https://example.com')
-
-def get_client_ip(request):
-    """Get client IP address from request"""
-    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
-    if x_forwarded_for:
-        ip = x_forwarded_for.split(',')[0]
-    else:
-        ip = request.META.get('REMOTE_ADDR')
-    return ip
-</new_str>
-
         """Handle opportunity updates with proper validation"""
         try:
             instance = self.get_object()
@@ -2525,21 +2265,21 @@ class EmailCampaignViewSet(viewsets.ModelViewSet):
         try:
             campaign = self.get_object()
             tracking_records = campaign.email_tracking.all()
-            
+
             # Calculate detailed metrics
             total_sent = tracking_records.count()
             unique_opens = tracking_records.filter(first_opened__isnull=False).count()
             unique_clicks = tracking_records.filter(first_clicked__isnull=False).count()
-            
+
             # Calculate rates
             open_rate = (unique_opens / total_sent * 100) if total_sent > 0 else 0
             click_rate = (unique_clicks / total_sent * 100) if total_sent > 0 else 0
             click_to_open_rate = (unique_clicks / unique_opens * 100) if unique_opens > 0 else 0
-            
+
             # Get top performers
             top_openers = tracking_records.filter(open_count__gt=1).order_by('-open_count')[:5]
             top_clickers = tracking_records.filter(click_count__gt=0).order_by('-click_count')[:5]
-            
+
             # Get engagement timeline
             timeline_data = []
             for tracking in tracking_records.filter(first_opened__isnull=False).order_by('first_opened'):
@@ -2552,7 +2292,7 @@ class EmailCampaignViewSet(viewsets.ModelViewSet):
                     'open_count': tracking.open_count,
                     'click_count': tracking.click_count
                 })
-            
+
             analytics_data = {
                 'campaign': {
                     'id': campaign.id,
@@ -2576,9 +2316,9 @@ class EmailCampaignViewSet(viewsets.ModelViewSet):
                 },
                 'engagement_timeline': timeline_data
             }
-            
+
             return Response(analytics_data)
-            
+
         except Exception as e:
             return Response({
                 'error': f'Failed to get campaign analytics: {str(e)}'
@@ -2953,12 +2693,12 @@ def email_campaign_performance(request):
     """Get email campaign performance metrics"""
     try:
         campaigns = EmailCampaign.objects.filter(status__in=['active', 'completed'])
-        
+
         performance_data = []
         for campaign in campaigns:
             open_rate = (campaign.emails_opened / campaign.emails_sent * 100) if campaign.emails_sent > 0 else 0
             click_rate = (campaign.emails_clicked / campaign.emails_sent * 100) if campaign.emails_sent > 0 else 0
-            
+
             performance_data.append({
                 'id': campaign.id,
                 'name': campaign.name,
@@ -2971,13 +2711,13 @@ def email_campaign_performance(request):
                 'created_at': campaign.created_at.isoformat() if campaign.created_at else None,
                 'target_count': campaign.target_count
             })
-        
+
         return Response({
             'success': True,
             'data': performance_data,
             'total_campaigns': len(performance_data)
         })
-        
+
     except Exception as e:
         return Response({
             'success': False,
@@ -2992,13 +2732,13 @@ def track_email_open(request, campaign_id):
         campaign = EmailCampaign.objects.get(id=campaign_id)
         campaign.emails_opened += 1
         campaign.save()
-        
+
         return Response({
             'success': True,
             'message': 'Email open tracked',
             'opens': campaign.emails_opened
         })
-        
+
     except EmailCampaign.DoesNotExist:
         return Response({
             'success': False,
@@ -3018,13 +2758,13 @@ def track_email_click(request, campaign_id):
         campaign = EmailCampaign.objects.get(id=campaign_id)
         campaign.emails_clicked += 1
         campaign.save()
-        
+
         return Response({
             'success': True,
             'message': 'Email click tracked',
             'clicks': campaign.emails_clicked
         })
-        
+
     except EmailCampaign.DoesNotExist:
         return Response({
             'success': False,
@@ -3142,7 +2882,7 @@ def proposal_draft_detail(request, opportunity_id):
     try:
         opportunity = Opportunity.objects.get(id=opportunity_id)
         draft = ProposalDraft.objects.filter(opportunity=opportunity).first()
-        
+
         if draft:
             serializer = ProposalDraftSerializer(draft)
             return Response(serializer.data)
@@ -3160,12 +2900,12 @@ def get_history(request):
     try:
         entity_type = request.GET.get('entity_type')
         entity_id = request.GET.get('entity_id')
-        
+
         if entity_type == 'lead' and entity_id:
             history = LeadHistory.objects.filter(lead_id=entity_id).order_by('-timestamp')
             serializer = LeadHistorySerializer(history, many=True)
             return Response(serializer.data)
-        
+
         return Response({'error': 'Invalid entity type or ID'}, status=status.HTTP_400_BAD_REQUEST)
     except Exception as e:
         return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -4165,8 +3905,6 @@ def lead_stats(request):
             'contacted': contacted_leads,
             'responded': responded_leads,
             'conversionRate': round(conversion_rate, 1),
-            'avgResponseTime': avg_response_time,
-            'avgResponseTimeChange': avg_response_time_change,
             'emailOpenRate': round(email_open_rate, 1),
             'emailOpenRateChange': round(email_open_rate_change, 1)
         })
@@ -4702,7 +4440,7 @@ def proposal_draft_detail(request, opportunity_id):
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def lead_dashboard_stats(request):
-    """Get comprehensive lead dashboard statistics"""
+    """Get lead dashboard statistics"""
     try:
         time_period = request.GET.get('period', 'all_time')
 
@@ -4744,7 +4482,7 @@ def lead_dashboard_stats(request):
         if start_date:
             previous_period_start = start_date - (end_date - start_date)
             previous_leads = Lead.objects.filter(
-                created_at__gte=previous_period_start, 
+                created_at__gte=previous_period_start,
                 created_at__lt=start_date
             ).count()
             total_change = ((total_leads - previous_leads) / max(previous_leads, 1) * 100) if previous_leads > 0 else 0
@@ -4795,28 +4533,28 @@ def recent_lead_activity(request):
 
         # Get recent lead history entries
         try:
-            recent_history = LeadHistory.objects.select_related('lead__company', 'lead__contact', 'user').order_by('-timestamp')[:limit]
+            recent_history = LeadHistory.objects.select_related('lead').order_by('-timestamp')[:limit]
 
             for history in recent_history:
-                try:
-                    activity = {
-                        'id': f"history_{history.id}",
-                        'type': history.history_type,
-                        'lead': history.lead.company.name if history.lead and history.lead.company else 'Unknown Company',
-                        'contact': f"{history.lead.contact.first_name} {history.lead.contact.last_name}" if history.lead and history.lead.contact else 'Unknown Contact',
-                        'action': history.action,
-                        'status': history.lead.status if history.lead else 'unknown',
-                        'time': history.timestamp.strftime('%m/%d/%Y at %I:%M %p') if history.timestamp else 'Unknown time',
-                        'value': f"${int(history.lead.estimated_value/1000)}K" if history.lead and history.lead.estimated_value else 'TBD',
-                        'user': history.user.get_full_name() if history.user else 'System'
-                    }
-                    activities.append(activity)
-                except Exception as activity_error:
-                    print(f"Error processing history {history.id}: {activity_error}")
-                    continue
+                activity_type = 'qualification' if 'qualified' in history.action.lower() else \
+                              'disqualification' if 'disqualified' in history.action.lower() else \
+                              'email' if 'email' in history.action.lower() else \
+                              'response'
 
-        except Exception as history_error:
-            print(f"Error fetching lead history: {history_error}")
+                activities.append({
+                    'id': history.id,
+                    'type': activity_type,
+                    'lead': history.lead.company.name if history.lead and history.lead.company else 'Unknown Company',
+                    'contact': f"{history.lead.contact.first_name} {history.lead.contact.last_name}" if history.lead and history.lead.contact else 'Unknown Contact',
+                    'action': history.action,
+                    'status': history.lead.status if history.lead else 'unknown',
+                    'time': history.timestamp.strftime('%m/%d/%Y at %I:%M %p') if history.timestamp else 'Unknown time',
+                    'value': f"${int(history.lead.estimated_value/1000)}K" if history.lead and history.lead.estimated_value else 'TBD',
+                    'user': history.user.get_full_name() if history.user else 'System'
+                })
+        except Exception as activity_error:
+            print(f"Error processing history {history.id}: {activity_error}")
+            continue
 
         # If no history available, get recent leads as activities
         if not activities:
