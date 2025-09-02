@@ -386,6 +386,7 @@ class EmailCampaign(models.Model):
     emails_sent = models.IntegerField(default=0)
     emails_opened = models.IntegerField(default=0)
     emails_clicked = models.IntegerField(default=0)
+    target_count = models.IntegerField(default=0)  # Track number of targeted leads
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -568,6 +569,7 @@ class EmailCampaign(models.Model):
 
                 # Update campaign stats
                 self.emails_sent = sent_count
+                self.target_count = len(emails_to_send)
                 self.status = 'active'
                 self.sent_date = timezone.now()
                 self.save()

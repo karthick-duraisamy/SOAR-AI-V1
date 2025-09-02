@@ -44,4 +44,7 @@ urlpatterns = [
     path('leads/dashboard/stats/', views.lead_dashboard_stats, name='lead-dashboard-stats'),
     path('leads/dashboard/recent-activity/', views.recent_lead_activity, name='lead-recent-activity'),
     path('leads/dashboard/top-qualified/', views.top_qualified_leads, name='lead-top-qualified'),
+    path('email-campaigns/performance/', views.email_campaign_performance, name='email_campaign_performance'),
+    path('email-campaigns/<int:campaign_id>/track-open/', views.track_email_open, name='track_email_open'),
+    path('email-campaigns/<int:campaign_id>/track-click/', views.track_email_click, name='track_email_click'),
 ]

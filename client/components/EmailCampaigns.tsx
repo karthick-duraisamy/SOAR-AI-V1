@@ -374,201 +374,211 @@ export function EmailCampaigns({ onNavigate }: EmailCampaignsProps) {
       )}
 
       {/* Campaign Statistics */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card style={{ 
-          fontFamily: 'var(--font-family)',
-          border: '1px solid #C9C9C9',
-          borderRadius: 'var(--radius-md)',
-          boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)'
-        }}>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle style={{ 
-              fontSize: 'var(--text-sm)', 
-              fontWeight: 'var(--font-weight-medium)',
-              fontFamily: 'var(--font-family)'
-            }}>
-              Total Campaigns
-            </CardTitle>
-            <Mail className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div style={{ 
-              fontSize: 'var(--text-2xl)', 
-              fontWeight: 'var(--font-weight-medium)',
-              fontFamily: 'var(--font-family)',
-              color: 'var(--color-foreground)'
-            }}>
-              {campaignsLoading ? (
-                <div className="animate-pulse">
-                  <div className="h-8 w-16 bg-gray-200 rounded"></div>
-                </div>
-              ) : (
-                metrics.totalCampaigns
-              )}
-            </div>
-            <p style={{ 
-              fontSize: 'var(--text-xs)', 
-              color: 'var(--color-muted-foreground)',
-              fontFamily: 'var(--font-family)'
-            }}>
-              {campaignsLoading ? (
-                <div className="animate-pulse">
-                  <div className="h-3 w-20 bg-gray-200 rounded"></div>
-                </div>
-              ) : (
-                <span className="text-green-600">{metrics.activeCampaigns} active</span>
-              )}
-            </p>
-          </CardContent>
-        </Card>
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+          <Card style={{ 
+            fontFamily: 'var(--font-family)',
+            border: '1px solid #C9C9C9',
+            borderRadius: 'var(--radius-md)',
+            boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)'
+          }}>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle style={{ 
+                fontSize: 'var(--text-sm)', 
+                fontWeight: 'var(--font-weight-medium)',
+                fontFamily: 'var(--font-family)'
+              }}>
+                Total Campaigns
+              </CardTitle>
+              <Mail className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div style={{ 
+                fontSize: 'var(--text-2xl)', 
+                fontWeight: 'var(--font-weight-medium)',
+                fontFamily: 'var(--font-family)',
+                color: 'var(--color-foreground)'
+              }}>
+                {campaignsLoading ? (
+                  <div className="animate-pulse">
+                    <div className="h-8 w-12 bg-gray-200 rounded"></div>
+                  </div>
+                ) : (
+                  metrics.totalCampaigns
+                )}
+              </div>
+              <p style={{ 
+                fontSize: 'var(--text-xs)', 
+                color: 'var(--color-muted-foreground)',
+                fontFamily: 'var(--font-family)'
+              }}>
+                {campaignsLoading ? (
+                  <div className="animate-pulse">
+                    <div className="h-3 w-16 bg-gray-200 rounded mt-1"></div>
+                  </div>
+                ) : (
+                  `${metrics.activeCampaigns} active`
+                )}
+              </p>
+            </CardContent>
+          </Card>
 
-        <Card style={{ 
-          fontFamily: 'var(--font-family)',
-          border: '1px solid #C9C9C9',
-          borderRadius: 'var(--radius-md)',
-          boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)'
-        }}>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle style={{ 
-              fontSize: 'var(--text-sm)', 
-              fontWeight: 'var(--font-weight-medium)',
-              fontFamily: 'var(--font-family)'
-            }}>
-              Open Rate
-            </CardTitle>
-            <Eye className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div style={{ 
-              fontSize: 'var(--text-2xl)', 
-              fontWeight: 'var(--font-weight-medium)',
-              fontFamily: 'var(--font-family)',
-              color: 'var(--color-foreground)'
-            }}>
-              {campaignsLoading ? (
-                <div className="animate-pulse">
-                  <div className="h-8 w-12 bg-gray-200 rounded"></div>
+          <Card style={{ 
+            fontFamily: 'var(--font-family)',
+            border: '1px solid #C9C9C9',
+            borderRadius: 'var(--radius-md)',
+            boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)'
+          }}>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle style={{ 
+                fontSize: 'var(--text-sm)', 
+                fontWeight: 'var(--font-weight-medium)',
+                fontFamily: 'var(--font-family)'
+              }}>
+                Open Rate
+              </CardTitle>
+              <Eye className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div style={{ 
+                fontSize: 'var(--text-2xl)', 
+                fontWeight: 'var(--font-weight-medium)',
+                fontFamily: 'var(--font-family)',
+                color: metrics.avgOpenRate >= 25 ? '#10b981' : metrics.avgOpenRate >= 15 ? '#f59e0b' : '#ef4444'
+              }}>
+                {campaignsLoading ? (
+                  <div className="animate-pulse">
+                    <div className="h-8 w-12 bg-gray-200 rounded"></div>
+                  </div>
+                ) : (
+                  `${metrics.avgOpenRate}%`
+                )}
+              </div>
+              <p style={{ 
+                fontSize: 'var(--text-xs)', 
+                color: 'var(--color-muted-foreground)',
+                fontFamily: 'var(--font-family)'
+              }}>
+                {campaignsLoading ? (
+                  <div className="animate-pulse">
+                    <div className="h-3 w-20 bg-gray-200 rounded mt-1"></div>
+                  </div>
+                ) : (
+                  `${metrics.totalOpened.toLocaleString()} total opens`
+                )}
+              </p>
+              <div className="mt-2">
+                <div className="w-full bg-gray-200 rounded-full h-1.5">
+                  <div 
+                    className="bg-blue-600 h-1.5 rounded-full transition-all duration-300" 
+                    style={{ width: `${Math.min(metrics.avgOpenRate, 100)}%` }}
+                  ></div>
                 </div>
-              ) : (
-                `${metrics.avgOpenRate}%`
-              )}
-            </div>
-            <p style={{ 
-              fontSize: 'var(--text-xs)', 
-              color: 'var(--color-muted-foreground)',
-              fontFamily: 'var(--font-family)'
-            }}>
-              {campaignsLoading ? (
-                <div className="animate-pulse">
-                  <div className="h-3 w-24 bg-gray-200 rounded"></div>
-                </div>
-              ) : (
-                <span className="text-green-600">
-                  {metrics.totalOpened.toLocaleString()} total opens
-                </span>
-              )}
-            </p>
-          </CardContent>
-        </Card>
+              </div>
+            </CardContent>
+          </Card>
 
-        <Card style={{ 
-          fontFamily: 'var(--font-family)',
-          border: '1px solid #C9C9C9',
-          borderRadius: 'var(--radius-md)',
-          boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)'
-        }}>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle style={{ 
-              fontSize: 'var(--text-sm)', 
-              fontWeight: 'var(--font-weight-medium)',
-              fontFamily: 'var(--font-family)'
-            }}>
-              Click Rate
-            </CardTitle>
-            <Target className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div style={{ 
-              fontSize: 'var(--text-2xl)', 
-              fontWeight: 'var(--font-weight-medium)',
-              fontFamily: 'var(--font-family)',
-              color: 'var(--color-foreground)'
-            }}>
-              {campaignsLoading ? (
-                <div className="animate-pulse">
-                  <div className="h-8 w-12 bg-gray-200 rounded"></div>
+          <Card style={{ 
+            fontFamily: 'var(--font-family)',
+            border: '1px solid #C9C9C9',
+            borderRadius: 'var(--radius-md)',
+            boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)'
+          }}>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle style={{ 
+                fontSize: 'var(--text-sm)', 
+                fontWeight: 'var(--font-weight-medium)',
+                fontFamily: 'var(--font-family)'
+              }}>
+                Click Rate
+              </CardTitle>
+              <Target className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div style={{ 
+                fontSize: 'var(--text-2xl)', 
+                fontWeight: 'var(--font-weight-medium)',
+                fontFamily: 'var(--font-family)',
+                color: metrics.avgClickRate >= 5 ? '#10b981' : metrics.avgClickRate >= 2 ? '#f59e0b' : '#ef4444'
+              }}>
+                {campaignsLoading ? (
+                  <div className="animate-pulse">
+                    <div className="h-8 w-12 bg-gray-200 rounded"></div>
+                  </div>
+                ) : (
+                  `${metrics.avgClickRate}%`
+                )}
+              </div>
+              <p style={{ 
+                fontSize: 'var(--text-xs)', 
+                color: 'var(--color-muted-foreground)',
+                fontFamily: 'var(--font-family)'
+              }}>
+                {campaignsLoading ? (
+                  <div className="animate-pulse">
+                    <div className="h-3 w-20 bg-gray-200 rounded mt-1"></div>
+                  </div>
+                ) : (
+                  `${metrics.totalClicked.toLocaleString()} total clicks`
+                )}
+              </p>
+              <div className="mt-2">
+                <div className="w-full bg-gray-200 rounded-full h-1.5">
+                  <div 
+                    className="bg-green-600 h-1.5 rounded-full transition-all duration-300" 
+                    style={{ width: `${Math.min(metrics.avgClickRate * 10, 100)}%` }}
+                  ></div>
                 </div>
-              ) : (
-                `${metrics.avgClickRate}%`
-              )}
-            </div>
-            <p style={{ 
-              fontSize: 'var(--text-xs)', 
-              color: 'var(--color-muted-foreground)',
-              fontFamily: 'var(--font-family)'
-            }}>
-              {campaignsLoading ? (
-                <div className="animate-pulse">
-                  <div className="h-3 w-20 bg-gray-200 rounded"></div>
-                </div>
-              ) : (
-                <span className="text-green-600">
-                  {metrics.totalClicked.toLocaleString()} total clicks
-                </span>
-              )}
-            </p>
-          </CardContent>
-        </Card>
+              </div>
+            </CardContent>
+          </Card>
 
-        <Card style={{ 
-          fontFamily: 'var(--font-family)',
-          border: '1px solid #C9C9C9',
-          borderRadius: 'var(--radius-md)',
-          boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)'
-        }}>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle style={{ 
-              fontSize: 'var(--text-sm)', 
-              fontWeight: 'var(--font-weight-medium)',
-              fontFamily: 'var(--font-family)'
-            }}>
-              Emails Sent
-            </CardTitle>
-            <Send className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div style={{ 
-              fontSize: 'var(--text-2xl)', 
-              fontWeight: 'var(--font-weight-medium)',
-              fontFamily: 'var(--font-family)',
-              color: 'var(--color-foreground)'
-            }}>
-              {campaignsLoading ? (
-                <div className="animate-pulse">
-                  <div className="h-8 w-16 bg-gray-200 rounded"></div>
-                </div>
-              ) : (
-                metrics.totalSent.toLocaleString()
-              )}
-            </div>
-            <p style={{ 
-              fontSize: 'var(--text-xs)', 
-              color: 'var(--color-muted-foreground)',
-              fontFamily: 'var(--font-family)'
-            }}>
-              {campaignsLoading ? (
-                <div className="animate-pulse">
-                  <div className="h-3 w-24 bg-gray-200 rounded"></div>
-                </div>
-              ) : (
-                <span className="text-blue-600">
-                  {metrics.totalDelivered.toLocaleString()} delivered
-                </span>
-              )}
-            </p>
-          </CardContent>
-        </Card>
-      </div>
+          <Card style={{ 
+            fontFamily: 'var(--font-family)',
+            border: '1px solid #C9C9C9',
+            borderRadius: 'var(--radius-md)',
+            boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)'
+          }}>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle style={{ 
+                fontSize: 'var(--text-sm)', 
+                fontWeight: 'var(--font-weight-medium)',
+                fontFamily: 'var(--font-family)'
+              }}>
+                Total Targets
+              </CardTitle>
+              <Users className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div style={{ 
+                fontSize: 'var(--text-2xl)', 
+                fontWeight: 'var(--font-weight-medium)',
+                fontFamily: 'var(--font-family)',
+                color: 'var(--color-foreground)'
+              }}>
+                {campaignsLoading ? (
+                  <div className="animate-pulse">
+                    <div className="h-8 w-16 bg-gray-200 rounded"></div>
+                  </div>
+                ) : (
+                  metrics.totalSent.toLocaleString()
+                )}
+              </div>
+              <p style={{ 
+                fontSize: 'var(--text-xs)', 
+                color: 'var(--color-muted-foreground)',
+                fontFamily: 'var(--font-family)'
+              }}>
+                {campaignsLoading ? (
+                  <div className="animate-pulse">
+                    <div className="h-3 w-24 bg-gray-200 rounded mt-1"></div>
+                  </div>
+                ) : (
+                  `${Math.round((metrics.totalDelivered / metrics.totalSent) * 100) || 0}% delivery rate`
+                )}
+              </p>
+            </CardContent>
+          </Card>
+        </div>
 
       {/* Main Content with Tabs */}
       <Tabs 
@@ -840,6 +850,16 @@ export function EmailCampaigns({ onNavigate }: EmailCampaignsProps) {
                         )}
                       </Button>
                     )}
+                  </div>
+
+                  {/* Performance Indicators */}
+                  <div className="mt-3 flex gap-2 text-xs">
+                    <div className={`px-2 py-1 rounded-full text-white ${campaign.open_rate >= 25 ? 'bg-green-500' : campaign.open_rate >= 15 ? 'bg-yellow-500' : 'bg-red-500'}`}>
+                      {campaign.open_rate >= 25 ? 'High Open Rate' : campaign.open_rate >= 15 ? 'Average Open Rate' : 'Low Open Rate'}
+                    </div>
+                    <div className={`px-2 py-1 rounded-full text-white ${campaign.click_rate >= 5 ? 'bg-green-500' : campaign.click_rate >= 2 ? 'bg-yellow-500' : 'bg-red-500'}`}>
+                      {campaign.click_rate >= 5 ? 'High CTR' : campaign.click_rate >= 2 ? 'Average CTR' : 'Low CTR'}
+                    </div>
                   </div>
                 </CardContent>
               </Card>
