@@ -683,7 +683,7 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
     try {
       setLoading(true);
       setCurrentPage(1); // Reset to first page on new fetch
-      // Apply current filtrs when fetching
+      // Apply current filters when fetching
       const filterParams = {
         search: filters.search || '',
         status: filters.status !== 'all' ? filters.status : '',
@@ -722,15 +722,19 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
         return transformCompanyDataForViewProfile(apiLead);
       });
 
-      console.log('Final transformed leads:', transformedLeads,"ddddddddddddddddd",transformedLeadsforViewProfile);
+      console.log('Final transformed leads:', transformedLeads, "transformed leads for view profile:", transformedLeadsforViewProfile);
       setLeads(transformedLeads);
-      transformedLeads.map((lead: any) => fetchLeadNotes(lead.id));
-      // fetchLeadNotes(transformedLeads.id);
+      
+      // Fetch notes for each lead
+      transformedLeads.forEach((lead: any) => {
+        fetchLeadNotes(lead.id);
+      });
+      
       setLeadsForViewProfile(transformedLeadsforViewProfile);
 
     } catch (error) {
       console.error('Error fetching leads:', error);
-      console.error('Error details:', error.response?.data);
+      console.error('Error details:', error?.response?.data);
       toast.error('Failed to fetch leads from server');
       // Set empty array on error to avoid showing static data
       setLeads([]);
