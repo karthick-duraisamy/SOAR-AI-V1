@@ -1624,26 +1624,88 @@ def campaign_analytics(request, campaign_id):
             'error': f'Failed to get campaign analytics: {str(e)}'
         }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-class EmailTracking(models.Model):
-    """Track individual email opens and clicks"""
-    campaign = models.ForeignKey(EmailCampaign, on_delete=models.CASCADE, related_name='email_tracking')
-    lead = models.ForeignKey(Lead, on_delete=models.CASCADE)
-    tracking_id = models.UUIDField(default=uuid.uuid4, unique=True)
-    email_sent = models.DateTimeField(auto_now_add=True)
-    first_opened = models.DateTimeField(null=True, blank=True)
-    last_opened = models.DateTimeField(null=True, blank=True)
-    open_count = models.IntegerField(default=0)
-    first_clicked = models.DateTimeField(null=True, blank=True)
-    last_clicked = models.DateTimeField(null=True, blank=True)
-    click_count = models.IntegerField(default=0)
-    user_agent = models.TextField(blank=True)
-    ip_address = models.GenericIPAddressField(null=True, blank=True)
+@csrf_exempt
+def track_email_open(request, tracking_id):
+    """Track email opens via tracking pixel"""
+    if request.method == 'GET':
+        try:
+            tracking = EmailTracking.objects.get(tracking_id=tracking_id)
+            
+            # Update tracking record
+            now = timezone.now()
+            if not tracking.first_opened:
+                tracking.first_opened = now
+            tracking.last_opened = now
+            tracking.open_count += 1
+            tracking.user_agent = request.META.get('HTTP_USER_AGENT', '')
+            tracking.ip_address = get_client_ip(request)
+            tracking.save()
+            
+            # Update campaign stats
+            tracking.campaign.emails_opened = EmailTracking.objects.filter(
+                campaign=tracking.campaign,
+                first_opened__isnull=False
+            ).count()
+            tracking.campaign.save()
+            
+            # Return 1x1 transparent pixel
+            from django.http import HttpResponse
+            pixel_data = b'\x47\x49\x46\x38\x39\x61\x01\x00\x01\x00\x80\x00\x00\xff\xff\xff\x00\x00\x00\x21\xf9\x04\x01\x00\x00\x00\x00\x2c\x00\x00\x00\x00\x01\x00\x01\x00\x00\x02\x02\x04\x01\x00\x3b'
+            response = HttpResponse(pixel_data, content_type='image/gif')
+            response['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+            return response
+            
+        except EmailTracking.DoesNotExist:
+            pass
+    
+    # Return empty response for invalid requests
+    from django.http import HttpResponse
+    return HttpResponse(status=204)
 
-    def __str__(self):
-        return f"Tracking {self.campaign.name} - {self.lead.company.name}"
+@csrf_exempt
+def track_email_click(request, tracking_id):
+    """Track email clicks and redirect to target URL"""
+    if request.method == 'GET':
+        try:
+            tracking = EmailTracking.objects.get(tracking_id=tracking_id)
+            
+            # Update tracking record
+            now = timezone.now()
+            if not tracking.first_clicked:
+                tracking.first_clicked = now
+            tracking.last_clicked = now
+            tracking.click_count += 1
+            tracking.user_agent = request.META.get('HTTP_USER_AGENT', '')
+            tracking.ip_address = get_client_ip(request)
+            tracking.save()
+            
+            # Update campaign stats
+            tracking.campaign.emails_clicked = EmailTracking.objects.filter(
+                campaign=tracking.campaign,
+                first_clicked__isnull=False
+            ).count()
+            tracking.campaign.save()
+            
+            # Redirect to target URL
+            target_url = request.GET.get('url', 'https://example.com')
+            from django.shortcuts import redirect
+            return redirect(target_url)
+            
+        except EmailTracking.DoesNotExist:
+            pass
+    
+    # Redirect to default URL for invalid requests
+    from django.shortcuts import redirect
+    return redirect('https://example.com')
 
-    class Meta:
-        unique_together = ['campaign', 'lead']
+def get_client_ip(request):
+    """Get client IP address from request"""
+    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+    if x_forwarded_for:
+        ip = x_forwarded_for.split(',')[0]
+    else:
+        ip = request.META.get('REMOTE_ADDR')
+    return ip
 </new_str>
 
         """Handle opportunity updates with proper validation"""
