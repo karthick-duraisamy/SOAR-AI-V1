@@ -1,3 +1,4 @@
+
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from . import views
@@ -6,9 +7,10 @@ from .views import (
     OpportunityActivityViewSet, ContractViewSet, ContractBreachViewSet,
     EmailCampaignViewSet, TravelOfferViewSet, SupportTicketViewSet,
     RevenueForecastViewSet, ActivityLogViewSet, LeadNoteViewSet,
-    LeadHistoryViewSet, AIConversationViewSet,
-    send_corporate_message, check_smtp_status, download_proposal_attachment,
-    track_email_open, track_email_click, campaign_analytics
+    LeadHistoryViewSet, AIConversationViewSet, CampaignTemplateViewSet,
+    ProposalDraftViewSet, send_corporate_message, check_smtp_status, 
+    download_proposal_attachment, track_email_open, track_email_click, 
+    email_campaign_performance
 )
 
 router = DefaultRouter()
@@ -28,16 +30,16 @@ router.register(r'ai-conversations', views.AIConversationViewSet)
 router.register(r'lead-notes', views.LeadNoteViewSet)
 router.register(r'lead-history', views.LeadHistoryViewSet)
 router.register(r'campaign-templates', views.CampaignTemplateViewSet)
-router.register(r'dashboard', views.DashboardAPIView, basename='dashboard')
+router.register(r'proposal-drafts', views.ProposalDraftViewSet)
 
 urlpatterns = [
     # Include router URLs
     path('', include(router.urls)),
 
     # Custom lead dashboard endpoints
-    path('leads/stats/', views.lead_stats, name='lead_stats'),
-    path('leads/recent-activity/', views.recent_activity, name='recent_activity'),
-    path('leads/top-leads/', views.top_leads, name='top_leads'),
+    path('leads/dashboard/stats/', views.lead_stats, name='lead_stats'),
+    path('leads/dashboard/recent-activity/', views.recent_activity, name='recent_activity'),
+    path('leads/dashboard/top-qualified/', views.top_leads, name='top_leads'),
 
     # Company bulk operations
     path('companies/bulk-upload/', views.bulk_upload_companies, name='bulk_upload_companies'),
@@ -63,4 +65,8 @@ urlpatterns = [
 
     # Generic history endpoint
     path('get-history/', views.get_history, name='get_history'),
+
+    # Email tracking endpoints
+    path('email-tracking/open/<uuid:tracking_id>/', views.track_email_open_pixel, name='track_email_open_pixel'),
+    path('email-tracking/click/<uuid:tracking_id>/', views.track_email_click_redirect, name='track_email_click_redirect'),
 ]
