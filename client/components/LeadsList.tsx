@@ -820,7 +820,16 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
       newCompany.email.trim() !== ""
     );
   };
-
+const clearfilter = () => {
+    setFilters({
+      status: "all",
+      industry: "all",
+      score: "all",
+      engagement: "all",
+      search: "",
+    });
+  fetchLeads();
+  }
   // Fetch leads from API
   const fetchLeads = async () => {
     try {
@@ -2018,16 +2027,11 @@ SOAR-AI Team`,
                 variant="outline"
                 size="sm"
                 className="text-gray-600 border-gray-300"
-                onClick={() =>(
-                  fetchLeads(),
-                  setFilters({
-                    status: "all",
-                    industry: "all",
-                    score: "all",
-                    engagement: "all",
-                    search: "",
-                  })
-                  )
+                onClick={() =>
+                  clearfilter()
+                 
+                  
+                  
                 }
               >
                 Clear Filters
