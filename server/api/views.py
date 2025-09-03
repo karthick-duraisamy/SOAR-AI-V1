@@ -705,9 +705,8 @@ class LeadViewSet(viewsets.ModelViewSet):
             # Order and limit for performance
             leads = leads.order_by('-created_at')[:100]  # Limit to 100 results for performance
 
-            # Use optimized serializer for better performance
-            from .serializers import OptimizedLeadSerializer
-            serializer = OptimizedLeadSerializer(leads, many=True)
+            # Use standard serializer since OptimizedLeadSerializer might not exist
+            serializer = self.get_serializer(leads, many=True)
             return Response(serializer.data)
 
         except Exception as e:

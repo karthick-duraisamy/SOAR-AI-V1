@@ -1,8 +1,8 @@
 import { useState, useCallback } from 'react';
 import axios, { AxiosResponse } from 'axios';
 
-// const API_BASE_URL = '/api';
-const API_BASE_URL = import.meta.env.VITE_API_URL;
+// Use the correct API base URL - check if environment variable exists, otherwise use local
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
 
 interface ApiState<T> {
   data: T | null;
@@ -93,6 +93,9 @@ export const useLeadApi = () => {
         engagement: filters?.engagement || ''
       };
 
+      console.log('Making API request to:', `${API_BASE_URL}/leads/search/`);
+      console.log('Request body:', requestBody);
+
       const response: AxiosResponse<Lead[]> = await baseApi.post(
         `/leads/search/`,
         requestBody,
@@ -101,8 +104,15 @@ export const useLeadApi = () => {
       setData(response.data);
       return response.data;
     } catch (error: any) {
-      const errorMessage = error.response?.data?.detail || error.message || 'Failed to fetch leads';
-      setError(errorMessage);
+      console.error('API Error Details:', error);
+      
+      if (error.code === 'ERR_NETWORK') {
+        const errorMessage = `Network error: Cannot connect to server at ${API_BASE_URL}. Please check if the Django server is running.`;
+        setError(errorMessage);
+      } else {
+        const errorMessage = error.response?.data?.detail || error.message || 'Failed to fetch leads';
+        setError(errorMessage);
+      }
       throw error;
     } finally {
       setLoading(false);
