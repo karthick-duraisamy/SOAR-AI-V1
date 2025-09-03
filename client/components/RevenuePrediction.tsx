@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useRevenueApi } from '../hooks/api/useRevenueApi';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
@@ -58,7 +59,9 @@ import {
   Timer,
   Route,
   Hotel,
-  Car
+  Car,
+  Upload,
+  Loader2
 } from 'lucide-react';
 
 interface RevenuePredictionProps {
@@ -240,6 +243,7 @@ const scenarioPlanning = [
 ];
 
 export function RevenuePrediction({ onNavigate }: RevenuePredictionProps) {
+  const { uploadRevenueData } = useRevenueApi();
   const [activeTab, setActiveTab] = useState('overview');
   const [selectedTimeframe, setSelectedTimeframe] = useState('yearly');
   const [selectedModel, setSelectedModel] = useState('AI Neural Network');
@@ -247,6 +251,17 @@ export function RevenuePrediction({ onNavigate }: RevenuePredictionProps) {
   const [showCompanyDrillDown, setShowCompanyDrillDown] = useState(false);
   const [selectedCompany, setSelectedCompany] = useState<any>(null);
   const [companyDrillDownTab, setCompanyDrillDownTab] = useState('monthly');
+  const [showUploadDialog, setShowUploadDialog] = useState(false);
+  const [uploadFile, setUploadFile] = useState<File | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [uploadSuccess, setUploadSuccess] = useState('');
+  const [uploadError, setUploadError] = useState('');
+  const [fileInfo, setFileInfo] = useState<{ rows: number; columns: number } | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [uploadedFiles, setUploadedFiles] = useState<Array<{name: string, size: number, uploadDate: string}>>([]);
+  const [isLoadingFiles, setIsLoadingFiles] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [filters, setFilters] = useState({
     region: 'all',
     industry: 'all',
@@ -300,6 +315,185 @@ export function RevenuePrediction({ onNavigate }: RevenuePredictionProps) {
     setCompanyDrillDownTab('monthly');
   };
 
+  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      setUploadFile(file);
+      setUploadError('');
+      setUploadSuccess('');
+      setFileInfo(null);
+      analyzeFile(file);
+    }
+  };
+
+  const handleDragOver = (event: React.DragEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (event: React.DragEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    setIsDragging(false);
+  };
+
+  const handleFileDrop = (event: React.DragEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    setIsDragging(false);
+    
+    const files = event.dataTransfer.files;
+    if (files.length > 0) {
+      const file = files[0];
+      if (file.type === 'text/csv' || 
+          file.name.endsWith('.csv') || 
+          file.name.endsWith('.xlsx') || 
+          file.name.endsWith('.xls')) {
+        setUploadFile(file);
+        setUploadError('');
+        setUploadSuccess('');
+        setFileInfo(null);
+        analyzeFile(file);
+      } else {
+        setUploadError('Please upload a CSV or Excel file.');
+      }
+    }
+  };
+
+  const analyzeFile = async (file: File) => {
+    try {
+      if (file.name.endsWith('.csv')) {
+        const text = await file.text();
+        const lines = text.split('\n').filter(line => line.trim());
+        const columns = lines[0] ? lines[0].split(',').length : 0;
+        setFileInfo({ rows: lines.length - 1, columns });
+      } else if (file.name.endsWith('.xlsx') || file.name.endsWith('.xls')) {
+        // For Excel files, we'll show estimated info
+        setFileInfo({ rows: 0, columns: 0 });
+      }
+    } catch (error) {
+      console.error('Error analyzing file:', error);
+    }
+  };
+
+  const handleUpload = async () => {
+    if (!uploadFile) {
+      setUploadError('Please select a file to upload.');
+      return;
+    }
+
+    setIsUploading(true);
+    setUploadProgress(0);
+    setUploadError('');
+    setUploadSuccess('');
+
+    try {
+      const result = await uploadRevenueData(uploadFile, (progress) => {
+        setUploadProgress(progress);
+      });
+      
+      setUploadProgress(100);
+      setUploadSuccess(`File "${uploadFile.name}" uploaded successfully to revenue_prediction folder! ${result.rows > 0 ? `(${result.rows} rows, ${result.columns} columns)` : ''}`);
+      
+      // Update file info with server response
+      if (result.rows > 0) {
+        setFileInfo({ rows: result.rows, columns: result.columns });
+      }
+      
+      setTimeout(() => {
+        setShowUploadDialog(false);
+        setUploadFile(null);
+        setFileInfo(null);
+        setUploadProgress(0);
+        setUploadSuccess('');
+      }, 2000);
+      
+    } catch (error) {
+      console.error('Upload failed:', error);
+      setUploadError(`Failed to upload file: ${error.message || 'Please try again.'}`);
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const resetUpload = () => {
+    setUploadFile(null);
+    setFileInfo(null);
+    setUploadError('');
+    setUploadSuccess('');
+    setUploadProgress(0);
+    setIsDragging(false);
+  };
+
+  const fetchUploadedFiles = async () => {
+    setIsLoadingFiles(true);
+    try {
+      // Call API to get real files from revenue_prediction folder
+      const response = await fetch('/api/list-revenue-files/');
+      const data = await response.json();
+      
+      if (response.ok && data.success) {
+        setUploadedFiles(data.files || []);
+      } else {
+        throw new Error(data.error || 'Failed to fetch files');
+      }
+    } catch (error) {
+      console.error('Error fetching uploaded files:', error);
+      setUploadError('Failed to load uploaded files');
+      setUploadedFiles([]); // Set empty array on error
+    } finally {
+      setIsLoadingFiles(false);
+    }
+  };
+
+  const handleDeleteFile = async (fileName: string) => {
+    if (!confirm(`Are you sure you want to delete "${fileName}"? This action cannot be undone.`)) {
+      return;
+    }
+
+    setIsDeleting(true);
+    try {
+      const response = await fetch(`/api/delete-revenue-file/${encodeURIComponent(fileName)}/`, {
+        method: 'DELETE',
+      });
+      
+      const data = await response.json();
+      
+      if (response.ok && data.success) {
+        setUploadedFiles(prev => prev.filter(file => file.name !== fileName));
+        setUploadSuccess(`File "${fileName}" deleted successfully`);
+        
+        setTimeout(() => {
+          setUploadSuccess('');
+        }, 2000);
+      } else {
+        throw new Error(data.error || 'Failed to delete file');
+      }
+    } catch (error) {
+      console.error('Error deleting file:', error);
+      setUploadError(`Failed to delete "${fileName}". Please try again.`);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const formatFileSize = (bytes: number) => {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  };
+
+  const formatUploadDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
   return (
     <div className="space-y-6 p-5">
       {/* Header */}
@@ -312,6 +506,13 @@ export function RevenuePrediction({ onNavigate }: RevenuePredictionProps) {
           <p className="text-muted-foreground">AI-powered revenue forecasting and sales predictions</p>
         </div>
         <div className="flex gap-2">
+          <Button variant="outline" onClick={() => {
+            setShowUploadDialog(true);
+            fetchUploadedFiles();
+          }}>
+            <Upload className="h-4 w-4 mr-2" />
+            Upload Data
+          </Button>
           <Button variant="outline">
             <Download className="h-4 w-4 mr-2" />
             Export Report
@@ -1176,6 +1377,262 @@ export function RevenuePrediction({ onNavigate }: RevenuePredictionProps) {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Upload Data Dialog */}
+      <Dialog open={showUploadDialog} onOpenChange={setShowUploadDialog}>
+        <DialogContent className="w-[800px] max-w-[800px] p-6">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Upload className="h-5 w-5 text-blue-600" />
+              Revenue Data Management
+            </DialogTitle>
+            <DialogDescription>
+              Upload new files or manage existing revenue data files
+            </DialogDescription>
+          </DialogHeader>
+
+          <Tabs defaultValue="upload" className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="upload">Upload New File</TabsTrigger>
+              <TabsTrigger value="manage">Manage Files</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="upload" className="space-y-4 mt-4">
+              {/* File Upload Area */}
+              <div 
+                className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
+                  isDragging 
+                    ? 'border-blue-500 bg-blue-50' 
+                    : 'border-gray-300 hover:border-gray-400'
+                }`}
+                onDrop={handleFileDrop}
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+              >
+                {uploadFile ? (
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                      <div className="flex items-center gap-3">
+                        <FileText className="h-5 w-5 text-blue-600" />
+                        <div className="text-left">
+                          <p className="text-sm font-medium text-gray-900">{uploadFile.name}</p>
+                          <p className="text-xs text-gray-500">
+                            {(uploadFile.size / 1024 / 1024).toFixed(2)} MB
+                          </p>
+                        </div>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={resetUpload}
+                        className="h-6 w-6 p-0"
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                    
+                    {fileInfo && uploadFile.name.endsWith('.csv') && (
+                      <div className="grid grid-cols-2 gap-4 p-3 bg-blue-50 rounded-lg">
+                        <div className="text-center">
+                          <div className="text-lg font-bold text-blue-600">{fileInfo.rows}</div>
+                          <div className="text-sm text-blue-700">Data Rows</div>
+                        </div>
+                        <div className="text-center">
+                          <div className="text-lg font-bold text-blue-600">{fileInfo.columns}</div>
+                          <div className="text-sm text-blue-700">Columns</div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    <div className="mx-auto w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center">
+                      <Upload className="h-6 w-6 text-gray-400" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-gray-700">
+                        Drag and drop your file here
+                      </p>
+                      <p className="text-xs text-gray-500 mt-1">
+                        Supports CSV, XLSX, and XLS formats
+                      </p>
+                    </div>
+                    <Button
+                      variant="outline"
+                      onClick={() => document.getElementById('revenue-file-upload')?.click()}
+                    >
+                      <Upload className="h-4 w-4 mr-2" />
+                      Browse Files
+                    </Button>
+                    <input
+                      id="revenue-file-upload"
+                      type="file"
+                      accept=".csv,.xlsx,.xls"
+                      onChange={handleFileUpload}
+                      className="hidden"
+                    />
+                  </div>
+                )}
+              </div>
+
+              {/* Upload Progress */}
+              {isUploading && (
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between text-sm">
+                    <span>Uploading to revenue_prediction folder...</span>
+                    <span>{uploadProgress}%</span>
+                  </div>
+                  <Progress value={uploadProgress} className="h-2" />
+                </div>
+              )}
+
+              {/* Success Message */}
+              {uploadSuccess && (
+                <div className="flex items-center gap-2 p-3 bg-green-50 border border-green-200 rounded-lg">
+                  <CheckCircle className="h-5 w-5 text-green-600" />
+                  <p className="text-sm text-green-700">{uploadSuccess}</p>
+                </div>
+              )}
+
+              {/* Error Message */}
+              {uploadError && (
+                <div className="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-lg">
+                  <AlertTriangle className="h-5 w-5 text-red-600" />
+                  <p className="text-sm text-red-700">{uploadError}</p>
+                </div>
+              )}
+
+              {/* File Requirements */}
+              <div className="bg-gray-50 rounded-lg p-4">
+                <h4 className="font-medium text-sm mb-2 flex items-center gap-2">
+                  <Info className="h-4 w-4 text-blue-600" />
+                  File Requirements
+                </h4>
+                <ul className="text-xs text-gray-600 space-y-1">
+                  <li>• CSV files should include headers in the first row</li>
+                  <li>• Excel files (.xlsx, .xls) are supported</li>
+                  <li>• Maximum file size: 50MB</li>
+                  <li>• Files will be stored in the revenue_prediction folder</li>
+                  <li>• Recommended columns: date, revenue, deals, confidence</li>
+                </ul>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="manage" className="space-y-4 mt-4">
+              <div className="flex items-center justify-between">
+                <h4 className="font-medium">Uploaded Files</h4>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={fetchUploadedFiles}
+                  disabled={isLoadingFiles}
+                >
+                  {isLoadingFiles ? (
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  ) : (
+                    <RefreshCw className="h-4 w-4 mr-2" />
+                  )}
+                  Refresh
+                </Button>
+              </div>
+
+              {isLoadingFiles ? (
+                <div className="flex items-center justify-center p-8">
+                  <Loader2 className="h-6 w-6 animate-spin mr-2" />
+                  <span className="text-gray-600">Loading files...</span>
+                </div>
+              ) : uploadedFiles.length === 0 ? (
+                <div className="text-center p-8 border rounded-lg bg-gray-50">
+                  <Database className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+                  <p className="text-gray-600 mb-2">No files uploaded yet</p>
+                  <p className="text-sm text-gray-500">Upload your first revenue data file to get started</p>
+                </div>
+              ) : (
+                <div className="space-y-3 max-h-64 overflow-y-auto">
+                  {uploadedFiles.map((file, index) => (
+                    <div key={index} className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50">
+                      <div className="flex items-center gap-3">
+                        <FileText className="h-5 w-5 text-blue-600" />
+                        <div>
+                          <p className="font-medium text-sm">{file.name}</p>
+                          <div className="flex items-center gap-3 text-xs text-gray-500">
+                            <span>{formatFileSize(file.size)}</span>
+                            <span>•</span>
+                            <span>Uploaded {formatUploadDate(file.uploadDate)}</span>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            // Download functionality - you can implement this
+                            console.log(`Download ${file.name}`);
+                          }}
+                        >
+                          <Download className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleDeleteFile(file.name)}
+                          disabled={isDeleting}
+                          className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                        >
+                          {isDeleting ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <X className="h-4 w-4" />
+                          )}
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Success/Error Messages for file management */}
+              {uploadSuccess && (
+                <div className="flex items-center gap-2 p-3 bg-green-50 border border-green-200 rounded-lg">
+                  <CheckCircle className="h-5 w-5 text-green-600" />
+                  <p className="text-sm text-green-700">{uploadSuccess}</p>
+                </div>
+              )}
+
+              {uploadError && (
+                <div className="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-lg">
+                  <AlertTriangle className="h-5 w-5 text-red-600" />
+                  <p className="text-sm text-red-700">{uploadError}</p>
+                </div>
+              )}
+            </TabsContent>
+          </Tabs>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowUploadDialog(false)} disabled={isUploading || isDeleting}>
+              Close
+            </Button>
+            <Button 
+              onClick={handleUpload} 
+              disabled={!uploadFile || isUploading || isDeleting}
+              className="min-w-[120px]"
+            >
+              {isUploading ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Uploading...
+                </>
+              ) : (
+                <>
+                  <Upload className="h-4 w-4 mr-2" />
+                  Upload File
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Company Drill-Down Dialog */}
       <Dialog open={showCompanyDrillDown} onOpenChange={setShowCompanyDrillDown}>

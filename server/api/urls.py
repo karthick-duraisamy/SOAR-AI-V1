@@ -62,6 +62,9 @@ urlpatterns = [
     path('opportunities/<int:opportunity_id>/proposal-draft/attachment/', views.download_proposal_attachment, name='proposal-draft-attachment'),
     path('proposal-attachment/<int:opportunity_id>/', views.download_proposal_attachment, name='download_proposal_attachment'),
 
+    # Revenue data upload endpoint
+    path('upload-revenue-data/', views.upload_revenue_data, name='upload_revenue_data'),
+    
     # Generic history endpoint
     path('get-history/', views.get_history, name='get_history'),
 

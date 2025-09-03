@@ -3363,6 +3363,172 @@ def lead_dashboard_stats(request):
             'totalChange': 0
         }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def list_revenue_files(request):
+    """
+    List files in the revenue_prediction folder
+    """
+    import os
+    
+    try:
+        # Get the revenue_prediction folder path
+        revenue_folder = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'revenue_prediction')
+        
+        if not os.path.exists(revenue_folder):
+            return Response({
+                'success': True,
+                'files': [],
+                'message': 'Revenue prediction folder does not exist yet'
+            })
+        
+        files = []
+        for filename in os.listdir(revenue_folder):
+            file_path = os.path.join(revenue_folder, filename)
+            if os.path.isfile(file_path):
+                # Get file stats
+                file_stat = os.stat(file_path)
+                
+                files.append({
+                    'name': filename,
+                    'size': file_stat.st_size,
+                    'uploadDate': datetime.fromtimestamp(file_stat.st_mtime).isoformat() + 'Z'
+                })
+        
+        # Sort by upload date (newest first)
+        files.sort(key=lambda x: x['uploadDate'], reverse=True)
+        
+        return Response({
+            'success': True,
+            'files': files,
+            'count': len(files)
+        })
+        
+    except Exception as e:
+        return Response(
+            {'success': False, 'error': f'Failed to list files: {str(e)}'},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+
+@api_view(['DELETE'])
+@permission_classes([AllowAny])
+def delete_revenue_file(request, filename):
+    """
+    Delete a specific file from the revenue_prediction folder
+    """
+    import os
+    
+    try:
+        # Get the revenue_prediction folder path
+        revenue_folder = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'revenue_prediction')
+        file_path = os.path.join(revenue_folder, filename)
+        
+        if not os.path.exists(file_path):
+            return Response(
+                {'success': False, 'error': 'File not found'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        
+        # Delete the file
+        os.remove(file_path)
+        
+        return Response({
+            'success': True,
+            'message': f'File "{filename}" deleted successfully'
+        })
+        
+    except Exception as e:
+        return Response(
+            {'success': False, 'error': f'Failed to delete file: {str(e)}'},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def upload_revenue_data(request):
+    """
+    Upload revenue prediction data files to server/revenue_prediction folder
+    """
+    import os
+    import uuid
+    from django.conf import settings
+    
+    try:
+        if 'file' not in request.FILES:
+            return Response(
+                {'error': 'No file provided'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        uploaded_file = request.FILES['file']
+        folder = request.POST.get('folder', 'revenue_prediction')
+
+        # Validate file type
+        allowed_extensions = ['.csv', '.xlsx', '.xls']
+        file_extension = os.path.splitext(uploaded_file.name)[1].lower()
+        if file_extension not in allowed_extensions:
+            return Response(
+                {'error': 'Invalid file type. Please upload CSV or Excel files only.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Validate file size (50MB limit)
+        if uploaded_file.size > 50 * 1024 * 1024:
+            return Response(
+                {'error': 'File size exceeds 50MB limit'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Create revenue_prediction directory if it doesn't exist
+        upload_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), folder)
+        os.makedirs(upload_dir, exist_ok=True)
+
+        # Generate unique filename to prevent conflicts
+        base_name = os.path.splitext(uploaded_file.name)[0]
+        unique_filename = f"{base_name}_{uuid.uuid4().hex[:8]}{file_extension}"
+        file_path = os.path.join(upload_dir, unique_filename)
+
+        # Save the file
+        with open(file_path, 'wb') as destination:
+            for chunk in uploaded_file.chunks():
+                destination.write(chunk)
+
+        # Analyze file for row/column count if it's CSV
+        rows = 0
+        columns = 0
+        try:
+            if file_extension == '.csv':
+                import pandas as pd
+                df = pd.read_csv(file_path)
+                rows = len(df)
+                columns = len(df.columns)
+            elif file_extension in ['.xlsx', '.xls']:
+                import pandas as pd
+                df = pd.read_excel(file_path)
+                rows = len(df)
+                columns = len(df.columns)
+        except Exception as e:
+            print(f"Error analyzing file: {e}")
+
+        return Response({
+            'success': True,
+            'message': f'File "{uploaded_file.name}" uploaded successfully to {folder} folder',
+            'filename': unique_filename,
+            'original_name': uploaded_file.name,
+            'file_path': file_path,
+            'size': uploaded_file.size,
+            'rows': rows,
+            'columns': columns,
+            'folder': folder
+        }, status=status.HTTP_201_CREATED)
+
+    except Exception as e:
+        return Response(
+            {'error': f'Upload failed: {str(e)}'},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def recent_lead_activity(request):
