@@ -2553,6 +2553,65 @@ class TravelOfferViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(offers, many=True)
         return Response(serializer.data)
 
+class SupportTicketViewSet(viewsets.ModelViewSet):
+    queryset = SupportTicket.objects.all()
+    serializer_class = SupportTicketSerializer
+
+    @action(detail=False, methods=['get'])
+    def by_priority(self, request):
+        """Get tickets by priority"""
+        priority = request.query_params.get('priority')
+        if priority:
+            tickets = self.queryset.filter(priority=priority)
+        else:
+            tickets = self.queryset.all()
+        serializer = self.get_serializer(tickets, many=True)
+        return Response(serializer.data)
+
+    @action(detail=False, methods=['get'])
+    def by_status(self, request):
+        """Get tickets by status"""
+        status_filter = request.query_params.get('status')
+        if status_filter:
+            tickets = self.queryset.filter(status=status_filter)
+        else:
+            tickets = self.queryset.all()
+        serializer = self.get_serializer(tickets, many=True)
+        return Response(serializer.data)
+
+    @action(detail=True, methods=['post'])
+    def resolve(self, request, pk=None):
+        """Mark ticket as resolved"""
+        ticket = self.get_object()
+        ticket.status = 'resolved'
+        ticket.resolved_at = timezone.now()
+        ticket.save()
+        return Response({'message': 'Ticket resolved successfully'})
+
+class RevenueForecastViewSet(viewsets.ModelViewSet):
+    queryset = RevenueForecast.objects.all()
+    serializer_class = RevenueForecastSerializer
+
+class ActivityLogViewSet(viewsets.ModelViewSet):
+    queryset = ActivityLog.objects.all()
+    serializer_class = ActivityLogSerializer
+
+class AIConversationViewSet(viewsets.ModelViewSet):
+    queryset = AIConversation.objects.all()
+    serializer_class = AIConversationSerializer
+
+class LeadNoteViewSet(viewsets.ModelViewSet):
+    queryset = LeadNote.objects.all()
+    serializer_class = LeadNoteSerializer
+
+class LeadHistoryViewSet(viewsets.ModelViewSet):
+    queryset = LeadHistory.objects.all()
+    serializer_class = LeadHistorySerializer
+
+class ProposalDraftViewSet(viewsets.ModelViewSet):
+    queryset = ProposalDraft.objects.all()
+    serializer_class = ProposalDraftSerializer
+
 class EmailCampaignViewSet(viewsets.ModelViewSet):
     queryset = EmailCampaign.objects.all()
     serializer_class = EmailCampaignSerializer
