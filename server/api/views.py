@@ -2631,6 +2631,22 @@ def get_history(request):
 
 @api_view(['GET'])
 @permission_classes([AllowAny])
+def health_check(request):
+    """Health check endpoint to verify server status"""
+    try:
+        return Response({
+            'status': 'healthy',
+            'message': 'SOAR Backend API is running',
+            'timestamp': timezone.now().isoformat()
+        }, status=status.HTTP_200_OK)
+    except Exception as e:
+        return Response({
+            'status': 'error',
+            'message': str(e)
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
 def campaign_analytics(request):
     """Get campaign analytics data"""
     try:
