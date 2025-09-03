@@ -709,7 +709,7 @@ class LeadViewSet(viewsets.ModelViewSet):
             from .serializers import OptimizedLeadSerializer
             serializer = OptimizedLeadSerializer(leads, many=True)
             return Response(serializer.data)
-            
+
         except Exception as e:
             print(f"Error in leads search: {str(e)}")
             import traceback
@@ -2531,397 +2531,6 @@ def top_qualified_leads(request):
         print(f"Error in top leads endpoint: {str(e)}")
         return Response([], status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-
-class CampaignTemplateViewSet(viewsets.ModelViewSet):
-    queryset = CampaignTemplate.objects.all()
-    serializer_class = CampaignTemplateSerializer
-
-    def list(self, request, *args, **kwargs):
-        """Get all templates including both custom and default templates"""
-        try:
-            # Get custom templates from database
-            custom_templates = []
-            try:
-                custom_templates_queryset = self.get_queryset()
-                custom_templates_serializer = self.get_serializer(custom_templates_queryset, many=True)
-                custom_templates = custom_templates_serializer.data
-            except Exception as e:
-                print(f"Error getting custom templates: {e}")
-                custom_templates = []
-
-            # Define default templates
-            default_templates = [
-                {
-                    'id': 'welcome-series',
-                    'name': 'Welcome Series',
-                    'description': 'Multi-touch welcome sequence for new leads',
-                    'channel_type': 'email',
-                    'target_industry': 'All',
-                    'subject_line': 'Welcome to the future of corporate travel - {{company_name}}',
-                    'content': '''Hi {{contact_name}},
-
-Welcome to SOAR-AI! We're excited to help {{company_name}} transform your corporate travel experience.
-
-Based on your {{industry}} background and {{employees}} team size, we've identified several opportunities to optimize your travel operations:
-
-✈️ Reduce travel costs by up to 35%
-📊 Streamline booking and approval processes  
-🌍 Access our global partner network
-🤖 AI-powered travel recommendations
-
-Ready to see how we can help? Let's schedule a 15-minute discovery call.''',
-                    'cta': 'Schedule Discovery Call',
-                    'linkedin_type': None,
-                    'estimated_open_rate': 45.0,
-                    'estimated_click_rate': 12.0,
-                    'is_custom': False,
-                    'created_by': 'System',
-                    'created_at': '2024-01-01T00:00:00Z',
-                    'updated_at': '2024-01-01T00:00:00Z'
-                },
-                {
-                    'id': 'cost-savings',
-                    'name': 'Cost Savings Focus',
-                    'description': 'Emphasizes ROI and cost reduction benefits',
-                    'channel_type': 'email',
-                    'target_industry': 'Manufacturing',
-                    'subject_line': '{{company_name}}: Cut travel costs by 35% with SOAR-AI',
-                    'content': '''{{contact_name}},
-
-Companies like {{company_name}} in the {{industry}} sector are saving an average of 35% on travel costs with SOAR-AI.
-
-Here's what {{company_name}} could save annually:
-• Current estimated budget: {{travel_budget}}
-• Potential savings: {{calculated_savings}}
-• ROI timeline: 3-6 months
-
-Our AI-powered platform optimizes:
-- Flight routing and pricing
-- Hotel negotiations
-- Policy compliance
-- Expense management
-
-Ready to see your personalized savings analysis?''',
-                    'cta': 'View Savings Report',
-                    'linkedin_type': None,
-                    'estimated_open_rate': 52.0,
-                    'estimated_click_rate': 15.0,
-                    'is_custom': False,
-                    'created_by': 'System',
-                    'created_at': '2024-01-01T00:00:00Z',
-                    'updated_at': '2024-01-01T00:00:00Z'
-                },
-                {
-                    'id': 'linkedin-connection',
-                    'name': 'LinkedIn Connection Request',
-                    'description': 'Professional connection request for LinkedIn outreach',
-                    'channel_type': 'linkedin',
-                    'target_industry': 'All',
-                    'subject_line': None,
-                    'content': '''Hi {{contact_name}},
-
-I noticed {{company_name}} is expanding in the {{industry}} space. I'd love to connect and share how we're helping similar companies optimize their corporate travel operations.
-
-Would you be open to connecting?''',
-                    'cta': 'Connect on LinkedIn',
-                    'linkedin_type': 'connection',
-                    'estimated_open_rate': 65.0,
-                    'estimated_click_rate': 25.0,
-                    'is_custom': False,
-                    'created_by': 'System',
-                    'created_at': '2024-01-01T00:00:00Z',
-                    'updated_at': '2024-01-01T00:00:00Z'
-                },
-                {
-                    'id': 'multi-channel-sequence',
-                    'name': 'Multi-Channel Sequence',
-                    'description': 'Coordinated outreach across email, LinkedIn, and WhatsApp',
-                    'channel_type': 'mixed',
-                    'target_industry': 'All',
-                    'subject_line': 'Partnership opportunity with {{company_name}}',
-                    'content': '''Hi {{contact_name}},
-
-I hope this message finds you well. I've been researching {{company_name}} and I'm impressed by your growth in the {{industry}} sector.
-
-We're helping companies like yours:
-• Reduce travel costs by 25-40%
-• Improve policy compliance
-• Streamline approval workflows
-• Access exclusive corporate rates
-
-Would you be interested in a brief conversation about how we could support {{company_name}}'s travel operations?''',
-                    'cta': 'Schedule 15-min Call',
-                    'linkedin_type': 'message',
-                    'estimated_open_rate': 58.0,
-                    'estimated_click_rate': 18.0,
-                    'is_custom': False,
-                    'created_by': 'System',
-                    'created_at': '2024-01-01T00:00:00Z',
-                    'updated_at': '2024-01-01T00:00:00Z'
-                }
-            ]
-
-            # Combine default templates first, then custom templates
-            all_templates = default_templates + custom_templates
-            return Response(all_templates)
-
-        except Exception as e:
-            print(f"Error in CampaignTemplateViewSet.list: {e}")
-            # Return just default templates if there's any error
-            default_templates = [
-                {
-                    'id': 'welcome-series',
-                    'name': 'Welcome Series',
-                    'description': 'Multi-touch welcome sequence for new leads',
-                    'channel_type': 'email',
-                    'target_industry': 'All',
-                    'subject_line': 'Welcome to the future of corporate travel',
-                    'content': 'Welcome to SOAR-AI!',
-                    'cta': 'Schedule Discovery Call',
-                    'linkedin_type': None,
-                    'estimated_open_rate': 45.0,
-                    'estimated_click_rate': 12.0,
-                    'is_custom': False,
-                    'created_by': 'System',
-                    'created_at': '2024-01-01T00:00:00Z',
-                    'updated_at': '2024-01-01T00:00:00Z'
-                }
-            ]
-            return Response(default_templates)
-
-    @action(detail=False, methods=['get'])
-    def default_templates(self, request):
-        """Get default/built-in campaign templates (legacy endpoint)"""
-        default_templates = [
-            {
-                'id': 'welcome-series',
-                'name': 'Welcome Series',
-                'description': 'Multi-touch welcome sequence for new leads',
-                'channel_type': 'email',
-                'target_industry': 'All',
-                'subject_line': 'Welcome to the future of corporate travel - {{company_name}}',
-                'content': '''Hi {{contact_name}},
-
-Welcome to SOAR-AI! We're excited to help {{company_name}} transform your corporate travel experience.
-
-Based on your {{industry}} background and {{employees}} team size, we've identified several opportunities to optimize your travel operations:
-
-✈️ Reduce travel costs by up to 35%
-📊 Streamline booking and approval processes  
-🌍 Access our global partner network
-🤖 AI-powered travel recommendations
-
-Ready to see how we can help? Let's schedule a 15-minute discovery call.''',
-                'cta': 'Schedule Discovery Call',
-                'linkedin_type': None,
-                'estimated_open_rate': 45.0,
-                'estimated_click_rate': 12.0,
-                'is_custom': False,
-                'created_by': 'System',
-                'created_at': '2024-01-01T00:00:00Z',
-                'updated_at': '2024-01-01T00:00:00Z'
-            },
-            {
-                'id': 'cost-savings',
-                'name': 'Cost Savings Focus',
-                'description': 'Emphasizes ROI and cost reduction benefits',
-                'channel_type': 'email',
-                'target_industry': 'Manufacturing',
-                'subject_line': '{{company_name}}: Cut travel costs by 35% with SOAR-AI',
-                'content': '''{{contact_name}},
-
-Companies like {{company_name}} in the {{industry}} sector are saving an average of 35% on travel costs with SOAR-AI.
-
-Here's what {{company_name}} could save annually:
-• Current estimated budget: {{travel_budget}}
-• Potential savings: {{calculated_savings}}
-• ROI timeline: 3-6 months
-
-Our AI-powered platform optimizes:
-- Flight routing and pricing
-- Hotel negotiations
-- Policy compliance
-- Expense management
-
-Ready to see your personalized savings analysis?''',
-                'cta': 'View Savings Report',
-                'linkedin_type': None,
-                'estimated_open_rate': 52.0,
-                'estimated_click_rate': 15.0,
-                'is_custom': False,
-                'created_by': 'System',
-                'created_at': '2024-01-01T00:00:00Z',
-                'updated_at': '2024-01-01T00:00:00Z'
-            },
-            {
-                'id': 'linkedin-connection',
-                'name': 'LinkedIn Connection Request',
-                'description': 'Professional connection request for LinkedIn outreach',
-                'channel_type': 'linkedin',
-                'target_industry': 'All',
-                'subject_line': None,
-                'content': '''Hi {{contact_name}},
-
-I noticed {{company_name}} is expanding in the {{industry}} space. I'd love to connect and share how we're helping similar companies optimize their corporate travel operations.
-
-Would you be open to connecting?''',
-                'cta': 'Connect on LinkedIn',
-                'linkedin_type': 'connection',
-                'estimated_open_rate': 65.0,
-                'estimated_click_rate': 25.0,
-                'is_custom': False,
-                'created_by': 'System',
-                'created_at': '2024-01-01T00:00:00Z',
-                'updated_at': '2024-01-01T00:00:00Z'
-            },
-            {
-                'id': 'multi-channel-sequence',
-                'name': 'Multi-Channel Sequence',
-                'description': 'Coordinated outreach across email, LinkedIn, and WhatsApp',
-                'channel_type': 'mixed',
-                'target_industry': 'All',
-                'subject_line': 'Partnership opportunity with {{company_name}}',
-                'content': '''Hi {{contact_name}},
-
-I hope this message finds you well. I've been researching {{company_name}} and I'm impressed by your growth in the {{industry}} sector.
-
-We're helping companies like yours:
-• Reduce travel costs by 25-40%
-• Improve policy compliance
-• Streamline approval workflows
-• Access exclusive corporate rates
-
-Would you be interested in a brief conversation about how we could support {{company_name}}'s travel operations?''',
-                'cta': 'Schedule 15-min Call',
-                'linkedin_type': 'message',
-                'estimated_open_rate': 58.0,
-                'estimated_click_rate': 18.0,
-                'is_custom': False,
-                'created_by': 'System',
-                'created_at': '2024-01-01T00:00:00Z',
-                'updated_at': '2024-01-01T00:00:00Z'
-            }
-        ]
-
-        return Response(default_templates)
-
-@api_view(['GET', 'POST'])
-def proposal_draft_detail(request, opportunity_id):
-    """
-    Handle proposal draft operations for a specific opportunity
-    """
-    import os
-    import uuid
-    from django.core.files.storage import default_storage
-    from django.core.files.base import ContentFile
-
-    try:
-        opportunity = Opportunity.objects.get(id=opportunity_id)
-    except Opportunity.DoesNotExist:
-        return Response({'error': 'Opportunity not found'}, status=status.HTTP_404_NOT_FOUND)
-
-    if request.method == 'GET':
-        # Get existing draft if it exists
-        try:
-            draft = ProposalDraft.objects.get(opportunity=opportunity)
-            serializer = ProposalDraftSerializer(draft)
-            draft_data = serializer.data
-
-            # Include attachment information if exists
-            if draft.attachment_path and os.path.exists(draft.attachment_path):
-                draft_data['attachment_info'] = {
-                    'filename': draft.attachment_original_name,
-                    'path': draft.attachment_path,
-                    'exists': True
-                }
-            else:
-                draft_data['attachment_info'] = {'exists': False}
-
-            return Response(draft_data, status=status.HTTP_200_OK)
-        except ProposalDraft.DoesNotExist:
-            return Response({'message': 'No draft found'}, status=status.HTTP_404_NOT_FOUND)
-
-    elif request.method == 'POST' or request.method == 'PUT':
-        # Handle file upload if present
-        attachment_path = None
-        attachment_original_name = None
-
-        if 'attachment' in request.FILES:
-            uploaded_file = request.FILES['attachment']
-
-            # Create unique filename with corporate ID and timestamp
-            file_extension = os.path.splitext(uploaded_file.name)[1]
-            unique_filename = f"proposal_{opportunity.lead.company.id}_{opportunity.id}_{uuid.uuid4().hex[:8]}{file_extension}"
-
-            # Create attachments directory if it doesn't exist
-            attachments_dir = 'proposal_attachments'
-            os.makedirs(attachments_dir, exist_ok=True)
-
-            # Save file with unique name
-            attachment_path = os.path.join(attachments_dir, unique_filename)
-
-            # Write file to disk
-            with open(attachment_path, 'wb') as f:
-                for chunk in uploaded_file.chunks():
-                    f.write(chunk)
-
-            attachment_original_name = uploaded_file.name
-
-        # Prepare data for serializer
-        data = request.data.copy()
-        if attachment_path:
-            data['attachment_path'] = attachment_path
-            data['attachment_original_name'] = attachment_original_name
-
-        # Create or update draft
-        try:
-            draft = ProposalDraft.objects.get(opportunity=opportunity)
-            serializer = ProposalDraftSerializer(draft, data=data, partial=True)
-        except ProposalDraft.DoesNotExist:
-            data['opportunity'] = opportunity.id
-            serializer = ProposalDraftSerializer(data=data)
-
-        if serializer.is_valid():
-            saved_draft = serializer.save()
-
-            # Include attachment info in response
-            response_data = serializer.data
-            if saved_draft.attachment_path and os.path.exists(saved_draft.attachment_path):
-                response_data['attachment_info'] = {
-                    'filename': saved_draft.attachment_original_name,
-                    'path': saved_draft.attachment_path,
-                    'exists': True
-                }
-
-            return Response(response_data, status=status.HTTP_200_OK)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    elif request.method == 'DELETE':
-        # Delete draft and associated files
-        try:
-            draft = ProposalDraft.objects.get(opportunity=opportunity)
-
-            # Delete attachment file if exists
-            if draft.attachment_path and os.path.exists(draft.attachment_path):
-                try:
-                    os.remove(draft.attachment_path)
-                except OSError:
-                    pass  # File might be already deleted
-
-            draft.delete()
-            return Response({'message': 'Draft deleted successfully'}, status=status.HTTP_200_OK)
-        except ProposalDraft.DoesNotExist:
-            return Response({'message': 'No draft found'}, status=status.HTTP_404_NOT_FOUND)
-
-    elif request.method == 'DELETE':
-        # Delete draft
-        try:
-            draft = ProposalDraft.objects.get(opportunity=opportunity)
-            draft.delete()
-            return Response({'message': 'Draft deleted successfully'}, status=status.HTTP_200_OK)
-        except ProposalDraft.DoesNotExist:
-            return Response({'message': 'No draft found'}, status=status.HTTP_404_NOT_FOUND)
-
 class EmailCampaignViewSet(viewsets.ModelViewSet):
     queryset = EmailCampaign.objects.all()
     serializer_class = EmailCampaignSerializer
@@ -2935,7 +2544,7 @@ class EmailCampaignViewSet(viewsets.ModelViewSet):
             target_leads = data.get('targetLeads', [])
             subject_line = data.get('subjectLine', '')
             message_content = data.get('messageContent', '')
-            
+
             # Create the campaign
             campaign = EmailCampaign.objects.create(
                 name=f"Campaign - {subject_line[:50]}",
@@ -2948,7 +2557,7 @@ class EmailCampaignViewSet(viewsets.ModelViewSet):
                 sent_date=timezone.now(),
                 target_count=len(target_leads)
             )
-            
+
             # Add target leads to campaign
             for lead_id in target_leads:
                 try:
@@ -2956,16 +2565,16 @@ class EmailCampaignViewSet(viewsets.ModelViewSet):
                     campaign.target_leads.add(lead)
                 except Lead.DoesNotExist:
                     continue
-            
+
             # Send emails
             result = campaign.send_emails()
-            
+
             serializer = self.get_serializer(campaign)
             return Response({
                 'campaign': serializer.data,
                 'send_result': result
             }, status=status.HTTP_201_CREATED)
-            
+
         except Exception as e:
             return Response(
                 {'error': f'Failed to launch campaign: {str(e)}'},
@@ -2980,7 +2589,7 @@ def get_history(request):
         lead_id = request.data.get('lead_id')
         entity_type = request.data.get('entity_type')
         entity_id = request.data.get('entity_id')
-        
+
         if lead_id:
             # Get lead history
             try:
@@ -2992,14 +2601,14 @@ def get_history(request):
                 return Response({'error': 'Lead not found'}, status=status.HTTP_404_NOT_FOUND)
             except Exception as e:
                 return Response([], status=status.HTTP_200_OK)
-        
+
         elif entity_type == 'opportunity' and entity_id:
             # Get opportunity history
             try:
                 opportunity = Opportunity.objects.get(id=entity_id)
                 activities = opportunity.activities.all().order_by('-created_at')
                 activity_data = []
-                
+
                 for activity in activities:
                     activity_data.append({
                         'id': activity.id,
@@ -3010,13 +2619,13 @@ def get_history(request):
                         'user_name': activity.created_by.get_full_name() if activity.created_by else 'System',
                         'date': activity.date.isoformat() if activity.date else ''
                     })
-                
+
                 return Response(activity_data)
             except Opportunity.DoesNotExist:
                 return Response({'error': 'Opportunity not found'}, status=status.HTTP_404_NOT_FOUND)
-        
+
         return Response({'error': 'Invalid parameters'}, status=status.HTTP_400_BAD_REQUEST)
-        
+
     except Exception as e:
         return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
