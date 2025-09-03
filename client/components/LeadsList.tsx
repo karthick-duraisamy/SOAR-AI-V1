@@ -821,31 +821,35 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
     );
   };
   const clearfilter = () => {
-    setFilters({
+    const defaultFilters = {
       status: "all",
       industry: "all",
       score: "all",
       engagement: "all",
       search: "",
-    });
-    fetchLeads();
+    };
+    setFilters(defaultFilters);
+    
+    // Fetch leads with cleared filters
+    fetchLeadsWithFilters(defaultFilters);
   };
-  // Fetch leads from API
-  const fetchLeads = async () => {
+
+  // Helper function to fetch leads with specific filters
+  const fetchLeadsWithFilters = async (filterParams = filters) => {
     try {
       setLoading(true);
       setCurrentPage(1); // Reset to first page on new fetch
-      // Apply current filters when fetching
-      const filterParams = {
-        search: filters.search || "",
-        status: filters.status !== "all" ? filters.status : "",
-        industry: filters.industry !== "all" ? filters.industry : "",
-        score: filters.score !== "all" ? filters.score : "",
-        engagement: filters.engagement !== "all" ? filters.engagement : "",
+      // Apply filter parameters when fetching
+      const apiFilterParams = {
+        search: filterParams.search || "",
+        status: filterParams.status !== "all" ? filterParams.status : "",
+        industry: filterParams.industry !== "all" ? filterParams.industry : "",
+        score: filterParams.score !== "all" ? filterParams.score : "",
+        engagement: filterParams.engagement !== "all" ? filterParams.engagement : "",
       };
 
-      console.log("Fetching leads with filters:", filterParams);
-      const apiResponse = await leadApi.getLeads(filterParams);
+      console.log("Fetching leads with filters:", apiFilterParams);
+      const apiResponse = await leadApi.getLeads(apiFilterParams);
       console.log("Raw API response:", apiResponse);
 
       // Handle different response formats
@@ -867,7 +871,7 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
 
       console.log("Processed leads array:", apiLeads);
 
-      // Transform leads - history_entries are not included here as they are fetched on demand
+      // Transform leads
       const transformedLeads = apiLeads.map((apiLead: any) => {
         console.log("Transforming lead:", apiLead);
         return transformApiLeadToUILead(apiLead);
@@ -889,7 +893,6 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
       // Initialize leadNotes state with data from the leads response
       const notesData: { [key: number]: any[] } = {};
       apiLeads.forEach((apiLead: any) => {
-        // Use the latest_note that are already included in the API response
         notesData[apiLead.id] = apiLead.latest_note || [];
       });
       setLeadNotes(notesData);
@@ -899,11 +902,14 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
       console.error("Error fetching leads:", error);
       console.error("Error details:", error?.response?.data);
       toast.error("Failed to fetch leads from server");
-      // Set empty array on error to avoid showing static data
       setLeads([]);
     } finally {
       setLoading(false);
     }
+  };
+  // Fetch leads from API using current filters
+  const fetchLeads = async () => {
+    await fetchLeadsWithFilters(filters);
   };
 
   // Note: fetchLeadNotes function removed since notes are now included in the leads response
@@ -2006,7 +2012,7 @@ SOAR-AI Team`,
                 className="text-orange-700 border-orange-300 bg-orange-50 hover:bg-orange-100"
                 onClick={() => {
                   if (!loading) {
-                    fetchLeads();
+                    fetchLeadsWithFilters(filters);
                   }
                 }}
                 disabled={loading}
