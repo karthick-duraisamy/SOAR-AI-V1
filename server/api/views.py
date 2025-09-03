@@ -2531,6 +2531,28 @@ def top_qualified_leads(request):
         print(f"Error in top leads endpoint: {str(e)}")
         return Response([], status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+class TravelOfferViewSet(viewsets.ModelViewSet):
+    queryset = TravelOffer.objects.all()
+    serializer_class = TravelOfferSerializer
+
+    @action(detail=False, methods=['get'])
+    def active_offers(self, request):
+        """Get active travel offers"""
+        offers = self.queryset.filter(status='active')
+        serializer = self.get_serializer(offers, many=True)
+        return Response(serializer.data)
+
+    @action(detail=False, methods=['get'])
+    def by_type(self, request):
+        """Get offers by type"""
+        offer_type = request.query_params.get('type')
+        if offer_type:
+            offers = self.queryset.filter(offer_type=offer_type)
+        else:
+            offers = self.queryset.all()
+        serializer = self.get_serializer(offers, many=True)
+        return Response(serializer.data)
+
 class EmailCampaignViewSet(viewsets.ModelViewSet):
     queryset = EmailCampaign.objects.all()
     serializer_class = EmailCampaignSerializer
