@@ -174,6 +174,7 @@ class LeadSerializer(serializers.ModelSerializer):
     lead_notes = LeadNoteSerializer(many=True, read_only=True)
     all_notes = serializers.SerializerMethodField()
     history_entries = serializers.SerializerMethodField()
+    campaign_count = serializers.SerializerMethodField()
 
     class Meta:
         model = Lead
@@ -228,6 +229,10 @@ class LeadSerializer(serializers.ModelSerializer):
         notes = obj.lead_notes.all().order_by('-created_at')
         return LeadNoteSerializer(notes, many=True).data
 
+    def get_campaign_count(self, obj):
+        """Get the number of email campaigns that targeted this lead"""
+        return obj.emailcampaign_set.count()
+
     def get_assigned_agent_details(self, obj):
         """Get detailed information about the assigned agent"""
         if not obj.assigned_agent:
@@ -280,19 +285,24 @@ class OptimizedLeadSerializer(serializers.ModelSerializer):
     contact = ContactSerializer(read_only=True)
     assigned_to = serializers.StringRelatedField(read_only=True)
     all_notes = serializers.SerializerMethodField()
+    campaign_count = serializers.SerializerMethodField()
 
     class Meta:
         model = Lead
         fields = [
             'id', 'status', 'source', 'priority', 'score', 'estimated_value',
             'notes', 'next_action', 'next_action_date', 'created_at', 'updated_at',
-            'company', 'contact', 'assigned_to', 'all_notes'
+            'company', 'contact', 'assigned_to', 'all_notes', 'campaign_count'
         ]
 
     def get_all_notes(self, obj):
         """Get all lead notes for this lead"""
         notes = obj.lead_notes.all().order_by('-created_at')
         return LeadNoteSerializer(notes, many=True).data
+
+    def get_campaign_count(self, obj):
+        """Get the number of email campaigns that targeted this lead"""
+        return obj.emailcampaign_set.count()
 
 
 class OpportunityActivitySerializer(serializers.ModelSerializer):

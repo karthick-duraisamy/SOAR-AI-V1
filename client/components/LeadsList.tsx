@@ -295,7 +295,7 @@ const transformApiLeadToUILead = (apiLead: any) => {
           current_leads: apiLead.assigned_to.current_leads || 0, // Assuming current_leads field exists
         }
       : undefined,
-    // Campaign count
+    // Campaign count from API
     campaignCount: apiLead.campaign_count || 0,
     // History will be fetched separately via API and mapped in the dialog
     history_entries: [], // This will be populated via getHistory API call
