@@ -971,26 +971,7 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
     }
   }, [initialFilters]); // Remove leads dependency to prevent infinite loops
 
-  // Refetch data when filters change (with debouncing) - but only after initial mount
-  useEffect(() => {
-    // Skip the first render to avoid double API call on mount
-    if (leads.length > 0) {
-      const timeoutId = setTimeout(() => {
-        if (!loading) {
-          // Don't refetch if already loading
-          fetchLeads();
-        }
-      }, 300); // 300ms debounce
-
-      return () => clearTimeout(timeoutId);
-    }
-  }, [
-    filters.search,
-    filters.status,
-    filters.industry,
-    filters.score,
-    filters.engagement,
-  ]);
+  // Remove automatic refetch on filter changes - now only triggered by Search button
 
   const getStatusBadgeStyle = (status: string) => {
     switch (status) {
