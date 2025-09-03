@@ -2649,8 +2649,8 @@ SOAR-AI Team`,
                             ⚠️ Action Required
                           </Badge>
                         )}
-                        {(lead.campaignCount || 0) > 0 && (
-                          <Badge className="text-xs px-2 py-1 rounded-full bg-purple-100 text-purple-700 border-purple-200">
+                        {(lead.campaignCount || 0) >= 0 && (
+                          <Badge className="text-xs px-2 py-1 rounded-full text-orange-700 border-orange-200 bg-orange-50">
                             📧 {lead.campaignCount} Campaign{lead.campaignCount !== 1 ? 's' : ''}
                           </Badge>
                         )}
@@ -2761,7 +2761,7 @@ SOAR-AI Team`,
                         {lead.assignedAgent}
                       </div>
                     )}
-                    <div className="text-sm flex items-center gap-1">
+                    {/* <div className="text-sm flex items-center gap-1">
                       <Mail className="h-3 w-3 text-gray-500" />
                       <span className="font-medium text-gray-600">
                         Email Campaigns:
@@ -2769,7 +2769,7 @@ SOAR-AI Team`,
                       <span className="text-blue-600 font-medium">
                         {lead.campaignCount || 0} campaign{(lead.campaignCount || 0) !== 1 ? 's' : ''}
                       </span>
-                    </div>
+                    </div> */}
                   </div>
                   <div className="space-y-2">
                     <div className="text-sm">
