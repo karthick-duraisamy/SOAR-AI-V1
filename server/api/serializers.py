@@ -1,9 +1,8 @@
 from rest_framework import serializers
 from .models import (
     Company, Contact, Lead, Opportunity, OpportunityActivity, Contract, ContractBreach,
-    EmailCampaign, TravelOffer, SupportTicket, RevenueForecast,
-    ActivityLog, AIConversation, LeadNote, LeadHistory, CampaignTemplate, ProposalDraft,
-    EmailTracking
+    CampaignTemplate, EmailCampaign, TravelOffer, SupportTicket, RevenueForecast,
+    ActivityLog, AIConversation, LeadNote, LeadHistory, ProposalDraft, EmailTracking
 )
 
 class CompanySerializer(serializers.ModelSerializer):

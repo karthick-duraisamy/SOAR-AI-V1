@@ -1,15 +1,11 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from . import views
 from .views import (
     CompanyViewSet, ContactViewSet, LeadViewSet, OpportunityViewSet,
     OpportunityActivityViewSet, ContractViewSet, ContractBreachViewSet,
-    EmailCampaignViewSet, TravelOfferViewSet, SupportTicketViewSet,
-    RevenueForecastViewSet, ActivityLogViewSet, LeadNoteViewSet,
-    LeadHistoryViewSet, AIConversationViewSet, CampaignTemplateViewSet,
-    ProposalDraftViewSet, send_corporate_message, check_smtp_status,
-    download_proposal_attachment, track_email_open, track_email_click,
-    email_campaign_performance
+    CampaignTemplateViewSet, EmailCampaignViewSet, recent_lead_activity, top_qualified_leads,
+    lead_dashboard_stats, list_revenue_files, delete_revenue_file, upload_revenue_data,
+    proposal_draft_detail, campaign_analytics, get_history
 )
 
 router = DefaultRouter()
@@ -30,15 +26,16 @@ router.register(r'lead-notes', views.LeadNoteViewSet)
 router.register(r'lead-history', views.LeadHistoryViewSet)
 router.register(r'campaign-templates', views.CampaignTemplateViewSet)
 router.register(r'proposal-drafts', views.ProposalDraftViewSet)
+router.register(r'campaigns', views.EmailCampaignViewSet)
 
 urlpatterns = [
     # Include router URLs
     path('', include(router.urls)),
 
     # Custom lead dashboard endpoints
-    path('leads/dashboard/stats/', views.lead_stats, name='lead_stats'),
-    path('leads/dashboard/recent-activity/', views.recent_activity, name='recent_activity'),
-    path('leads/dashboard/top-qualified/', views.top_leads, name='top_leads'),
+    path('leads/dashboard/stats/', lead_dashboard_stats, name='lead_dashboard_stats'),
+    path('leads/dashboard/recent-activity/', recent_lead_activity, name='recent_activity'),
+    path('leads/dashboard/top-qualified/', top_qualified_leads, name='top_qualified_leads'),
 
     # Company bulk operations
     path('companies/bulk-upload/', views.bulk_upload_companies, name='bulk_upload_companies'),
@@ -58,17 +55,17 @@ urlpatterns = [
     path('send-corporate-message/', views.send_corporate_message, name='send_corporate_message'),
 
     # Proposal Draft Management
-    path('opportunities/<int:opportunity_id>/proposal-draft/', views.proposal_draft_detail, name='proposal-draft-detail'),
+    path('opportunities/<int:opportunity_id>/proposal-draft/', proposal_draft_detail, name='proposal-draft-detail'),
     path('opportunities/<int:opportunity_id>/proposal-draft/attachment/', views.download_proposal_attachment, name='proposal-draft-attachment'),
     path('proposal-attachment/<int:opportunity_id>/', views.download_proposal_attachment, name='download_proposal_attachment'),
 
     # Revenue data upload endpoint
     # Revenue data management
-    path('upload-revenue-data/', views.upload_revenue_data, name='upload_revenue_data'),
-    path('list-revenue-files/', views.list_revenue_files, name='list_revenue_files'),
-    path('delete-revenue-file/<str:filename>/', views.delete_revenue_file, name='delete_revenue_file'),
+    path('upload-revenue-data/', upload_revenue_data, name='upload_revenue_data'),
+    path('list-revenue-files/', list_revenue_files, name='list_revenue_files'),
+    path('delete-revenue-file/<str:filename>/', delete_revenue_file, name='delete_revenue_file'),
     # Generic history endpoint
-    path('get-history/', views.get_history, name='get_history'),
+    path('get-history/', get_history, name='get_history'),
 
     # Email tracking endpoints
     path('email-tracking/open/<uuid:tracking_id>/', views.track_email_open_pixel, name='track_email_open_pixel'),

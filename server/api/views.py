@@ -5,6 +5,7 @@ from django.views.decorators.http import require_http_methods
 from django.utils.decorators import method_decorator
 from .models import EmailTracking
 import urllib.parse
+import uuid
 
 
 from rest_framework import viewsets, status
@@ -2531,7 +2532,6 @@ def top_qualified_leads(request):
         return Response([], status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
-# New CampaignTemplate and EmailCampaign API Views
 class CampaignTemplateViewSet(viewsets.ModelViewSet):
     queryset = CampaignTemplate.objects.all()
     serializer_class = CampaignTemplateSerializer
@@ -2921,6 +2921,104 @@ def proposal_draft_detail(request, opportunity_id):
             return Response({'message': 'Draft deleted successfully'}, status=status.HTTP_200_OK)
         except ProposalDraft.DoesNotExist:
             return Response({'message': 'No draft found'}, status=status.HTTP_404_NOT_FOUND)
+
+class EmailCampaignViewSet(viewsets.ModelViewSet):
+    queryset = EmailCampaign.objects.all()
+    serializer_class = EmailCampaignSerializer
+
+    @action(detail=False, methods=['post'])
+    def launch(self, request):
+        """Launch an email campaign"""
+        try:
+            data = request.data
+            template_id = data.get('templateId')
+            target_leads = data.get('targetLeads', [])
+            subject_line = data.get('subjectLine', '')
+            message_content = data.get('messageContent', '')
+            
+            # Create the campaign
+            campaign = EmailCampaign.objects.create(
+                name=f"Campaign - {subject_line[:50]}",
+                description=data.get('description', ''),
+                campaign_type='nurture',
+                status='active',
+                subject_line=subject_line,
+                email_content=message_content,
+                scheduled_date=timezone.now(),
+                sent_date=timezone.now(),
+                target_count=len(target_leads)
+            )
+            
+            # Add target leads to campaign
+            for lead_id in target_leads:
+                try:
+                    lead = Lead.objects.get(id=lead_id)
+                    campaign.target_leads.add(lead)
+                except Lead.DoesNotExist:
+                    continue
+            
+            # Send emails
+            result = campaign.send_emails()
+            
+            serializer = self.get_serializer(campaign)
+            return Response({
+                'campaign': serializer.data,
+                'send_result': result
+            }, status=status.HTTP_201_CREATED)
+            
+        except Exception as e:
+            return Response(
+                {'error': f'Failed to launch campaign: {str(e)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def get_history(request):
+    """Get history for leads or opportunities"""
+    try:
+        lead_id = request.data.get('lead_id')
+        entity_type = request.data.get('entity_type')
+        entity_id = request.data.get('entity_id')
+        
+        if lead_id:
+            # Get lead history
+            try:
+                lead = Lead.objects.get(id=lead_id)
+                history_entries = lead.history_entries.all().order_by('-timestamp')
+                serializer = LeadHistorySerializer(history_entries, many=True)
+                return Response(serializer.data)
+            except Lead.DoesNotExist:
+                return Response({'error': 'Lead not found'}, status=status.HTTP_404_NOT_FOUND)
+            except Exception as e:
+                return Response([], status=status.HTTP_200_OK)
+        
+        elif entity_type == 'opportunity' and entity_id:
+            # Get opportunity history
+            try:
+                opportunity = Opportunity.objects.get(id=entity_id)
+                activities = opportunity.activities.all().order_by('-created_at')
+                activity_data = []
+                
+                for activity in activities:
+                    activity_data.append({
+                        'id': activity.id,
+                        'type': activity.type,
+                        'action': activity.get_type_display(),
+                        'details': activity.description,
+                        'timestamp': activity.created_at.isoformat(),
+                        'user_name': activity.created_by.get_full_name() if activity.created_by else 'System',
+                        'date': activity.date.isoformat() if activity.date else ''
+                    })
+                
+                return Response(activity_data)
+            except Opportunity.DoesNotExist:
+                return Response({'error': 'Opportunity not found'}, status=status.HTTP_404_NOT_FOUND)
+        
+        return Response({'error': 'Invalid parameters'}, status=status.HTTP_400_BAD_REQUEST)
+        
+    except Exception as e:
+        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 @api_view(['GET'])
 @permission_classes([AllowAny])
