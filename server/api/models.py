@@ -385,6 +385,7 @@ class EmailCampaign(models.Model):
     emails_sent = models.IntegerField(default=0)
     emails_opened = models.IntegerField(default=0)
     emails_clicked = models.IntegerField(default=0)
+    target_leads = models.ManyToManyField('Lead', blank=True)
     target_count = models.IntegerField(default=0)  # Track number of targeted leads
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
