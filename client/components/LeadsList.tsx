@@ -831,7 +831,7 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
     setFilters(defaultFilters);
     
     // Fetch leads with cleared filters
-    fetchLeadsWithFilters(defaultFilters);
+    // fetchLeadsWithFilters(defaultFilters);
   };
 
   // Helper function to fetch leads with specific filters
@@ -2006,7 +2006,7 @@ SOAR-AI Team`,
               </span>
             </div>
             <div className="flex items-center gap-2">
-              <Button
+              {/* <Button
                 variant="outline"
                 size="sm"
                 className="text-orange-700 border-orange-300 bg-orange-50 hover:bg-orange-100"
@@ -2028,7 +2028,7 @@ SOAR-AI Team`,
                     Search Leads
                   </>
                 )}
-              </Button>
+              </Button> */}
               <Button
                 variant="outline"
                 size="sm"
@@ -2920,7 +2920,7 @@ SOAR-AI Team`,
                 )}
 
                 {/* Action Buttons */}
-                <div className="flex items-center justify-between">
+                <div className="flex items-start justify-between gap-2">
                   <div className="flex gap-2 flex-wrap">
                     <Button
                       size="sm"
