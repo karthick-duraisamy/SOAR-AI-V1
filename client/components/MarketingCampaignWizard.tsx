@@ -76,6 +76,7 @@ export function MarketingCampaignWizard({ selectedLeads, onBack, onComplete }: M
     subject_line: '',
     content: '',
     cta: '',
+    cta_link: '',
     linkedin_type: 'message' as 'message' | 'post' | 'connection'
   });
   const [campaignData, setCampaignData] = useState({
@@ -87,7 +88,8 @@ export function MarketingCampaignWizard({ selectedLeads, onBack, onComplete }: M
       email: {
         subject: '',
         body: '',
-        cta: ''
+        cta: '',
+        cta_link: ''
       }
     },
     settings: {
@@ -135,7 +137,8 @@ export function MarketingCampaignWizard({ selectedLeads, onBack, onComplete }: M
         email: {
           subject: template.subject_line || `Partnership Opportunity - ${template.name}`,
           body: template.content,
-          cta: template.cta
+          cta: template.cta,
+          cta_link: template.cta_link || ''
         }
       }
     }));
@@ -201,6 +204,7 @@ export function MarketingCampaignWizard({ selectedLeads, onBack, onComplete }: M
         subject_line: '',
         content: '',
         cta: '',
+        cta_link: '',
         linkedin_type: 'message'
       });
 
@@ -567,23 +571,44 @@ export function MarketingCampaignWizard({ selectedLeads, onBack, onComplete }: M
                         </div>
                       </div>
 
-                      <div>
-                        <Label htmlFor="email-cta" className="text-sm font-medium text-gray-700">
-                          Call-to-Action
-                        </Label>
-                        <Input
-                          id="email-cta"
-                          value={campaignData.content.email.cta}
-                          onChange={(e) => setCampaignData(prev => ({
-                            ...prev,
-                            content: {
-                              ...prev.content,
-                              email: { ...prev.content.email, cta: e.target.value }
-                            }
-                          }))}
-                          placeholder="See Compliance Demo"
-                          className="mt-1"
-                        />
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <Label htmlFor="email-cta" className="text-sm font-medium text-gray-700">
+                            Call-to-Action Button Text
+                          </Label>
+                          <Input
+                            id="email-cta"
+                            value={campaignData.content.email.cta}
+                            onChange={(e) => setCampaignData(prev => ({
+                              ...prev,
+                              content: {
+                                ...prev.content,
+                                email: { ...prev.content.email, cta: e.target.value }
+                              }
+                            }))}
+                            placeholder="See Compliance Demo"
+                            className="mt-1"
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="email-cta-link" className="text-sm font-medium text-gray-700">
+                            Call-to-Action Link (Optional)
+                          </Label>
+                          <Input
+                            id="email-cta-link"
+                            type="url"
+                            value={campaignData.content.email.cta_link || ''}
+                            onChange={(e) => setCampaignData(prev => ({
+                              ...prev,
+                              content: {
+                                ...prev.content,
+                                email: { ...prev.content.email, cta_link: e.target.value }
+                              }
+                            }))}
+                            placeholder="https://example.com/demo"
+                            className="mt-1"
+                          />
+                        </div>
                       </div>
                     </CardContent>
                   </Card>
@@ -631,9 +656,22 @@ Key compliance features for Technology companies:
 TechCorp Solutions can achieve complete travel governance without slowing down your team.`}
                       </div>
                       {campaignData.content.email.cta && (
-                        <Button size="sm" className="bg-orange-500 hover:bg-orange-600 text-white">
-                          {campaignData.content.email.cta}
-                        </Button>
+                        campaignData.content.email.cta_link ? (
+                          <a 
+                            href={campaignData.content.email.cta_link} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="inline-block"
+                          >
+                            <Button size="sm" className="bg-orange-500 hover:bg-orange-600 text-white">
+                              {campaignData.content.email.cta}
+                            </Button>
+                          </a>
+                        ) : (
+                          <Button size="sm" className="bg-orange-500 hover:bg-orange-600 text-white">
+                            {campaignData.content.email.cta}
+                          </Button>
+                        )
                       )}
                     </div>
                   </CardContent>
@@ -1090,17 +1128,32 @@ TechCorp Solutions can achieve complete travel governance without slowing down y
             </div>
 
             {/* Call-to-Action */}
-            <div className="space-y-2">
-              <Label htmlFor="cta" className="text-sm font-medium text-gray-700">
-                Call-to-Action
-              </Label>
-              <Input
-                id="cta"
-                value={templateData.cta}
-                onChange={(e) => setTemplateData(prev => ({ ...prev, cta: e.target.value }))}
-                placeholder="e.g. Schedule a Demo, Connect, Learn More"
-                className="w-full"
-              />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="cta" className="text-sm font-medium text-gray-700">
+                  Call-to-Action Button Text
+                </Label>
+                <Input
+                  id="cta"
+                  value={templateData.cta}
+                  onChange={(e) => setTemplateData(prev => ({ ...prev, cta: e.target.value }))}
+                  placeholder="e.g. Schedule a Demo, Connect, Learn More"
+                  className="w-full"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="cta-link" className="text-sm font-medium text-gray-700">
+                  Call-to-Action Link (Optional)
+                </Label>
+                <Input
+                  id="cta-link"
+                  type="url"
+                  value={templateData.cta_link}
+                  onChange={(e) => setTemplateData(prev => ({ ...prev, cta_link: e.target.value }))}
+                  placeholder="https://example.com/schedule-demo"
+                  className="w-full"
+                />
+              </div>
             </div>
           </div>
 

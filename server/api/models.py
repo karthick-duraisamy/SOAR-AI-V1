@@ -379,9 +379,8 @@ class EmailCampaign(models.Model):
     status = models.CharField(max_length=20, choices=CAMPAIGN_STATUS_CHOICES, default='draft')
     subject_line = models.CharField(max_length=255)
     email_content = models.TextField()
-    target_leads = models.ManyToManyField(Lead, blank=True)
-    template = models.ForeignKey(CampaignTemplate, on_delete=models.SET_NULL, null=True, blank=True)
-    scheduled_date = models.DateTimeField(null=True, blank=True)
+    cta_link = models.URLField(blank=True, null=True)
+    scheduled_date = models.DateTimeField()
     sent_date = models.DateTimeField(null=True, blank=True)
     emails_sent = models.IntegerField(default=0)
     emails_opened = models.IntegerField(default=0)
@@ -477,6 +476,16 @@ class EmailCampaign(models.Model):
                 rendered_subject = subject_template.render(context)
                 rendered_content = content_template.render(context)
 
+                # Construct CTA button with link if available
+                cta_button_html = ""
+                if self.cta and self.cta_link:
+                    cta_button_html = f'<p><a href="{self.cta_link}" style="background-color: #4CAF50; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">{self.cta}</a></p>'
+                elif self.cta:
+                    cta_button_html = f'<p><button disabled style="background-color: #cccccc; color: white; padding: 10px 20px; border-radius: 5px;">{self.cta}</button></p>'
+
+                # Inject CTA button into email content
+                rendered_content_with_cta = rendered_content.replace('{{cta_button}}', cta_button_html)
+
                 # Create tracking record
                 tracking, created = EmailTracking.objects.get_or_create(
                     campaign=self,
@@ -487,7 +496,7 @@ class EmailCampaign(models.Model):
                 # Create EmailMessage for individual tracking
                 email_msg = EmailMessage(
                     subject=rendered_subject,
-                    body=rendered_content,
+                    body=rendered_content_with_cta,
                     from_email=settings.DEFAULT_FROM_EMAIL or 'noreply@soarai.com',
                     to=[email_address]
                 )

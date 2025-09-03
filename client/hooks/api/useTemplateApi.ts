@@ -19,6 +19,7 @@ interface CampaignTemplate {
   subject_line?: string;
   content: string;
   cta: string;
+  cta_link?: string;
   linkedin_type?: 'message' | 'post' | 'connection';
   estimated_open_rate: number;
   estimated_click_rate: number;

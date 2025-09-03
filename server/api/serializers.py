@@ -408,18 +408,6 @@ class ContractSerializer(serializers.ModelSerializer):
     company_name = serializers.CharField(source='company.name', read_only=True)
     breaches = ContractBreachSerializer(many=True, read_only=True)
 
-
-class EmailTrackingSerializer(serializers.ModelSerializer):
-    lead_name = serializers.CharField(source='lead.company.name', read_only=True)
-    contact_name = serializers.SerializerMethodField()
-
-    class Meta:
-        model = EmailTracking
-        fields = '__all__'
-
-    def get_contact_name(self, obj):
-        return f"{obj.lead.contact.first_name} {obj.lead.contact.last_name}"
-
     days_until_expiry = serializers.SerializerMethodField()
     breach_count = serializers.SerializerMethodField()
 
@@ -434,6 +422,17 @@ class EmailTrackingSerializer(serializers.ModelSerializer):
     def get_breach_count(self, obj):
         return obj.breaches.filter(is_resolved=False).count()
 
+class EmailTrackingSerializer(serializers.ModelSerializer):
+    lead_name = serializers.CharField(source='lead.company.name', read_only=True)
+    contact_name = serializers.SerializerMethodField()
+
+    class Meta:
+        model = EmailTracking
+        fields = '__all__'
+
+    def get_contact_name(self, obj):
+        return f"{obj.lead.contact.first_name} {obj.lead.contact.last_name}"
+
 class EmailCampaignSerializer(serializers.ModelSerializer):
     target_leads_count = serializers.SerializerMethodField()
     open_rate = serializers.SerializerMethodField()
@@ -443,7 +442,9 @@ class EmailCampaignSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = EmailCampaign
-        fields = '__all__'
+        fields = ['id', 'name', 'description', 'campaign_type', 'status', 'subject_line', 
+                 'email_content', 'cta_link', 'scheduled_date', 'sent_date', 'emails_sent', 'emails_opened', 
+                 'emails_clicked', 'template', 'target_leads', 'created_at', 'updated_at']
 
     def get_target_leads_count(self, obj):
         return obj.target_leads.count()
@@ -555,7 +556,9 @@ class CampaignTemplateSerializer(serializers.ModelSerializer):
     """Serializer for Campaign Templates"""
     class Meta:
         model = CampaignTemplate
-        fields = '__all__'
+        fields = ['id', 'name', 'description', 'channel_type', 'target_industry', 
+                 'subject_line', 'content', 'cta', 'cta_link', 'linkedin_type', 'estimated_open_rate', 
+                 'estimated_click_rate', 'is_custom', 'created_by', 'created_at', 'updated_at']
 
 class ProposalDraftSerializer(serializers.ModelSerializer):
     class Meta:
