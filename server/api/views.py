@@ -658,62 +658,65 @@ class LeadViewSet(viewsets.ModelViewSet):
         """
         Optimized POST endpoint for searching leads with filters
         """
-        filters = request.data
+        try:
+            filters = request.data if hasattr(request, 'data') else {}
 
-        # Use select_related and prefetch_related for optimization
-        queryset = self.queryset.select_related(
-            'company', 'contact', 'assigned_to'
-        ).prefetch_related(
-            'lead_notes__created_by'
-        )
+            search_term = filters.get('search', '')
+            status_filter = filters.get('status', '')
+            industry_filter = filters.get('industry', '')
+            score = filters.get('score', '')
+            engagement = filters.get('engagement', '')
 
-        search_term = filters.get('search', '')
-        status_filter = filters.get('status', '')
-        industry_filter = filters.get('industry', '')
-        score = filters.get('score', '')
-        engagement = filters.get('engagement', '')
+            # Get all leads with proper eager loading, excluding those converted to opportunities
+            leads = Lead.objects.select_related('company', 'contact', 'assigned_to').all()
 
-        # Get all leads with proper eager loading, excluding those converted to opportunities
-        leads = Lead.objects.select_related('company', 'contact', 'assigned_to').filter(opportunity__isnull=True)
+            # Apply filters if provided
+            if status_filter and status_filter != 'all':
+                leads = leads.filter(status=status_filter)
 
-        # Apply filters if provided
-        if status_filter and status_filter != 'all':
-            leads = leads.filter(status=status_filter)
+            if industry_filter and industry_filter != 'all':
+                leads = leads.filter(company__industry=industry_filter)
 
-        if industry_filter and industry_filter != 'all':
-            leads = leads.filter(company__industry=industry_filter)
+            if search_term:
+                leads = leads.filter(
+                    Q(company__name__icontains=search_term) |
+                    Q(contact__first_name__icontains=search_term) |
+                    Q(contact__last_name__icontains=search_term)
+                )
 
-        if search_term:
-            leads = leads.filter(
-                Q(company__name__icontains=search_term) |
-                Q(contact__first_name__icontains=search_term) |
-                Q(contact__last_name__icontains=search_term)
+            if score and score != 'all':
+                if score == 'high':
+                    leads = leads.filter(score__gte=80)
+                elif score == 'medium':
+                    leads = leads.filter(score__gte=60, score__lt=80)
+                elif score == 'low':
+                    leads = leads.filter(score__lt=60)
+
+            # Add engagement filter logic if needed
+            if engagement and engagement != 'all':
+                if engagement == 'High':
+                    leads = leads.filter(score__gte=80)
+                elif engagement == 'Medium':
+                    leads = leads.filter(score__gte=60, score__lt=80)
+                elif engagement == 'Low':
+                    leads = leads.filter(score__lt=60)
+
+            # Order and limit for performance
+            leads = leads.order_by('-created_at')[:100]  # Limit to 100 results for performance
+
+            # Use optimized serializer for better performance
+            from .serializers import OptimizedLeadSerializer
+            serializer = OptimizedLeadSerializer(leads, many=True)
+            return Response(serializer.data)
+            
+        except Exception as e:
+            print(f"Error in leads search: {str(e)}")
+            import traceback
+            traceback.print_exc()
+            return Response(
+                {'error': f'Search failed: {str(e)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
-
-        if score and score != 'all':
-            if score == 'high':
-                leads = leads.filter(score__gte=80)
-            elif score == 'medium':
-                leads = leads.filter(score__gte=60, score__lt=80)
-            elif score == 'low':
-                leads = leads.filter(score__lt=60)
-
-        # Add engagement filter logic if needed
-        if engagement and engagement != 'all':
-            if engagement == 'High':
-                leads = leads.filter(score__gte=80)
-            elif engagement == 'Medium':
-                leads = leads.filter(score__gte=60, score__lt=80)
-            elif engagement == 'Low':
-                leads = leads.filter(score__lt=60)
-
-        # Order and limit for performance
-        leads = leads.order_by('-created_at')[:100]  # Limit to 100 results for performance
-
-        # Use optimized serializer for better performance
-        from .serializers import OptimizedLeadSerializer
-        serializer = OptimizedLeadSerializer(leads, many=True)
-        return Response(serializer.data)
 
     @action(detail=False, methods=['get'])
     def qualified_leads(self, request):

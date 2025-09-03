@@ -297,12 +297,20 @@ class OptimizedLeadSerializer(serializers.ModelSerializer):
 
     def get_all_notes(self, obj):
         """Get all lead notes for this lead"""
-        notes = obj.lead_notes.all().order_by('-created_at')
-        return LeadNoteSerializer(notes, many=True).data
+        try:
+            notes = obj.lead_notes.all().order_by('-created_at')
+            return LeadNoteSerializer(notes, many=True).data
+        except Exception as e:
+            print(f"Error getting notes for lead {obj.id}: {e}")
+            return []
 
     def get_campaign_count(self, obj):
         """Get the number of email campaigns that targeted this lead"""
-        return obj.emailcampaign_set.count()
+        try:
+            return obj.emailcampaign_set.count()
+        except Exception as e:
+            print(f"Error getting campaign count for lead {obj.id}: {e}")
+            return 0
 
 
 class OpportunityActivitySerializer(serializers.ModelSerializer):
