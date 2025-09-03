@@ -1872,11 +1872,66 @@ SOAR-AI Team`,
     setShowMarketingCampaign(true);
   };
 
-  const handleCampaignComplete = (campaignData) => {
+  const handleCampaignComplete = async (campaignData) => {
     console.log("Campaign completed with data:", campaignData);
-    toast.success(
-      `Campaign "${campaignData.name}" launched successfully for ${selectedLeads.length} leads!`,
-    );
+    
+    try {
+      // Update status for leads that were 'new' to 'contacted'
+      const selectedLeadData = filteredLeads.filter((lead) =>
+        selectedLeads.includes(lead.id),
+      );
+      
+      const newLeadsToUpdate = selectedLeadData.filter(lead => lead.status === 'new');
+      
+      if (newLeadsToUpdate.length > 0) {
+        // Update each new lead's status to contacted
+        const updatePromises = newLeadsToUpdate.map(async (lead) => {
+          try {
+            const updatedLead = await leadApi.updateLead(lead.id, {
+              status: 'contacted'
+            });
+            console.log(`Updated lead ${lead.id} status to contacted`);
+            return { leadId: lead.id, success: true, updatedLead };
+          } catch (error) {
+            console.error(`Error updating lead ${lead.id}:`, error);
+            return { leadId: lead.id, success: false, error };
+          }
+        });
+
+        const updateResults = await Promise.all(updatePromises);
+        const successfulUpdates = updateResults.filter(result => result.success);
+        
+        if (successfulUpdates.length > 0) {
+          // Update local state for successfully updated leads
+          setLeads(prev => prev.map(lead => {
+            const successfulUpdate = successfulUpdates.find(update => update.leadId === lead.id);
+            if (successfulUpdate) {
+              return { ...lead, status: 'contacted' };
+            }
+            return lead;
+          }));
+          
+          toast.success(
+            `Campaign "${campaignData.name}" launched successfully! ${successfulUpdates.length} lead${successfulUpdates.length > 1 ? 's' : ''} status updated to 'Contacted'.`,
+          );
+        } else {
+          toast.success(
+            `Campaign "${campaignData.name}" launched successfully for ${selectedLeads.length} leads!`,
+          );
+        }
+      } else {
+        toast.success(
+          `Campaign "${campaignData.name}" launched successfully for ${selectedLeads.length} leads!`,
+        );
+      }
+    } catch (error) {
+      console.error("Error updating lead statuses:", error);
+      toast.success(
+        `Campaign "${campaignData.name}" launched successfully for ${selectedLeads.length} leads!`,
+      );
+      toast.error("Some lead statuses could not be updated. Please check manually.");
+    }
+    
     setShowMarketingCampaign(false);
     setSelectedLeads([]);
     setSelectAll(false);
@@ -2943,7 +2998,7 @@ SOAR-AI Team`,
                       size="sm"
                       variant="outline"
                       className="text-orange-700 border-orange-200 bg-orange-50"
-                      onClick={(e) => {
+                      onClick={async (e) => {
                         e.stopPropagation();
                         setSelectedLeads([lead.id]);
                         setShowMarketingCampaign(true);
