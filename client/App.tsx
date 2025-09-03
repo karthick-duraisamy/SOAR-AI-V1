@@ -77,6 +77,7 @@ import {
   Play,
   ChevronRight,
 } from "lucide-react";
+import 'react-quill/dist/quill.snow.css'; // Import react-quill CSS
 
 // Mock user data and authentication status for demonstration
 const mockUser = {
@@ -186,7 +187,7 @@ export default function App() {
     ];
 
     // If navigating to AI Assistant, return base path
-    if (sectionId === "ai-assistant") {
+    if (sectionSectionId === "ai-assistant") {
       return basePath;
     }
 
@@ -623,153 +624,6 @@ export default function App() {
   };
 
   // Main business menu groups that can be collapsed
-  // const mainMenuGroups = [
-  //   {
-  //     label: "Highlights",
-  //     items: [
-  //       {
-  //         id: "ai-assistant",
-  //         label: "AI Assistant",
-  //         icon: Bot,
-  //         description: "Natural language interface",
-  //       },
-  //       {
-  //         id: "dashboard",
-  //         label: "Dashboard",
-  //         icon: LayoutDashboard,
-  //         description: "System overview",
-  //       },
-  //     ],
-  //   },
-  //   {
-  //     label: "COINHUB",
-  //     items: [
-  //       {
-  //         id: "corporate-search",
-  //         label: "Corporate Search",
-  //         icon: Search,
-  //         description: "Find corporate clients",
-  //       },
-  //       {
-  //         id: "lead-management",
-  //         label: "Lead Dashboard",
-  //         icon: Target,
-  //         description: "Lead pipeline overview",
-  //       },
-  //       {
-  //         id: "leads-list",
-  //         label: "All Leads",
-  //         icon: UsersIcon,
-  //         description: "Complete lead management",
-  //       },
-  //       // Removed duplicate "All Leads" entry
-  //       // {
-  //       //   id: "qualified-leads",
-  //       //   label: "Qualified Leads",
-  //       //   icon: UserCheck,
-  //       //   description: "High-potential prospects",
-  //       // },
-  //       // {
-  //       //   id: "unqualified-leads",
-  //       //   label: "Unqualified Leads",
-  //       //   icon: UserX,
-  //       //   description: "Nurturing opportunities",
-  //       // },
-  //       {
-  //         id: "email-campaigns",
-  //         label: "Email Campaigns",
-  //         icon: Mail,
-  //         description: "Automated outreach",
-  //       },
-  //       {
-  //         id: "opportunities",
-  //         label: "Opportunities",
-  //         icon: TrendingUp,
-  //         description: "Sales pipeline tracking",
-  //       },
-  //     ],
-  //   },
-  //   {
-  //     label: "COCAST",
-  //     subtitle: "Corporate Commercial Analytics & Sales Trend",
-  //     items: [
-  //       {
-  //         id: "revenue-prediction",
-  //         label: "Revenue Prediction",
-  //         icon: Brain,
-  //         description: "AI revenue forecasting & sales predictions",
-  //       },
-  //     ],
-  //   },
-  //   {
-  //     label: "CONTRAQ",
-  //     items: [
-  //       {
-  //         id: "contracts",
-  //         label: "Contracts",
-  //         icon: FileText,
-  //         description: "Manage agreements",
-  //       },
-  //       {
-  //         id: "breach-monitoring",
-  //         label: "Risk Monitoring",
-  //         icon: AlertTriangle,
-  //         description: "Contract compliance",
-  //       },
-  //     ],
-  //   },
-  //   {
-  //     label: "Travel Offers",
-  //     items: [
-  //       {
-  //         id: "design-travel-offers",
-  //         label: "Travel Offers",
-  //         icon: Presentation,
-  //         description: "Comprehensive offer management & creation",
-  //       },
-  //     ],
-  //   },
-  // ];
-
-  // Support and system menu groups that are always visible
-  // const supportMenuGroups = [
-  //   {
-  //     label: "CONVOY",
-  //     items: [
-  //       {
-  //         id: "agent-dashboard",
-  //         label: "Agent Dashboard",
-  //         icon: UserCheck,
-  //         description: "Agent workspace",
-  //       },
-  //       {
-  //         id: "ticket-list",
-  //         label: "Support Tickets",
-  //         icon: Users,
-  //         description: "Customer support",
-  //       },
-  //       {
-  //         id: "admin-dashboard",
-  //         label: "Admin Dashboard",
-  //         icon: Shield,
-  //         description: "System administration",
-  //       },
-  //     ],
-  //   },
-  //   {
-  //     label: "System",
-  //     items: [
-  //       {
-  //         id: "settings",
-  //         label: "Settings",
-  //         icon: SettingsIcon,
-  //         description: "System configuration",
-  //       },
-  //     ],
-  //   },
-  // ];
-
-  // Main business menu groups that can be collapsed
   const mainMenuGroups = [
     {
       label: "Highlights",
@@ -915,6 +769,153 @@ export default function App() {
       ],
     },
   ];
+
+  // Main business menu groups that can be collapsed
+  // const mainMenuGroups = [
+  //   {
+  //     label: "Highlights",
+  //     items: [
+  //       {
+  //         id: "ai-assistant",
+  //         label: "AI Assistant",
+  //         icon: Bot,
+  //         description: "Natural language interface",
+  //       },
+  //       {
+  //         id: "dashboard",
+  //         label: "Dashboard",
+  //         icon: LayoutDashboard,
+  //         description: "System overview",
+  //       },
+  //     ],
+  //   },
+  //   {
+  //     label: "COINHUB",
+  //     items: [
+  //       {
+  //         id: "corporate-search",
+  //         label: "Corporate Search",
+  //         icon: Search,
+  //         description: "Find corporate clients",
+  //       },
+  //       {
+  //         id: "lead-management",
+  //         label: "Lead Dashboard",
+  //         icon: Target,
+  //         description: "Lead pipeline overview",
+  //       },
+  //       {
+  //         id: "leads-list",
+  //         label: "All Leads",
+  //         icon: UsersIcon,
+  //         description: "Complete lead management",
+  //       },
+  //       // Removed duplicate "All Leads" entry
+  //       // {
+  //       //   id: "qualified-leads",
+  //       //   label: "Qualified Leads",
+  //       //   icon: UserCheck,
+  //       //   description: "High-potential prospects",
+  //       // },
+  //       // {
+  //       //   id: "unqualified-leads",
+  //       //   label: "Unqualified Leads",
+  //       //   icon: UserX,
+  //       //   description: "Nurturing opportunities",
+  //       // },
+  //       {
+  //         id: "email-campaigns",
+  //         label: "Email Campaigns",
+  //         icon: Mail,
+  //         description: "Automated outreach",
+  //       },
+  //       {
+  //         id: "opportunities",
+  //         label: "Opportunities",
+  //         icon: TrendingUp,
+  //         description: "Sales pipeline tracking",
+  //       },
+  //     ],
+  //   },
+  //   {
+  //     label: "COCAST",
+  //     subtitle: "Corporate Commercial Analytics & Sales Trend",
+  //     items: [
+  //       {
+  //         id: "revenue-prediction",
+  //         label: "Revenue Prediction",
+  //         icon: Brain,
+  //         description: "AI revenue forecasting & sales predictions",
+  //       },
+  //     ],
+  //   },
+  //   {
+  //     label: "CONTRAQ",
+  //     items: [
+  //       {
+  //         id: "contracts",
+  //         label: "Contracts",
+  //         icon: FileText,
+  //         description: "Manage agreements",
+  //       },
+  //       {
+  //         id: "breach-monitoring",
+  //         label: "Risk Monitoring",
+  //         icon: AlertTriangle,
+  //         description: "Contract compliance",
+  //       },
+  //     ],
+  //   },
+  //   {
+  //     label: "Travel Offers",
+  //     items: [
+  //       {
+  //         id: "design-travel-offers",
+  //         label: "Travel Offers",
+  //         icon: Presentation,
+  //         description: "Comprehensive offer management & creation",
+  //       },
+  //     ],
+  //   },
+  // ];
+
+  // Support and system menu groups that are always visible
+  // const supportMenuGroups = [
+  //   {
+  //     label: "CONVOY",
+  //     items: [
+  //       {
+  //         id: "agent-dashboard",
+  //         label: "Agent Dashboard",
+  //         icon: UserCheck,
+  //         description: "Agent workspace",
+  //       },
+  //       {
+  //         id: "ticket-list",
+  //         label: "Support Tickets",
+  //         icon: Users,
+  //         description: "Customer support",
+  //       },
+  //       {
+  //         id: "admin-dashboard",
+  //         label: "Admin Dashboard",
+  //         icon: Shield,
+  //         description: "System administration",
+  //       },
+  //     ],
+  //   },
+  //   {
+  //     label: "System",
+  //     items: [
+  //       {
+  //         id: "settings",
+  //         label: "Settings",
+  //         icon: SettingsIcon,
+  //         description: "System configuration",
+  //       },
+  //     ],
+  //   },
+  // ];
 
   // Handle loading state
   if (loading) {

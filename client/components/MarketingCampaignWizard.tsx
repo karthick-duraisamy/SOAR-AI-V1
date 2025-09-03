@@ -32,6 +32,57 @@ import {
   DialogTitle,
 } from './ui/dialog';
 
+// Assume RichTextEditor component is imported from a separate file or library
+// For example: import RichTextEditor from './RichTextEditor';
+// For demonstration purposes, a placeholder is used.
+const RichTextEditor = ({ value, onChange, placeholder, showVariables }) => {
+  // This is a placeholder for the actual RichTextEditor component.
+  // In a real application, this would be a component from a library like react-quill,
+  // or a custom-built editor.
+  return (
+    <div>
+      <textarea
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        rows={8}
+        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 text-sm resize-none"
+      />
+      {showVariables && (
+        <div className="mt-2 text-xs text-muted-foreground">
+          <p className="font-medium mb-1">Available personalization variables:</p>
+          <div className="flex flex-wrap gap-2">
+            {['{{company_name}}', '{{contact_name}}', '{{job_title}}', '{{industry}}', '{{employees}}', '{{travel_budget}}'].map(variable => (
+              <Badge 
+                key={variable} 
+                variant="outline" 
+                className="text-xs cursor-pointer hover:bg-gray-100" 
+                onClick={() => {
+                  const textarea = document.getElementById('template-content') as HTMLTextAreaElement;
+                  if (textarea) {
+                    const start = textarea.selectionStart;
+                    const end = textarea.selectionEnd;
+                    const text = textarea.value;
+                    const newText = text.substring(0, start) + variable + text.substring(end);
+                    onChange(newText);
+                    setTimeout(() => {
+                      textarea.focus();
+                      textarea.setSelectionRange(start + variable.length, start + variable.length);
+                    }, 0);
+                  }
+                }}
+              >
+                {variable}
+              </Badge>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+
 interface MarketingCampaignWizardProps {
   selectedLeads: any[];
   onBack: () => void;
@@ -103,7 +154,7 @@ export function MarketingCampaignWizard({ selectedLeads, onBack, onComplete }: M
     loading: apiLoading, 
     error: apiError 
   } = useTemplateApi();
-  
+
   const { 
     createCampaign,
     loading: campaignLoading,
@@ -224,14 +275,14 @@ export function MarketingCampaignWizard({ selectedLeads, onBack, onComplete }: M
 
   const handleLaunchCampaign = async () => {
     setIsLaunching(true);
-    
+
     try {
       // Create the campaign via API
       const response = await createCampaign({
         ...campaignData,
         targetAudience: selectedLeads
       });
-      
+
       if (response.success) {
         // Show success message and complete
         onComplete({
@@ -550,31 +601,21 @@ export function MarketingCampaignWizard({ selectedLeads, onBack, onComplete }: M
                         <Label htmlFor="email-body" className="text-sm font-medium text-gray-700">
                           Email Body
                         </Label>
-                        <textarea
-                          id="email-body"
-                          value={campaignData.content.email.body}
-                          onChange={(e) => setCampaignData(prev => ({
-                            ...prev,
-                            content: {
-                              ...prev.content,
-                              email: { ...prev.content.email, body: e.target.value }
-                            }
-                          }))}
-                          placeholder="Hi {{contact_name}},
-
-Managing travel compliance for {{employees}} employees can be challenging. SOAR-AI ensures 100% policy adherence while maintaining traveler satisfaction.
-
-Key compliance features for {{industry}} companies:
-• Automated policy enforcement
-• Real-time approval workflows
-• Expense management integration
-• Regulatory compliance reporting
-• Instant policy violation alerts
-
-{{company_name}} can achieve complete travel governance without slowing down your team."
-                          rows={12}
-                          className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 resize-none font-mono text-sm"
-                        />
+                        
+                        <div>
+                          <RichTextEditor
+                            value={campaignData.content.email.body || ''}
+                            onChange={(value) => setCampaignData(prev => ({
+                              ...prev,
+                              content: {
+                                ...prev.content,
+                                email: { ...prev.content.email, body: value }
+                              }
+                            }))}
+                            placeholder="Hi {{contact_name}},\n\nManaging travel compliance for {{employees}} employees can be challenging. SOAR-AI ensures 100% policy adherence while maintaining traveler satisfaction.\n\nKey compliance features for {{industry}} companies:\n• Automated policy enforcement\n• Real-time approval workflows\n• Expense management integration\n• Regulatory compliance reporting\n• Instant policy violation alerts\n\n{{company_name}} can achieve complete travel governance without slowing down your team."
+                            showVariables={true}
+                          />
+                        </div>
                       </div>
 
                       <div>
@@ -599,23 +640,7 @@ Key compliance features for {{industry}} companies:
                   </Card>
                 )}
 
-                {/* Available Personalization Variables */}
-                <div className="space-y-3">
-                  <Label className="text-sm font-medium text-gray-700">
-                    Available personalization variables:
-                  </Label>
-                  <div className="flex flex-wrap gap-2 text-xs">
-                    {['{{company_name}}', '{{contact_name}}', '{{job_title}}', '{{industry}}', '{{employees}}', '{{travel_budget}}'].map(variable => (
-                      <span 
-                        key={variable}
-                        className="bg-blue-100 text-blue-800 px-2 py-1 rounded cursor-pointer hover:bg-blue-200 transition-colors"
-                        onClick={() => insertPersonalizationVariable(variable)}
-                      >
-                        {variable}
-                      </span>
-                    ))}
-                  </div>
-                </div>
+                {/* Available Personalization Variables (moved inside RichTextEditor placeholder for now) */}
               </div>
 
               {/* Content Preview */}
@@ -1105,31 +1130,13 @@ TechCorp Solutions can achieve complete travel governance without slowing down y
               <Label htmlFor="content" className="text-sm font-medium text-gray-700">
                 Content
               </Label>
-              <textarea
-                id="template-content"
-                value={templateData.content}
-                onChange={(e) => setTemplateData(prev => ({ ...prev, content: e.target.value }))}
-                placeholder="Write your template content here..."
-                rows={8}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 text-sm resize-none"
-              />
-            </div>
-
-            {/* Available Personalization Variables */}
-            <div className="space-y-3">
-              <Label className="text-sm font-medium text-gray-700">
-                Available personalization variables:
-              </Label>
-              <div className="flex flex-wrap gap-2 text-xs text-gray-600">
-                {['{{company_name}}', '{{contact_name}}', '{{job_title}}', '{{industry}}', '{{employees}}', '{{travel_budget}}'].map(variable => (
-                  <span 
-                    key={variable}
-                    className="bg-gray-100 px-2 py-1 rounded cursor-pointer hover:bg-gray-200 transition-colors"
-                    onClick={() => insertPersonalizationVariable(variable)}
-                  >
-                    {variable}
-                  </span>
-                ))}
+              <div>
+                <RichTextEditor
+                  value={templateData.content || ''}
+                  onChange={(value) => setTemplateData(prev => ({ ...prev, content: value }))}
+                  placeholder="Write your template content here..."
+                  showVariables={true}
+                />
               </div>
             </div>
 
