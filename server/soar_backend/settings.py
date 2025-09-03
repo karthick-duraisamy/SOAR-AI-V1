@@ -100,6 +100,9 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
+    "http://localhost:5174",
+    "http://0.0.0.0:5173",
+    "http://0.0.0.0:5174",
     "https://f08f172c-ab06-433f-aa2f-30c498986833-00-2n6bjrfy6tvjp.pike.replit.dev",
 ]
 
@@ -122,6 +125,19 @@ CORS_ALLOW_HEADERS = [
     'user-agent',
     'x-csrftoken',
     'x-requested-with',
+]
+
+# Additional CORS settings
+CORS_ALLOW_CREDENTIALS = True
+CORS_PREFLIGHT_MAX_AGE = 86400
+
+# Disable CSRF for API endpoints to avoid cross-origin issues
+CSRF_TRUSTED_ORIGINS = [
+    "http://localhost:5173",
+    "http://localhost:5174", 
+    "http://0.0.0.0:5173",
+    "http://0.0.0.0:5174",
+    "https://f08f172c-ab06-433f-aa2f-30c498986833-00-2n6bjrfy6tvjp.pike.replit.dev",
 ]
 
 # REST Framework settings
@@ -150,3 +166,6 @@ if DEBUG and not EMAIL_HOST_USER:
 
 # Domain URL for email tracking
 DOMAIN_URL = 'https://f08f172c-ab06-433f-aa2f-30c498986833-00-2n6bjrfy6tvjp.pike.replit.dev'
+
+# CSRF exemption for API endpoints to avoid CORS issues
+CSRF_EXEMPT_URLS = [r'^/api/.*$']
