@@ -2009,22 +2009,47 @@ SOAR-AI Team`,
                 Lead Filters
               </span>
             </div>
-            <Button
-              variant="outline"
-              size="sm"
-              className="text-gray-600 border-gray-300"
-              onClick={() =>
-                setFilters({
-                  status: "all",
-                  industry: "all",
-                  score: "all",
-                  engagement: "all",
-                  search: "",
-                })
-              }
-            >
-              Clear Filters
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                className="text-orange-700 border-orange-300 bg-orange-50 hover:bg-orange-100"
+                onClick={() => {
+                  if (!loading) {
+                    fetchLeads();
+                  }
+                }}
+                disabled={loading}
+              >
+                {loading ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-orange-600 mr-1"></div>
+                    Searching...
+                  </>
+                ) : (
+                  <>
+                    <Search className="h-4 w-4 mr-1" />
+                    Search Leads
+                  </>
+                )}
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="text-gray-600 border-gray-300"
+                onClick={() =>
+                  setFilters({
+                    status: "all",
+                    industry: "all",
+                    score: "all",
+                    engagement: "all",
+                    search: "",
+                  })
+                }
+              >
+                Clear Filters
+              </Button>
+            </div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
             <div>
