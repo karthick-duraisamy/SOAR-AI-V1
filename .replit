@@ -43,11 +43,11 @@ mode = "parallel"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "cd client && npm run dev"
+args = "cd server && python manage.py runserver 0.0.0.0:8000"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "cd server && python manage.py runserver 0.0.0.0:8000"
+args = "cd client && npm run dev"
 
 [[workflows.workflow]]
 name = "Build Application"
@@ -66,6 +66,28 @@ mode = "sequential"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "cd client && npm run build && npm run preview"
+
+[[workflows.workflow]]
+name = "Start Backend First"
+author = 44435766
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "cd server && python manage.py migrate"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "cd server && python manage.py runserver 0.0.0.0:8000"
+
+[[workflows.workflow]]
+name = "Start Frontend"
+author = 44435766
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "cd client && npm run dev"
 
 [agent]
 expertMode = true

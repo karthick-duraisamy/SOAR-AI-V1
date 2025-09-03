@@ -50,6 +50,7 @@ class CompanyViewSet(viewsets.ModelViewSet):
     queryset = Company.objects.all()
     serializer_class = CompanySerializer
 
+    @csrf_exempt
     @action(detail=False, methods=['post'])
     def search(self, request):
         # Extract filters from request body
