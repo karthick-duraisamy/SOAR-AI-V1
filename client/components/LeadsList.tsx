@@ -544,27 +544,6 @@ const buildLeadHistory = (apiLead: any) => {
   return history.sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
 };
 
-// Fetch Lead Notes Function - Deprecated as notes are now part of the main leads response
-// Keeping it here for potential future use or context, but it's not called directly in the current flow.
-const fetchLeadNotes = async (leadId: number) => {
-  // This function would typically fetch notes for a specific lead if they weren't included in the main API call.
-  // Since the transformApiLeadToUILead function already processes `apiLead.latest_note`, 
-  // this function is not actively used for initial loading or updates.
-  // However, it could be used for a manual refresh of notes if needed.
-  // Example:
-  // try {
-  //   setIsLoadingNotes(prev => ({ ...prev, [leadId]: true }));
-  //   const notes = await leadApi.getLeadNotes(leadId); // Assuming such an API call exists
-  //   setLeadNotes(prev => ({ ...prev, [leadId]: notes }));
-  // } catch (error) {
-  //   console.error('Error fetching notes for lead:', leadId, error);
-  //   toast.error('Failed to load notes');
-  // } finally {
-  //   setIsLoadingNotes(prev => ({ ...prev, [leadId]: false }));
-  // }
-};
-
-
 export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
   const [leads, setLeads] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -2268,7 +2247,7 @@ SOAR-AI Team`,
                           <ChevronDown className={`h-3 w-3 transition-transform duration-200 ${expandedNotes[lead.id] ? 'rotate-180' : ''}`} />
                         </Button>
                       </CollapsibleTrigger>
-                      {lead.leadNotes && lead.leadNotes.length > 0 && (
+                      {Array.isArray(lead.leadNotes) && lead.leadNotes.length > 0 && (
                         <span className="text-xs text-gray-500 bg-gray-200 px-2 py-1 rounded-full">
                           {lead.leadNotes.length} note{lead.leadNotes.length !== 1 ? 's' : ''}
                         </span>
@@ -2276,83 +2255,104 @@ SOAR-AI Team`,
                     </div>
 
                     <CollapsibleContent className="space-y-2">
-                      {/* Display lead notes from API */}
-                      {leadNotes[lead.id] && leadNotes[lead.id].length > 0 ? (
-                        <div className="space-y-2">
-                          {leadNotes[lead.id].slice(0, expandedNotes[lead.id] ? leadNotes[lead.id].length : 3).map((note, index) => (
-                            <div key={note.id || index} className="bg-white rounded-md p-3 border border-gray-200">
-                              <div className="flex items-start gap-2">
-                                <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                                  <User className="w-4 h-4 text-blue-600" />
-                                </div>
-                                <div className="flex-1">
-                                  <div className="text-sm text-gray-900 mb-2">
-                                    {note.note}
-                                  </div>
-                                  {note.next_action && (
-                                    <div className="text-xs text-blue-600 mb-1">
-                                      <strong>Next Action:</strong> {note.next_action}
-                                    </div>
-                                  )}
-                                  {note.urgency && (
-                                    <Badge 
-                                      variant="outline" 
-                                      className={`text-xs mr-2 ${getUrgencyBadgeStyle(note.urgency)}`}
-                                    >
-                                      {note.urgency} Priority
-                                    </Badge>
-                                  )}
-                                  <div className="text-xs text-gray-500 mt-1">
-                                    {note.created_by ? `${note.created_by.username || 'User'}` : 'System'} • {new Date(note.created_at).toLocaleDateString()}
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          ))}
-                          {leadNotes[lead.id].length > 3 && (
-                            <Button 
-                              variant="ghost" 
-                              size="sm" 
-                              onClick={() => toggleNotesExpansion(lead.id)}
-                              className="h-auto p-0 text-blue-600 hover:text-blue-700 text-xs mt-2"
-                            >
-                              {expandedNotes[lead.id] ? 'Show less' : `Show ${leadNotes[lead.id].length - 3} more notes`}
-                            </Button>
-                          )}
+                      {/* Original notes */}
+                      {/* <div className="text-xs text-gray-600 mb-1">
+                            <strong>Original Notes:</strong> {lead.notes.split(' | ')[0]}
+                          </div>
+                        */}
+                      {/* Recent lead notes */}
+                      <div>
+                        <div className="flex items-center justify-between mb-2">
+                          <h4 className="font-medium text-gray-900 flex items-center gap-2">
+                            <MessageSquare className="h-4 w-4" />
+                            Recent Notes ({Array.isArray(lead.leadNotes) ? lead.leadNotes.length : 0})
+                          </h4>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleAddNote(lead)}
+                            className="text-blue-600 border-blue-300 hover:bg-blue-50"
+                          >
+                            <Plus className="h-3 w-3 mr-1" />
+                            Add Note
+                          </Button>
                         </div>
-                      ) : (
-                        /* Fallback to general notes if no lead notes available */
-                        lead.notes ? (
-                          <div className="bg-white rounded-md p-3 border border-gray-200">
-                            <div className="flex items-start gap-2">
-                              <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                                <User className="w-4 h-4 text-blue-600" />
-                              </div>
-                              <div className="flex-1">
-                                <div className="text-sm text-gray-900">
-                                  {expandedNotes[lead.id] ? lead.notes : lead.notes.slice(0, 100)}
-                                  {lead.notes.length > 100 && !expandedNotes[lead.id] && '...'}
+                        {Array.isArray(lead.leadNotes) && lead.leadNotes.length > 0 ? (
+                          <div className="space-y-2">
+                            {lead.leadNotes.slice(0, expandedNotes[lead.id] ? lead.leadNotes.length : 2).map((note: any, index: number) => (
+                              <div key={note.id || index} className="bg-gray-50 rounded-lg p-3 border border-gray-200">
+                                <div className="flex items-start justify-between mb-2">
+                                  <span className="text-xs text-gray-500">
+                                    {new Date(note.created_at).toLocaleDateString()} at {new Date(note.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                                  </span>
+                                  <Badge className={`text-xs ${getUrgencyBadgeStyle(note.urgency)}`}>
+                                    {note.urgency}
+                                  </Badge>
                                 </div>
-                                {lead.notes.length > 100 && (
-                                  <Button 
-                                    variant="ghost" 
-                                    size="sm" 
-                                    onClick={() => toggleNotesExpansion(lead.id)}
-                                    className="h-auto p-0 text-blue-600 hover:text-blue-700 text-xs mt-1"
-                                  >
-                                    {expandedNotes[lead.id] ? 'Show less' : 'Show more'}
-                                  </Button>
+                                <p className="text-sm text-gray-700 mb-2">{note.note}</p>
+                                {note.next_action && (
+                                  <div className="text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded mb-1">
+                                    Next: {note.next_action}
+                                  </div>
                                 )}
-                                <div className="text-xs text-gray-500 mt-1">
-                                  System note • {lead.lastActivity}
+                                <div className="text-xs text-gray-500">
+                                  By: {note.created_by || 'System'}
                                 </div>
                               </div>
-                            </div>
+                            ))}
+
+                            {lead.leadNotes.length > 2 && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => toggleNotesExpansion(lead.id)}
+                                className="text-blue-600 hover:text-blue-700"
+                              >
+                                {expandedNotes[lead.id] ? (
+                                  <>
+                                    <ChevronUp className="h-4 w-4 mr-1" />
+                                    Show Less
+                                  </>
+                                ) : (
+                                  <>
+                                    <ChevronDown className="h-4 w-4 mr-1" />
+                                    Show All ({lead.leadNotes.length} notes)
+                                  </>
+                                )}
+                              </Button>
+                            )}
                           </div>
                         ) : (
-                          <div className="text-sm text-gray-500 italic">No notes available</div>
-                        )
-                      )}
+                          <div className="text-center py-4">
+                            <MessageSquare className="h-8 w-8 mx-auto mb-2 text-gray-400" />
+                            <p className="text-sm text-gray-500 mb-2">
+                              {leadNotes[lead.id] !== undefined ? 'No notes available for this lead' : 'Notes not loaded yet'}
+                            </p>
+                            <div className="flex gap-2 justify-center">
+                              {leadNotes[lead.id] === undefined && (
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => fetchLeadNotes(lead.id)}
+                                  className="text-gray-600 border-gray-300 hover:bg-gray-50"
+                                >
+                                  <RefreshCw className="h-3 w-3 mr-1" />
+                                  Load Notes
+                                </Button>
+                              )}
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => handleAddNote(lead)}
+                                className="text-blue-600 border-blue-300 hover:bg-blue-50"
+                              >
+                                <Plus className="h-3 w-3 mr-1" />
+                                {leadNotes[lead.id]?.length > 0 ? 'Add Note' : 'Add First Note'}
+                              </Button>
+                            </div>
+                          </div>
+                        )}
+                      </div>
                     </CollapsibleContent>
                   </Collapsible>
                 </div>
@@ -3796,7 +3796,7 @@ Key Topics: Travel volume, preferred airlines, booking preferences, cost optimiz
             </DialogTitle>
             <DialogDescription className="text-sm text-gray-600">
               {selectedLeadForAssign?.assignedAgent 
-                ? 'Reassign this lead from ${selectedLeadForAssign.assignedAgent} to a new sales agent for personalized follow-up and management'
+                ? `Reassign this lead from ${selectedLeadForAssign.assignedAgent} to a new sales agent for personalized follow-up and management`
                 : 'Assign this lead to a sales agent for personalized follow-up and management'
               }
             </DialogDescription>
