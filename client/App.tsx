@@ -77,7 +77,6 @@ import {
   Play,
   ChevronRight,
 } from "lucide-react";
-import 'react-quill/dist/quill.snow.css'; // Import react-quill CSS
 
 // Mock user data and authentication status for demonstration
 const mockUser = {

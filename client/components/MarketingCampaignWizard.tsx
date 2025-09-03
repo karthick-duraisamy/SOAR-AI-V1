@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Checkbox } from './ui/checkbox';
 import { Alert, AlertDescription } from './ui/alert';
 import { useTemplateApi } from '../hooks/api/useTemplateApi';
-import { useCampaignApi } from '../hooks/api/useCampaignApi';
+import { useLeadApi } from '../hooks/api/useLeadApi';
 import { 
   ArrowLeft,
   ArrowRight,
@@ -31,56 +31,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from './ui/dialog';
-
-// Assume RichTextEditor component is imported from a separate file or library
-// For example: import RichTextEditor from './RichTextEditor';
-// For demonstration purposes, a placeholder is used.
-const RichTextEditor = ({ value, onChange, placeholder, showVariables }) => {
-  // This is a placeholder for the actual RichTextEditor component.
-  // In a real application, this would be a component from a library like react-quill,
-  // or a custom-built editor.
-  return (
-    <div>
-      <textarea
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        placeholder={placeholder}
-        rows={8}
-        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 text-sm resize-none"
-      />
-      {showVariables && (
-        <div className="mt-2 text-xs text-muted-foreground">
-          <p className="font-medium mb-1">Available personalization variables:</p>
-          <div className="flex flex-wrap gap-2">
-            {['{{company_name}}', '{{contact_name}}', '{{job_title}}', '{{industry}}', '{{employees}}', '{{travel_budget}}'].map(variable => (
-              <Badge 
-                key={variable} 
-                variant="outline" 
-                className="text-xs cursor-pointer hover:bg-gray-100" 
-                onClick={() => {
-                  const textarea = document.getElementById('template-content') as HTMLTextAreaElement;
-                  if (textarea) {
-                    const start = textarea.selectionStart;
-                    const end = textarea.selectionEnd;
-                    const text = textarea.value;
-                    const newText = text.substring(0, start) + variable + text.substring(end);
-                    onChange(newText);
-                    setTimeout(() => {
-                      textarea.focus();
-                      textarea.setSelectionRange(start + variable.length, start + variable.length);
-                    }, 0);
-                  }
-                }}
-              >
-                {variable}
-              </Badge>
-            ))}
-          </div>
-        </div>
-      )}
-    </div>
-  );
-};
+import { RichTextEditor } from './RichTextEditor';
 
 
 interface MarketingCampaignWizardProps {
@@ -156,10 +107,10 @@ export function MarketingCampaignWizard({ selectedLeads, onBack, onComplete }: M
   } = useTemplateApi();
 
   const { 
-    createCampaign,
+    launchCampaign,
     loading: campaignLoading,
     error: campaignError
-  } = useCampaignApi();
+  } = useLeadApi();
 
   useEffect(() => {
     loadTemplates();
@@ -278,22 +229,20 @@ export function MarketingCampaignWizard({ selectedLeads, onBack, onComplete }: M
 
     try {
       // Create the campaign via API
-      const response = await createCampaign({
+      const response = await launchCampaign({
         ...campaignData,
-        targetAudience: selectedLeads
+        targetAudience: selectedLeads,
+        target_leads: selectedLeads.map(lead => lead.id)
       });
 
-      if (response.success) {
-        // Show success message and complete
-        onComplete({
-          ...campaignData,
-          campaignId: response.campaign.id,
-          launched: true,
-          launchDate: new Date().toISOString()
-        });
-      } else {
-        throw new Error(response.error || 'Failed to launch campaign');
-      }
+      // Show success message and complete
+      onComplete({
+        ...campaignData,
+        campaignId: response.id || response.campaign_id,
+        launched: true,
+        launchDate: new Date().toISOString(),
+        response: response
+      });
     } catch (error: any) {
       console.error('Failed to launch campaign:', error);
       // You can add error handling UI here

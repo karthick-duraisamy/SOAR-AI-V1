@@ -415,6 +415,24 @@ export const useLeadApi = () => {
     }
   }, [setLoading, setError, setData]);
 
+  // Launch marketing campaign
+  const launchCampaign = useCallback(async (campaignData: any) => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const response = await baseApi.post(`/campaigns/launch/`, campaignData);
+      setData(response.data);
+      return response.data;
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.detail || error.message || 'Failed to launch campaign';
+      setError(errorMessage);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  }, [setLoading, setError, setData]);
+
   // Send message function
   const sendMessage = useCallback(async (leadId: number, messageData: any) => {
     setLoading(true);
@@ -759,5 +777,6 @@ export const useLeadApi = () => {
     deleteProposalDraft,
     getAttachmentDownloadUrl,
     sendProposal,
+    launchCampaign,
   };
 };
