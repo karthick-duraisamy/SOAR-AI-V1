@@ -1783,1162 +1783,29 @@ class CampaignTemplateViewSet(viewsets.ModelViewSet):
     queryset = CampaignTemplate.objects.all()
     serializer_class = CampaignTemplateSerializer
 
-    @action(detail=False, methods=['get'])
-    def by_channel(self, request):
-        channel = request.query_params.get('channel', 'email')
-        templates = self.queryset.filter(channel_type=channel)
-        serializer = self.get_serializer(templates, many=True)
-        return Response(serializer.data)
-
-class TravelOfferViewSet(viewsets.ModelViewSet):
-    queryset = TravelOffer.objects.all()
-    serializer_class = TravelOfferSerializer
-
-    @action(detail=False, methods=['get'])
-    def active_offers(self, request):
-        offers = self.queryset.filter(status='active', valid_until__gte=timezone.now())
-        serializer = self.get_serializer(offers, many=True)
-        return Response(serializer.data)
-
-class SupportTicketViewSet(viewsets.ModelViewSet):
-    queryset = SupportTicket.objects.all()
-    serializer_class = SupportTicketSerializer
-
-    @action(detail=False, methods=['get'])
-    def open_tickets(self, request):
-        tickets = self.queryset.filter(status__in=['open', 'in_progress'])
-        serializer = self.get_serializer(tickets, many=True)
-        return Response(serializer.data)
-
-class RevenueForecastViewSet(viewsets.ModelViewSet):
-    queryset = RevenueForecast.objects.all()
-    serializer_class = RevenueForecastSerializer
-
-class ActivityLogViewSet(viewsets.ModelViewSet):
-    queryset = ActivityLog.objects.all()
-    serializer_class = ActivityLogSerializer
-
-class LeadNoteViewSet(viewsets.ModelViewSet):
-    queryset = LeadNote.objects.all()
-    serializer_class = LeadNoteSerializer
-
-    def perform_create(self, serializer):
-        serializer.save(created_by=self.request.user if self.request.user.is_authenticated else None)
-
-    def get_queryset(self):
-        queryset = self.queryset
-        lead_id = self.request.query_params.get('lead_id', None)
-
-        if lead_id:
-            queryset = queryset.filter(lead_id=lead_id)
-
-        return queryset
-
-class LeadHistoryViewSet(viewsets.ModelViewSet):
-    queryset = LeadHistory.objects.all()
-    serializer_class = LeadHistorySerializer
-
-    def get_queryset(self):
-        queryset = self.queryset
-        lead_id = self.request.query_params.get('lead_id', None)
-
-        if lead_id:
-            queryset = queryset.filter(lead_id=lead_id)
-
-        return queryset.order_by('timestamp')
-
-class AIConversationViewSet(viewsets.ModelViewSet):
-    queryset = AIConversation.objects.all()
-    serializer_class = AIConversationSerializer
-
-class ProposalDraftViewSet(viewsets.ModelViewSet):
-    queryset = ProposalDraft.objects.all()
-    serializer_class = ProposalDraftSerializer
-
-class EmailCampaignViewSet(viewsets.ModelViewSet):
-    queryset = EmailCampaign.objects.all()
-    serializer_class = EmailCampaignSerializer
-
-    def create(self, request, *args, **kwargs):
-        """Create new email campaign"""
-        try:
-            data = request.data
-
-            # Create the campaign
-            campaign = EmailCampaign.objects.create(
-                name=data.get('name', 'New Campaign'),
-                description=data.get('description', ''),
-                campaign_type=data.get('campaign_type', 'nurture'),
-                status='draft',  # Set as draft initially
-                subject_line=data.get('subject_line', ''),
-                email_content=data.get('email_content', ''),
-                scheduled_date=timezone.now(),
-                emails_sent=0,
-                emails_opened=0,
-                emails_clicked=0
-            )
-
-            # Add target leads if provided
-            target_lead_ids = data.get('target_leads', [])
-            if target_lead_ids:
-                leads = Lead.objects.filter(id__in=target_lead_ids)
-                campaign.target_leads.set(leads)
-                print(f"Campaign {campaign.id} created with {leads.count()} target leads")
-
-            serializer = self.get_serializer(campaign)
-            return Response({
-                'success': True,
-                'message': 'Campaign created successfully!',
-                'campaign': serializer.data
-            }, status=status.HTTP_201_CREATED)
-
-        except Exception as e:
-            return Response({
-                'success': False,
-                'error': f'Failed to create campaign: {str(e)}'
-            }, status=status.HTTP_400_BAD_REQUEST)
-
-    @action(detail=True, methods=['post'])
-    def launch(self, request, pk=None):
-        """Launch campaign and send emails to target leads"""
-        try:
-            campaign = self.get_object()
-
-            if campaign.status == 'active':
-                return Response({
-                    'success': False,
-                    'message': 'Campaign is already active'
-                }, status=status.HTTP_400_BAD_REQUEST)
-
-            # Check if campaign has target leads
-            if not campaign.target_leads.exists():
-                return Response({
-                    'success': False,
-                    'message': 'Campaign has no target leads. Please add leads to the campaign before launching.'
-                }, status=status.HTTP_400_BAD_REQUEST)
-
-            # Send emails
-            result = campaign.send_emails()
-
-            if result['success']:
-                return Response({
-                    'success': True,
-                    'message': result['message'],
-                    'campaign_id': campaign.id,
-                    'emails_sent': result['sent_count'],
-                    'smtp_responses': result.get('smtp_responses', []),
-                    'log_file': result.get('log_file', ''),
-                    'smtp_details': {
-                        'success_rate': f"{(result['sent_count']/(result['sent_count']+result.get('failed_count', 0))*100):.1f}%" if (result['sent_count'] + result.get('failed_count', 0)) > 0 else "0%",
-                        'total_processed': result['sent_count'] + result.get('failed_count', 0)
-                    }
-                }, status=status.HTTP_200_OK)
-            else:
-                return Response({
-                    'success': False,
-                    'message': result['message'],
-                    'smtp_responses': result.get('smtp_responses', []),
-                    'log_file': result.get('log_file', '')
-                }, status=status.HTTP_400_BAD_REQUEST)
-
-        except Exception as e:
-            return Response({
-                'success': False,
-                'message': f'Failed to launch campaign: {str(e)}'
-            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-    @action(detail=False, methods=['get'])
-    def performance(self, request):
-        campaigns = self.queryset.filter(status__in=['active', 'completed'])
-
-        performance_data = []
-        for campaign in campaigns:
-            open_rate = (campaign.emails_opened / campaign.emails_sent * 100) if campaign.emails_sent > 0 else 0
-            click_rate = (campaign.emails_clicked / campaign.emails_sent * 100) if campaign.emails_sent > 0 else 0
-            click_to_open_rate = (campaign.emails_clicked / campaign.emails_opened * 100) if campaign.emails_opened > 0 else 0
-
-            performance_data.append({
-                'id': campaign.id,
-                'name': campaign.name,
-                'emails_sent': campaign.emails_sent,
-                'emails_opened': campaign.emails_opened,
-                'emails_clicked': campaign.emails_clicked,
-                'open_rate': round(open_rate, 2),
-                'click_rate': round(click_rate, 2),
-                'click_to_open_rate': round(click_to_open_rate, 2),
-                'status': campaign.status
-            })
-
-        return Response(performance_data)
-
-    @action(detail=True, methods=['get'])
-    def analytics(self, request, pk=None):
-        """Get detailed analytics for a specific campaign"""
-        try:
-            campaign = self.get_object()
-            tracking_records = campaign.email_tracking.all()
-
-            # Calculate detailed metrics
-            total_sent = tracking_records.count()
-            unique_opens = tracking_records.filter(first_opened__isnull=False).count()
-            unique_clicks = tracking_records.filter(first_clicked__isnull=False).count()
-
-            # Calculate rates
-            open_rate = (unique_opens / total_sent * 100) if total_sent > 0 else 0
-            click_rate = (unique_clicks / total_sent * 100) if total_sent > 0 else 0
-            click_to_open_rate = (unique_clicks / unique_opens * 100) if unique_opens > 0 else 0
-
-            # Get top performers
-            top_openers = tracking_records.filter(open_count__gt=1).order_by('-open_count')[:5]
-            top_clickers = tracking_records.filter(click_count__gt=0).order_by('-click_count')[:5]
-
-            # Get engagement timeline
-            timeline_data = []
-            for tracking in tracking_records.filter(first_opened__isnull=False).order_by('first_opened'):
-                timeline_data.append({
-                    'company': tracking.lead.company.name,
-                    'contact': f"{tracking.lead.contact.first_name} {tracking.lead.contact.last_name}",
-                    'opened_at': tracking.first_opened,
-                    'clicked': tracking.first_clicked is not None,
-                    'clicked_at': tracking.first_clicked,
-                    'open_count': tracking.open_count,
-                    'click_count': tracking.click_count
-                })
-
-            analytics_data = {
-                'campaign': {
-                    'id': campaign.id,
-                    'name': campaign.name,
-                    'status': campaign.status,
-                    'sent_date': campaign.sent_date
-                },
-                'metrics': {
-                    'total_sent': total_sent,
-                    'unique_opens': unique_opens,
-                    'unique_clicks': unique_clicks,
-                    'open_rate': round(open_rate, 2),
-                    'click_rate': round(click_rate, 2),
-                    'click_to_open_rate': round(click_to_open_rate, 2),
-                    'total_opens': tracking_records.aggregate(total=models.Sum('open_count'))['total'] or 0,
-                    'total_clicks': tracking_records.aggregate(total=models.Sum('click_count'))['total'] or 0
-                },
-                'top_performers': {
-                    'top_openers': EmailTrackingSerializer(top_openers, many=True).data,
-                    'top_clickers': EmailTrackingSerializer(top_clickers, many=True).data
-                },
-                'engagement_timeline': timeline_data
-            }
-
-            return Response(analytics_data)
-
-        except Exception as e:
-            return Response({
-                'error': f'Failed to get campaign analytics: {str(e)}'
-            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-@api_view(['GET'])
-def lead_stats(request):
-    """Get lead dashboard statistics"""
-    try:
-        period = request.GET.get('period', 'all_time')
-
-        # Calculate stats based on period
-        if period == 'this_month':
-            from datetime import datetime
-            start_date = datetime.now().replace(day=1)
-            leads_queryset = Lead.objects.filter(created_at__gte=start_date)
-        elif period == 'this_week':
-            from datetime import datetime, timedelta
-            start_date = datetime.now() - timedelta(days=7)
-            leads_queryset = Lead.objects.filter(created_at__gte=start_date)
-        else:
-            leads_queryset = Lead.objects.all()
-
-        total_leads = leads_queryset.count()
-        qualified_leads = leads_queryset.filter(status='qualified').count()
-        unqualified_leads = leads_queryset.filter(status='unqualified').count()
-        new_leads = leads_queryset.filter(status='new').count()
-        conversion_rate = (qualified_leads / total_leads * 100) if total_leads > 0 else 0
-
-        stats = {
-            'total_leads': total_leads,
-            'qualified_leads': qualified_leads,
-            'unqualified_leads': unqualified_leads,
-            'new_leads': new_leads,
-            'conversion_rate': round(conversion_rate, 2),
-            'avg_score': leads_queryset.aggregate(avg_score=Avg('score'))['avg_score'] or 0
-        }
-
-        return Response(stats)
-    except Exception as e:
-        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-@api_view(['GET'])
-def recent_activity(request):
-    """Get recent lead activity"""
-    try:
-        limit = int(request.GET.get('limit', 10))
-
-        activities = []
-        # Get recent leads and activities
-        recent_leads = Lead.objects.select_related('company', 'contact').order_by('-updated_at')[:limit]
-
-        for lead in recent_leads:
-            activities.append({
-                'id': lead.id,
-                'company_name': lead.company.name,
-                'contact_name': f"{lead.contact.first_name} {lead.contact.last_name}",
-                'status': lead.status,
-                'score': lead.score,
-                'updated_at': lead.updated_at,
-                'action': lead.next_action or 'No action specified'
-            })
-
-        return Response(activities)
-    except Exception as e:
-        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-@api_view(['GET'])
-def top_leads(request):
-    """Get top qualified leads"""
-    try:
-        limit = int(request.GET.get('limit', 5))
-
-        top_leads = Lead.objects.select_related('company', 'contact').filter(
-            status='qualified'
-        ).order_by('-score', '-estimated_value')[:limit]
-
-        leads_data = []
-        for lead in top_leads:
-            leads_data.append({
-                'id': lead.id,
-                'company_name': lead.company.name,
-                'contact_name': f"{lead.contact.first_name} {lead.contact.last_name}",
-                'score': lead.score,
-                'estimated_value': float(lead.estimated_value) if lead.estimated_value else 0,
-                'next_action': lead.next_action,
-                'created_at': lead.created_at
-            })
-
-        return Response(leads_data)
-    except Exception as e:
-        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-@api_view(['POST'])
-def bulk_upload_companies(request):
-    """Bulk upload companies from Excel/CSV file"""
-    # This functionality is already implemented in CompanyViewSet.upload
-    # Redirect to that method
-    company_viewset = CompanyViewSet()
-    company_viewset.request = request
-    return company_viewset.upload(request)
-
-@api_view(['GET'])
-def download_sample_excel(request):
-    """Download sample Excel file for company upload"""
-    import pandas as pd
-    from django.http import HttpResponse
-    import io
-
-    try:
-        # Create sample data
-        sample_data = {
-            'Company Name': ['Sample Tech Corp', 'Example Finance Ltd'],
-            'Industry': ['Technology', 'Finance'],
-            'Company Size Category': ['Large', 'Enterprise'],
-            'Location': ['San Francisco, CA', 'New York, NY'],
-            'Email': ['contact@sampletech.com', 'info@examplefinance.com'],
-            'Phone': ['+1-555-0123', '+1-555-0456'],
-            'Website': ['https://sampletech.com', 'https://examplefinance.com'],
-            'Number of Employees': [500, 2000],
-            'Annual Revenue (Millions)': [50, 200],
-            'Annual Travel Budget (Millions)': [2, 5]
-        }
-
-        df = pd.DataFrame(sample_data)
-
-        # Create Excel file in memory
-        output = io.BytesIO()
-        with pd.ExcelWriter(output, engine='openpyxl') as writer:
-            df.to_excel(writer, index=False, sheet_name='Companies')
-
-        output.seek(0)
-
-        response = HttpResponse(
-            output.getvalue(),
-            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-        )
-        response['Content-Disposition'] = 'attachment; filename="company_upload_sample.xlsx"'
-
-        return response
-    except Exception as e:
-        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-@api_view(['GET'])
-def check_smtp_status(request):
-    """Check SMTP server status"""
-    try:
-        from django.core.mail import get_connection
-        from django.conf import settings
-
-        connection = get_connection()
-        connection.open()
-        connection.close()
-
-        return Response({
-            'status': 'connected',
-            'message': 'SMTP server is accessible',
-            'host': settings.EMAIL_HOST,
-            'port': settings.EMAIL_PORT
-        })
-    except Exception as e:
-        return Response({
-            'status': 'error',
-            'message': f'SMTP connection failed: {str(e)}',
-            'host': getattr(settings, 'EMAIL_HOST', 'Not configured'),
-            'port': getattr(settings, 'EMAIL_PORT', 'Not configured')
-        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-@api_view(['GET'])
-def email_campaign_performance(request):
-    """Get email campaign performance data"""
-    try:
-        campaigns = EmailCampaign.objects.filter(status__in=['active', 'completed'])
-
-        performance_data = []
-        for campaign in campaigns:
-            open_rate = (campaign.emails_opened / campaign.emails_sent * 100) if campaign.emails_sent > 0 else 0
-            click_rate = (campaign.emails_clicked / campaign.emails_sent * 100) if campaign.emails_sent > 0 else 0
-
-            performance_data.append({
-                'id': campaign.id,
-                'name': campaign.name,
-                'emails_sent': campaign.emails_sent,
-                'emails_opened': campaign.emails_opened,
-                'emails_clicked': campaign.emails_clicked,
-                'open_rate': round(open_rate, 2),
-                'click_rate': round(click_rate, 2),
-                'status': campaign.status
-            })
-
-        return Response(performance_data)
-    except Exception as e:
-        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-@api_view(['POST'])
-def track_email_open(request, campaign_id):
-    """Track email open for campaign"""
-    try:
-        tracking_id = request.data.get('tracking_id')
-        if tracking_id:
-            tracking = EmailTracking.objects.filter(tracking_id=tracking_id).first()
-            if tracking:
-                tracking.open_count += 1
-                if not tracking.first_opened:
-                    tracking.first_opened = timezone.now()
-                tracking.last_opened = timezone.now()
-                tracking.save()
-
-                # Update campaign stats
-                campaign = tracking.campaign
-                campaign.emails_opened = EmailTracking.objects.filter(
-                    campaign=campaign, 
-                    first_opened__isnull=False
-                ).count()
-                campaign.save()
-
-        return Response({'status': 'tracked'})
-    except Exception as e:
-        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-@api_view(['POST'])
-def track_email_click(request, campaign_id):
-    """Track email click for campaign"""
-    try:
-        tracking_id = request.data.get('tracking_id')
-        if tracking_id:
-            tracking = EmailTracking.objects.filter(tracking_id=tracking_id).first()
-            if tracking:
-                tracking.click_count += 1
-                if not tracking.first_clicked:
-                    tracking.first_clicked = timezone.now()
-                tracking.last_clicked = timezone.now()
-                tracking.save()
-
-                # Update campaign stats
-                campaign = tracking.campaign
-                campaign.emails_clicked = EmailTracking.objects.filter(
-                    campaign=campaign,
-                    first_clicked__isnull=False
-                ).count()
-                campaign.save()
-
-        return Response({'status': 'tracked'})
-    except Exception as e:
-        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-@api_view(['GET'])
-def proposal_draft_detail(request, opportunity_id):
-    """Get or create proposal draft for opportunity"""
-    try:
-        opportunity = get_object_or_404(Opportunity, id=opportunity_id)
-        draft, created = ProposalDraft.objects.get_or_create(
-            opportunity=opportunity,
-            defaults={
-                'title': f"Proposal for {opportunity.name}",
-                'description': opportunity.description
-            }
-        )
-
-        serializer = ProposalDraftSerializer(draft)
-        return Response(serializer.data)
-    except Exception as e:
-        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-@api_view(['GET'])
-def download_proposal_attachment(request, opportunity_id):
-    """Download proposal attachment"""
-    try:
-        opportunity = get_object_or_404(Opportunity, id=opportunity_id)
-        draft = get_object_or_404(ProposalDraft, opportunity=opportunity)
-
-        if not draft.attachment_path:
-            return Response({'error': 'No attachment found'}, status=status.HTTP_404_NOT_FOUND)
-
-        import os
-        from django.http import FileResponse
-
-        file_path = draft.attachment_path
-        if os.path.exists(file_path):
-            response = FileResponse(
-                open(file_path, 'rb'),
-                as_attachment=True,
-                filename=draft.attachment_original_name or 'proposal_attachment.pdf'
-            )
-            return response
-        else:
-            return Response({'error': 'File not found'}, status=status.HTTP_404_NOT_FOUND)
-
-    except Exception as e:
-        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-@api_view(['GET'])
-def track_email_open_pixel(request, tracking_id):
-    """Track email open via pixel"""
-    try:
-        tracking = EmailTracking.objects.filter(tracking_id=tracking_id).first()
-        if tracking:
-            tracking.open_count += 1
-            if not tracking.first_opened:
-                tracking.first_opened = timezone.now()
-            tracking.last_opened = timezone.now()
-            tracking.save()
-
-        # Return 1x1 transparent pixel
-        from django.http import HttpResponse
-        pixel_data = b'\x47\x49\x46\x38\x39\x61\x01\x00\x01\x00\x80\x00\x00\x00\x00\x00\x00\x00\x00\x21\xF9\x04\x01\x00\x00\x00\x00\x2C\x00\x00\x00\x00\x01\x00\x01\x00\x00\x02\x02\x04\x01\x00\x3B'
-        return HttpResponse(pixel_data, content_type='image/gif')
-    except Exception as e:
-        return HttpResponse(status=200)  # Always return success for tracking pixels
-
-@api_view(['GET'])
-def track_email_click_redirect(request, tracking_id):
-    """Track email click and redirect"""
-    try:
-        tracking = EmailTracking.objects.filter(tracking_id=tracking_id).first()
-        if tracking:
-            tracking.click_count += 1
-            if not tracking.first_clicked:
-                tracking.first_clicked = timezone.now()
-            tracking.last_clicked = timezone.now()
-            tracking.save()
-
-        # Get redirect URL
-        redirect_url = request.GET.get('url', 'https://example.com')
-        return HttpResponseRedirect(redirect_url)
-    except Exception as e:
-        return HttpResponseRedirect('https://example.com')
-
-@api_view(['POST'])
-def get_history(request):
-    """Get history for any entity"""
-    try:
-        entity_type = request.data.get('entity_type', 'lead')
-        entity_id = request.data.get('entity_id') or request.data.get('lead_id')
-
-        if not entity_id:
-            return Response({'error': 'Entity ID is required'}, status=status.HTTP_400_BAD_REQUEST)
-
-        if entity_type == 'lead':
-            try:
-                lead = Lead.objects.get(id=entity_id)
-                history_entries = lead.history_entries.all().order_by('-timestamp')
-                serializer = LeadHistorySerializer(history_entries, many=True)
-                return Response(serializer.data)
-            except Lead.DoesNotExist:
-                return Response({'error': 'Lead not found'}, status=status.HTTP_404_NOT_FOUND)
-            except Exception:
-                return Response([])  # Return empty if LeadHistory table doesn't exist
-
-        elif entity_type == 'opportunity':
-            try:
-                opportunity = Opportunity.objects.get(id=entity_id)
-                activities = opportunity.activities.all().order_by('-created_at')
-                history_items = []
-
-                for activity in activities:
-                    history_items.append({
-                        'id': f"opportunity_activity_{activity.id}",
-                        'history_type': activity.type,
-                        'action': activity.get_type_display(),
-                        'details': activity.description,
-                        'icon': 'activity',
-                        'timestamp': activity.created_at,
-                        'user_name': activity.created_by.username if activity.created_by else 'System'
-                    })
-
-                return Response(history_items)
-            except Opportunity.DoesNotExist:
-                return Response({'error': 'Opportunity not found'}, status=status.HTTP_404_NOT_FOUND)
-
-        return Response({'error': 'Invalid entity type'}, status=status.HTTP_400_BAD_REQUEST)
-
-    except Exception as e:
-        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-@api_view(['POST'])
-def send_corporate_message(request):
-    """Send message to corporate contact via email"""
-    try:
-        method = request.data.get('method', 'Email')
-        subject = request.data.get('subject', '')
-        message = request.data.get('message', '')
-        recipient_email = request.data.get('recipient_email', '')
-        recipient_name = request.data.get('recipient_name', '')
-        corporate_id = request.data.get('corporate_id')
-        follow_up_date = request.data.get('followUpDate', '')
-        follow_up_mode = request.data.get('followUpMode', '')
-
-        if not subject or not message:
-            return Response(
-                {'error': 'Subject and message are required'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
-        if not recipient_email:
-            return Response(
-                {'error': 'Recipient email address is required'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
-        # Send email via SMTP if method is Email
-        if method == 'Email':
-            from django.core.mail import EmailMessage
-            from django.conf import settings
-
-            try:
-                # Create email message
-                email = EmailMessage(
-                    subject=subject,
-                    body=message,
-                    from_email=settings.DEFAULT_FROM_EMAIL,
-                    to=[recipient_email],
-                    bcc=['nagendran.g@infinitisoftware.net','muniraj@infinitisoftware.net'],
-                )
-
-                # Send the email
-                email.send(fail_silently=False)
-
-                return Response({
-                    'success': True,
-                    'message': f'Email sent successfully to {recipient_email}',
-                    'recipient': recipient_name or recipient_email
-                }, status=status.HTTP_200_OK)
-
-            except Exception as email_error:
-                return Response({
-                    'success': False,
-                    'error': f'Failed to send email: {str(email_error)}'
-                }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-        else:
-            # For non-email methods, just log success
-            return Response({
-                'success': True,
-                'message': f'{method} message logged successfully',
-                'recipient': recipient_name or recipient_email
-            }, status=status.HTTP_200_OK)
-
-    except Exception as e:
-        return Response(
-            {'error': f'Failed to send message: {str(e)}'},
-            status=status.HTTP_500_INTERNAL_SERVER_ERROR
-        )
-
-@api_view(['GET', 'POST'])
-@permission_classes([AllowAny])
-def check_smtp_status(request, campaign_id=None):
-    """Check SMTP server status and connection"""
-    import smtplib
-    from django.conf import settings
-    from django.core.mail import get_connection
-
-    try:
-        # Get SMTP settings
-        smtp_host = getattr(settings, 'EMAIL_HOST', None)
-        smtp_port = getattr(settings, 'EMAIL_PORT', 587)
-        smtp_user = getattr(settings, 'EMAIL_HOST_USER', None)
-        smtp_password = getattr(settings, 'EMAIL_HOST_PASSWORD', None)
-        use_tls = getattr(settings, 'EMAIL_USE_TLS', True)
-
-        # Check if required settings are configured
-        if not smtp_host or not smtp_user:
-            return Response({
-                'status': 'error',
-                'message': 'SMTP settings not configured properly. Please check EMAIL_HOST and EMAIL_HOST_USER settings.',
-                'details': {
-                    'host_configured': bool(smtp_host),
-                    'user_configured': bool(smtp_user),
-                    'password_configured': bool(smtp_password)
-                }
-            }, status=status.HTTP_400_BAD_REQUEST)
-
-        # Test SMTP connection
-        try:
-            connection = get_connection(
-                host=smtp_host,
-                port=smtp_port,
-                username=smtp_user,
-                password=smtp_password,
-                use_tls=use_tls,
-                fail_silently=False
-            )
-
-            connection.open()
-            # Add any other necessary checks here, like sending a test email
-
-            return Response({
-                'status': 'connected',
-                'message': f'SMTP server connection successful to {smtp_host}:{smtp_port}',
-                'details': {
-                    'host': smtp_host,
-                    'port': smtp_port,
-                    'username': smtp_user,
-                    'use_tls': use_tls,
-                    'connection_test': 'passed'
-                }
-            })
-
-        except smtplib.SMTPAuthenticationError as e:
-            return Response({
-                'status': 'error',
-                'message': f'SMTP Authentication failed: {str(e)}',
-                'details': {
-                    'host': smtp_host,
-                    'port': smtp_port,
-                    'username': smtp_user,
-                    'error_type': 'authentication_error'
-                }
-            }, status=status.HTTP_401_UNAUTHORIZED)
-
-        except smtplib.SMTPConnectError as e:
-            return Response({
-                'status': 'error',
-                'message': f'SMTP Connection failed: {str(e)}',
-                'details': {
-                    'host': smtp_host,
-                    'port': smtp_port,
-                    'error_type': 'connection_error'
-                }
-            }, status=status.HTTP_503_SERVICE_UNAVAILABLE)
-
-        except Exception as e:
-            # This catches any other unexpected errors during connection or operation
-            return Response({
-                'status': 'error',
-                'message': f'An unexpected SMTP error occurred: {str(e)}',
-                'details': {
-                    'host': smtp_host,
-                    'port': smtp_port,
-                    'username': smtp_user,
-                    'error_type': 'unexpected_error'
-                }
-            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-        finally:
-            # Ensure the connection is closed if it was opened, regardless of success or failure
-            if 'connection' in locals() and connection:
-                try:
-                    connection.close()
-                    # Add logging for connection closure
-                    import logging
-                    smtp_logger = logging.getLogger('smtp_check')
-                    smtp_logger.info("SMTP connection closed")
-                except Exception as close_error:
-                    smtp_logger.error(f"Error closing SMTP connection: {close_error}")
-
-    except Exception as e:
-        # This catches errors related to accessing settings
-        return Response({
-            'status': 'error',
-            'message': f'Configuration error: {str(e)}',
-            'details': {
-                'error_type': 'configuration_error'
-            }
-        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-
-class TravelOfferViewSet(viewsets.ModelViewSet):
-    queryset = TravelOffer.objects.all()
-    serializer_class = TravelOfferSerializer
-
-    @action(detail=False, methods=['get'])
-    def active_offers(self, request):
-        offers = self.queryset.filter(
-            status='active',
-            valid_until__gt=timezone.now()
-        ).order_by('-created_at')
-
-        serializer = self.get_serializer(offers, many=True)
-        return Response(offers.data)
-
-    @action(detail=False, methods=['get'])
-    def performance_dashboard(self, request):
-        total_offers = self.queryset.count()
-        active_offers = self.queryset.filter(status='active').count()
-        total_bookings = self.queryset.aggregate(total=Sum('bookings_count'))['total'] or 0
-        total_revenue = self.queryset.aggregate(total=Sum('revenue_generated'))['total'] or 0
-
-        stats = {
-            'total_offers': total_offers,
-            'active_offers': active_offers,
-            'total_bookings': total_bookings,
-            'total_revenue': total_revenue,
-            'average_booking_value': (total_revenue / total_bookings) if total_bookings > 0 else 0
-        }
-
-        return Response(stats)
-
-class SupportTicketViewSet(viewsets.ModelViewSet):
-    queryset = SupportTicket.objects.all()
-    serializer_class = SupportTicketSerializer
-
-    @action(detail=False, methods=['get'])
-    def dashboard_stats(self, request):
-        total_tickets = self.queryset.count()
-        open_tickets = self.queryset.filter(status__in=['open', 'in_progress']).count()
-        high_priority = self.queryset.filter(
-            priority__in=['high', 'urgent'],
-            status__in=['open', 'in_progress']
-        ).count()
-
-        resolved_tickets = self.queryset.filter(status='resolved')
-        if resolved_tickets.exists():
-            avg_resolution_time = resolved_tickets.aggregate(
-                avg_time=Avg('resolved_at') - Avg('created_at')
-            )['avg_time']
-            avg_resolution_hours = avg_resolution_time.total_seconds() / 3600 if avg_resolution_time else 0
-        else:
-            avg_resolution_hours = 0
-
-        satisfaction_scores = self.queryset.filter(satisfaction_rating__isnull=False)
-        avg_satisfaction = satisfaction_scores.aggregate(avg=Avg('satisfaction_rating'))['avg'] or 0
-
-        stats = {
-            'total_tickets': total_tickets,
-            'open_tickets': open_tickets,
-            'high_priority': high_priority,
-            'avg_resolution_time_hours': round(avg_resolution_hours, 2),
-            'satisfaction_score': round(avg_satisfaction, 1)
-        }
-
-        return Response(stats)
-
-    @action(detail=False, methods=['get'])
-    def agent_workload(self, request):
-        from django.contrib.auth.models import User
-
-        agents = User.objects.filter(
-            supportticket__isnull=False
-        ).annotate(
-            assigned_tickets=Count('supportticket', filter=Q(supportticket__status__in=['open', 'in_progress']))
-        ).distinct()
-
-        workload = []
-        for agent in agents:
-            workload.append({
-                'agent_name': f"{agent.first_name} {agent.last_name}" if agent.first_name else agent.username,
-                'assigned_tickets': agent.assigned_tickets,
-                'total_resolved': self.queryset.filter(assigned_to=agent, status='resolved').count()
-            })
-
-        return Response(workload)
-
-class RevenueForecastViewSet(viewsets.ModelViewSet):
-    queryset = RevenueForecast.objects.all()
-    serializer_class = RevenueForecastSerializer
-
-    @action(detail=False, methods=['get'])
-    def current_year(self, request):
-        current_year = timezone.now().year
-        forecasts = self.queryset.filter(
-            period__startswith=str(current_year)
-        ).order_by('period')
-
-        serializer = self.get_serializer(forecasts, many=True)
-        return Response(serializer.data)
-
-class ActivityLogViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = ActivityLog.objects.all()
-    serializer_class = ActivityLogSerializer
-
-    def get_queryset(self):
-        queryset = self.queryset
-        entity_type = self.request.query_params.get('entity_type', None)
-        entity_id = self.request.query_params.get('entity_id', None)
-
-        if entity_type:
-            queryset = queryset.filter(entity_type=entity_type)
-        if entity_id:
-            queryset = queryset.filter(entity_id=entity_id)
-
-        return queryset
-
-class LeadNoteViewSet(viewsets.ModelViewSet):
-    queryset = LeadNote.objects.all()
-    serializer_class = LeadNoteSerializer
-
-    def perform_create(self, serializer):
-        serializer.save(created_by=self.request.user if self.request.user.is_authenticated else None)
-
-    def get_queryset(self):
-        queryset = self.queryset
-        lead_id = self.request.query_params.get('lead_id', None)
-
-        if lead_id:
-            queryset = queryset.filter(lead_id=lead_id)
-
-        return queryset
-
-class LeadHistoryViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = LeadHistory.objects.all()
-    serializer_class = LeadHistorySerializer
-
-    def get_queryset(self):
-        queryset = self.queryset
-        lead_id = self.request.query_params.get('lead_id', None)
-
-        if lead_id:
-            queryset = queryset.filter(lead_id=lead_id)
-
-        return queryset.order_by('timestamp')
-
-class AIConversationViewSet(viewsets.ModelViewSet):
-    queryset = AIConversation.objects.all()
-    serializer_class = AIConversationSerializer
-
-    @action(detail=False, methods=['post'])
-    def chat(self, request):
-        # This would integrate with your AI service
-        query = request.data.get('query', '')
-        user = request.user if request.user.is_authenticated else None
-
-        # Mock AI response for now
-        response = f"Thank you for your query: '{query}'. This is a mock AI response. In a real implementation, this would connect to your AI service."
-
-        conversation = AIConversation.objects.create(
-            user=user,
-            query=query,
-            response=response,
-            context=request.data.get('context', {}),
-            entities_mentioned=request.data.get('entities', []),
-            actions_suggested=['View Dashboard', 'Search Companies', 'Create Lead']
-        )
-
-        serializer = self.get_serializer(conversation)
-        return Response(serializer.data)
-
-@api_view(['GET'])
-def download_proposal_attachment(request, opportunity_id):
-    """
-    Download attachment for a proposal draft
-    """
-    import os
-    from django.http import FileResponse, Http404
-
-    try:
-        opportunity = Opportunity.objects.get(id=opportunity_id)
-        draft = ProposalDraft.objects.get(opportunity=opportunity)
-
-        if not draft.attachment_path or not os.path.exists(draft.attachment_path):
-            raise Http404("Attachment not found")
-
-        # Return file response
-        response = FileResponse(
-            open(draft.attachment_path, 'rb'),
-            filename=draft.attachment_original_name or 'attachment'
-        )
-        return response
-
-    except (Opportunity.DoesNotExist, ProposalDraft.DoesNotExist):
-        raise Http404("Draft or opportunity not found")
-
-@api_view(['GET'])
-@permission_classes([AllowAny])
-def email_campaign_performance(request):
-    """Get email campaign performance metrics"""
-    try:
-        campaigns = EmailCampaign.objects.all()
-        analytics_data = []
-
-        for campaign in campaigns:
-            open_rate = (campaign.emails_opened / campaign.emails_sent * 100) if campaign.emails_sent > 0 else 0
-            click_rate = (campaign.emails_clicked / campaign.emails_sent * 100) if campaign.emails_sent > 0 else 0
-
-            analytics_data.append({
-                'id': campaign.id,
-                'name': campaign.name,
-                'status': campaign.status,
-                'emails_sent': campaign.emails_sent,
-                'emails_opened': campaign.emails_opened,
-                'emails_clicked': campaign.emails_clicked,
-                'open_rate': round(open_rate, 2),
-                'click_rate': round(click_rate, 2),
-                'created_at': campaign.created_at
-            })
-
-        return Response({
-            'success': True,
-            'analytics': analytics_data
-        })
-    except Exception as e:
-        return Response({
-            'success': False,
-            'error': str(e)
-        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-@api_view(['POST'])
-@permission_classes([AllowAny])
-def track_email_open(request, campaign_id):
-    """Track email open event"""
-    try:
-        campaign = EmailCampaign.objects.get(id=campaign_id)
-        campaign.emails_opened += 1
-        campaign.save()
-
-        return Response({
-            'success': True,
-            'message': 'Email open tracked',
-            'opens': campaign.emails_opened
-        })
-
-    except EmailCampaign.DoesNotExist:
-        return Response({
-            'success': False,
-            'error': 'Campaign not found'
-        }, status=status.HTTP_404_NOT_FOUND)
-    except Exception as e:
-        return Response({
-            'success': False,
-            'error': f'Failed to track email open: {str(e)}'
-        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-@api_view(['POST'])
-@permission_classes([AllowAny])
-def track_email_click(request, campaign_id):
-    """Track email click event"""
-    try:
-        campaign = EmailCampaign.objects.get(id=campaign_id)
-        campaign.emails_clicked += 1
-        campaign.save()
-
-        return Response({
-            'success': True,
-            'message': 'Email click tracked',
-            'clicks': campaign.emails_clicked
-        })
-
-    except EmailCampaign.DoesNotExist:
-        return Response({
-            'success': False,
-            'error': 'Campaign not found'
-        }, status=status.HTTP_404_NOT_FOUND)
-    except Exception as e:
-        return Response({
-            'success': False,
-            'error': f'Failed to track email click: {str(e)}'
-        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-class ProposalDraftViewSet(viewsets.ModelViewSet):
-    queryset = ProposalDraft.objects.all()
-    serializer_class = ProposalDraftSerializer
-
-    def get_queryset(self):
-        queryset = self.queryset
-        opportunity_id = self.request.query_params.get('opportunity_id', None)
-
-        if opportunity_id:
-            queryset = queryset.filter(opportunity_id=opportunity_id)
-
-        return queryset
-
-    @action(detail=True, methods=['post'])
-    def save_draft(self, request, pk=None):
-        """Save or update proposal draft"""
-        try:
-            draft = self.get_object()
-            serializer = self.get_serializer(draft, data=request.data, partial=True)
-
-            if serializer.is_valid():
-                serializer.save()
-                return Response({
-                    'success': True,
-                    'message': 'Draft saved successfully',
-                    'draft': serializer.data
-                })
-            else:
-                return Response({
-                    'success': False,
-                    'errors': serializer.errors
-                }, status=status.HTTP_400_BAD_REQUEST)
-        except Exception as e:
-            return Response({
-                'success': False,
-                'error': str(e)
-            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-class CampaignTemplateViewSet(viewsets.ModelViewSet):
-    queryset = CampaignTemplate.objects.all()
-    serializer_class = CampaignTemplateSerializer
-
     def list(self, request, *args, **kwargs):
         """Get all templates including both custom and default templates"""
-        # Get custom templates from database
-        custom_templates_response = super().list(request, *args, **kwargs)
-
-        # Extract the actual list from the response data
-        if hasattr(custom_templates_response, 'data'):
-            custom_templates_data = custom_templates_response.data
-            # Handle both paginated (OrderedDict) and non-paginated (list) responses
-            if isinstance(custom_templates_data, dict) and 'results' in custom_templates_data:
-                custom_templates = custom_templates_data['results']
-            elif isinstance(custom_templates_data, list):
-                custom_templates = custom_templates_data
-            else:
-                custom_templates = []
-        else:
+        try:
+            # Get custom templates from database
             custom_templates = []
+            try:
+                custom_templates_queryset = self.get_queryset()
+                custom_templates_serializer = self.get_serializer(custom_templates_queryset, many=True)
+                custom_templates = custom_templates_serializer.data
+            except Exception as e:
+                print(f"Error getting custom templates: {e}")
+                custom_templates = []
 
-        # Define default templates
-        default_templates = [
-            {
-                'id': 'welcome-series',
-                'name': 'Welcome Series',
-                'description': 'Multi-touch welcome sequence for new leads',
-                'channel_type': 'email',
-                'target_industry': 'All',
-                'subject_line': 'Welcome to the future of corporate travel - {{company_name}}',
-                'content': '''Hi {{contact_name}},
+            # Define default templates
+            default_templates = [
+                {
+                    'id': 'welcome-series',
+                    'name': 'Welcome Series',
+                    'description': 'Multi-touch welcome sequence for new leads',
+                    'channel_type': 'email',
+                    'target_industry': 'All',
+                    'subject_line': 'Welcome to the future of corporate travel - {{company_name}}',
+                    'content': '''Hi {{contact_name}},
 
 Welcome to SOAR-AI! We're excited to help {{company_name}} transform your corporate travel experience.
 
@@ -2950,23 +1817,23 @@ Based on your {{industry}} background and {{employees}} team size, we've identif
 🤖 AI-powered travel recommendations
 
 Ready to see how we can help? Let's schedule a 15-minute discovery call.''',
-                'cta': 'Schedule Discovery Call',
-                'linkedin_type': None,
-                'estimated_open_rate': 45.0,
-                'estimated_click_rate': 12.0,
-                'is_custom': False,
-                'created_by': 'System',
-                'created_at': '2024-01-01T00:00:00Z',
-                'updated_at': '2024-01-01T00:00:00Z'
-            },
-            {
-                'id': 'cost-savings',
-                'name': 'Cost Savings Focus',
-                'description': 'Emphasizes ROI and cost reduction benefits',
-                'channel_type': 'email',
-                'target_industry': 'Manufacturing',
-                'subject_line': '{{company_name}}: Cut travel costs by 35% with SOAR-AI',
-                'content': '''{{contact_name}},
+                    'cta': 'Schedule Discovery Call',
+                    'linkedin_type': None,
+                    'estimated_open_rate': 45.0,
+                    'estimated_click_rate': 12.0,
+                    'is_custom': False,
+                    'created_by': 'System',
+                    'created_at': '2024-01-01T00:00:00Z',
+                    'updated_at': '2024-01-01T00:00:00Z'
+                },
+                {
+                    'id': 'cost-savings',
+                    'name': 'Cost Savings Focus',
+                    'description': 'Emphasizes ROI and cost reduction benefits',
+                    'channel_type': 'email',
+                    'target_industry': 'Manufacturing',
+                    'subject_line': '{{company_name}}: Cut travel costs by 35% with SOAR-AI',
+                    'content': '''{{contact_name}},
 
 Companies like {{company_name}} in the {{industry}} sector are saving an average of 35% on travel costs with SOAR-AI.
 
@@ -2982,44 +1849,44 @@ Our AI-powered platform optimizes:
 - Expense management
 
 Ready to see your personalized savings analysis?''',
-                'cta': 'View Savings Report',
-                'linkedin_type': None,
-                'estimated_open_rate': 52.0,
-                'estimated_click_rate': 15.0,
-                'is_custom': False,
-                'created_by': 'System',
-                'created_at': '2024-01-01T00:00:00Z',
-                'updated_at': '2024-01-01T00:00:00Z'
-            },
-            {
-                'id': 'linkedin-connection',
-                'name': 'LinkedIn Connection Request',
-                'description': 'Professional connection request for LinkedIn outreach',
-                'channel_type': 'linkedin',
-                'target_industry': 'All',
-                'subject_line': None,
-                'content': '''Hi {{contact_name}},
+                    'cta': 'View Savings Report',
+                    'linkedin_type': None,
+                    'estimated_open_rate': 52.0,
+                    'estimated_click_rate': 15.0,
+                    'is_custom': False,
+                    'created_by': 'System',
+                    'created_at': '2024-01-01T00:00:00Z',
+                    'updated_at': '2024-01-01T00:00:00Z'
+                },
+                {
+                    'id': 'linkedin-connection',
+                    'name': 'LinkedIn Connection Request',
+                    'description': 'Professional connection request for LinkedIn outreach',
+                    'channel_type': 'linkedin',
+                    'target_industry': 'All',
+                    'subject_line': None,
+                    'content': '''Hi {{contact_name}},
 
 I noticed {{company_name}} is expanding in the {{industry}} space. I'd love to connect and share how we're helping similar companies optimize their corporate travel operations.
 
 Would you be open to connecting?''',
-                'cta': 'Connect on LinkedIn',
-                'linkedin_type': 'connection',
-                'estimated_open_rate': 65.0,
-                'estimated_click_rate': 25.0,
-                'is_custom': False,
-                'created_by': 'System',
-                'created_at': '2024-01-01T00:00:00Z',
-                'updated_at': '2024-01-01T00:00:00Z'
-            },
-            {
-                'id': 'multi-channel-sequence',
-                'name': 'Multi-Channel Sequence',
-                'description': 'Coordinated outreach across email, LinkedIn, and WhatsApp',
-                'channel_type': 'mixed',
-                'target_industry': 'All',
-                'subject_line': 'Partnership opportunity with {{company_name}}',
-                'content': '''Hi {{contact_name}},
+                    'cta': 'Connect on LinkedIn',
+                    'linkedin_type': 'connection',
+                    'estimated_open_rate': 65.0,
+                    'estimated_click_rate': 25.0,
+                    'is_custom': False,
+                    'created_by': 'System',
+                    'created_at': '2024-01-01T00:00:00Z',
+                    'updated_at': '2024-01-01T00:00:00Z'
+                },
+                {
+                    'id': 'multi-channel-sequence',
+                    'name': 'Multi-Channel Sequence',
+                    'description': 'Coordinated outreach across email, LinkedIn, and WhatsApp',
+                    'channel_type': 'mixed',
+                    'target_industry': 'All',
+                    'subject_line': 'Partnership opportunity with {{company_name}}',
+                    'content': '''Hi {{contact_name}},
 
 I hope this message finds you well. I've been researching {{company_name}} and I'm impressed by your growth in the {{industry}} sector.
 
@@ -3030,20 +1897,44 @@ We're helping companies like yours:
 • Access exclusive corporate rates
 
 Would you be interested in a brief conversation about how we could support {{company_name}}'s travel operations?''',
-                'cta': 'Schedule 15-min Call',
-                'linkedin_type': 'message',
-                'estimated_open_rate': 58.0,
-                'estimated_click_rate': 18.0,
-                'is_custom': False,
-                'created_by': 'System',
-                'created_at': '2024-01-01T00:00:00Z',
-                'updated_at': '2024-01-01T00:00:00Z'
-            }
-        ]
+                    'cta': 'Schedule 15-min Call',
+                    'linkedin_type': 'message',
+                    'estimated_open_rate': 58.0,
+                    'estimated_click_rate': 18.0,
+                    'is_custom': False,
+                    'created_by': 'System',
+                    'created_at': '2024-01-01T00:00:00Z',
+                    'updated_at': '2024-01-01T00:00:00Z'
+                }
+            ]
 
-        # Combine default templates first, then custom templates
-        all_templates = default_templates + custom_templates
-        return Response(all_templates)
+            # Combine default templates first, then custom templates
+            all_templates = default_templates + custom_templates
+            return Response(all_templates)
+
+        except Exception as e:
+            print(f"Error in CampaignTemplateViewSet.list: {e}")
+            # Return just default templates if there's any error
+            default_templates = [
+                {
+                    'id': 'welcome-series',
+                    'name': 'Welcome Series',
+                    'description': 'Multi-touch welcome sequence for new leads',
+                    'channel_type': 'email',
+                    'target_industry': 'All',
+                    'subject_line': 'Welcome to the future of corporate travel',
+                    'content': 'Welcome to SOAR-AI!',
+                    'cta': 'Schedule Discovery Call',
+                    'linkedin_type': None,
+                    'estimated_open_rate': 45.0,
+                    'estimated_click_rate': 12.0,
+                    'is_custom': False,
+                    'created_by': 'System',
+                    'created_at': '2024-01-01T00:00:00Z',
+                    'updated_at': '2024-01-01T00:00:00Z'
+                }
+            ]
+            return Response(default_templates)
 
     @action(detail=False, methods=['get'])
     def default_templates(self, request):
@@ -3371,40 +2262,40 @@ def list_revenue_files(request):
     List files in the revenue_prediction folder
     """
     import os
-    
+
     try:
         # Get the revenue_prediction folder path
         revenue_folder = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'revenue_prediction')
-        
+
         if not os.path.exists(revenue_folder):
             return Response({
                 'success': True,
                 'files': [],
                 'message': 'Revenue prediction folder does not exist yet'
             })
-        
+
         files = []
         for filename in os.listdir(revenue_folder):
             file_path = os.path.join(revenue_folder, filename)
             if os.path.isfile(file_path):
                 # Get file stats
                 file_stat = os.stat(file_path)
-                
+
                 files.append({
                     'name': filename,
                     'size': file_stat.st_size,
                     'uploadDate': datetime.fromtimestamp(file_stat.st_mtime).isoformat() + 'Z'
                 })
-        
+
         # Sort by upload date (newest first)
         files.sort(key=lambda x: x['uploadDate'], reverse=True)
-        
+
         return Response({
             'success': True,
             'files': files,
             'count': len(files)
         })
-        
+
     except Exception as e:
         return Response(
             {'success': False, 'error': f'Failed to list files: {str(e)}'},
@@ -3418,26 +2309,26 @@ def delete_revenue_file(request, filename):
     Delete a specific file from the revenue_prediction folder
     """
     import os
-    
+
     try:
         # Get the revenue_prediction folder path
         revenue_folder = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'revenue_prediction')
         file_path = os.path.join(revenue_folder, filename)
-        
+
         if not os.path.exists(file_path):
             return Response(
                 {'success': False, 'error': 'File not found'},
                 status=status.HTTP_404_NOT_FOUND
             )
-        
+
         # Delete the file
         os.remove(file_path)
-        
+
         return Response({
             'success': True,
             'message': f'File "{filename}" deleted successfully'
         })
-        
+
     except Exception as e:
         return Response(
             {'success': False, 'error': f'Failed to delete file: {str(e)}'},
@@ -3453,7 +2344,7 @@ def upload_revenue_data(request):
     import os
     import uuid
     from django.conf import settings
-    
+
     try:
         if 'file' not in request.FILES:
             return Response(
@@ -3644,32 +2535,27 @@ class CampaignTemplateViewSet(viewsets.ModelViewSet):
 
     def list(self, request, *args, **kwargs):
         """Get all templates including both custom and default templates"""
-        # Get custom templates from database
-        custom_templates_response = super().list(request, *args, **kwargs)
-
-        # Extract the actual list from the response data
-        if hasattr(custom_templates_response, 'data'):
-            custom_templates_data = custom_templates_response.data
-            # Handle both paginated (OrderedDict) and non-paginated (list) responses
-            if isinstance(custom_templates_data, dict) and 'results' in custom_templates_data:
-                custom_templates = custom_templates_data['results']
-            elif isinstance(custom_templates_data, list):
-                custom_templates = custom_templates_data
-            else:
-                custom_templates = []
-        else:
+        try:
+            # Get custom templates from database
             custom_templates = []
+            try:
+                custom_templates_queryset = self.get_queryset()
+                custom_templates_serializer = self.get_serializer(custom_templates_queryset, many=True)
+                custom_templates = custom_templates_serializer.data
+            except Exception as e:
+                print(f"Error getting custom templates: {e}")
+                custom_templates = []
 
-        # Define default templates
-        default_templates = [
-            {
-                'id': 'welcome-series',
-                'name': 'Welcome Series',
-                'description': 'Multi-touch welcome sequence for new leads',
-                'channel_type': 'email',
-                'target_industry': 'All',
-                'subject_line': 'Welcome to the future of corporate travel - {{company_name}}',
-                'content': '''Hi {{contact_name}},
+            # Define default templates
+            default_templates = [
+                {
+                    'id': 'welcome-series',
+                    'name': 'Welcome Series',
+                    'description': 'Multi-touch welcome sequence for new leads',
+                    'channel_type': 'email',
+                    'target_industry': 'All',
+                    'subject_line': 'Welcome to the future of corporate travel - {{company_name}}',
+                    'content': '''Hi {{contact_name}},
 
 Welcome to SOAR-AI! We're excited to help {{company_name}} transform your corporate travel experience.
 
@@ -3681,23 +2567,23 @@ Based on your {{industry}} background and {{employees}} team size, we've identif
 🤖 AI-powered travel recommendations
 
 Ready to see how we can help? Let's schedule a 15-minute discovery call.''',
-                'cta': 'Schedule Discovery Call',
-                'linkedin_type': None,
-                'estimated_open_rate': 45.0,
-                'estimated_click_rate': 12.0,
-                'is_custom': False,
-                'created_by': 'System',
-                'created_at': '2024-01-01T00:00:00Z',
-                'updated_at': '2024-01-01T00:00:00Z'
-            },
-            {
-                'id': 'cost-savings',
-                'name': 'Cost Savings Focus',
-                'description': 'Emphasizes ROI and cost reduction benefits',
-                'channel_type': 'email',
-                'target_industry': 'Manufacturing',
-                'subject_line': '{{company_name}}: Cut travel costs by 35% with SOAR-AI',
-                'content': '''{{contact_name}},
+                    'cta': 'Schedule Discovery Call',
+                    'linkedin_type': None,
+                    'estimated_open_rate': 45.0,
+                    'estimated_click_rate': 12.0,
+                    'is_custom': False,
+                    'created_by': 'System',
+                    'created_at': '2024-01-01T00:00:00Z',
+                    'updated_at': '2024-01-01T00:00:00Z'
+                },
+                {
+                    'id': 'cost-savings',
+                    'name': 'Cost Savings Focus',
+                    'description': 'Emphasizes ROI and cost reduction benefits',
+                    'channel_type': 'email',
+                    'target_industry': 'Manufacturing',
+                    'subject_line': '{{company_name}}: Cut travel costs by 35% with SOAR-AI',
+                    'content': '''{{contact_name}},
 
 Companies like {{company_name}} in the {{industry}} sector are saving an average of 35% on travel costs with SOAR-AI.
 
@@ -3713,44 +2599,44 @@ Our AI-powered platform optimizes:
 - Expense management
 
 Ready to see your personalized savings analysis?''',
-                'cta': 'View Savings Report',
-                'linkedin_type': None,
-                'estimated_open_rate': 52.0,
-                'estimated_click_rate': 15.0,
-                'is_custom': False,
-                'created_by': 'System',
-                'created_at': '2024-01-01T00:00:00Z',
-                'updated_at': '2024-01-01T00:00:00Z'
-            },
-            {
-                'id': 'linkedin-connection',
-                'name': 'LinkedIn Connection Request',
-                'description': 'Professional connection request for LinkedIn outreach',
-                'channel_type': 'linkedin',
-                'target_industry': 'All',
-                'subject_line': None,
-                'content': '''Hi {{contact_name}},
+                    'cta': 'View Savings Report',
+                    'linkedin_type': None,
+                    'estimated_open_rate': 52.0,
+                    'estimated_click_rate': 15.0,
+                    'is_custom': False,
+                    'created_by': 'System',
+                    'created_at': '2024-01-01T00:00:00Z',
+                    'updated_at': '2024-01-01T00:00:00Z'
+                },
+                {
+                    'id': 'linkedin-connection',
+                    'name': 'LinkedIn Connection Request',
+                    'description': 'Professional connection request for LinkedIn outreach',
+                    'channel_type': 'linkedin',
+                    'target_industry': 'All',
+                    'subject_line': None,
+                    'content': '''Hi {{contact_name}},
 
 I noticed {{company_name}} is expanding in the {{industry}} space. I'd love to connect and share how we're helping similar companies optimize their corporate travel operations.
 
 Would you be open to connecting?''',
-                'cta': 'Connect on LinkedIn',
-                'linkedin_type': 'connection',
-                'estimated_open_rate': 65.0,
-                'estimated_click_rate': 25.0,
-                'is_custom': False,
-                'created_by': 'System',
-                'created_at': '2024-01-01T00:00:00Z',
-                'updated_at': '2024-01-01T00:00:00Z'
-            },
-            {
-                'id': 'multi-channel-sequence',
-                'name': 'Multi-Channel Sequence',
-                'description': 'Coordinated outreach across email, LinkedIn, and WhatsApp',
-                'channel_type': 'mixed',
-                'target_industry': 'All',
-                'subject_line': 'Partnership opportunity with {{company_name}}',
-                'content': '''Hi {{contact_name}},
+                    'cta': 'Connect on LinkedIn',
+                    'linkedin_type': 'connection',
+                    'estimated_open_rate': 65.0,
+                    'estimated_click_rate': 25.0,
+                    'is_custom': False,
+                    'created_by': 'System',
+                    'created_at': '2024-01-01T00:00:00Z',
+                    'updated_at': '2024-01-01T00:00:00Z'
+                },
+                {
+                    'id': 'multi-channel-sequence',
+                    'name': 'Multi-Channel Sequence',
+                    'description': 'Coordinated outreach across email, LinkedIn, and WhatsApp',
+                    'channel_type': 'mixed',
+                    'target_industry': 'All',
+                    'subject_line': 'Partnership opportunity with {{company_name}}',
+                    'content': '''Hi {{contact_name}},
 
 I hope this message finds you well. I've been researching {{company_name}} and I'm impressed by your growth in the {{industry}} sector.
 
@@ -3761,20 +2647,44 @@ We're helping companies like yours:
 • Access exclusive corporate rates
 
 Would you be interested in a brief conversation about how we could support {{company_name}}'s travel operations?''',
-                'cta': 'Schedule 15-min Call',
-                'linkedin_type': 'message',
-                'estimated_open_rate': 58.0,
-                'estimated_click_rate': 18.0,
-                'is_custom': False,
-                'created_by': 'System',
-                'created_at': '2024-01-01T00:00:00Z',
-                'updated_at': '2024-01-01T00:00:00Z'
-            }
-        ]
+                    'cta': 'Schedule 15-min Call',
+                    'linkedin_type': 'message',
+                    'estimated_open_rate': 58.0,
+                    'estimated_click_rate': 18.0,
+                    'is_custom': False,
+                    'created_by': 'System',
+                    'created_at': '2024-01-01T00:00:00Z',
+                    'updated_at': '2024-01-01T00:00:00Z'
+                }
+            ]
 
-        # Combine default templates first, then custom templates
-        all_templates = default_templates + custom_templates
-        return Response(all_templates)
+            # Combine default templates first, then custom templates
+            all_templates = default_templates + custom_templates
+            return Response(all_templates)
+
+        except Exception as e:
+            print(f"Error in CampaignTemplateViewSet.list: {e}")
+            # Return just default templates if there's any error
+            default_templates = [
+                {
+                    'id': 'welcome-series',
+                    'name': 'Welcome Series',
+                    'description': 'Multi-touch welcome sequence for new leads',
+                    'channel_type': 'email',
+                    'target_industry': 'All',
+                    'subject_line': 'Welcome to the future of corporate travel',
+                    'content': 'Welcome to SOAR-AI!',
+                    'cta': 'Schedule Discovery Call',
+                    'linkedin_type': None,
+                    'estimated_open_rate': 45.0,
+                    'estimated_click_rate': 12.0,
+                    'is_custom': False,
+                    'created_by': 'System',
+                    'created_at': '2024-01-01T00:00:00Z',
+                    'updated_at': '2024-01-01T00:00:00Z'
+                }
+            ]
+            return Response(default_templates)
 
     @action(detail=False, methods=['get'])
     def default_templates(self, request):
