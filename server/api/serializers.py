@@ -460,9 +460,10 @@ class EmailCampaignSerializer(serializers.ModelSerializer):
         return round((obj.emails_clicked / obj.emails_opened) * 100, 2)
 
     def get_engagement_metrics(self, obj):
+        from django.db import models as django_models
         tracking_records = obj.email_tracking.all()
-        total_opens = tracking_records.aggregate(total=models.Sum('open_count'))['total'] or 0
-        total_clicks = tracking_records.aggregate(total=models.Sum('click_count'))['total'] or 0
+        total_opens = tracking_records.aggregate(total=django_models.Sum('open_count'))['total'] or 0
+        total_clicks = tracking_records.aggregate(total=django_models.Sum('click_count'))['total'] or 0
         
         return {
             'total_opens': total_opens,
@@ -470,7 +471,7 @@ class EmailCampaignSerializer(serializers.ModelSerializer):
             'unique_opens': obj.emails_opened,
             'unique_clicks': obj.emails_clicked,
             'engaged_leads': tracking_records.filter(
-                models.Q(open_count__gt=1) | models.Q(click_count__gt=0)
+                django_models.Q(open_count__gt=1) | django_models.Q(click_count__gt=0)
             ).count()
         }
 

@@ -393,26 +393,21 @@ class EmailCampaign(models.Model):
     def __str__(self):
         return self.name
 
-class EmailTracking(models.Model):
-    """Track individual email opens and clicks"""
-    campaign = models.ForeignKey(EmailCampaign, on_delete=models.CASCADE, related_name='email_tracking')
-    lead = models.ForeignKey(Lead, on_delete=models.CASCADE)
-    tracking_id = models.UUIDField(default=uuid.uuid4, unique=True)
-    email_sent = models.DateTimeField(auto_now_add=True)
-    first_opened = models.DateTimeField(null=True, blank=True)
-    last_opened = models.DateTimeField(null=True, blank=True)
-    open_count = models.IntegerField(default=0)
-    first_clicked = models.DateTimeField(null=True, blank=True)
-    last_clicked = models.DateTimeField(null=True, blank=True)
-    click_count = models.IntegerField(default=0)
-    user_agent = models.TextField(blank=True)
-    ip_address = models.GenericIPAddressField(null=True, blank=True)
+    @property
+    def open_rate(self):
+        if self.emails_sent == 0:
+            return 0
+        return round((self.emails_opened / self.emails_sent) * 100, 2)
 
-    def __str__(self):
-        return f"Tracking {self.campaign.name} - {self.lead.company.name}"
+    @property
+    def click_rate(self):
+        if self.emails_sent == 0:
+            return 0
+        return round((self.emails_clicked / self.emails_sent) * 100, 2)
 
-    class Meta:
-        unique_together = ['campaign', 'lead']
+    @property
+    def target_leads_count(self):
+        return self.target_leads.count()
 
     def send_emails(self):
         """Send emails to target leads with detailed SMTP logging"""
@@ -425,13 +420,13 @@ class EmailTracking(models.Model):
         # Configure logging for SMTP operations
         logging.basicConfig(level=logging.INFO)
         smtp_logger = logging.getLogger('smtp_email_campaign')
-        
+
         # Create file handler for email logs
         import os
         log_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'logs')
         os.makedirs(log_dir, exist_ok=True)
         log_file = os.path.join(log_dir, f'email_campaign_{self.id}_{timezone.now().strftime("%Y%m%d_%H%M%S")}.log')
-        
+
         file_handler = logging.FileHandler(log_file)
         file_handler.setLevel(logging.INFO)
         formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -444,7 +439,6 @@ class EmailTracking(models.Model):
 
         smtp_logger.info(f"Starting email campaign: {self.name} (ID: {self.id})")
         smtp_logger.info(f"Target leads count: {self.target_leads.count()}")
-        smtp_logger.info(f"SMTP Configuration: Host={settings.EMAIL_HOST}, Port={settings.EMAIL_PORT}, TLS={settings.EMAIL_USE_TLS}")
 
         # Prepare email data
         emails_to_send = []
@@ -490,24 +484,11 @@ class EmailTracking(models.Model):
                     defaults={'tracking_id': uuid.uuid4()}
                 )
 
-                # Add tracking pixel and click tracking to email content
-                tracking_pixel = f'<img src="{settings.DOMAIN_URL}/api/email-tracking/open/{tracking.tracking_id}/" width="1" height="1" style="display:none;" alt="" />'
-                
-                # Replace any links with tracked links
-                import re
-                def replace_links(match):
-                    original_url = match.group(1)
-                    tracked_url = f"{settings.DOMAIN_URL}/api/email-tracking/click/{tracking.tracking_id}/?url={original_url}"
-                    return f'href="{tracked_url}"'
-                
-                tracked_content = re.sub(r'href="([^"]+)"', replace_links, rendered_content)
-                tracked_content += tracking_pixel
-
                 # Create EmailMessage for individual tracking
                 email_msg = EmailMessage(
                     subject=rendered_subject,
-                    body=tracked_content,
-                    from_email=settings.DEFAULT_FROM_EMAIL,
+                    body=rendered_content,
+                    from_email=settings.DEFAULT_FROM_EMAIL or 'noreply@soarai.com',
                     to=[email_address]
                 )
                 email_msg.content_subtype = 'html'  # Set as HTML email
@@ -524,24 +505,22 @@ class EmailTracking(models.Model):
             if emails_to_send:
                 # Get SMTP connection
                 connection = get_connection()
-                
-                smtp_logger.info(f"Opening SMTP connection to {settings.EMAIL_HOST}:{settings.EMAIL_PORT}")
-                
+
                 try:
                     connection.open()
                     smtp_logger.info("SMTP connection opened successfully")
-                    
+
                     for email_msg, lead, tracking in emails_to_send:
                         try:
                             # Send individual email
                             result = connection.send_messages([email_msg])
-                            
+
                             if result == 1:
                                 sent_count += 1
                                 # Update tracking record
                                 tracking.email_sent = timezone.now()
                                 tracking.save()
-                                
+
                                 smtp_logger.info(f"✓ Email sent successfully to {lead.contact.email} ({lead.company.name})")
                                 smtp_responses.append({
                                     'email': lead.contact.email,
@@ -552,64 +531,22 @@ class EmailTracking(models.Model):
                                 })
                             else:
                                 failed_count += 1
-                                smtp_logger.error(f"✗ Failed to send email to {lead.contact.email} ({lead.company.name}) - No SMTP error but send failed")
                                 smtp_responses.append({
                                     'email': lead.contact.email,
                                     'company': lead.company.name,
                                     'status': 'FAILED',
                                     'message': 'Send failed without SMTP error'
                                 })
-                                
-                        except smtplib.SMTPRecipientsRefused as e:
-                            failed_count += 1
-                            smtp_logger.error(f"✗ SMTP Recipients Refused for {lead.contact.email}: {str(e)}")
-                            smtp_responses.append({
-                                'email': lead.contact.email,
-                                'company': lead.company.name,
-                                'status': 'RECIPIENTS_REFUSED',
-                                'message': str(e)
-                            })
-                            
-                        except smtplib.SMTPSenderRefused as e:
-                            failed_count += 1
-                            smtp_logger.error(f"✗ SMTP Sender Refused for {lead.contact.email}: {str(e)}")
-                            smtp_responses.append({
-                                'email': lead.contact.email,
-                                'company': lead.company.name,
-                                'status': 'SENDER_REFUSED',
-                                'message': str(e)
-                            })
-                            
-                        except smtplib.SMTPDataError as e:
-                            failed_count += 1
-                            smtp_logger.error(f"✗ SMTP Data Error for {lead.contact.email}: {str(e)}")
-                            smtp_responses.append({
-                                'email': lead.contact.email,
-                                'company': lead.company.name,
-                                'status': 'DATA_ERROR',
-                                'message': str(e)
-                            })
-                            
-                        except smtplib.SMTPAuthenticationError as e:
-                            failed_count += 1
-                            smtp_logger.error(f"✗ SMTP Authentication Error for {lead.contact.email}: {str(e)}")
-                            smtp_responses.append({
-                                'email': lead.contact.email,
-                                'company': lead.company.name,
-                                'status': 'AUTH_ERROR',
-                                'message': str(e)
-                            })
-                            
+
                         except Exception as e:
                             failed_count += 1
-                            smtp_logger.error(f"✗ Unexpected error sending to {lead.contact.email}: {str(e)}")
                             smtp_responses.append({
                                 'email': lead.contact.email,
                                 'company': lead.company.name,
-                                'status': 'UNEXPECTED_ERROR',
+                                'status': 'ERROR',
                                 'message': str(e)
                             })
-                            
+
                 finally:
                     connection.close()
                     smtp_logger.info("SMTP connection closed")
@@ -623,50 +560,30 @@ class EmailTracking(models.Model):
 
                 # Log final summary
                 smtp_logger.info(f"Campaign completed: {sent_count} sent, {failed_count} failed")
-                smtp_logger.info(f"Success rate: {(sent_count/(sent_count+failed_count)*100):.1f}%" if (sent_count + failed_count) > 0 else "No emails processed")
-                smtp_logger.info(f"Log file saved: {log_file}")
 
                 return {
                     'success': True,
                     'message': f'Campaign completed: {sent_count} sent, {failed_count} failed',
-                    'sent_count': sent_count,
+                    'emails_sent': sent_count,
                     'failed_count': failed_count,
                     'smtp_responses': smtp_responses,
+                    'smtp_details': {
+                        'total_processed': len(emails_to_send),
+                        'success_rate': f'{(sent_count/len(emails_to_send)*100):.1f}%' if emails_to_send else '0%'
+                    },
                     'log_file': log_file
                 }
             else:
                 smtp_logger.warning("No valid emails to send")
                 return {'success': False, 'message': 'No valid emails to send'}
 
-        except smtplib.SMTPConnectError as e:
-            error_msg = f'SMTP Connection Error: {str(e)}'
-            smtp_logger.error(error_msg)
-            return {
-                'success': False,
-                'message': error_msg,
-                'sent_count': 0,
-                'failed_count': len(emails_to_send),
-                'smtp_responses': [],
-                'log_file': log_file
-            }
-        except smtplib.SMTPServerDisconnected as e:
-            error_msg = f'SMTP Server Disconnected: {str(e)}'
-            smtp_logger.error(error_msg)
-            return {
-                'success': False,
-                'message': error_msg,
-                'sent_count': 0,
-                'failed_count': len(emails_to_send),
-                'smtp_responses': [],
-                'log_file': log_file
-            }
         except Exception as e:
             error_msg = f'Failed to send emails: {str(e)}'
             smtp_logger.error(error_msg)
             return {
                 'success': False,
                 'message': error_msg,
-                'sent_count': sent_count,
+                'emails_sent': sent_count,
                 'failed_count': len(emails_to_send) - sent_count,
                 'smtp_responses': smtp_responses,
                 'log_file': log_file
@@ -675,6 +592,27 @@ class EmailTracking(models.Model):
             # Remove the handler to prevent memory leaks
             smtp_logger.removeHandler(file_handler)
             file_handler.close()
+
+class EmailTracking(models.Model):
+    """Track individual email opens and clicks"""
+    campaign = models.ForeignKey(EmailCampaign, on_delete=models.CASCADE, related_name='email_tracking')
+    lead = models.ForeignKey(Lead, on_delete=models.CASCADE)
+    tracking_id = models.UUIDField(default=uuid.uuid4, unique=True)
+    email_sent = models.DateTimeField(auto_now_add=True)
+    first_opened = models.DateTimeField(null=True, blank=True)
+    last_opened = models.DateTimeField(null=True, blank=True)
+    open_count = models.IntegerField(default=0)
+    first_clicked = models.DateTimeField(null=True, blank=True)
+    last_clicked = models.DateTimeField(null=True, blank=True)
+    click_count = models.IntegerField(default=0)
+    user_agent = models.TextField(blank=True)
+    ip_address = models.GenericIPAddressField(null=True, blank=True)
+
+    def __str__(self):
+        return f"Tracking {self.campaign.name} - {self.lead.company.name}"
+
+    class Meta:
+        unique_together = ['campaign', 'lead']
 
 class TravelOffer(models.Model):
     OFFER_STATUS_CHOICES = [
@@ -903,14 +841,14 @@ class AIConversation(models.Model):
 
 class ProposalDraft(models.Model):
     opportunity = models.OneToOneField(Opportunity, on_delete=models.CASCADE, related_name='proposal_draft')
-    
+
     # Proposal Information
     title = models.CharField(max_length=255, blank=True)
     description = models.TextField(blank=True)
     validity_period = models.CharField(max_length=10, default="30")
     special_terms = models.TextField(blank=True)
     delivery_method = models.CharField(max_length=20, default="email")
-    
+
     # Volume Commitment
     travel_frequency = models.CharField(max_length=20, default="monthly")
     annual_booking_volume = models.CharField(max_length=100, blank=True)
@@ -919,34 +857,34 @@ class ProposalDraft(models.Model):
     domestic_economy = models.IntegerField(default=60)
     domestic_business = models.IntegerField(default=25)
     international = models.IntegerField(default=15)
-    
+
     # Discount/Offer Terms
     base_discount = models.CharField(max_length=10, blank=True)
     route_discounts = models.JSONField(default=list, blank=True)
     loyalty_benefits = models.JSONField(default=dict, blank=True)
     volume_incentives = models.TextField(blank=True)
-    
+
     # Financial & Contract Terms
     contract_duration = models.CharField(max_length=10, default="24")
     auto_renewal = models.BooleanField(default=True)
     payment_terms = models.CharField(max_length=20, default="net_30")
     settlement_type = models.CharField(max_length=20, default="bsp")
-    
+
     # Negotiation Strategy
     airline_concessions = models.TextField(blank=True)
     corporate_commitments = models.TextField(blank=True)
     internal_notes = models.TextField(blank=True)
     priority_level = models.CharField(max_length=20, default="medium")
-    
+
     # Approvals Workflow
     discount_approval_required = models.BooleanField(default=False)
     revenue_manager_assigned = models.CharField(max_length=100, blank=True)
     legal_approval_required = models.BooleanField(default=False)
-    
+
     # File attachment
     attachment_path = models.CharField(max_length=500, blank=True)
     attachment_original_name = models.CharField(max_length=255, blank=True)
-    
+
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

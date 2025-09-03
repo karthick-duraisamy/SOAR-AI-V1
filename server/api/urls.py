@@ -1,4 +1,3 @@
-
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from . import views
@@ -8,8 +7,8 @@ from .views import (
     EmailCampaignViewSet, TravelOfferViewSet, SupportTicketViewSet,
     RevenueForecastViewSet, ActivityLogViewSet, LeadNoteViewSet,
     LeadHistoryViewSet, AIConversationViewSet, CampaignTemplateViewSet,
-    ProposalDraftViewSet, send_corporate_message, check_smtp_status, 
-    download_proposal_attachment, track_email_open, track_email_click, 
+    ProposalDraftViewSet, send_corporate_message, check_smtp_status,
+    download_proposal_attachment, track_email_open, track_email_click,
     email_campaign_performance
 )
 
@@ -21,7 +20,7 @@ router.register(r'opportunities', views.OpportunityViewSet)
 router.register(r'opportunity-activities', views.OpportunityActivityViewSet)
 router.register(r'contracts', views.ContractViewSet)
 router.register(r'contract-breaches', views.ContractBreachViewSet)
-router.register(r'email-campaigns', views.EmailCampaignViewSet)
+router.register(r'email-campaigns', views.EmailCampaignViewSet, basename='emailcampaign')
 router.register(r'travel-offers', views.TravelOfferViewSet)
 router.register(r'support-tickets', views.SupportTicketViewSet)
 router.register(r'revenue-forecasts', views.RevenueForecastViewSet)

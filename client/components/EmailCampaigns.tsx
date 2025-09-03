@@ -406,7 +406,7 @@ export function EmailCampaigns({ onNavigate }: EmailCampaignsProps) {
                   metrics.totalCampaigns
                 )}
               </div>
-              <p style={{ 
+              <div style={{ 
                 fontSize: 'var(--text-xs)', 
                 color: 'var(--color-muted-foreground)',
                 fontFamily: 'var(--font-family)'
@@ -418,7 +418,7 @@ export function EmailCampaigns({ onNavigate }: EmailCampaignsProps) {
                 ) : (
                   `${metrics.activeCampaigns} active`
                 )}
-              </p>
+              </div>
             </CardContent>
           </Card>
 
@@ -453,7 +453,7 @@ export function EmailCampaigns({ onNavigate }: EmailCampaignsProps) {
                   `${metrics.avgOpenRate}%`
                 )}
               </div>
-              <p style={{ 
+              <div style={{ 
                 fontSize: 'var(--text-xs)', 
                 color: 'var(--color-muted-foreground)',
                 fontFamily: 'var(--font-family)'
@@ -465,7 +465,7 @@ export function EmailCampaigns({ onNavigate }: EmailCampaignsProps) {
                 ) : (
                   `${metrics.totalOpened.toLocaleString()} total opens`
                 )}
-              </p>
+              </div>
               <div className="mt-2">
                 <div className="w-full bg-gray-200 rounded-full h-1.5">
                   <div 
@@ -508,7 +508,7 @@ export function EmailCampaigns({ onNavigate }: EmailCampaignsProps) {
                   `${metrics.avgClickRate}%`
                 )}
               </div>
-              <p style={{ 
+              <div style={{ 
                 fontSize: 'var(--text-xs)', 
                 color: 'var(--color-muted-foreground)',
                 fontFamily: 'var(--font-family)'
@@ -520,7 +520,7 @@ export function EmailCampaigns({ onNavigate }: EmailCampaignsProps) {
                 ) : (
                   `${metrics.totalClicked.toLocaleString()} total clicks`
                 )}
-              </p>
+              </div>
               <div className="mt-2">
                 <div className="w-full bg-gray-200 rounded-full h-1.5">
                   <div 
@@ -563,7 +563,7 @@ export function EmailCampaigns({ onNavigate }: EmailCampaignsProps) {
                   metrics.totalSent.toLocaleString()
                 )}
               </div>
-              <p style={{ 
+              <div style={{ 
                 fontSize: 'var(--text-xs)', 
                 color: 'var(--color-muted-foreground)',
                 fontFamily: 'var(--font-family)'
@@ -575,7 +575,7 @@ export function EmailCampaigns({ onNavigate }: EmailCampaignsProps) {
                 ) : (
                   `${Math.round((metrics.totalDelivered / metrics.totalSent) * 100) || 0}% delivery rate`
                 )}
-              </p>
+              </div>
             </CardContent>
           </Card>
         </div>
