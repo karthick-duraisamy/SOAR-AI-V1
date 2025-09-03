@@ -402,11 +402,11 @@ class ContractSerializer(serializers.ModelSerializer):
 class EmailTrackingSerializer(serializers.ModelSerializer):
     lead_name = serializers.CharField(source='lead.company.name', read_only=True)
     contact_name = serializers.SerializerMethodField()
-    
+
     class Meta:
         model = EmailTracking
         fields = '__all__'
-    
+
     def get_contact_name(self, obj):
         return f"{obj.lead.contact.first_name} {obj.lead.contact.last_name}"
 
@@ -458,7 +458,7 @@ class EmailCampaignSerializer(serializers.ModelSerializer):
         tracking_records = obj.email_tracking.all()
         total_opens = tracking_records.aggregate(total=django_models.Sum('open_count'))['total'] or 0
         total_clicks = tracking_records.aggregate(total=django_models.Sum('click_count'))['total'] or 0
-        
+
         return {
             'total_opens': total_opens,
             'total_clicks': total_clicks,
