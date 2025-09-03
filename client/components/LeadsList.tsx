@@ -2018,7 +2018,8 @@ SOAR-AI Team`,
                 variant="outline"
                 size="sm"
                 className="text-gray-600 border-gray-300"
-                onClick={() =>
+                onClick={() =>(
+                  fetchLeads(),
                   setFilters({
                     status: "all",
                     industry: "all",
@@ -2026,6 +2027,7 @@ SOAR-AI Team`,
                     engagement: "all",
                     search: "",
                   })
+                  )
                 }
               >
                 Clear Filters
