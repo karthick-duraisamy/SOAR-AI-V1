@@ -63,8 +63,10 @@ urlpatterns = [
     path('proposal-attachment/<int:opportunity_id>/', views.download_proposal_attachment, name='download_proposal_attachment'),
 
     # Revenue data upload endpoint
+    # Revenue data management
     path('upload-revenue-data/', views.upload_revenue_data, name='upload_revenue_data'),
-    
+    path('list-revenue-files/', views.list_revenue_files, name='list_revenue_files'),
+    path('delete-revenue-file/<str:filename>/', views.delete_revenue_file, name='delete_revenue_file'),
     # Generic history endpoint
     path('get-history/', views.get_history, name='get_history'),
 
