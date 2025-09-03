@@ -820,7 +820,7 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
       newCompany.email.trim() !== ""
     );
   };
-const clearfilter = () => {
+  const clearfilter = () => {
     setFilters({
       status: "all",
       industry: "all",
@@ -828,8 +828,8 @@ const clearfilter = () => {
       engagement: "all",
       search: "",
     });
-  fetchLeads();
-  }
+    fetchLeads();
+  };
   // Fetch leads from API
   const fetchLeads = async () => {
     try {
@@ -2027,12 +2027,9 @@ SOAR-AI Team`,
                 variant="outline"
                 size="sm"
                 className="text-gray-600 border-gray-300"
-                onClick={() =>
-                  clearfilter()
-                 
-                  
-                  
-                }
+                onClick={() => {
+                  clearfilter();
+                }}
               >
                 Clear Filters
               </Button>
@@ -2850,7 +2847,6 @@ SOAR-AI Team`,
                                         Next: {note.next_action}
                                       </div>
                                     )}
-                                   
                                   </div>
                                 ))}
 
