@@ -172,7 +172,7 @@ class LeadSerializer(serializers.ModelSerializer):
     assigned_agent = serializers.CharField(read_only=True)
     assigned_agent_details = serializers.SerializerMethodField()
     lead_notes = LeadNoteSerializer(many=True, read_only=True)
-    latest_note = serializers.SerializerMethodField()
+    all_notes = serializers.SerializerMethodField()
     history_entries = serializers.SerializerMethodField()
 
     class Meta:
@@ -223,7 +223,7 @@ class LeadSerializer(serializers.ModelSerializer):
         from django.utils import timezone
         return (timezone.now() - obj.created_at).days
 
-    def get_latest_note(self, obj):
+    def get_all_notes(self, obj):
         """Get all lead notes formatted as an array of objects"""
         notes = obj.lead_notes.all().order_by('-created_at')
         return LeadNoteSerializer(notes, many=True).data
@@ -279,26 +279,20 @@ class OptimizedLeadSerializer(serializers.ModelSerializer):
     company = CompanySerializer(read_only=True)
     contact = ContactSerializer(read_only=True)
     assigned_to = serializers.StringRelatedField(read_only=True)
-    latest_note = serializers.SerializerMethodField()
+    all_notes = serializers.SerializerMethodField()
 
     class Meta:
         model = Lead
         fields = [
             'id', 'status', 'source', 'priority', 'score', 'estimated_value',
             'notes', 'next_action', 'next_action_date', 'created_at', 'updated_at',
-            'company', 'contact', 'assigned_to', 'latest_note'
+            'company', 'contact', 'assigned_to', 'all_notes'
         ]
 
-    def get_latest_note(self, obj):
-        latest_note = obj.lead_notes.first()
-        if latest_note:
-            return {
-                'id': latest_note.id,
-                'note': latest_note.note,
-                'created_at': latest_note.created_at,
-                'created_by': latest_note.created_by.username if latest_note.created_by else None
-            }
-        return None
+    def get_all_notes(self, obj):
+        """Get all lead notes for this lead"""
+        notes = obj.lead_notes.all().order_by('-created_at')
+        return LeadNoteSerializer(notes, many=True).data
 
 
 class OpportunityActivitySerializer(serializers.ModelSerializer):
