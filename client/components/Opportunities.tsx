@@ -3734,13 +3734,22 @@ const getRandomRiskLevel = () => {
                   <div className="flex gap-3">
                     <Button
                       variant="outline"
-                      onClick={() => setShowNegotiationDialog(false)}
+                      onClick={() => setShowProposalDialog(false)}
                       className="border-red-300 text-red-600 hover:bg-red-50"
                     >
                       Cancel
                     </Button>
                   </div>
                   <div className="flex gap-3">
+                    <Button
+                      variant="outline"
+                      onClick={handlePreviewEmail}
+                      disabled={!proposalForm.title}
+                      className="border-blue-300 text-blue-600 hover:bg-blue-50"
+                    >
+                      <Eye className="h-4 w-4 mr-2" />
+                      Preview Email
+                    </Button>
                     <Button
                       variant="outline"
                       onClick={handleSaveDraft}
@@ -3755,11 +3764,12 @@ const getRandomRiskLevel = () => {
                       {isDraftLoading ? "Saving..." : "Save Draft"}
                     </Button>
                     <Button
-                      onClick={handleGenerateRevisedProposal}
-                      className="bg-blue-600 hover:bg-blue-700 text-white"
+                      onClick={handleSaveProposal}
+                      disabled={!proposalForm.title}
+                      className="bg-orange-500 hover:bg-orange-600 text-white"
                     >
-                      <FileText className="h-4 w-4 mr-2" />
-                      Send Revised Proposal
+                      <Mail className="h-4 w-4 mr-2" />
+                      Send Proposal
                     </Button>
                   </div>
 
