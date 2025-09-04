@@ -2436,6 +2436,59 @@ def lead_dashboard_stats(request):
 
 @api_view(['GET'])
 @permission_classes([AllowAny])
+def list_revenue_files(request):
+    """
+    List files in the revenue_prediction folder
+    """
+    import os
+
+    try:
+        # Get the revenue_prediction folder path
+        revenue_folder = os.path.join(
+            os.path.dirname(os.path.dirname(__file__)), 'revenue_prediction')
+
+        if not os.path.exists(revenue_folder):
+            return Response({
+                'success':
+                True,
+                'files': [],
+                'message':
+                'Revenue prediction folder does not exist yet'
+            })
+
+        files = []
+        for filename in os.listdir(revenue_folder):
+            file_path = os.path.join(revenue_folder, filename)
+            if os.path.isfile(file_path):
+                # Get file stats
+                file_stat = os.stat(file_path)
+
+                files.append({
+                    'name':
+                    filename,
+                    'size':
+                    file_stat.st_size,
+                    'uploadDate':
+                    datetime.fromtimestamp(file_stat.st_mtime).isoformat() +
+                    'Z'
+                })
+
+        # Sort by upload date (newest first)
+        files.sort(key=lambda x: x['uploadDate'], reverse=True)
+
+        return Response({'success': True, 'files': files, 'count': len(files)})
+
+    except Exception as e:
+        return Response(
+            {
+                'success': False,
+                'error': f'Failed to list files: {str(e)}'
+            },
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
 def get_revenue_prediction_data(request):
     """
     Process XLSX/CSV files from revenue_prediction folder and return structured + simulated KPIs
