@@ -1871,6 +1871,93 @@ class OpportunityViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(opportunities, many=True)
         return Response(serializer.data)
 
+    @action(detail=True, methods=['post'])
+    def send_proposal(self, request, pk=None):
+        """Send proposal email for opportunity"""
+        try:
+            opportunity = self.get_object()
+            
+            subject = request.data.get('subject', f'Travel Solutions Proposal - {opportunity.lead.company.name if opportunity.lead else "Opportunity"}')
+            email_content = request.data.get('email_content', '')
+            delivery_method = request.data.get('delivery_method', 'email')
+            validity_period = request.data.get('validity_period', '30')
+            special_terms = request.data.get('special_terms', '')
+
+            if not email_content:
+                return Response({
+                    'error': 'Email content is required'
+                }, status=status.HTTP_400_BAD_REQUEST)
+
+            # Get recipient email from opportunity's lead contact
+            if not opportunity.lead or not opportunity.lead.contact or not opportunity.lead.contact.email:
+                return Response({
+                    'error': 'No valid email address found for this opportunity'
+                }, status=status.HTTP_400_BAD_REQUEST)
+
+            recipient_email = opportunity.lead.contact.email
+            
+            # Send email via SMTP if delivery method is email
+            if delivery_method == 'email':
+                from django.core.mail import EmailMessage
+                from django.conf import settings
+
+                try:
+                    # Create email message with HTML content
+                    email = EmailMessage(
+                        subject=subject,
+                        body=email_content,
+                        from_email=settings.DEFAULT_FROM_EMAIL,
+                        to=[recipient_email],
+                        bcc=['nagendran.g@infinitisoftware.net', 'muniraj@infinitisoftware.net'],
+                    )
+                    
+                    # Set content type to HTML
+                    email.content_subtype = 'html'
+                    
+                    # Send the email
+                    email.send(fail_silently=False)
+
+                    # Create activity record for the proposal
+                    OpportunityActivity.objects.create(
+                        opportunity=opportunity,
+                        type='proposal',
+                        description=f'Proposal email sent to {recipient_email}. Subject: {subject}',
+                        date=timezone.now().date(),
+                        created_by=request.user if request.user.is_authenticated else None
+                    )
+
+                    return Response({
+                        'success': True,
+                        'message': f'Proposal email sent successfully to {recipient_email}',
+                        'recipient': recipient_email
+                    }, status=status.HTTP_200_OK)
+
+                except Exception as email_error:
+                    return Response({
+                        'success': False,
+                        'error': f'Failed to send email: {str(email_error)}'
+                    }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+            else:
+                # For non-email methods, just create an activity record
+                OpportunityActivity.objects.create(
+                    opportunity=opportunity,
+                    type='proposal',
+                    description=f'Proposal sent via {delivery_method}. {special_terms}',
+                    date=timezone.now().date(),
+                    created_by=request.user if request.user.is_authenticated else None
+                )
+
+                return Response({
+                    'success': True,
+                    'message': f'Proposal sent successfully via {delivery_method}',
+                }, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            return Response({
+                'error': f'Failed to send proposal: {str(e)}'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
     @action(detail=False, methods=['post'])
     def search(self, request):
         """
