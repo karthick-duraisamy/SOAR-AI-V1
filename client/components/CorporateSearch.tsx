@@ -812,17 +812,7 @@ export function CorporateSearch({
       // Call the API to create the lead
       const createdLead = await moveToLead(leadData); // Use moveToLead from useCompanyApi
 
-      // Mark the company as moved to lead via API
-      try {
-        await companyApi.markCompanyAsMovedToLead(corporate.id);
-      } catch (error) {
-        console.warn(
-          "Failed to mark company flag, but lead was created successfully:",
-          error,
-        );
-      }
-
-      // Add to moved leads tracking
+      // Add to moved leads tracking FIRST before any other async operations
       setMovedAsLeadIds((prev) => new Set([...prev, corporate.id]));
       setExistingLeadCompanies((prev) => new Set([...prev, corporate.name]));
 
