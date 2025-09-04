@@ -2273,7 +2273,7 @@ Would you be interested in a brief conversation about how we could support {{com
 
         return Response(default_templates)
 
-@api_view(['GET', 'POST'])
+@api_view(['GET'])
 def proposal_draft_detail(request, opportunity_id):
     """
     Handle proposal draft operations for a specific opportunity
@@ -3239,4 +3239,93 @@ def campaign_analytics(request):
         return Response({
             'success': False,
             'error': str(e)
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+# --- Proposal Related Endpoints ---
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def download_proposal_attachment(request, opportunity_id):
+    """
+    Download proposal attachment for a specific opportunity
+    """
+    try:
+        opportunity = Opportunity.objects.get(id=opportunity_id)
+        draft = ProposalDraft.objects.get(opportunity=opportunity)
+
+        if not draft.attachment_path or not os.path.exists(draft.attachment_path):
+            return Response({'error': 'Attachment not found'}, status=status.HTTP_404_NOT_FOUND)
+
+        # Read the file and return it as a download
+        with open(draft.attachment_path, 'rb') as f:
+            response = HttpResponse(f.read(), content_type='application/octet-stream')
+            response['Content-Disposition'] = f'attachment; filename="{draft.attachment_original_name}"'
+            return response
+
+    except Opportunity.DoesNotExist:
+        return Response({'error': 'Opportunity not found'}, status=status.HTTP_404_NOT_FOUND)
+    except ProposalDraft.DoesNotExist:
+        return Response({'error': 'Proposal draft not found'}, status=status.HTTP_404_NOT_FOUND)
+    except Exception as e:
+        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def send_proposal_email(request):
+    """
+    Send proposal email with attachments
+    """
+    try:
+        data = request.data
+        opportunity_id = data.get('opportunity_id')
+        email_content = data.get('email_content', '')
+        subject = data.get('subject', 'Proposal from SOAR-AI')
+
+        if not opportunity_id:
+            return Response({'error': 'Opportunity ID is required'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Get opportunity and proposal draft
+        opportunity = Opportunity.objects.get(id=opportunity_id)
+
+        # Get recipient email from opportunity's lead contact
+        if not opportunity.lead or not opportunity.lead.contact or not opportunity.lead.contact.email:
+            return Response({'error': 'No contact email found for this opportunity'}, status=status.HTTP_400_BAD_REQUEST)
+
+        recipient_email = opportunity.lead.contact.email
+
+        # Create email message
+        email = EmailMultiAlternatives(
+            subject=subject,
+            body=email_content,
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            to=[recipient_email],
+            bcc=['nagendran.g@infinitisoftware.net', 'muniraj@infinitisoftware.net'],
+        )
+
+        # Set HTML content
+        email.attach_alternative(email_content, "text/html")
+
+        # Add attachment if exists
+        try:
+            draft = ProposalDraft.objects.get(opportunity=opportunity)
+            if draft.attachment_path and os.path.exists(draft.attachment_path):
+                with open(draft.attachment_path, 'rb') as f:
+                    email.attach(draft.attachment_original_name, f.read(), 'application/octet-stream')
+        except ProposalDraft.DoesNotExist:
+            pass  # No attachment to add
+
+        # Send email
+        email.send(fail_silently=False)
+
+        return Response({
+            'success': True,
+            'message': f'Proposal email sent successfully to {recipient_email}',
+            'recipient': recipient_email
+        }, status=status.HTTP_200_OK)
+
+    except Opportunity.DoesNotExist:
+        return Response({'error': 'Opportunity not found'}, status=status.HTTP_404_NOT_FOUND)
+    except Exception as e:
+        return Response({
+            'success': False,
+            'error': f'Failed to send proposal email: {str(e)}'
         }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
