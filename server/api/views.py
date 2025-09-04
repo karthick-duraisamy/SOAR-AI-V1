@@ -670,11 +670,22 @@ class LeadViewSet(viewsets.ModelViewSet):
             industry_filter = filters.get('industry', '')
             score = filters.get('score', '')
             engagement = filters.get('engagement', '')
+            
+            # Limit results for better performance
+            limit = min(int(filters.get('limit', 50)), 100)  # Max 100 records
 
-            # Get all leads with proper eager loading, excluding those converted to opportunities
-            leads = Lead.objects.select_related('company', 'contact', 'assigned_to').all()
+            # Start with optimized queryset - only select necessary fields and use select_related
+            leads = Lead.objects.select_related('company', 'contact').only(
+                'id', 'status', 'source', 'priority', 'score', 'estimated_value',
+                'notes', 'next_action', 'next_action_date', 'created_at', 'updated_at',
+                'assigned_agent',
+                'company__id', 'company__name', 'company__industry', 'company__location',
+                'company__size', 'company__employee_count',
+                'contact__id', 'contact__first_name', 'contact__last_name',
+                'contact__email', 'contact__phone', 'contact__position'
+            )
 
-            # Apply filters if provided
+            # Apply filters efficiently
             if status_filter and status_filter != 'all':
                 leads = leads.filter(status=status_filter)
 
@@ -688,36 +699,37 @@ class LeadViewSet(viewsets.ModelViewSet):
                     Q(contact__last_name__icontains=search_term)
                 )
 
-            if score and score != 'all':
-                if score == 'high':
+            # Combine score and engagement filters (they're the same logic)
+            score_filter = score or engagement
+            if score_filter and score_filter != 'all':
+                if score_filter in ['high', 'High']:
                     leads = leads.filter(score__gte=80)
-                elif score == 'medium':
+                elif score_filter in ['medium', 'Medium']:
                     leads = leads.filter(score__gte=60, score__lt=80)
-                elif score == 'low':
+                elif score_filter in ['low', 'Low']:
                     leads = leads.filter(score__lt=60)
 
-            # Add engagement filter logic if needed
-            if engagement and engagement != 'all':
-                if engagement == 'High':
-                    leads = leads.filter(score__gte=80)
-                elif engagement == 'Medium':
-                    leads = leads.filter(score__gte=60, score__lt=80)
-                elif engagement == 'Low':
-                    leads = leads.filter(score__lt=60)
+            # Order and limit for performance
+            leads = leads.order_by('-updated_at', '-created_at')[:limit]
 
-            # Order by most recent first (updated_at, then created_at as fallback)
-            leads = leads.order_by('-updated_at', '-created_at')[:100]  # Limit to 100 results for performance
+            # Use optimized serializer for faster response
+            try:
+                from .serializers import OptimizedLeadSerializer
+                serializer = OptimizedLeadSerializer(leads, many=True)
+            except ImportError:
+                # Fallback to standard serializer if optimized one doesn't exist
+                serializer = self.get_serializer(leads, many=True)
 
-            # Use standard serializer since OptimizedLeadSerializer might not exist
-            serializer = self.get_serializer(leads, many=True)
-            return Response(serializer.data)
+            return Response({
+                'results': serializer.data,
+                'count': len(serializer.data),
+                'limit': limit
+            })
 
         except Exception as e:
             print(f"Error in leads search: {str(e)}")
-            import traceback
-            traceback.print_exc()
             return Response(
-                {'error': f'Search failed: {str(e)}'},
+                {'error': f'Search failed: {str(e)}', 'results': [], 'count': 0},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 

@@ -280,36 +280,39 @@ class LeadSerializer(serializers.ModelSerializer):
 
 class OptimizedLeadSerializer(serializers.ModelSerializer):
     """Optimized serializer for list views with minimal data"""
-    company = CompanySerializer(read_only=True)
-    contact = ContactSerializer(read_only=True)
-    assigned_to = serializers.StringRelatedField(read_only=True)
-    all_notes = serializers.SerializerMethodField()
-    campaign_count = serializers.SerializerMethodField()
-
+    company = serializers.SerializerMethodField()
+    contact = serializers.SerializerMethodField()
+    assigned_to = serializers.CharField(source='assigned_agent', read_only=True)
+    
     class Meta:
         model = Lead
         fields = [
             'id', 'status', 'source', 'priority', 'score', 'estimated_value',
             'notes', 'next_action', 'next_action_date', 'created_at', 'updated_at',
-            'company', 'contact', 'assigned_to', 'all_notes', 'campaign_count'
+            'company', 'contact', 'assigned_to'
         ]
 
-    def get_all_notes(self, obj):
-        """Get all lead notes for this lead"""
-        try:
-            notes = obj.lead_notes.all().order_by('-created_at')
-            return LeadNoteSerializer(notes, many=True).data
-        except Exception as e:
-            print(f"Error getting notes for lead {obj.id}: {e}")
-            return []
+    def get_company(self, obj):
+        """Get minimal company data"""
+        return {
+            'id': obj.company.id,
+            'name': obj.company.name,
+            'industry': obj.company.industry,
+            'location': obj.company.location,
+            'size': obj.company.size,
+            'employee_count': obj.company.employee_count
+        }
 
-    def get_campaign_count(self, obj):
-        """Get the number of email campaigns that targeted this lead"""
-        try:
-            return obj.emailcampaign_set.count()
-        except Exception as e:
-            print(f"Error getting campaign count for lead {obj.id}: {e}")
-            return 0
+    def get_contact(self, obj):
+        """Get minimal contact data"""
+        return {
+            'id': obj.contact.id,
+            'first_name': obj.contact.first_name,
+            'last_name': obj.contact.last_name,
+            'email': obj.contact.email,
+            'phone': obj.contact.phone,
+            'position': obj.contact.position
+        }
 
 
 class OpportunityActivitySerializer(serializers.ModelSerializer):

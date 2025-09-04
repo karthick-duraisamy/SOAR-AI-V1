@@ -96,13 +96,15 @@ export const useLeadApi = () => {
       console.log('Making API request to:', `${API_BASE_URL}/leads/search/`);
       console.log('Request body:', requestBody);
 
-      const response: AxiosResponse<Lead[]> = await baseApi.post(
+      const response: AxiosResponse<{results: Lead[], count: number, limit: number}> = await baseApi.post(
         `/leads/search/`,
         requestBody,
       );
 
-      setData(response.data);
-      return response.data;
+      // Handle both old and new response formats for backward compatibility
+      const responseData = response.data.results || response.data;
+      setData(responseData);
+      return responseData;
     } catch (error: any) {
       console.error('API Error Details:', error);
       
