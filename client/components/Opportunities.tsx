@@ -1634,7 +1634,15 @@ const getRandomRiskLevel = () => {
   const totalPages = Math.ceil(filteredOpportunities.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
-  const paginatedOpportunities = filteredOpportunities.slice(
+  
+  // Sort opportunities by created date in descending order (latest first) for list view
+  const sortedOpportunities = [...filteredOpportunities].sort((a, b) => {
+    const dateA = new Date(a.created_at).getTime();
+    const dateB = new Date(b.created_at).getTime();
+    return dateB - dateA; // Descending order (latest first)
+  });
+  
+  const paginatedOpportunities = sortedOpportunities.slice(
     startIndex,
     endIndex,
   );
