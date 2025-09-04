@@ -726,6 +726,9 @@ class LeadViewSet(viewsets.ModelViewSet):
                 # Get recent notes for display (limit to 3 most recent)
                 recent_notes = lead.lead_notes.all()[:3]
                 
+                # Check if lead has an associated opportunity
+                has_opportunity = hasattr(lead, 'opportunity') and lead.opportunity is not None
+
                 lead_data = {
                     'id': lead.id,
                     'status': lead.status,
@@ -739,6 +742,7 @@ class LeadViewSet(viewsets.ModelViewSet):
                     'created_at': lead.created_at,
                     'updated_at': lead.updated_at,
                     'assigned_to': lead.assigned_agent,
+                    'has_opportunity': has_opportunity,
                     'company': {
                         'id': lead.company.id,
                         'name': lead.company.name,
@@ -1299,7 +1303,7 @@ class LeadViewSet(viewsets.ModelViewSet):
                 )
 
             # Get opportunity data from request
-            opportunity_data = request.data.get('opportunity', {})
+            opportunity_data = request.data
 
             # Create the opportunity
             opportunity = Opportunity.objects.create(
@@ -1307,24 +1311,23 @@ class LeadViewSet(viewsets.ModelViewSet):
                 name=opportunity_data.get('name', f"{lead.company.name} - Corporate Travel Solution"),
                 stage=opportunity_data.get('stage', 'discovery'),
                 probability=opportunity_data.get('probability', 65),
-                estimated_close_date=opportunity_data.get('estimatedCloseDate',
+                estimated_close_date=opportunity_data.get('estimated_close_date',
                     (timezone.now().date() + timedelta(days=30))),
-                value=opportunity_data.get('dealValue', lead.estimated_value or 250000),
-                description=opportunity_data.get('notes', f"Opportunity created from qualified lead. {lead.notes}"),
-                next_steps=opportunity_data.get('nextAction', 'Send initial proposal and schedule presentation')
+                value=opportunity_data.get('value', lead.estimated_value or 250000),
+                description=opportunity_data.get('description', f"Opportunity created from qualified lead. {lead.notes}"),
+                next_steps=opportunity_data.get('next_steps', 'Send initial proposal and schedule presentation')
             )
 
-            # Update lead status to indicate it's been converted
-            old_status = lead.status
-            lead.status = 'won'  # Mark as won since it moved to opportunity
+            # Keep lead status as qualified but add a note that it's been moved
+            lead.notes = f"{lead.notes}\n\n[{timezone.now().strftime('%Y-%m-%d %H:%M')}] Lead moved to opportunities - {opportunity.name}"
             lead.save()
 
             # Create history entry for the conversion
             create_lead_history(
                 lead=lead,
                 history_type='opportunity_created',
-                action='Lead converted to opportunity',
-                details=f'Lead successfully converted to sales opportunity: {opportunity.name}. Deal value: ${opportunity.value:,.0f}',
+                action='Lead moved to opportunity',
+                details=f'Lead successfully moved to sales opportunity: {opportunity.name}. Deal value: ${opportunity.value:,.0f}. Lead remains in leads table for tracking.',
                 icon='briefcase',
                 user=request.user if request.user.is_authenticated else None
             )
@@ -1333,12 +1336,15 @@ class LeadViewSet(viewsets.ModelViewSet):
             opportunity_serializer = OpportunitySerializer(opportunity)
 
             return Response({
+                'success': True,
                 'message': f'{lead.company.name} has been successfully moved to opportunities',
                 'opportunity': opportunity_serializer.data,
-                'lead_id': lead.id
+                'lead_id': lead.id,
+                'has_opportunity': True
             }, status=status.HTTP_201_CREATED)
 
         except Exception as e:
+            print(f"Error in move_to_opportunity: {str(e)}")
             return Response(
                 {'error': f'Failed to move lead to opportunity: {str(e)}'},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR

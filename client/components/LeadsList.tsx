@@ -171,6 +171,7 @@ interface Lead {
   };
   campaignCount: number; // Number of email campaigns run against this lead
   history_entries: HistoryEntry[]; // This will be populated from API calls
+  has_opportunity: boolean; // Added to track if lead has been converted to an opportunity
 }
 
 // Helper function to transform API history entry to a consistent format
@@ -299,6 +300,7 @@ const transformApiLeadToUILead = (apiLead: any) => {
     campaignCount: apiLead.campaign_count || 0,
     // History will be fetched separately via API and mapped in the dialog
     history_entries: [], // This will be populated via getHistory API call
+    has_opportunity: apiLead.has_opportunity || false, // Map has_opportunity from API
   };
 };
 
@@ -699,10 +701,6 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
     followUpDate: "",
   });
   const [showAddNoteDialog, setShowAddNoteDialog] = useState(false);
-  const [leadsForViewProfile, setLeadsForViewProfile] = useState<any[]>([]); // State for leads to view profile
-  const [selectedCorporate, setSelectedCorporate] = useState(null);
-  const [showCorporateProfile, setShowCorporateProfile] = useState(false);
-  const [showMarketingCampaign, setShowMarketingCampaign] = useState(false);
   const [selectedLeadForNote, setSelectedLeadForNote] = useState<any>(null);
   const [noteForm, setNoteForm] = useState({
     note: "",
@@ -833,7 +831,7 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
       search: "",
     };
     setFilters(defaultFilters);
-    
+
     // Fetch leads with cleared filters
     // fetchLeadsWithFilters(defaultFilters);
   };
@@ -966,6 +964,7 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
             .toISOString()
             .split("T")[0],
           history_entries: [], // Will be fetched if needed, or use the provided notes as initial history
+          has_opportunity: false, // Default to false
         };
 
         // For initial display, we can add a placeholder history entry from the notes
@@ -1352,10 +1351,10 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
   const handleQualifyLead = async (leadId: number) => {
     try {
       setQualifyingLeadId(leadId); // Start loading spinner
-      
+
       // Find the lead name before API call
       const leadName = leads.find(l => l.id === leadId)?.company || "Lead";
-      
+
       await leadApi.qualifyLead(leadId, {
         reason: "Lead meets all qualification criteria",
       });
@@ -1370,7 +1369,7 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
         ...prev,
         [leadId]: [],
       }));
-      
+
       // Show success popup with updated status
       const message = `🎉 ${leadName} status successfully updated to 'Qualified'!`;
       console.log("Setting success message:", message);
@@ -1379,7 +1378,7 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
         console.log("Clearing success message");
         setSuccessMessage("");
       }, 7000);
-      
+
       toast.success("Lead qualified successfully");
     } catch (error) {
       console.error("Error qualifying lead:", error);
@@ -1761,8 +1760,12 @@ SOAR-AI Team`,
         opportunityData,
       );
 
-      // Remove the lead from the leads list locally immediately
-      setLeads((prev) => prev.filter((l) => l.id !== lead.id));
+      // Update the local state to mark the lead as having an opportunity
+      setLeads((prev) =>
+        prev.map((l) =>
+          l.id === lead.id ? { ...l, has_opportunity: true, status: "opportunity" } : l,
+        ),
+      );
 
       // Show success popup message based on API response
       const successMessage = response.message || `${lead.company} has been successfully moved to opportunities!`;
@@ -1804,15 +1807,15 @@ SOAR-AI Team`,
       toast.success(`${lead.company} moved to opportunities successfully!`);
     } catch (error) {
       console.error("Error moving lead to opportunity:", error);
-      const errorMessage = error.response?.data?.error || 
-                          error.response?.data?.message || 
-                          error.message || 
+      const errorMessage = error.response?.data?.error ||
+                          error.response?.data?.message ||
+                          error.message ||
                           "Failed to move lead to opportunities. Please try again.";
-      
+
       // Show error message in success message area
       setSuccessMessage(`❌ Error: ${errorMessage}`);
       setTimeout(() => setSuccessMessage(""), 7000);
-      
+
       toast.error(errorMessage);
 
       // If there's an error, refresh the leads to ensure consistency
@@ -1915,15 +1918,15 @@ SOAR-AI Team`,
 
   const handleCampaignComplete = async (campaignData) => {
     console.log("Campaign completed with data:", campaignData);
-    
+
     try {
       // Update status for leads that were 'new' to 'contacted'
       const selectedLeadData = filteredLeads.filter((lead) =>
         selectedLeads.includes(lead.id),
       );
-      
+
       const newLeadsToUpdate = selectedLeadData.filter(lead => lead.status === 'new');
-      
+
       if (newLeadsToUpdate.length > 0) {
         // Update each new lead's status to contacted
         const updatePromises = newLeadsToUpdate.map(async (lead) => {
@@ -1941,7 +1944,7 @@ SOAR-AI Team`,
 
         const updateResults = await Promise.all(updatePromises);
         const successfulUpdates = updateResults.filter(result => result.success);
-        
+
         if (successfulUpdates.length > 0) {
           // Update local state for successfully updated leads
           setLeads(prev => prev.map(lead => {
@@ -1951,7 +1954,7 @@ SOAR-AI Team`,
             }
             return lead;
           }));
-          
+
           toast.success(
             `Campaign "${campaignData.name}" launched successfully! ${successfulUpdates.length} lead${successfulUpdates.length > 1 ? 's' : ''} status updated to 'Contacted'.`,
           );
@@ -1972,7 +1975,7 @@ SOAR-AI Team`,
       );
       toast.error("Some lead statuses could not be updated. Please check manually.");
     }
-    
+
     setShowMarketingCampaign(false);
     setSelectedLeads([]);
     setSelectAll(false);
@@ -2035,7 +2038,7 @@ SOAR-AI Team`,
         <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 bg-green-50 border-2 border-green-200 rounded-lg p-4 flex items-center gap-3 shadow-2xl animate-in slide-in-from-top-2 max-w-md">
           <CheckCircle className="h-6 w-6 text-green-600 flex-shrink-0" />
           <span className="text-green-800 font-medium text-base">{successMessage}</span>
-          <button 
+          <button
             onClick={() => {
               console.log("Manual close success message");
               setSuccessMessage("");
@@ -3137,20 +3140,23 @@ SOAR-AI Team`,
                     )}
                     {lead.status === "qualified" && (
                       <Button
-                        size="sm"
                         variant="outline"
-                        className="text-green-700 border-green-200 bg-green-50 hover:bg-green-100"
-                        onClick={() => handleMoveToOpportunity(lead)}
+                        size="sm"
+                        className="h-8 px-3 text-xs bg-green-600 hover:bg-green-700 text-white rounded-md font-medium border-green-600"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleMoveToOpportunity(lead);
+                        }}
                         disabled={movingToOpportunityId === lead.id}
                       >
                         {movingToOpportunityId === lead.id ? (
                           <>
-                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-green-600 mr-1"></div>
+                            <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white mr-1"></div>
                             Moving...
                           </>
                         ) : (
                           <>
-                            <TrendingUpIcon className="h-4 w-4 mr-1" />
+                            <ArrowRight className="h-3 w-3 mr-1" />
                             Move to Opportunity
                           </>
                         )}
