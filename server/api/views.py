@@ -660,7 +660,7 @@ class LeadViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['post'])
     def search(self, request):
         """
-        Optimized POST endpoint for searching leads with filters
+        Optimized POST endpoint for searching leads with filters, notes and campaign counts
         """
         try:
             filters = request.data if hasattr(request, 'data') else {}
@@ -674,8 +674,10 @@ class LeadViewSet(viewsets.ModelViewSet):
             # Limit results for better performance
             limit = min(int(filters.get('limit', 50)), 100)  # Max 100 records
 
-            # Start with optimized queryset - only select necessary fields and use select_related
-            leads = Lead.objects.select_related('company', 'contact').only(
+            # Start with optimized queryset with prefetch for notes and campaigns
+            leads = Lead.objects.select_related('company', 'contact').prefetch_related(
+                'lead_notes', 'emailcampaign_set'
+            ).only(
                 'id', 'status', 'source', 'priority', 'score', 'estimated_value',
                 'notes', 'next_action', 'next_action_date', 'created_at', 'updated_at',
                 'assigned_agent',
@@ -712,17 +714,66 @@ class LeadViewSet(viewsets.ModelViewSet):
             # Order and limit for performance
             leads = leads.order_by('-updated_at', '-created_at')[:limit]
 
-            # Use optimized serializer for faster response
-            try:
-                from .serializers import OptimizedLeadSerializer
-                serializer = OptimizedLeadSerializer(leads, many=True)
-            except ImportError:
-                # Fallback to standard serializer if optimized one doesn't exist
-                serializer = self.get_serializer(leads, many=True)
+            # Build response data with notes and campaign counts
+            results = []
+            for lead in leads:
+                # Get notes count efficiently (already prefetched)
+                notes_count = lead.lead_notes.count()
+                
+                # Get campaign count efficiently (already prefetched)
+                campaign_count = lead.emailcampaign_set.count()
+                
+                # Get recent notes for display (limit to 3 most recent)
+                recent_notes = lead.lead_notes.all()[:3]
+                
+                lead_data = {
+                    'id': lead.id,
+                    'status': lead.status,
+                    'source': lead.source,
+                    'priority': lead.priority,
+                    'score': lead.score,
+                    'estimated_value': lead.estimated_value,
+                    'notes': lead.notes,
+                    'next_action': lead.next_action,
+                    'next_action_date': lead.next_action_date,
+                    'created_at': lead.created_at,
+                    'updated_at': lead.updated_at,
+                    'assigned_to': lead.assigned_agent,
+                    'company': {
+                        'id': lead.company.id,
+                        'name': lead.company.name,
+                        'industry': lead.company.industry,
+                        'location': lead.company.location,
+                        'size': lead.company.size,
+                        'employee_count': lead.company.employee_count
+                    },
+                    'contact': {
+                        'id': lead.contact.id,
+                        'first_name': lead.contact.first_name,
+                        'last_name': lead.contact.last_name,
+                        'email': lead.contact.email,
+                        'phone': lead.contact.phone,
+                        'position': lead.contact.position
+                    },
+                    'notes_count': notes_count,
+                    'campaign_count': campaign_count,
+                    'leadNotes': [
+                        {
+                            'id': note.id,
+                            'note': note.note,
+                            'next_action': note.next_action,
+                            'urgency': note.urgency,
+                            'created_at': note.created_at.isoformat() if note.created_at else None,
+                            'created_by': note.created_by.username if note.created_by else None
+                        }
+                        for note in recent_notes
+                    ]
+                }
+                results.append(lead_data)
 
             return Response({
-                'results': serializer.data,
-                'count': len(serializer.data),
+                'results': results,
+                'count': len(results),
                 'limit': limit
             })
 
@@ -738,6 +789,61 @@ class LeadViewSet(viewsets.ModelViewSet):
         leads = self.queryset.filter(status='qualified').order_by('-score', '-created_at')
         serializer = self.get_serializer(leads, many=True)
         return Response(serializer.data)
+
+    @action(detail=False, methods=['post'])
+    def batch_notes_and_campaigns(self, request):
+        """
+        Get notes and campaign counts for multiple leads efficiently
+        """
+        try:
+            lead_ids = request.data.get('lead_ids', [])
+            
+            if not lead_ids:
+                return Response(
+                    {'error': 'lead_ids array is required'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            # Fetch leads with prefetched notes and campaigns
+            leads = Lead.objects.filter(id__in=lead_ids).prefetch_related(
+                'lead_notes', 'emailcampaign_set'
+            ).select_related('company', 'contact')
+
+            batch_data = {}
+            
+            for lead in leads:
+                # Get notes count and recent notes
+                notes_count = lead.lead_notes.count()
+                recent_notes = lead.lead_notes.all()[:5]  # Get 5 most recent
+                
+                # Get campaign count
+                campaign_count = lead.emailcampaign_set.count()
+                
+                batch_data[str(lead.id)] = {
+                    'notes_count': notes_count,
+                    'campaign_count': campaign_count,
+                    'recent_notes': [
+                        {
+                            'id': note.id,
+                            'note': note.note,
+                            'urgency': note.urgency,
+                            'created_at': note.created_at.isoformat() if note.created_at else None
+                        }
+                        for note in recent_notes
+                    ]
+                }
+
+            return Response({
+                'success': True,
+                'data': batch_data,
+                'processed_count': len(batch_data)
+            })
+
+        except Exception as e:
+            return Response(
+                {'error': f'Batch operation failed: {str(e)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
     @action(detail=False, methods=['get'])
     def unqualified_leads(self, request):
@@ -849,16 +955,71 @@ class LeadViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['get'])
     def notes(self, request, pk=None):
         """
-        Get all notes for a specific lead
+        Get all notes for a specific lead with count
         """
         try:
             lead = self.get_object()
             notes = lead.lead_notes.all().order_by('-created_at')
             serializer = LeadNoteSerializer(notes, many=True)
-            return Response(serializer.data, status=status.HTTP_200_OK)
+            return Response({
+                'notes': serializer.data,
+                'count': notes.count(),
+                'lead_id': lead.id
+            }, status=status.HTTP_200_OK)
         except Exception as e:
             return Response(
                 {'error': f'Failed to fetch notes: {str(e)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+    @action(detail=True, methods=['get'])
+    def campaign_count(self, request, pk=None):
+        """
+        Get campaign count for a specific lead
+        """
+        try:
+            lead = self.get_object()
+            campaign_count = lead.emailcampaign_set.count()
+            return Response({
+                'lead_id': lead.id,
+                'campaign_count': campaign_count
+            }, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response(
+                {'error': f'Failed to fetch campaign count: {str(e)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+    @action(detail=True, methods=['get'])
+    def campaigns(self, request, pk=None):
+        """
+        Get all campaigns for a specific lead
+        """
+        try:
+            lead = self.get_object()
+            campaigns = lead.emailcampaign_set.all().order_by('-created_at')
+            campaigns_data = []
+            
+            for campaign in campaigns:
+                campaigns_data.append({
+                    'id': campaign.id,
+                    'name': campaign.name,
+                    'status': campaign.status,
+                    'subject_line': campaign.subject_line,
+                    'emails_sent': campaign.emails_sent,
+                    'emails_opened': campaign.emails_opened,
+                    'open_rate': campaign.open_rate,
+                    'created_at': campaign.created_at.isoformat() if campaign.created_at else None
+                })
+                
+            return Response({
+                'campaigns': campaigns_data,
+                'count': len(campaigns_data),
+                'lead_id': lead.id
+            }, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response(
+                {'error': f'Failed to fetch campaigns: {str(e)}'},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 

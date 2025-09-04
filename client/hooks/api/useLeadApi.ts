@@ -409,6 +409,62 @@ export const useLeadApi = () => {
     }
   }, [setLoading, setError, setData]);
 
+  // Get campaign count for a specific lead
+  const getCampaignCount = useCallback(async (leadId: number) => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const response = await baseApi.get(`/leads/${leadId}/campaign_count/`);
+      setData(response.data);
+      return response.data;
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.error || error.message || 'Failed to fetch campaign count';
+      setError(errorMessage);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  }, [setLoading, setError, setData]);
+
+  // Get campaigns for a specific lead
+  const getLeadCampaigns = useCallback(async (leadId: number) => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const response = await baseApi.get(`/leads/${leadId}/campaigns/`);
+      setData(response.data);
+      return response.data;
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.error || error.message || 'Failed to fetch lead campaigns';
+      setError(errorMessage);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  }, [setLoading, setError, setData]);
+
+  // Batch fetch notes and campaigns for multiple leads
+  const batchNotesAndCampaigns = useCallback(async (leadIds: number[]) => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const response = await baseApi.post(`/leads/batch_notes_and_campaigns/`, {
+        lead_ids: leadIds
+      });
+      setData(response.data);
+      return response.data;
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.error || error.message || 'Failed to fetch batch data';
+      setError(errorMessage);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  }, [setLoading, setError, setData]);
+
   // Send proposal email
   const sendProposal = useCallback(async (opportunityId: number, proposalData: any) => {
     setLoading(true);
@@ -769,6 +825,9 @@ export const useLeadApi = () => {
     getPipelineStats,
     addNote,
     getLeadNotes,
+    getCampaignCount,
+    getLeadCampaigns,
+    batchNotesAndCampaigns,
     sendMessage,
     getHistory,
     getLeadStats,
