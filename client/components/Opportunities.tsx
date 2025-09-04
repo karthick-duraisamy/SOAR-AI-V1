@@ -1969,26 +1969,48 @@ const getRandomRiskLevel = () => {
     setShowProposalDialog(true);
   }, [loadDraft, formatCurrency]);
 
-  const handleCloseDeal = useCallback((opportunity: Opportunity, status: string) => {
-    const updatedOpportunity = {
-      ...opportunity,
-      stage: status,
-      probability: status === "closed_won" ? 100 : 0,
-      actual_close_date: new Date().toISOString().split("T")[0],
-      updated_at: new Date().toISOString(),
-    };
+  const handleCloseDeal = useCallback(async (opportunity: Opportunity, status: string) => {
+    try {
+      // Set loading state for the close deal button
+      setLoadingOpportunityId(opportunity.id);
 
-    setOpportunities((prev) =>
-      prev.map((opp) => (opp.id === opportunity.id ? updatedOpportunity : opp)),
-    );
+      const updateData = {
+        stage: status,
+        probability: status === "closed_won" ? 100 : 0,
+        actual_close_date: new Date().toISOString().split("T")[0],
+      };
 
-    const message = status === "closed_won" 
-      ? `${opportunity.lead_info?.company?.name} deal closed successfully! 🎉`
-      : `${opportunity.lead_info?.company?.name} deal marked as Deal Lost`;
+      console.log("Closing deal with data:", updateData);
 
-    setSuccessMessage(message);
-    setTimeout(() => setSuccessMessage(""), 5000);
-  }, []);
+      // Update opportunity stage via API
+      await updateOpportunityStage(opportunity.id, updateData);
+
+      // Update local state to reflect the changes
+      const updatedOpportunity = {
+        ...opportunity,
+        ...updateData,
+        updated_at: new Date().toISOString(),
+      };
+
+      setOpportunities((prev) =>
+        prev.map((opp) => (opp.id === opportunity.id ? updatedOpportunity : opp)),
+      );
+
+      const message = status === "closed_won" 
+        ? `${opportunity.lead_info?.company?.name} deal closed successfully! 🎉`
+        : `${opportunity.lead_info?.company?.name} deal marked as Deal Lost`;
+
+      setSuccessMessage(message);
+      setTimeout(() => setSuccessMessage(""), 5000);
+      toast.success(message);
+    } catch (error) {
+      console.error("Error closing deal:", error);
+      toast.error("Failed to close deal. Please try again.");
+    } finally {
+      // Clear loading state
+      setLoadingOpportunityId(null);
+    }
+  }, [updateOpportunityStage]);
 
   const handleSaveEdit = useCallback(async () => {
     if (!selectedOpportunity) return;
