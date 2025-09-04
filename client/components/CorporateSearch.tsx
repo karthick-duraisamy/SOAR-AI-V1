@@ -1434,7 +1434,7 @@ export function CorporateSearch({
                               AI Score {corporate.aiScore}
                             </Badge>
                           </div>
-                          <p className="text-sm text-gray-600 mb-1">
+                          <p className="text-sm text-red-600 mb-1">
                             {corporate.type} • {corporate.industry}
                           </p>
                           <div className="flex items-center gap-4 text-sm text-gray-500">
@@ -1450,10 +1450,19 @@ export function CorporateSearch({
                               <Calendar className="h-3 w-3" />
                               Est. {corporate.established}
                             </span>
-                            <span className="flex items-center gap-1 cls-link">
+                            {/* <span className="flex items-center gap-1 cls-link">
                               <Globe className="h-3 w-3" />
                               {corporate.website}
-                            </span>
+                            </span> */}
+                            <a
+                              href={corporate.website}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="flex items-center gap-1 text-blue-600 hover:text-blue-800 hover:underline"
+                            >
+                              <Globe className="h-3 w-3" />
+                              {corporate.website}
+                            </a>
                           </div>
                         </div>
                         <div className="text-right">

@@ -180,31 +180,31 @@ export function LeadManagement({ onNavigate }: LeadManagementProps) {
   const renderKeyMetricSkeleton = () => (
     <Card className="bg-white border border-gray-100 shadow-sm">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <Skeleton className="h-4 w-1/2" />
-        <Skeleton className="h-4 w-4" />
+        <Skeleton className="bg-gray-200 h-4 w-1/2" />
+        <Skeleton className="bg-gray-200 h-4 w-4" />
       </CardHeader>
       <CardContent>
-        <Skeleton className="h-8 w-1/3 mb-1" />
-        <Skeleton className="h-3 w-1/2" />
+        <Skeleton className="bg-gray-200 h-8 w-1/3 mb-1" />
+        <Skeleton className="bg-gray-200 h-3 w-1/2" />
       </CardContent>
     </Card>
   );
 
   const renderActivitySkeleton = () => (
     <div className="flex items-start gap-3 p-3 border border-gray-100 rounded-lg bg-white">
-      <Skeleton className="w-4 h-4 rounded-full mt-0.5" />
+      <Skeleton className="bg-gray-200  w-4 h-4 rounded-full mt-0.5" />
       <div className="flex-1 space-y-2">
         <div className="flex items-start justify-between gap-2">
           <div className="space-y-2">
-            <Skeleton className="h-4 w-32" />
-            <Skeleton className="h-3 w-48" />
+            <Skeleton className="bg-gray-200 h-4 w-32" />
+            <Skeleton className="bg-gray-200 h-3 w-48" />
           </div>
           <div className="flex flex-col items-end gap-2">
-            <Skeleton className="h-5 w-20" />
-            <Skeleton className="h-3 w-16" />
+            <Skeleton className="bg-gray-200 h-5 w-20" />
+            <Skeleton className="bg-gray-200 h-3 w-16" />
           </div>
         </div>
-        <Skeleton className="h-5 w-24" />
+        <Skeleton className="bg-gray-200 h-5 w-24" />
       </div>
     </div>
   );
@@ -215,27 +215,27 @@ export function LeadManagement({ onNavigate }: LeadManagementProps) {
         <Skeleton className="flex items-center justify-center w-10 h-10 rounded-lg" />
         <div>
           <div className="flex items-center gap-2">
-            <Skeleton className="h-4 w-24" />
-            <Skeleton className="h-5 w-16" />
+            <Skeleton className="bg-gray-200 h-4 w-24" />
+            <Skeleton className="bg-gray-200 h-5 w-16" />
           </div>
-          <Skeleton className="h-3 w-32 mt-1" />
+          <Skeleton className="bg-gray-200 h-3 w-32 mt-1" />
           <div className="flex items-center gap-4 mt-1 text-xs text-muted-foreground">
-            <Skeleton className="h-3 w-16" />
-            <Skeleton className="h-3 w-24" />
-            <Skeleton className="h-3 w-20" />
+            <Skeleton className="bg-gray-200 h-3 w-16" />
+            <Skeleton className="bg-gray-200 h-3 w-24" />
+            <Skeleton className="bg-gray-200 h-3 w-20" />
           </div>
         </div>
       </div>
       <div className="flex items-center gap-4">
         <div className="text-right">
-          <Skeleton className="h-4 w-20 mb-1" />
-          <Skeleton className="h-3 w-12" />
+          <Skeleton className="bg-gray-200 h-4 w-20 mb-1" />
+          <Skeleton className="bg-gray-200 h-3 w-12" />
         </div>
         <div className="text-right">
-          <Skeleton className="h-3 w-24" />
-          <Skeleton className="h-3 w-16" />
+          <Skeleton className="bg-gray-200 h-3 w-24" />
+          <Skeleton className="bg-gray-200 h-3 w-16" />
         </div>
-        <Skeleton className="h-8 w-8" />
+        <Skeleton className="bg-gray-200 h-8 w-8" />
       </div>
     </div>
   );
@@ -415,10 +415,10 @@ export function LeadManagement({ onNavigate }: LeadManagementProps) {
               <CardContent className="space-y-6">
                 {isLoading ? (
                   <div className="space-y-4">
-                    <Skeleton className="h-4 w-full" />
-                    <Skeleton className="h-4 w-full" />
-                    <Skeleton className="h-4 w-full" />
-                    <Skeleton className="h-4 w-full" />
+                    <Skeleton className="bg-gray-200 h-4 w-full" />
+                    <Skeleton className="bg-gray-200 h-4 w-full" />
+                    <Skeleton className="bg-gray-200 h-4 w-full" />
+                    <Skeleton className="bg-gray-200 h-4 w-full" />
                   </div>
                 ) : (
                   <>

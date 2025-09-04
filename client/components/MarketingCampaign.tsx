@@ -691,7 +691,7 @@ export function MarketingCampaign({ targetLeads, onNavigate, onBack }: Marketing
                   </div>
 
                   <div>
-                    <Label>Description</Label>
+                    <Label>Template Description</Label>
                     <Input
                       value={newTemplate.description || ''}
                       onChange={(e) => setNewTemplate(prev => ({ ...prev, description: e.target.value }))}
