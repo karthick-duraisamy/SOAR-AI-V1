@@ -186,6 +186,7 @@ export function MarketingCampaignWizard({ selectedLeads, onBack, onComplete }: M
         subject_line: templateData.subject_line,
         content: templateData.content,
         cta: templateData.cta,
+        cta_link: templateData.cta_link,
         linkedin_type: templateData.linkedin_type,
         estimated_open_rate: 40,
         estimated_click_rate: 10,
@@ -258,10 +259,10 @@ export function MarketingCampaignWizard({ selectedLeads, onBack, onComplete }: M
         try {
           // Update status for leads that were 'new' to 'contacted'
           const leadsToUpdate = selectedLeads.filter(lead => lead.status === 'new');
-          
+
           if (leadsToUpdate.length > 0) {
             console.log(`Updating ${leadsToUpdate.length} leads from 'new' to 'contacted'`);
-            
+
             // Update each lead's status
             const updatePromises = leadsToUpdate.map(async (lead) => {
               try {
@@ -278,7 +279,7 @@ export function MarketingCampaignWizard({ selectedLeads, onBack, onComplete }: M
 
             const updateResults = await Promise.all(updatePromises);
             const successfulUpdates = updateResults.filter(result => result.success);
-            
+
             console.log(`Successfully updated ${successfulUpdates.length} lead statuses`);
           }
         } catch (error) {
@@ -605,7 +606,7 @@ export function MarketingCampaignWizard({ selectedLeads, onBack, onComplete }: M
                         <Label htmlFor="email-body" className="text-sm font-medium text-gray-700">
                           Email Body
                         </Label>
-                        
+
                         <div>
                           <RichTextEditor
                             value={campaignData.content.email.body || ''}
@@ -828,16 +829,16 @@ TechCorp Solutions can achieve complete travel governance without slowing down y
         const calculateAIPredictions = () => {
           const leadsCount = selectedLeads.length;
           const template = campaignData.selectedTemplate;
-          
+
           if (!template || leadsCount === 0) {
             return { opens: 0, clicks: 0, responses: 0, conversions: 0 };
           }
-          
+
           const expectedOpens = Math.round((leadsCount * template.estimated_open_rate) / 100);
           const expectedClicks = Math.round((leadsCount * template.estimated_click_rate) / 100);
           const expectedResponses = Math.round(expectedClicks * 0.3); // 30% of clicks respond
           const expectedConversions = Math.round(expectedResponses * 0.2); // 20% of responses convert
-          
+
           return {
             opens: expectedOpens,
             clicks: expectedClicks,

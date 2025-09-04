@@ -2799,8 +2799,24 @@ class EmailCampaignViewSet(viewsets.ModelViewSet):
             template_id = data.get('templateId')
             target_leads = data.get('targetLeads', [])
             target_lead_ids = data.get('target_leads', [])
-            subject_line = data.get('subjectLine', '') or data.get('subject_line', '')
-            message_content = data.get('messageContent', '') or data.get('email_content', '')
+            
+            # Handle nested email content structure
+            email_content = data.get('content', {}).get('email', {})
+            subject_line = (
+                data.get('subjectLine', '') or 
+                data.get('subject_line', '') or 
+                email_content.get('subject', '')
+            )
+            message_content = (
+                data.get('messageContent', '') or 
+                data.get('email_content', '') or 
+                email_content.get('body', '')
+            )
+            
+            # Handle CTA and CTA link
+            cta_text = email_content.get('cta', '') or data.get('cta', '')
+            cta_link = email_content.get('cta_link', '') or data.get('cta_link', '')
+            
             campaign_name = data.get('name', '') or f"Campaign - {subject_line[:50]}"
 
             # Handle both targetLeads and target_leads formats
@@ -2826,6 +2842,7 @@ class EmailCampaignViewSet(viewsets.ModelViewSet):
                 status='active',
                 subject_line=subject_line,
                 email_content=message_content,
+                cta_link=cta_link if cta_link else None,
                 scheduled_date=timezone.now(),
                 sent_date=timezone.now(),
                 target_count=len(all_target_leads)
@@ -2846,6 +2863,10 @@ class EmailCampaignViewSet(viewsets.ModelViewSet):
                     {'error': 'No valid target leads found'},
                     status=status.HTTP_400_BAD_REQUEST
                 )
+
+            # Store CTA text temporarily for email sending
+            if cta_text:
+                campaign._temp_cta_text = cta_text
 
             # Send emails
             result = campaign.send_emails()
