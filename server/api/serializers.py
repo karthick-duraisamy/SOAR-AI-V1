@@ -454,7 +454,8 @@ class EmailCampaignSerializer(serializers.ModelSerializer):
         model = EmailCampaign
         fields = ['id', 'name', 'description', 'campaign_type', 'status', 'subject_line', 
                  'email_content', 'cta_link', 'scheduled_date', 'sent_date', 'emails_sent', 'emails_opened', 
-                 'emails_clicked', 'template', 'target_leads', 'created_at', 'updated_at']
+                 'emails_clicked', 'template', 'target_leads', 'created_at', 'updated_at',
+                 'target_leads_count', 'open_rate', 'click_rate', 'click_to_open_rate', 'engagement_metrics']
 
     def get_target_leads_count(self, obj):
         return obj.target_leads.count()
