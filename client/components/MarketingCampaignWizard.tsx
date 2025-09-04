@@ -150,6 +150,13 @@ export function MarketingCampaignWizard({ onNavigate, initialCampaignData, editM
     };
   });
   const [isLaunching, setIsLaunching] = useState(false);
+  
+  // Mock selectedLeads data for now - moved before usage
+  const selectedLeads = [
+    { id: 1, company: 'TechCorp Solutions', contact: 'Sarah Johnson', industry: 'Technology', score: 85, status: 'new' },
+    { id: 2, company: 'Global Industries', contact: 'Mike Chen', industry: 'Manufacturing', score: 78, status: 'new' },
+  ];
+  
   const targetLeads = selectedLeads; // Alias for clarity in case 5
 
   const { 
@@ -293,11 +300,7 @@ export function MarketingCampaignWizard({ onNavigate, initialCampaignData, editM
     onNavigate('email-campaigns');
   };
 
-  // Mock selectedLeads data for now
-  const selectedLeads = [
-    { id: 1, company: 'TechCorp Solutions', contact: 'Sarah Johnson', industry: 'Technology', score: 85, status: 'new' },
-    { id: 2, company: 'Global Industries', contact: 'Mike Chen', industry: 'Manufacturing', score: 78, status: 'new' },
-  ];
+  
 
   const handleLaunchCampaign = async () => {
     setIsLaunching(true);
