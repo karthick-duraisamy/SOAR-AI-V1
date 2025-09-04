@@ -771,6 +771,11 @@ export function Opportunities({
   const [showActivityDialog, setShowActivityDialog] = useState(false);
   const [showHistoryDialog, setShowHistoryDialog] = useState(false);
   const [showProposalDialog, setShowProposalDialog] = useState(false);
+  const [proposalDialogMode, setProposalDialogMode] = useState<'proposal' | 'negotiation'>('proposal');
+  const [showEmailPreview, setShowEmailPreview] = useState(false);
+  const [emailPreviewContent, setEmailPreviewContent] = useState("");
+  const [isDraftLoading, setIsDraftLoading] = useState(false);
+  const [loadingOpportunityId, setLoadingOpportunityId] = useState<number | null>(null);
   const [currentView, setCurrentView] = useState("list");
   const [filters, setFilters] = useState({
     stage: "all",
@@ -1142,11 +1147,6 @@ const getRandomRiskLevel = () => {
     path: "",
   });
 
-  const [showEmailPreview, setShowEmailPreview] = useState(false);
-  const [emailPreviewContent, setEmailPreviewContent] = useState("");
-  const [isDraftLoading, setIsDraftLoading] = useState(false);
-  const [loadingOpportunityId, setLoadingOpportunityId] = useState<number | null>(null);
-
   // Persistent draft management using API
   const saveDraft = useCallback(async (opportunityId: number, formData: any, file?: File) => {
     try {
@@ -1165,33 +1165,33 @@ const getRandomRiskLevel = () => {
         travel_frequency: formData.negotiationData?.travelFrequency || 'monthly',
         annual_booking_volume: formData.negotiationData?.annualBookingVolume || '',
         projected_spend: formData.negotiationData?.projectedSpend || '',
-        preferred_routes: formData.negotiationData?.preferredRoutes || '',
-        domestic_economy: formData.negotiationData?.domesticEconomy !== undefined ? formData.negotiationData.domesticEconomy : 60,
-        domestic_business: formData.negotiationData?.domesticBusiness !== undefined ? formData.negotiationData.domesticBusiness : 25,
+        preferredRoutes: formData.negotiationData?.preferredRoutes || '',
+        domesticEconomy: formData.negotiationData?.domesticEconomy !== undefined ? formData.negotiationData.domesticEconomy : 60,
+        domesticBusiness: formData.negotiationData?.domesticBusiness !== undefined ? formData.negotiationData.domesticBusiness : 25,
         international: formData.negotiationData?.international !== undefined ? formData.negotiationData.international : 15,
 
         // Discount/Offer Terms
-        base_discount: formData.negotiationData?.baseDiscount || '',
-        route_discounts: formData.negotiationData?.routeDiscounts || [],
-        loyalty_benefits: formData.negotiationData?.loyaltyBenefits || {},
-        volume_incentives: formData.negotiationData?.volumeIncentives || '',
+        baseDiscount: formData.negotiationData?.baseDiscount || '',
+        routeDiscounts: formData.negotiationData?.routeDiscounts || [],
+        loyaltyBenefits: formData.negotiationData?.loyaltyBenefits || {},
+        volumeIncentives: formData.negotiationData?.volumeIncentives || '',
 
         // Financial & Contract Terms
-        contract_duration: formData.negotiationData?.contractDuration || '24',
-        auto_renewal: formData.negotiationData?.autoRenewal !== undefined ? formData.negotiationData.autoRenewal : true,
-        payment_terms: formData.negotiationData?.paymentTerms || 'net_30',
-        settlement_type: formData.negotiationData?.settlementType || 'bsp',
+        contractDuration: formData.negotiationData?.contractDuration || '24',
+        autoRenewal: formData.negotiationData?.autoRenewal !== undefined ? formData.negotiationData.autoRenewal : true,
+        paymentTerms: formData.negotiationData?.paymentTerms || 'net_30',
+        settlementType: formData.negotiationData?.settlementType || 'bsp',
 
         // Negotiation Strategy
-        airline_concessions: formData.negotiationData?.airlineConcessions || '',
-        corporate_commitments: formData.negotiationData?.corporateCommitments || '',
-        internal_notes: formData.negotiationData?.internalNotes || '',
-        priority_level: formData.negotiationData?.priorityLevel || 'medium',
+        airlineConcessions: formData.negotiationData?.airlineConcessions || '',
+        corporateCommitments: formData.negotiationData?.corporateCommitments || '',
+        internalNotes: formData.negotiationData?.internalNotes || '',
+        priorityLevel: formData.negotiationData?.priorityLevel || 'medium',
 
         // Approvals Workflow
-        discount_approval_required: formData.negotiationData?.discountApprovalRequired !== undefined ? formData.negotiationData.discountApprovalRequired : false,
-        revenue_manager_assigned: formData.negotiationData?.revenueManagerAssigned || '',
-        legal_approval_required: formData.negotiationData?.legalApprovalRequired !== undefined ? formData.negotiationData.legalApprovalRequired : false
+        discountApprovalRequired: formData.negotiationData?.discountApprovalRequired !== undefined ? formData.negotiationData.discountApprovalRequired : false,
+        revenueManagerAssigned: formData.negotiationData?.revenueManagerAssigned || '',
+        legalApprovalRequired: formData.negotiationData?.legalApprovalRequired !== undefined ? formData.negotiationData.legalApprovalRequired : false
       };
 
       // Try to update existing draft first, then create if it doesn't exist
@@ -1640,14 +1640,14 @@ const getRandomRiskLevel = () => {
   const totalPages = Math.ceil(filteredOpportunities.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
-  
+
   // Sort opportunities by created date in descending order (latest first) for list view
   const sortedOpportunities = [...filteredOpportunities].sort((a, b) => {
     const dateA = new Date(a.created_at).getTime();
     const dateB = new Date(b.created_at).getTime();
     return dateB - dateA; // Descending order (latest first)
   });
-  
+
   const paginatedOpportunities = sortedOpportunities.slice(
     startIndex,
     endIndex,
@@ -1718,6 +1718,7 @@ const getRandomRiskLevel = () => {
   const handleSendProposal = useCallback(async (opportunity: Opportunity) => {
     setSelectedOpportunity(opportunity);
     setLoadingOpportunityId(opportunity.id);
+    setProposalDialogMode('proposal'); // Set mode to proposal
 
     try {
       // Try to load existing draft
@@ -1751,7 +1752,7 @@ const getRandomRiskLevel = () => {
           projectedSpend: existingDraft.projected_spend || prevForm.projectedSpend,
           preferredRoutes: existingDraft.preferred_routes || prevForm.preferredRoutes,
           domesticEconomy: existingDraft.domestic_economy !== undefined ? existingDraft.domestic_economy : prevForm.domesticEconomy,
-          domesticBusiness: existingDraft.domestic_business !== undefined ? existingDraft.domestic_business : prevForm.domesticBusiness,
+          domesticBusiness: existingDraft.domestic_business !== undefined ? existingDraft.domesticBusiness : prevForm.domesticBusiness,
           international: existingDraft.international !== undefined ? existingDraft.international : prevForm.international,
           baseDiscount: existingDraft.base_discount || prevForm.baseDiscount,
           routeDiscounts: Array.isArray(existingDraft.route_discounts) ? existingDraft.route_discounts : prevForm.routeDiscounts,
@@ -1763,11 +1764,11 @@ const getRandomRiskLevel = () => {
           settlementType: existingDraft.settlement_type || prevForm.settlementType,
           airlineConcessions: existingDraft.airline_concessions || prevForm.airlineConcessions,
           corporateCommitments: existingDraft.corporate_commitments || `Annual volume commitment based on ${opportunity.lead_info?.company?.employee_count || 'N/A'} employees. Projected spend: ${formatCurrency(opportunity.value)}.`,
-          internalNotes: existingDraft.internal_notes || prevForm.internalNotes,
-          priorityLevel: existingDraft.priority_level || prevForm.priorityLevel,
-          discountApprovalRequired: existingDraft.discount_approval_required !== undefined ? existingDraft.discount_approval_required : prevForm.discountApprovalRequired,
-          revenueManagerAssigned: existingDraft.revenue_manager_assigned || prevForm.revenueManagerAssigned,
-          legalApprovalRequired: existingDraft.legal_approval_required !== undefined ? existingDraft.legal_approval_required : prevForm.legalApprovalRequired
+          internalNotes: existingDraft.internalNotes || prevForm.internalNotes,
+          priorityLevel: existingDraft.priorityLevel || prevForm.priorityLevel,
+          discountApprovalRequired: existingDraft.discountApprovalRequired !== undefined ? existingDraft.discountApprovalRequired : prevForm.discountApprovalRequired,
+          revenueManagerAssigned: existingDraft.revenueManagerAssigned || prevForm.revenueManagerAssigned,
+          legalApprovalRequired: existingDraft.legalApprovalRequired !== undefined ? existingDraft.legalApprovalRequired : prevForm.legalApprovalRequired
         }));
 
         // Handle attachment info
@@ -1844,6 +1845,7 @@ const getRandomRiskLevel = () => {
   const handleMoveToNegotiation = useCallback(async (opportunity: Opportunity) => {
     setSelectedOpportunity(opportunity);
     setLoadingOpportunityId(opportunity.id);
+    setProposalDialogMode('negotiation'); // Set mode to negotiation
 
     try {
       // Try to load existing draft
@@ -1877,7 +1879,7 @@ const getRandomRiskLevel = () => {
           projectedSpend: existingDraft.projected_spend || prevForm.projectedSpend,
           preferredRoutes: existingDraft.preferred_routes || prevForm.preferredRoutes,
           domesticEconomy: existingDraft.domestic_economy !== undefined ? existingDraft.domestic_economy : prevForm.domesticEconomy,
-          domesticBusiness: existingDraft.domestic_business !== undefined ? existingDraft.domestic_business : prevForm.domesticBusiness,
+          domesticBusiness: existingDraft.domestic_business !== undefined ? existingDraft.domesticBusiness : prevForm.domesticBusiness,
           international: existingDraft.international !== undefined ? existingDraft.international : prevForm.international,
           baseDiscount: existingDraft.base_discount || prevForm.baseDiscount,
           routeDiscounts: Array.isArray(existingDraft.route_discounts) ? existingDraft.route_discounts : prevForm.routeDiscounts,
@@ -1889,11 +1891,11 @@ const getRandomRiskLevel = () => {
           settlementType: existingDraft.settlement_type || prevForm.settlementType,
           airlineConcessions: existingDraft.airline_concessions || prevForm.airlineConcessions,
           corporateCommitments: existingDraft.corporate_commitments || `Annual volume commitment based on ${opportunity.lead_info?.company?.employee_count || 'N/A'} employees. Projected spend: ${formatCurrency(opportunity.value)}.`,
-          internalNotes: existingDraft.internal_notes || prevForm.internalNotes,
-          priorityLevel: existingDraft.priority_level || prevForm.priorityLevel,
-          discountApprovalRequired: existingDraft.discount_approval_required !== undefined ? existingDraft.discount_approval_required : prevForm.discountApprovalRequired,
-          revenueManagerAssigned: existingDraft.revenue_manager_assigned || prevForm.revenueManagerAssigned,
-          legalApprovalRequired: existingDraft.legal_approval_required !== undefined ? existingDraft.legal_approval_required : prevForm.legalApprovalRequired
+          internalNotes: existingDraft.internalNotes || prevForm.internalNotes,
+          priorityLevel: existingDraft.priorityLevel || prevForm.priorityLevel,
+          discountApprovalRequired: existingDraft.discountApprovalRequired !== undefined ? existingDraft.discountApprovalRequired : prevForm.discountApprovalRequired,
+          revenueManagerAssigned: existingDraft.revenueManagerAssigned || prevForm.revenueManagerAssigned,
+          legalApprovalRequired: existingDraft.legalApprovalRequired !== undefined ? existingDraft.legalApprovalRequired : prevForm.legalApprovalRequired
         }));
 
         // Handle attachment info
@@ -2190,7 +2192,7 @@ const getRandomRiskLevel = () => {
     try {
       // Set loading state for the send proposal button
       setLoadingOpportunityId(selectedOpportunity.id);
-      
+
       // Prepare proposal data for sending
       const proposalData = {
         opportunity_id: selectedOpportunity.id,
@@ -2258,7 +2260,7 @@ const getRandomRiskLevel = () => {
 
       await saveDraft(selectedOpportunity.id, combinedFormData, proposalForm.attachedFile);
       toast.success("Draft saved successfully");
-      
+
       // Close the proposal dialog after successful save
       setShowProposalDialog(false);
     } catch (error: any) {
@@ -3199,13 +3201,40 @@ const getRandomRiskLevel = () => {
               <div className="p-6 rounded-t-lg">
                 <DialogHeader>
                   <DialogTitle className="flex items-center gap-3 text-xl">
-                    <FileText className="h-6 w-6" />
-                    Send Proposal - {selectedOpportunity?.lead_info?.company?.name}
+                    {proposalDialogMode === 'proposal' ? <FileText className="h-6 w-6" /> : <Handshake className="h-6 w-6" /> }
+                    {proposalDialogMode === 'proposal' ? 'Send Proposal' : 'Negotiate'} - {selectedOpportunity?.lead_info?.company?.name}
                   </DialogTitle>
                   <DialogDescription className="mt-2">
-                    Create and send a comprehensive proposal to advance this opportunity for {selectedOpportunity?.lead_info?.contact?.first_name} {selectedOpportunity?.lead_info?.contact?.last_name}
+                    {proposalDialogMode === 'proposal'
+                      ? `Create and send a comprehensive proposal to advance this opportunity for ${selectedOpportunity?.lead_info?.contact?.first_name} ${selectedOpportunity?.lead_info?.contact?.last_name}`
+                      : `Define and confirm negotiation terms for ${selectedOpportunity?.lead_info?.company?.name}'s corporate travel agreement.`
+                    }
                   </DialogDescription>
                 </DialogHeader>
+              </div>
+
+              {/* Email Info */}
+              <div className="px-6 py-4 bg-gray-50 border-b">
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <span className="font-medium text-gray-700">To:</span>
+                    <span className="ml-2">{selectedOpportunity?.lead_info?.contact?.email}</span>
+                  </div>
+                  <div>
+                    <span className="font-medium text-gray-700">From:</span>
+                    <span className="ml-2">corporate@soar-ai.com</span>
+                  </div>
+                  <div>
+                    <span className="font-medium text-gray-700">Subject:</span>
+                    <span className="ml-2">{proposalForm.title}</span>
+                  </div>
+                  <div>
+                    <span className="font-medium text-gray-700">Delivery:</span>
+                    <span className="ml-2 capitalize">
+                      {proposalForm.deliveryMethod.replace('_', ' ')}
+                    </span>
+                  </div>
+                </div>
               </div>
 
               {/* Scrollable Content */}
@@ -3905,16 +3934,37 @@ const getRandomRiskLevel = () => {
                       {isDraftLoading ? "Saving..." : "Save Draft"}
                     </Button>
                     <Button
-                      onClick={handleSaveProposal}
-                      disabled={!proposalForm.title || (selectedOpportunity && loadingOpportunityId === selectedOpportunity.id)}
-                      className="bg-orange-500 hover:bg-orange-600 text-white"
+                      onClick={() => {
+                        if (proposalDialogMode === 'proposal') {
+                          handleSaveProposal();
+                        } else {
+                          handleGenerateRevisedProposal();
+                        }
+                      }}
+                      disabled={
+                        (!proposalForm.title && proposalDialogMode === 'proposal') ||
+                        (selectedOpportunity && loadingOpportunityId === selectedOpportunity.id)
+                      }
+                      className={
+                        proposalDialogMode === 'proposal'
+                          ? "bg-orange-500 hover:bg-orange-600 text-white"
+                          : "bg-green-600 hover:bg-green-700 text-white"
+                      }
                     >
                       {selectedOpportunity && loadingOpportunityId === selectedOpportunity.id ? (
                         <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                      ) : (
+                      ) : proposalDialogMode === 'proposal' ? (
                         <Mail className="h-4 w-4 mr-2" />
+                      ) : (
+                        <FileText className="h-4 w-4 mr-2" />
                       )}
-                      {selectedOpportunity && loadingOpportunityId === selectedOpportunity.id ? "Sending..." : "Send Proposal"}
+                      {selectedOpportunity && loadingOpportunityId === selectedOpportunity.id ? (
+                        proposalDialogMode === 'proposal' ? "Sending..." : "Generating..."
+                      ) : proposalDialogMode === 'proposal' ? (
+                        "Send Proposal"
+                      ) : (
+                        "Send Revised Proposal"
+                      )}
                     </Button>
                   </div>
 
@@ -3990,25 +4040,13 @@ const getRandomRiskLevel = () => {
                     <Button
                       onClick={() => {
                         setShowEmailPreview(false);
-                        // Return to proposal dialog
+                        setShowProposalDialog(true); // Re-open proposal dialog
                       }}
                       className="bg-blue-600 hover:bg-blue-700 text-white"
                     >
                       <Edit className="h-4 w-4 mr-2" />
                       Edit Proposal
                     </Button>
-                    {/* <Button
-                      onClick={() => {
-                        setShowEmailPreview(false);
-                        setShowProposalDialog(false);
-                        handleSaveProposal();
-                      }}
-                      disabled={!proposalForm.title}
-                      className="bg-orange-500 hover:bg-orange-600 text-white"
-                    >
-                      <Mail className="h-4 w-4 mr-2" />
-                      Send Now
-                    </Button> */}
                   </div>
                 </div>
               </div>
