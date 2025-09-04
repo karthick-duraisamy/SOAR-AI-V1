@@ -1366,6 +1366,13 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
         [leadId]: [],
       }));
 
+      // Find the lead name for the success message
+      const leadName = leads.find(l => l.id === leadId)?.company || "Lead";
+      
+      // Show success popup with updated status
+      setSuccessMessage(`${leadName} status successfully updated to 'Qualified'!`);
+      setTimeout(() => setSuccessMessage(""), 5000);
+      
       toast.success("Lead qualified successfully");
     } catch (error) {
       console.error("Error qualifying lead:", error);
@@ -1409,6 +1416,10 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
         ...prev,
         [selectedLeadForDisqualify.id]: [],
       }));
+
+      // Show success popup with updated status
+      setSuccessMessage(`${selectedLeadForDisqualify.company} status successfully updated to 'Unqualified'!`);
+      setTimeout(() => setSuccessMessage(""), 5000);
 
       toast.success("Lead disqualified successfully");
 
@@ -1738,12 +1749,11 @@ SOAR-AI Team`,
       // Remove the lead from the leads list locally immediately
       setLeads((prev) => prev.filter((l) => l.id !== lead.id));
 
-      // Show success message
+      // Show success popup message
       setSuccessMessage(
-        response.message ||
-          `${lead.company} has been successfully moved to opportunities!`,
+        `🎉 Success! ${lead.company} has been successfully moved to opportunities and is now ready for advanced sales management!`,
       );
-      setTimeout(() => setSuccessMessage(""), 5000);
+      setTimeout(() => setSuccessMessage(""), 7000);
 
       // Navigate to opportunities page with the new opportunity data
       if (onNavigate) {
@@ -1994,9 +2004,15 @@ SOAR-AI Team`,
     <div className="min-h-screen bg-gray-50 p-6">
       {/* Success Message */}
       {successMessage && (
-        <div className="bg-green-50 border border-green-200 rounded-lg p-4 flex items-center gap-2 mb-6">
-          <CheckCircle className="h-5 w-5 text-green-600" />
-          <span className="text-green-800">{successMessage}</span>
+        <div className="bg-green-50 border-2 border-green-200 rounded-lg p-4 flex items-center gap-3 mb-6 shadow-lg animate-in slide-in-from-top-2">
+          <CheckCircle className="h-6 w-6 text-green-600 flex-shrink-0" />
+          <span className="text-green-800 font-medium text-base">{successMessage}</span>
+          <button 
+            onClick={() => setSuccessMessage("")}
+            className="ml-auto text-green-600 hover:text-green-800 transition-colors"
+          >
+            ✕
+          </button>
         </div>
       )}
 
