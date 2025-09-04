@@ -348,7 +348,7 @@ export function EmailCampaigns({ onNavigate }: EmailCampaignsProps) {
             )}
             Check SMTP Status
           </Button>
-          <Button 
+          {/* <Button 
             onClick={() => setShowCreateDialog(true)}
             style={{
               fontFamily: 'var(--font-family)',
@@ -359,7 +359,7 @@ export function EmailCampaigns({ onNavigate }: EmailCampaignsProps) {
           >
             <Plus className="h-4 w-4 mr-2" />
             New Campaign
-          </Button>
+          </Button> */}
         </div>
       </div>
 
@@ -1219,8 +1219,8 @@ export function EmailCampaigns({ onNavigate }: EmailCampaignsProps) {
                               whiteSpace: 'pre-wrap',
                               wordWrap: 'break-word'
                             }}
-                            dangerouslySetInnerHTML={{ __html: selectedCampaign.email_content || "" }}
-                          /></pre>
+                            dangerouslySetInnerHTML={{ __html: selectedCampaign.email_content || "" }}>
+                          </pre>
                         </div>
                       </div>
                     </div>
@@ -1233,24 +1233,13 @@ export function EmailCampaigns({ onNavigate }: EmailCampaignsProps) {
           <DialogFooter>
             <Button 
               variant="outline" 
+              className='cls-addCompany  bg-primary text-primary-foreground hover:bg-primary/90 h-9 px-4 py-2 has-[>svg]:px-3 cls-addcomapany'
               onClick={() => setShowViewDialog(false)}
-              style={{
-                fontFamily: 'var(--font-family)',
-                fontSize: 'var(--text-base)',
-                backgroundColor: 'var(--color-secondary)',
-                color: 'var(--color-secondary-foreground)',
-                border: '1px solid var(--color-border)'
-              }}
             >
               Close
             </Button>
             <Button 
-              style={{
-                fontFamily: 'var(--font-family)',
-                fontSize: 'var(--text-base)',
-                backgroundColor: 'var(--color-primary)',
-                color: 'var(--color-primary-foreground)'
-              }}
+             className='bg-orange-500 hover:bg-orange-600 text-white'
             >
               Edit Campaign
             </Button>
