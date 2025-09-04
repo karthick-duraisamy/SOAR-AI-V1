@@ -2878,6 +2878,93 @@ const getRandomRiskLevel = () => {
           </DialogContent>
         </Dialog>
 
+        {/* History Dialog */}
+        <Dialog open={showHistoryDialog} onOpenChange={setShowHistoryDialog}>
+          <DialogContent className="max-w-4xl max-h-[90vh]">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-3">
+                <History className="h-5 w-5" />
+                Opportunity History - {selectedOpportunity?.lead_info?.company?.name}
+              </DialogTitle>
+              <DialogDescription>
+                Complete history and activity timeline for this opportunity
+              </DialogDescription>
+            </DialogHeader>
+            <ScrollArea className="max-h-[70vh] pr-4">
+              {isLoadingHistory ? (
+                <div className="space-y-4">
+                  {Array.from({ length: 5 }).map((_, index) => (
+                    <div key={index} className="animate-pulse">
+                      <div className="flex items-start gap-3 p-4 bg-gray-50 rounded-lg">
+                        <div className="w-3 h-3 bg-gray-200 rounded-full mt-2"></div>
+                        <div className="flex-1">
+                          <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+                          <div className="h-3 bg-gray-200 rounded w-1/2 mb-2"></div>
+                          <div className="h-3 bg-gray-200 rounded w-full"></div>
+                        </div>
+                        <div className="w-20 h-3 bg-gray-200 rounded"></div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : historyData.length > 0 ? (
+                <div className="space-y-4">
+                  {historyData.map((item, index) => (
+                    <div key={index} className="flex items-start gap-3 p-4 bg-gray-50 rounded-lg border-l-4 border-blue-500">
+                      <div className="w-3 h-3 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between mb-2">
+                          <h4 className="font-medium text-gray-900 text-sm">
+                            {item.action || item.type || 'Activity'}
+                          </h4>
+                          <span className="text-xs text-gray-500 flex-shrink-0">
+                            {item.timestamp ? new Date(item.timestamp).toLocaleString() : 
+                             item.created_at ? new Date(item.created_at).toLocaleString() :
+                             item.date ? new Date(item.date).toLocaleString() : 'Unknown date'}
+                          </span>
+                        </div>
+                        <p className="text-sm text-gray-700 mb-2">
+                          {item.description || item.details || item.note || 'No description available'}
+                        </p>
+                        <div className="flex items-center gap-4 text-xs text-gray-500">
+                          {item.user && (
+                            <span className="flex items-center gap-1">
+                              <User className="h-3 w-3" />
+                              {item.user}
+                            </span>
+                          )}
+                          {item.entity_type && (
+                            <span className="px-2 py-1 bg-gray-200 rounded-full">
+                              {item.entity_type}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-12">
+                  <History className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">No History Available</h3>
+                  <p className="text-gray-600">
+                    No historical data found for this opportunity. Activities and changes will appear here once recorded.
+                  </p>
+                </div>
+              )}
+            </ScrollArea>
+            <div className="flex justify-end pt-4 border-t">
+              <Button
+                variant="outline"
+                onClick={() => setShowHistoryDialog(false)}
+                className="border-gray-300"
+              >
+                Close
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+
         {/* Add Activity Dialog */}
         <Dialog open={showActivityDialog} onOpenChange={setShowActivityDialog}>
           <DialogContent>
