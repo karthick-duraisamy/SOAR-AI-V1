@@ -1239,7 +1239,31 @@ export function EmailCampaigns({ onNavigate }: EmailCampaignsProps) {
               Close
             </Button>
             <Button 
-             className='bg-orange-500 hover:bg-orange-600 text-white'
+              className='bg-orange-500 hover:bg-orange-600 text-white'
+              onClick={() => {
+                if (selectedCampaign) {
+                  setShowViewDialog(false);
+                  // Navigate to marketing campaign wizard with edit mode
+                  onNavigate('marketing-campaign', { 
+                    editMode: true, 
+                    campaignData: {
+                      id: selectedCampaign.id,
+                      name: selectedCampaign.name,
+                      description: selectedCampaign.description,
+                      objective: selectedCampaign.campaign_type,
+                      channels: ['email'],
+                      content: {
+                        email: {
+                          subject: selectedCampaign.subject_line,
+                          body: selectedCampaign.email_content
+                        }
+                      },
+                      status: selectedCampaign.status,
+                      targetLeadsCount: selectedCampaign.target_leads_count
+                    }
+                  });
+                }
+              }}
             >
               Edit Campaign
             </Button>

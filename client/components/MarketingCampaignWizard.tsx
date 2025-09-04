@@ -35,9 +35,9 @@ import { RichTextEditor } from './RichTextEditor';
 
 
 interface MarketingCampaignWizardProps {
-  selectedLeads: any[];
-  onBack: () => void;
-  onComplete: (campaignData: any) => void;
+  onNavigate: (screen: string) => void;
+  initialCampaignData?: any;
+  editMode?: boolean;
 }
 
 interface CampaignTemplate {
@@ -49,6 +49,7 @@ interface CampaignTemplate {
   subject_line?: string;
   content: string;
   cta: string;
+  cta_link?: string;
   linkedin_type?: 'message' | 'post' | 'connection';
   estimated_open_rate: number;
   estimated_click_rate: number;
@@ -64,7 +65,7 @@ const steps = [
   { id: 5, name: 'Review & Launch', description: 'Final review and campaign launch' }
 ];
 
-export function MarketingCampaignWizard({ selectedLeads, onBack, onComplete }: MarketingCampaignWizardProps) {
+export function MarketingCampaignWizard({ onNavigate, initialCampaignData, editMode = false }: MarketingCampaignWizardProps) {
   const [currentStep, setCurrentStep] = useState(1);
   const [showCreateTemplate, setShowCreateTemplate] = useState(false);
   const [templates, setTemplates] = useState<CampaignTemplate[]>([]);
@@ -79,24 +80,74 @@ export function MarketingCampaignWizard({ selectedLeads, onBack, onComplete }: M
     cta_link: '',
     linkedin_type: 'message' as 'message' | 'post' | 'connection'
   });
-  const [campaignData, setCampaignData] = useState({
-    name: '',
-    objective: 'Lead Nurturing',
-    channels: ['email'],
-    selectedTemplate: null as CampaignTemplate | null,
-    content: {
-      email: {
-        subject: '',
-        body: '',
-        cta: '',
-        cta_link: ''
-      }
-    },
-    settings: {
-      trackOpens: true,
-      trackClicks: true,
-      autoFollowUp: false
+  const [campaignData, setCampaignData] = useState(() => {
+    if (editMode && initialCampaignData) {
+      return {
+        name: initialCampaignData.name || '',
+        description: initialCampaignData.description || '',
+        objective: initialCampaignData.objective || 'lead-nurturing',
+        channels: initialCampaignData.channels || ['email'],
+        targetAudience: [],
+        content: initialCampaignData.content || {
+          email: {
+            subject: initialCampaignData.content?.email?.subject || '',
+            body: initialCampaignData.content?.email?.body || '',
+            cta: initialCampaignData.content?.email?.cta || ''
+          },
+          whatsapp: {
+            message: '',
+            cta: ''
+          },
+          linkedin: {
+            type: 'message',
+            content: '',
+            cta: ''
+          }
+        },
+        settings: {
+          sendTime: 'immediate',
+          scheduleDate: '',
+          scheduleTime: '09:00',
+          followUp: false,
+          followUpDays: 3,
+          trackingEnabled: true
+        },
+        selectedTemplate: null
+      };
     }
+
+    return {
+      name: '',
+      description: '',
+      objective: 'lead-nurturing',
+      channels: ['email'],
+      targetAudience: [],
+      content: {
+        email: {
+          subject: '',
+          body: '',
+          cta: ''
+        },
+        whatsapp: {
+          message: '',
+          cta: ''
+        },
+        linkedin: {
+          type: 'message',
+          content: '',
+          cta: ''
+        }
+      },
+      settings: {
+        sendTime: 'immediate',
+        scheduleDate: '',
+        scheduleTime: '09:00',
+        followUp: false,
+        followUpDays: 3,
+        trackingEnabled: true
+      },
+      selectedTemplate: null
+    };
   });
   const [isLaunching, setIsLaunching] = useState(false);
   const targetLeads = selectedLeads; // Alias for clarity in case 5
@@ -1020,11 +1071,21 @@ TechCorp Solutions can achieve complete travel governance without slowing down y
       <div className="flex items-center justify-between mb-6">
 
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Marketing Campaign</h1>
-            <p className="text-gray-600">Create and launch targeted multi-channel marketing campaigns</p>
-            <div className="flex items-center gap-4">      
-          </div>           
-        </div>
+            <h2 style={{ 
+              fontSize: 'var(--text-2xl)', 
+              fontWeight: 'var(--font-weight-medium)',
+              fontFamily: 'var(--font-family)'
+            }}>
+              {editMode ? 'Edit Marketing Campaign' : 'Marketing Campaign Wizard'}
+            </h2>
+            <p style={{ 
+              fontSize: 'var(--text-base)',
+              color: 'var(--color-muted-foreground)',
+              fontFamily: 'var(--font-family)'
+            }}>
+              {editMode ? 'Edit your existing marketing campaign' : 'Create targeted marketing campaigns across multiple channels'}
+            </p>
+          </div>
         <Button variant="ghost" size="sm" onClick={onBack}>
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back to Leads

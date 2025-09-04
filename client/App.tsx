@@ -50,6 +50,7 @@ import { TicketDetails } from "./components/TicketDetails";
 import { AdminDashboard } from "./components/AdminDashboard";
 import { Settings } from "./components/Settings";
 import { Login } from "./components/Login";
+import { MarketingCampaignWizard } from "./components/MarketingCampaignWizard";
 import {
   Bot,
   LayoutDashboard,
@@ -186,7 +187,7 @@ export default function App() {
     ];
 
     // If navigating to AI Assistant, return base path
-    if (sectionSectionId === "ai-assistant") {
+    if (sectionId === "ai-assistant") {
       return basePath;
     }
 
@@ -916,6 +917,39 @@ export default function App() {
   //   },
   // ];
 
+  // Main content area state for different sections
+  const [currentScreen, setCurrentScreen] = useState("email-campaigns"); // Default screen
+  const [screenFilters, setScreenFilters] = useState({}); // Filters for the current screen
+
+  const handleScreenNavigation = (screenId: string, filters = {}) => {
+    setCurrentScreen(screenId);
+    setScreenFilters(filters);
+    // Update breadcrumb path when navigating between screens
+    const newPath = buildBreadcrumbPath(screenId, filters);
+    setBreadcrumbPath(newPath);
+  };
+
+  // Function to handle navigation for EmailCampaigns dialog
+  const handleNavigateFromEmailCampaigns = (screenId: string, filters = {}) => {
+    if (screenId === "email-campaigns" && filters.editMode) {
+      // If editing a campaign, set the screen to MarketingCampaignWizard
+      setCurrentScreen("marketing-campaign");
+      setScreenFilters(filters);
+    } else {
+      // Otherwise, navigate as usual
+      handleNavigate(screenId, filters);
+    }
+  };
+
+  // Call this function when you want to navigate to a different section
+  const handleNavigate = (sectionId: string, filters = {}) => {
+    setActiveSection(sectionId);
+    setSectionFilters(filters);
+    // Update breadcrumb path
+    const newPath = buildBreadcrumbPath(sectionId, filters);
+    setBreadcrumbPath(newPath);
+  };
+
   // Handle loading state
   if (loading) {
     return (
@@ -1388,7 +1422,22 @@ export default function App() {
                   lineHeight: "inherit",
                 }}
               >
-                {renderContent()}
+                {/* Render the current screen based on activeSection */}
+                {activeSection === "email-campaigns" && (
+                  <EmailCampaigns
+                    onNavigate={handleNavigateFromEmailCampaigns}
+                  />
+                )}
+                {/* Conditionally render MarketingCampaignWizard for editing */}
+                {currentScreen === 'marketing-campaign' && (
+                  <MarketingCampaignWizard
+                    onNavigate={handleNavigate}
+                    initialCampaignData={screenFilters?.campaignData}
+                    editMode={screenFilters?.editMode || false}
+                  />
+                )}
+                {/* Render other components based on activeSection */}
+                {activeSection !== "email-campaigns" && currentScreen !== 'marketing-campaign' && renderContent()}
               </div>
             </main>
           </SidebarInset>
