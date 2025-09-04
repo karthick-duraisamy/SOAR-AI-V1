@@ -391,15 +391,6 @@ export const useLeadApi = () => {
     return `${API_BASE_URL}/opportunities/${opportunityId}/proposal-draft/attachment/`;
   }, []);
 
-  // Send proposal email
-  const sendProposalEmail = useCallback(async (opportunityId: number, emailContent: string, subject: string = 'Proposal from SOAR-AI') => {
-    return baseApi.post('/send-proposal-email/', {
-      opportunity_id: opportunityId,
-      email_content: emailContent,
-      subject: subject
-    });
-  }, [baseApi]);
-
   // Get lead notes for a specific lead
   const getLeadNotes = useCallback(async (leadId: number) => {
     setLoading(true);
@@ -890,7 +881,6 @@ export const useLeadApi = () => {
     updateProposalDraft,
     deleteProposalDraft,
     getAttachmentDownloadUrl,
-    sendProposalEmail,
     sendProposal,
     launchCampaign,
     getAirportCodes,
