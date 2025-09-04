@@ -751,7 +751,7 @@ export function Opportunities({
     updateProposalDraft,
     deleteProposalDraft,
     getAttachmentDownloadUrl,
-
+    sendProposal,
   } = useLeadApi();
 
 
