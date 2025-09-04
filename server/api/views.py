@@ -670,7 +670,7 @@ class LeadViewSet(viewsets.ModelViewSet):
             industry_filter = filters.get('industry', '')
             score = filters.get('score', '')
             engagement = filters.get('engagement', '')
-            
+
             # Limit results for better performance
             limit = min(int(filters.get('limit', 50)), 100)  # Max 100 records
 
@@ -719,17 +719,17 @@ class LeadViewSet(viewsets.ModelViewSet):
             for lead in leads:
                 # Get notes count efficiently (already prefetched)
                 notes_count = lead.lead_notes.count()
-                
+
                 # Get campaign count efficiently (already prefetched)
                 campaign_count = lead.emailcampaign_set.count()
-                
+
                 # Get recent notes for display (limit to 3 most recent)
                 recent_notes = lead.lead_notes.all()[:3]
-                
+
                 # Check if lead has been moved to opportunity by checking the actual opportunity table
                 # Use the database state as the source of truth without updating during search
                 has_opportunity_in_db = Opportunity.objects.filter(lead=lead).exists()
-                
+
                 # Use the database state directly - don't update during search to prevent race conditions
                 has_opportunity = has_opportunity_in_db
 
@@ -805,7 +805,7 @@ class LeadViewSet(viewsets.ModelViewSet):
         """
         try:
             lead_ids = request.data.get('lead_ids', [])
-            
+
             if not lead_ids:
                 return Response(
                     {'error': 'lead_ids array is required'},
@@ -818,15 +818,15 @@ class LeadViewSet(viewsets.ModelViewSet):
             ).select_related('company', 'contact')
 
             batch_data = {}
-            
+
             for lead in leads:
                 # Get notes count and recent notes
                 notes_count = lead.lead_notes.count()
                 recent_notes = lead.lead_notes.all()[:5]  # Get 5 most recent
-                
+
                 # Get campaign count
                 campaign_count = lead.emailcampaign_set.count()
-                
+
                 batch_data[str(lead.id)] = {
                     'notes_count': notes_count,
                     'campaign_count': campaign_count,
@@ -1007,7 +1007,7 @@ class LeadViewSet(viewsets.ModelViewSet):
             lead = self.get_object()
             campaigns = lead.emailcampaign_set.all().order_by('-created_at')
             campaigns_data = []
-            
+
             for campaign in campaigns:
                 campaigns_data.append({
                     'id': campaign.id,
@@ -1019,7 +1019,7 @@ class LeadViewSet(viewsets.ModelViewSet):
                     'open_rate': campaign.open_rate,
                     'created_at': campaign.created_at.isoformat() if campaign.created_at else None
                 })
-                
+
             return Response({
                 'campaigns': campaigns_data,
                 'count': len(campaigns_data),
@@ -1305,22 +1305,22 @@ class LeadViewSet(viewsets.ModelViewSet):
                     {'error': 'This lead has already been moved to opportunities'},
                     status=status.HTTP_400_BAD_REQUEST
                 )
-            
+
             # Double-check to prevent race conditions - use select_for_update to lock the lead record
             from django.db import transaction
             try:
                 with transaction.atomic():
                     # Lock the lead record to prevent concurrent modifications
                     locked_lead = Lead.objects.select_for_update().get(id=lead.id)
-                    
+
                     # Final check after acquiring lock
                     if Opportunity.objects.filter(lead=locked_lead).exists():
                         return Response(
                             {'error': 'This lead has already been moved to opportunities'},
                             status=status.HTTP_400_BAD_REQUEST
-                        )</old_str>
+                        )
 
-            # Get opportunity data from request
+                    # Get opportunity data from request
                     opportunity_data = request.data
 
                     # Create the opportunity within the transaction
@@ -1340,12 +1340,12 @@ class LeadViewSet(viewsets.ModelViewSet):
                     locked_lead.moved_to_opportunity = True
                     timestamp = timezone.now().strftime('%Y-%m-%d %H:%M')
                     move_note = f"[{timestamp}] Lead moved to opportunities - {opportunity.name}"
-                    
+
                     if locked_lead.notes:
                         locked_lead.notes = f"{locked_lead.notes}\n\n{move_note}"
                     else:
                         locked_lead.notes = move_note
-                    
+
                     # Don't change the lead status - keep it as qualified
                     locked_lead.save()
 
@@ -1358,12 +1358,12 @@ class LeadViewSet(viewsets.ModelViewSet):
                         icon='briefcase',
                         user=request.user if request.user.is_authenticated else None
                     )
-                    
+
             except Exception as e:
                 return Response(
                     {'error': f'Failed to create opportunity: {str(e)}'},
                     status=status.HTTP_500_INTERNAL_SERVER_ERROR
-                )</old_str>
+                )
 
             # Serialize the created opportunity
             opportunity_serializer = OpportunitySerializer(opportunity)
@@ -1374,7 +1374,7 @@ class LeadViewSet(viewsets.ModelViewSet):
                 'opportunity': opportunity_serializer.data,
                 'lead_id': lead.id,
                 'has_opportunity': True
-            }, status=status.HTTP_201_CREATED)</old_str>
+            }, status=status.HTTP_201_CREATED)
 
         except Exception as e:
             print(f"Error in move_to_opportunity: {str(e)}")
@@ -2970,7 +2970,6 @@ class SupportTicketViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['post'])
     def resolve(self, request, pk=None):
-        """Mark ticket as resolved"""
         ticket = self.get_object()
         ticket.status = 'resolved'
         ticket.resolved_at = timezone.now()
@@ -3011,7 +3010,7 @@ class AirportCodeViewSet(viewsets.ModelViewSet):
         code = request.query_params.get('code', '').upper()
         if not code:
             return Response({'error': 'Airport code is required'}, status=status.HTTP_400_BAD_REQUEST)
-        
+
         try:
             airport = AirportCode.objects.get(code=code)
             serializer = self.get_serializer(airport)
@@ -3047,24 +3046,24 @@ class EmailCampaignViewSet(viewsets.ModelViewSet):
             template_id = data.get('templateId')
             target_leads = data.get('targetLeads', [])
             target_lead_ids = data.get('target_leads', [])
-            
+
             # Handle nested email content structure
             email_content = data.get('content', {}).get('email', {})
             subject_line = (
-                data.get('subjectLine', '') or 
-                data.get('subject_line', '') or 
+                data.get('subjectLine', '') or
+                data.get('subject_line', '') or
                 email_content.get('subject', '')
             )
             message_content = (
-                data.get('messageContent', '') or 
-                data.get('email_content', '') or 
+                data.get('messageContent', '') or
+                data.get('email_content', '') or
                 email_content.get('body', '')
             )
-            
+
             # Handle CTA and CTA link
             cta_text = email_content.get('cta', '') or data.get('cta', '')
             cta_link = email_content.get('cta_link', '') or data.get('cta_link', '')
-            
+
             campaign_name = data.get('name', '') or f"Campaign - {subject_line[:50]}"
 
             # Handle both targetLeads and target_leads formats
@@ -3238,4 +3237,3 @@ def campaign_analytics(request):
             'success': False,
             'error': str(e)
         }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        
