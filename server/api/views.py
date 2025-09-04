@@ -726,12 +726,14 @@ class LeadViewSet(viewsets.ModelViewSet):
                 # Get recent notes for display (limit to 3 most recent)
                 recent_notes = lead.lead_notes.all()[:3]
                 
-                # Check if lead has an associated opportunity
+                # Check if lead has an associated opportunity in api_opportunity table
                 has_opportunity = False
                 try:
-                    has_opportunity = hasattr(lead, 'opportunity') and lead.opportunity is not None
-                except:
+                    # Check if there's an opportunity record for this lead
+                    has_opportunity = Opportunity.objects.filter(lead=lead).exists()
+                except Exception as e:
                     # If there's an error checking opportunity, assume False
+                    print(f"Error checking opportunity for lead {lead.id}: {e}")
                     has_opportunity = False
 
                 lead_data = {
@@ -1301,7 +1303,7 @@ class LeadViewSet(viewsets.ModelViewSet):
                 )
 
             # Check if opportunity already exists for this lead
-            if hasattr(lead, 'opportunity'):
+            if Opportunity.objects.filter(lead=lead).exists():
                 return Response(
                     {'error': 'This lead already has an associated opportunity'},
                     status=status.HTTP_400_BAD_REQUEST
