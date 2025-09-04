@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react"; // Import useCallback
+import { useState, useEffect, useCallback, useRef } from "react"; // Import useCallback and useRef
 import {
   Card,
   CardContent,
@@ -453,6 +453,7 @@ export function CorporateSearch({
   const [isUploading, setIsUploading] = useState(false);
   const [uploadError, setUploadError] = useState('');
   const [uploadSuccess, setUploadSuccess] = useState('');
+  const fileInputRef = useRef(null);
 
   // Function to handle file upload
   const handleFileUpload = (event) => {
@@ -809,22 +810,21 @@ export function CorporateSearch({
         notes: `Moved from corporate search. AI Score: ${corporate.aiScore}. ${corporate.aiRecommendation}. Specialties: ${corporate.specialties?.join(", ") || "N/A"}. Travel Frequency: ${corporate.travelFrequency || "N/A"}. Preferred Class: ${corporate.preferredClass || "N/A"}.`,
       };
 
-      // Call the API to create the lead
+      // Call the API to create the lead - this should also mark the company as moved to lead
       const createdLead = await moveToLead(leadData); // Use moveToLead from useCompanyApi
 
-      // Mark the company as moved to lead via API
-      try {
-        await companyApi.markCompanyAsMovedToLead(corporate.id);
-      } catch (error) {
-        console.warn(
-          "Failed to mark company flag, but lead was created successfully:",
-          error,
-        );
-      }
-
-      // Add to moved leads tracking
+      // Update the local state to reflect the move
       setMovedAsLeadIds((prev) => new Set([...prev, corporate.id]));
       setExistingLeadCompanies((prev) => new Set([...prev, corporate.name]));
+
+      // Update the company in the filtered corporates list to show it's moved
+      setFilteredCorporates((prev) =>
+        prev.map((company) =>
+          company.id === corporate.id
+            ? { ...company, move_as_lead: true }
+            : company,
+        ),
+      );
 
       // Show success message
       setSuccessMessage(
