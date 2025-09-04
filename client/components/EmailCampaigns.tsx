@@ -1218,7 +1218,7 @@ export function EmailCampaigns({ onNavigate }: EmailCampaignsProps) {
                             whiteSpace: 'pre-wrap',
                             wordWrap: 'break-word'
                           }}>
-                            dangerouslySetInnerHTML={{ __html: selectedCampaign.email_content }}
+                            dangerouslySetInnerHTML={{ __html: selectedCampaign.email_content || "" }}
 
                           </pre>
                         </div>
