@@ -64,6 +64,7 @@ urlpatterns = [
 
     # Proposal Draft Management
     path('opportunities/<int:opportunity_id>/proposal-draft/', views.proposal_draft_detail, name='proposal-draft-detail'),
+    path('send-proposal-email/', views.send_proposal_email, name='send-proposal-email'),
     # path('opportunities/<int:opportunity_id>/proposal-draft/attachment/', views.download_proposal_attachment, name='proposal-draft-attachment'), # Removed as per instructions
     # path('proposal-attachment/<int:opportunity_id>/', views.download_proposal_attachment, name='download_proposal_attachment'), # Removed as per instructions
 
