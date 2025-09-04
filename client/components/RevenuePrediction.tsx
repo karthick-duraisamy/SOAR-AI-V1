@@ -528,6 +528,7 @@ const scenarioPlanning = [
 
 export function RevenuePrediction({ onNavigate }: RevenuePredictionProps) {
   const { uploadRevenueData, getRevenuePredictionData } = useRevenueApi();
+  const { getAirportCodes } = useLeadApi();
   const [activeTab, setActiveTab] = useState("overview");
   const [selectedTimeframe, setSelectedTimeframe] = useState("yearly");
   const [selectedModel, setSelectedModel] = useState("AI Neural Network");
