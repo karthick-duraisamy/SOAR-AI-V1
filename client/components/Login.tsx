@@ -66,7 +66,7 @@ export function Login({ onLogin }: LoginProps) {
           onLogin(user);
         }, 1000);
       } else {
-        setError('Invalid credentials. Use admin@soar.com / admin123 for demo.');
+        setError('Invalid credentials');
       }
     } catch (err) {
       setError('Login failed. Please try again.');
