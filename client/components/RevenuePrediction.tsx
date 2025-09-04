@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useRevenueApi } from "../hooks/api/useRevenueApi";
+import { useLeadApi } from "../hooks/api/useLeadApi";
 import {
   Card,
   CardContent,
