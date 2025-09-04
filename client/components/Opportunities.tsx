@@ -3214,7 +3214,7 @@ const getRandomRiskLevel = () => {
               </div>
 
               {/* Email Info */}
-              <div className="px-6 py-4 bg-gray-50 border-b">
+              {/* <div className="px-6 py-4 bg-gray-50 border-b">
                 <div className="grid grid-cols-2 gap-4 text-sm">
                   <div>
                     <span className="font-medium text-gray-700">To:</span>
@@ -3235,7 +3235,7 @@ const getRandomRiskLevel = () => {
                     </span>
                   </div>
                 </div>
-              </div>
+              </div> */}
 
               {/* Scrollable Content */}
               <ScrollArea className="flex-1 px-6 py-4">
@@ -4037,7 +4037,7 @@ const getRandomRiskLevel = () => {
                     >
                       Close Preview
                     </Button>
-                    <Button
+                    {/* <Button
                       onClick={() => {
                         setShowEmailPreview(false);
                         setShowProposalDialog(true); // Re-open proposal dialog
@@ -4046,7 +4046,7 @@ const getRandomRiskLevel = () => {
                     >
                       <Edit className="h-4 w-4 mr-2" />
                       Edit Proposal
-                    </Button>
+                    </Button> */}
                   </div>
                 </div>
               </div>
