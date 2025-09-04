@@ -972,7 +972,7 @@ export function RevenuePrediction({ onNavigate }: RevenuePredictionProps) {
       dynamicData &&
       dynamicData.topDestinations
     ) {
-      console.log(dynamicData,"dynamicData")
+      console.log(airportCodes,"dynamicData")
       return dynamicData.topDestinations.map((dest) => ({
         city: airportCodes[dest.Destination_Airport_Code]?.name || dest.Destination_Airport_Code, // Use airport name if found, else code
         bookings: dest.bookings,
