@@ -2623,42 +2623,77 @@ class EmailCampaignViewSet(viewsets.ModelViewSet):
             data = request.data
             template_id = data.get('templateId')
             target_leads = data.get('targetLeads', [])
-            subject_line = data.get('subjectLine', '')
-            message_content = data.get('messageContent', '')
+            target_lead_ids = data.get('target_leads', [])
+            subject_line = data.get('subjectLine', '') or data.get('subject_line', '')
+            message_content = data.get('messageContent', '') or data.get('email_content', '')
+            campaign_name = data.get('name', '') or f"Campaign - {subject_line[:50]}"
+
+            # Handle both targetLeads and target_leads formats
+            all_target_leads = target_leads + target_lead_ids
+            
+            if not subject_line:
+                return Response(
+                    {'error': 'Subject line is required'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            
+            if not message_content:
+                return Response(
+                    {'error': 'Message content is required'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
 
             # Create the campaign
             campaign = EmailCampaign.objects.create(
-                name=f"Campaign - {subject_line[:50]}",
+                name=campaign_name,
                 description=data.get('description', ''),
-                campaign_type='nurture',
+                campaign_type=data.get('campaign_type', 'nurture'),
                 status='active',
                 subject_line=subject_line,
                 email_content=message_content,
                 scheduled_date=timezone.now(),
                 sent_date=timezone.now(),
-                target_count=len(target_leads)
+                target_count=len(all_target_leads)
             )
 
             # Add target leads to campaign
-            for lead_id in target_leads:
+            valid_leads_count = 0
+            for lead_id in all_target_leads:
                 try:
                     lead = Lead.objects.get(id=lead_id)
                     campaign.target_leads.add(lead)
-                except Lead.DoesNotExist:
+                    valid_leads_count += 1
+                except (Lead.DoesNotExist, ValueError):
                     continue
+
+            if valid_leads_count == 0:
+                return Response(
+                    {'error': 'No valid target leads found'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
 
             # Send emails
             result = campaign.send_emails()
 
             serializer = self.get_serializer(campaign)
             return Response({
+                'success': True,
                 'campaign': serializer.data,
-                'send_result': result
+                'campaign_id': campaign.id,
+                'message': result.get('message', 'Campaign launched successfully'),
+                'emails_sent': result.get('emails_sent', 0),
+                'failed_count': result.get('failed_count', 0),
+                'smtp_responses': result.get('smtp_responses', []),
+                'smtp_details': result.get('smtp_details', {}),
+                'log_file': result.get('log_file', '')
             }, status=status.HTTP_201_CREATED)
 
         except Exception as e:
+            import traceback
+            error_details = traceback.format_exc()
+            print(f"Campaign launch error: {error_details}")
             return Response(
-                {'error': f'Failed to launch campaign: {str(e)}'},
+                {'error': f'Failed to launch campaign: {str(e)}', 'details': error_details},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 

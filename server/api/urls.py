@@ -11,7 +11,9 @@ router.register(r'opportunities', views.OpportunityViewSet)
 router.register(r'opportunity-activities', views.OpportunityActivityViewSet)
 router.register(r'contracts', views.ContractViewSet)
 router.register(r'contract-breaches', views.ContractBreachViewSet)
-router.register(r'email-campaigns', views.EmailCampaignViewSet, basename='emailcampaign')
+router.register(r'campaign-templates', views.CampaignTemplateViewSet)
+router.register(r'campaigns', views.EmailCampaignViewSet)
+router.register(r'email-campaigns', views.EmailCampaignViewSet)
 router.register(r'travel-offers', views.TravelOfferViewSet)
 router.register(r'support-tickets', views.SupportTicketViewSet)
 router.register(r'revenue-forecasts', views.RevenueForecastViewSet)
@@ -19,9 +21,7 @@ router.register(r'activity-logs', views.ActivityLogViewSet)
 router.register(r'ai-conversations', views.AIConversationViewSet)
 router.register(r'lead-notes', views.LeadNoteViewSet)
 router.register(r'lead-history', views.LeadHistoryViewSet)
-router.register(r'campaign-templates', views.CampaignTemplateViewSet)
 router.register(r'proposal-drafts', views.ProposalDraftViewSet)
-router.register(r'campaigns', views.EmailCampaignViewSet) # Note: This might be a duplicate registration if 'email-campaigns' covers all campaign types.
 
 # Define URL patterns
 urlpatterns = [
