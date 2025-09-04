@@ -2183,9 +2183,9 @@ SOAR-AI Team`,
                   <SelectItem value="all">All statuses</SelectItem>
                   <SelectItem value="qualified">Qualified</SelectItem>
                   <SelectItem value="contacted">Contacted</SelectItem>
-                  <SelectItem value="in-progress">In Progress</SelectItem>
+                  {/* <SelectItem value="in-progress">In Progress</SelectItem> */}
                   <SelectItem value="responded">Responded</SelectItem>
-                  <SelectItem value="unqualified">disqualify </SelectItem>
+                  <SelectItem value="unqualified">Disqualifed </SelectItem>
                   <SelectItem value="new">New</SelectItem>
                 </SelectContent>
               </Select>
@@ -3146,7 +3146,7 @@ SOAR-AI Team`,
                       <Button
                         variant="outline"
                         size="sm"
-                        className="h-8 px-3 text-xs bg-green-600 hover:bg-green-700 text-white rounded-md font-medium border-green-600"
+                        className="h-8 px-3 text-white bg-green-600 hover:bg-green-700 "
                         onClick={(e) => {
                           e.stopPropagation();
                           handleMoveToOpportunity(lead);
