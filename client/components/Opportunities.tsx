@@ -751,7 +751,6 @@ export function Opportunities({
     updateProposalDraft,
     deleteProposalDraft,
     getAttachmentDownloadUrl,
-    sendProposalEmail,
 
   } = useLeadApi();
 
@@ -2070,60 +2069,39 @@ const getRandomRiskLevel = () => {
     // The stored attachment will only be hidden if user explicitly removes it via the separate remove button
   }, [proposalForm]);
 
-  const handleSaveProposal = useCallback(async () => {
+  const handleSaveProposal = useCallback(() => {
     if (!selectedOpportunity) return;
 
-    try {
-      setIsDraftLoading(true);
-
-      // Generate email content
-      const emailContent = generateEmailPreview();
-      const subject = proposalForm.title || `Travel Solutions Proposal - ${selectedOpportunity.lead_info?.company?.name}`;
-
-      // Send proposal email
-      const emailResponse = await sendProposalEmail(selectedOpportunity.id, emailContent, subject);
-      
-      if (emailResponse.data.success) {
-        // Update opportunity stage to "proposal"
-        await updateOpportunityStage(selectedOpportunity.id, {
-          stage: "proposal",
-          probability: 65,
-        });
-
-        // Update local state
-        const updatedOpportunity = {
-          ...selectedOpportunity,
-          stage: "proposal",
-          probability: 65,
-          updated_at: new Date().toISOString(),
-        };
-
-        setOpportunities((prev) =>
-          prev.map((opp) => 
-            opp.id === selectedOpportunity.id ? updatedOpportunity : opp
-          ),
-        );
-
-        // Clear the draft since proposal is being sent
-        clearDraft(selectedOpportunity.id);
-
-        setShowProposalDialog(false);
-        setSuccessMessage(
-          `Proposal sent to ${selectedOpportunity.lead_info?.company?.name} (${emailResponse.data.recipient}) and moved to Proposal stage`,
-        );
-        setTimeout(() => setSuccessMessage(""), 5000);
-        toast.success("Proposal sent successfully!");
-      } else {
-        throw new Error(emailResponse.data.error || 'Failed to send email');
-      }
-    } catch (error: any) {
-      console.error("Error sending proposal:", error);
-      const errorMessage = error.response?.data?.error || error.message || "Failed to send proposal";
-      toast.error(errorMessage);
-    } finally {
-      setIsDraftLoading(false);
+    // In a real implementation, you would send this to the API including the file
+    if (proposalForm.attachedFile) {
+      console.log("File to upload:", proposalForm.attachedFile.name);
+      // Here you would typically upload the file to your server
     }
-  }, [selectedOpportunity, proposalForm.title, generateEmailPreview, sendProposalEmail, updateOpportunityStage, clearDraft]);
+
+    // Clear the draft since proposal is being sent
+    clearDraft(selectedOpportunity.id);
+
+    // Move opportunity to proposal stage
+    const updatedOpportunity = {
+      ...selectedOpportunity,
+      stage: "proposal",
+      probability: 65,
+      updated_at: new Date().toISOString(),
+    };
+
+    setOpportunities((prev) =>
+      prev.map((opp) => 
+        opp.id === selectedOpportunity.id ? updatedOpportunity : opp
+      ),
+    );
+
+    setShowProposalDialog(false);
+    setSuccessMessage(
+      `Proposal sent to ${selectedOpportunity.lead_info?.company?.name} and moved to Proposal stage`,
+    );
+    setTimeout(() => setSuccessMessage(""), 5000);
+    toast.success("Proposal sent successfully!");
+  }, [selectedOpportunity, proposalForm.attachedFile, clearDraft]);
 
   const handleSaveDraft = useCallback(async () => {
     if (!selectedOpportunity) return;

@@ -7,9 +7,6 @@ from .models import EmailTracking
 import urllib.parse
 import uuid
 import logging
-import os
-from django.core.mail import EmailMessage, EmailMultiAlternatives
-from django.conf import settings
 
 logger = logging.getLogger(__name__)
 
@@ -60,6 +57,7 @@ class CompanyViewSet(viewsets.ModelViewSet):
     def search(self, request):
         # Extract filters from request body
         filters = request.data
+        query = filters.get('q', '')
         industry = filters.get('industry', '')
         size = filters.get('size', '')
         location = filters.get('location', '')
@@ -81,6 +79,13 @@ class CompanyViewSet(viewsets.ModelViewSet):
         # Apply global search filter (company name)
         if global_search:
             companies = companies.filter(name__icontains=global_search)
+
+        if query:
+            companies = companies.filter(
+                Q(name__icontains=query) |
+                Q(location__icontains=query) |
+                Q(description__icontains=query)
+            )
 
         if industry:
             companies = companies.filter(industry=industry)
@@ -2265,8 +2270,7 @@ Would you be interested in a brief conversation about how we could support {{com
 
         return Response(default_templates)
 
-@api_view(['GET'])
-@permission_classes([AllowAny])
+@api_view(['GET', 'POST'])
 def proposal_draft_detail(request, opportunity_id):
     """
     Handle proposal draft operations for a specific opportunity
@@ -2382,7 +2386,6 @@ def proposal_draft_detail(request, opportunity_id):
             return Response({'message': 'Draft deleted successfully'}, status=status.HTTP_200_OK)
         except ProposalDraft.DoesNotExist:
             return Response({'message': 'No draft found'}, status=status.HTTP_404_NOT_FOUND)
-
 
 @api_view(['GET'])
 @permission_classes([AllowAny])
