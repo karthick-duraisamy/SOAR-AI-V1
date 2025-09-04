@@ -239,6 +239,11 @@ export default function App() {
         label: "Email Campaigns",
         filters: {},
       },
+      "marketing-campaign": {
+        id: "marketing-campaign",
+        label: filters?.editMode ? "Edit Campaign" : "Marketing Campaign",
+        filters: {},
+      },
       opportunities: {
         id: "opportunities",
         label: "Opportunities",
@@ -458,22 +463,16 @@ export default function App() {
         );
       case "all-leads":
         return <AllLeads onNavigate={navigateToSection} />;
-      // case "qualified-leads":
-      //   return (
-      //     <LeadsList
-      //       initialFilters={{ ...sectionFilters, status: "qualified" }}
-      //       onNavigate={navigateToSection}
-      //     />
-      //   );
-      // case "unqualified-leads":
-      //   return (
-      //     <LeadsList
-      //       initialFilters={{ ...sectionFilters, status: "unqualified" }}
-      //       onNavigate={navigateToSection}
-      //     />
-      //   );
       case "email-campaigns":
-        return <EmailCampaigns onNavigate={navigateToSection} />;
+        return <EmailCampaigns onNavigate={handleNavigateFromEmailCampaigns} />;
+      case "marketing-campaign":
+        return (
+          <MarketingCampaignWizard
+            onNavigate={navigateToSection}
+            initialCampaignData={sectionFilters?.campaignData}
+            editMode={sectionFilters?.editMode || false}
+          />
+        );
       case "opportunities":
         return (
           <Opportunities
@@ -544,6 +543,8 @@ export default function App() {
         return "Unqualified Leads";
       case "email-campaigns":
         return "Email Campaigns";
+      case "marketing-campaign":
+        return sectionFilters?.editMode ? "Edit Marketing Campaign" : "Marketing Campaign Wizard";
       case "opportunities":
         return "Opportunities";
       case "revenue-prediction":
@@ -594,6 +595,8 @@ export default function App() {
         return "Leads requiring nurturing and re-engagement";
       case "email-campaigns":
         return "Automated email outreach and nurturing campaigns";
+      case "marketing-campaign":
+        return sectionFilters?.editMode ? "Edit your existing marketing campaign" : "Create targeted marketing campaigns across multiple channels";
       case "opportunities":
         return "Sales pipeline management with deal tracking and forecasting";
       case "revenue-prediction":
@@ -917,37 +920,18 @@ export default function App() {
   //   },
   // ];
 
-  // Main content area state for different sections
-  const [currentScreen, setCurrentScreen] = useState("email-campaigns"); // Default screen
-  const [screenFilters, setScreenFilters] = useState({}); // Filters for the current screen
-
-  const handleScreenNavigation = (screenId: string, filters = {}) => {
-    setCurrentScreen(screenId);
-    setScreenFilters(filters);
-    // Update breadcrumb path when navigating between screens
-    const newPath = buildBreadcrumbPath(screenId, filters);
-    setBreadcrumbPath(newPath);
-  };
-
   // Function to handle navigation for EmailCampaigns dialog
   const handleNavigateFromEmailCampaigns = (screenId: string, filters = {}) => {
-    if (screenId === "email-campaigns" && filters.editMode) {
-      // If editing a campaign, set the screen to MarketingCampaignWizard
-      setCurrentScreen("marketing-campaign");
-      setScreenFilters(filters);
+    if (screenId === 'marketing-campaign' && filters.editMode) {
+      // If editing a campaign, navigate to MarketingCampaignWizard
+      setActiveSection('marketing-campaign');
+      setSectionFilters(filters);
+      const newPath = buildBreadcrumbPath('marketing-campaign', filters);
+      setBreadcrumbPath(newPath);
     } else {
       // Otherwise, navigate as usual
-      handleNavigate(screenId, filters);
+      navigateToSection(screenId, filters);
     }
-  };
-
-  // Call this function when you want to navigate to a different section
-  const handleNavigate = (sectionId: string, filters = {}) => {
-    setActiveSection(sectionId);
-    setSectionFilters(filters);
-    // Update breadcrumb path
-    const newPath = buildBreadcrumbPath(sectionId, filters);
-    setBreadcrumbPath(newPath);
   };
 
   // Handle loading state
@@ -1422,22 +1406,7 @@ export default function App() {
                   lineHeight: "inherit",
                 }}
               >
-                {/* Render the current screen based on activeSection */}
-                {activeSection === "email-campaigns" && (
-                  <EmailCampaigns
-                    onNavigate={handleNavigateFromEmailCampaigns}
-                  />
-                )}
-                {/* Conditionally render MarketingCampaignWizard for editing */}
-                {currentScreen === 'marketing-campaign' && (
-                  <MarketingCampaignWizard
-                    onNavigate={handleNavigate}
-                    initialCampaignData={screenFilters?.campaignData}
-                    editMode={screenFilters?.editMode || false}
-                  />
-                )}
-                {/* Render other components based on activeSection */}
-                {activeSection !== "email-campaigns" && currentScreen !== 'marketing-campaign' && renderContent()}
+                {renderContent()}
               </div>
             </main>
           </SidebarInset>

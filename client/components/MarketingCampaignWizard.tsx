@@ -35,7 +35,7 @@ import { RichTextEditor } from './RichTextEditor';
 
 
 interface MarketingCampaignWizardProps {
-  onNavigate: (screen: string) => void;
+  onNavigate: (screen: string, filters?: any) => void;
   initialCampaignData?: any;
   editMode?: boolean;
 }
@@ -280,6 +280,24 @@ export function MarketingCampaignWizard({ onNavigate, initialCampaignData, editM
       setCurrentStep(currentStep - 1);
     }
   };
+
+  // Add onBack function
+  const onBack = () => {
+    onNavigate('email-campaigns');
+  };
+
+  // Add onComplete function
+  const onComplete = (campaignResult: any) => {
+    console.log('Campaign completed:', campaignResult);
+    // Navigate back to email campaigns
+    onNavigate('email-campaigns');
+  };
+
+  // Mock selectedLeads data for now
+  const selectedLeads = [
+    { id: 1, company: 'TechCorp Solutions', contact: 'Sarah Johnson', industry: 'Technology', score: 85, status: 'new' },
+    { id: 2, company: 'Global Industries', contact: 'Mike Chen', industry: 'Manufacturing', score: 78, status: 'new' },
+  ];
 
   const handleLaunchCampaign = async () => {
     setIsLaunching(true);
