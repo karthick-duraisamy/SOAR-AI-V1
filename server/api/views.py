@@ -726,14 +726,17 @@ class LeadViewSet(viewsets.ModelViewSet):
                 # Get recent notes for display (limit to 3 most recent)
                 recent_notes = lead.lead_notes.all()[:3]
                 
-                # Check if lead has been moved to opportunity by checking both the field and the actual opportunity table
+                # Check if lead has been moved to opportunity by checking the actual opportunity table
                 has_opportunity_in_db = Opportunity.objects.filter(lead=lead).exists()
                 
-                # Update the moved_to_opportunity field if it's out of sync
+                # Update the moved_to_opportunity field to match the database state
+                # moved_to_opportunity should be True ONLY if lead exists in opportunity table
                 if has_opportunity_in_db and not lead.moved_to_opportunity:
+                    # Lead is in opportunity table but field is False - set to True
                     lead.moved_to_opportunity = True
                     lead.save(update_fields=['moved_to_opportunity'])
                 elif not has_opportunity_in_db and lead.moved_to_opportunity:
+                    # Lead is NOT in opportunity table but field is True - set to False
                     lead.moved_to_opportunity = False
                     lead.save(update_fields=['moved_to_opportunity'])
                 

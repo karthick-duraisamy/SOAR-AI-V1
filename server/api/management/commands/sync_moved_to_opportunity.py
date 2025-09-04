@@ -14,17 +14,22 @@ class Command(BaseCommand):
         updated_count = 0
         
         for lead in all_leads:
-            # Check if this lead has an opportunity in the database
+            # Check if this lead exists in the opportunity table
             has_opportunity_in_db = Opportunity.objects.filter(lead=lead).exists()
             
-            # Check if the field value matches the database state
-            if has_opportunity_in_db != lead.moved_to_opportunity:
-                # Update the field to match the database state
-                lead.moved_to_opportunity = has_opportunity_in_db
+            # The moved_to_opportunity field should be True ONLY if lead exists in opportunity table
+            # If lead is in opportunity table: moved_to_opportunity = True
+            # If lead is NOT in opportunity table: moved_to_opportunity = False
+            correct_value = has_opportunity_in_db
+            
+            # Check if the field value matches the correct database state
+            if lead.moved_to_opportunity != correct_value:
+                # Update the field to match the correct database state
+                lead.moved_to_opportunity = correct_value
                 lead.save(update_fields=['moved_to_opportunity'])
                 updated_count += 1
                 
-                status = "moved to opportunity" if has_opportunity_in_db else "not moved to opportunity"
+                status = "moved to opportunity" if correct_value else "not moved to opportunity"
                 self.stdout.write(f"Updated lead {lead.id} ({lead.company.name}) - {status}")
         
         # Summary
