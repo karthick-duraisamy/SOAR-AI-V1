@@ -586,7 +586,8 @@ const OpportunityCard = memo(
                   <div className="bg-white border border-gray-200 rounded-lg shadow-xl overflow-hidden min-w-[160px]">
                     <div className="p-1">
                       <button
-                        className="w-full px-4 py-3 text-xs text-center hover:bg-green-50 flex items-center justify-center gap-2 text-green-700 font-medium rounded-md transition-colors duration-150"
+                        className="w-full px-4 py-3 text-xs text-center hover:bg-green-50 flex items-center justify-center gap-2 text-green-700 font-medium rounded-md transition-colors duration-150 disabled:opacity-50"
+                        disabled={loadingOpportunityId === opportunity.id}
                         onClick={(e) => {
                           e.stopPropagation();
                           if (onCloseDeal) {
@@ -594,11 +595,16 @@ const OpportunityCard = memo(
                           }
                         }}
                       >
-                        <CheckCircle className="h-4 w-4" />
+                        {loadingOpportunityId === opportunity.id ? (
+                          <RefreshCw className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <CheckCircle className="h-4 w-4" />
+                        )}
                         Deal Won
                       </button>
                       <button
-                        className="w-full px-4 py-3 text-xs text-center hover:bg-red-50 flex items-center justify-center gap-2 text-red-700 font-medium rounded-md transition-colors duration-150 mt-1"
+                        className="w-full px-4 py-3 text-xs text-center hover:bg-red-50 flex items-center justify-center gap-2 text-red-700 font-medium rounded-md transition-colors duration-150 mt-1 disabled:opacity-50"
+                        disabled={loadingOpportunityId === opportunity.id}
                         onClick={(e) => {
                           e.stopPropagation();
                           if (onCloseDeal) {
@@ -606,7 +612,11 @@ const OpportunityCard = memo(
                           }
                         }}
                       >
-                        <AlertTriangle className="h-4 w-4" />
+                        {loadingOpportunityId === opportunity.id ? (
+                          <RefreshCw className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <AlertTriangle className="h-4 w-4" />
+                        )}
                         Deal Lost
                       </button>
                     </div>
