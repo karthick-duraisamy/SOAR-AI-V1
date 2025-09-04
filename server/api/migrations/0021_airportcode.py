@@ -16,6 +16,7 @@ class Migration(migrations.Migration):
                 ('code', models.CharField(max_length=3, primary_key=True, serialize=False, unique=True)),
                 ('name', models.CharField(max_length=200)),
                 ('city', models.CharField(max_length=100)),
+                ('country_code' , models.CharField(max_length=2)),
                 ('country', models.CharField(max_length=100)),
                 ('created_at', models.DateTimeField(auto_now_add=True)),
                 ('updated_at', models.DateTimeField(auto_now=True)),
