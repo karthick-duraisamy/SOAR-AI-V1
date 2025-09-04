@@ -152,14 +152,14 @@ const stages = [
   },
   {
     id: "closed_won",
-    label: "Closed Won",
+    label: "Deal Won",
     color: "bg-green-500",
     headerColor: "bg-green-50",
     probability: 100,
   },
   {
     id: "closed_lost",
-    label: "Closed Lost",
+    label: "Deal Lost",
     color: "bg-red-500",
     headerColor: "bg-red-50",
     probability: 0,
@@ -595,7 +595,7 @@ const OpportunityCard = memo(
                         }}
                       >
                         <CheckCircle className="h-4 w-4" />
-                        Closed Won
+                        Deal Won
                       </button>
                       <button
                         className="w-full px-4 py-3 text-xs text-center hover:bg-red-50 flex items-center justify-center gap-2 text-red-700 font-medium rounded-md transition-colors duration-150 mt-1"
@@ -607,7 +607,7 @@ const OpportunityCard = memo(
                         }}
                       >
                         <AlertTriangle className="h-4 w-4" />
-                        Closed Lost
+                        Deal Lost
                       </button>
                     </div>
                   </div>
@@ -1984,7 +1984,7 @@ const getRandomRiskLevel = () => {
 
     const message = status === "closed_won" 
       ? `${opportunity.lead_info?.company?.name} deal closed successfully! 🎉`
-      : `${opportunity.lead_info?.company?.name} deal marked as closed lost`;
+      : `${opportunity.lead_info?.company?.name} deal marked as Deal Lost`;
 
     setSuccessMessage(message);
     setTimeout(() => setSuccessMessage(""), 5000);
@@ -2598,7 +2598,7 @@ const getRandomRiskLevel = () => {
                 {winRate.toFixed(0)}%
               </div>
               <p className="text-xs text-gray-500 mt-1">
-                Closed won percentage
+                Deal Won percentage
               </p>
             </CardContent>
           </Card>
@@ -2937,11 +2937,11 @@ const getRandomRiskLevel = () => {
                       </div>
                       <div className="flex items-center gap-2">
                         <div className="w-3 h-3 bg-green-500 rounded" />
-                        <span>Closed Won</span>
+                        <span>Deal Won</span>
                       </div>
                       <div className="flex items-center gap-2">
                         <div className="w-3 h-3 bg-red-500 rounded" />
-                        <span>Closed Lost</span>
+                        <span>Deal Lost</span>
                       </div>
                     </div>
                   </div>
@@ -4010,7 +4010,7 @@ const getRandomRiskLevel = () => {
                         <FileText className="h-4 w-4 mr-2" />
                       )}
                       {selectedOpportunity && loadingOpportunityId === selectedOpportunity.id ? (
-                        proposalDialogMode === 'proposal' ? "Sending..." : "Generating..."
+                        proposalDialogMode === 'proposal' ? "Sending..." : "Sending..."
                       ) : proposalDialogMode === 'proposal' ? (
                         "Send Proposal"
                       ) : (
