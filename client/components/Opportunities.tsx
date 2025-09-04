@@ -2320,14 +2320,65 @@ const getRandomRiskLevel = () => {
     }, 1000);
   }, [selectedOpportunity, negotiationForm]);
 
-  const handleGenerateRevisedProposal = useCallback(() => {
+  const handleGenerateRevisedProposal = useCallback(async () => {
     if (!selectedOpportunity) return;
 
-    console.log("Generating revised proposal with negotiation terms:", negotiationForm);
-    toast.success("Revised proposal generated and sent!");
+    try {
+      // Set loading state for the send revised proposal button
+      setLoadingOpportunityId(selectedOpportunity.id);
 
-    setShowNegotiationDialog(false);
-  }, [selectedOpportunity, negotiationForm]);
+      // Prepare proposal data for sending (same as Send Proposal)
+      const proposalData = {
+        opportunity_id: selectedOpportunity.id,
+        subject: proposalForm.title || `Negotiation Terms - ${selectedOpportunity.lead_info?.company?.name}`,
+        email_content: generateEmailPreview(),
+        delivery_method: proposalForm.deliveryMethod,
+        validity_period: proposalForm.validityPeriod,
+        special_terms: proposalForm.specialTerms,
+      };
+
+      console.log("Sending revised proposal with data:", proposalData);
+
+      // Send proposal via API (same as Send Proposal)
+      await sendProposal(selectedOpportunity.id, proposalData);
+
+      // Clear the draft since proposal is being sent
+      clearDraft(selectedOpportunity.id);
+
+      // Update opportunity stage to negotiation (different from Send Proposal)
+      await updateOpportunityStage(selectedOpportunity.id, {
+        stage: "negotiation",
+        probability: 80,
+      });
+
+      // Update local state to reflect the changes
+      const updatedOpportunity = {
+        ...selectedOpportunity,
+        stage: "negotiation",
+        probability: 80,
+        updated_at: new Date().toISOString(),
+      };
+
+      setOpportunities((prev) =>
+        prev.map((opp) => 
+          opp.id === selectedOpportunity.id ? updatedOpportunity : opp
+        ),
+      );
+
+      setShowProposalDialog(false);
+      setSuccessMessage(
+        `Revised proposal sent to ${selectedOpportunity.lead_info?.company?.name} and moved to Negotiation stage`,
+      );
+      setTimeout(() => setSuccessMessage(""), 5000);
+      toast.success("Revised proposal sent successfully!");
+    } catch (error) {
+      console.error("Error sending revised proposal:", error);
+      toast.error("Failed to send revised proposal. Please try again.");
+    } finally {
+      // Clear loading state
+      setLoadingOpportunityId(null);
+    }
+  }, [selectedOpportunity, proposalForm, generateEmailPreview, sendProposal, clearDraft, updateOpportunityStage]);
 
   const addRouteDiscount = useCallback(() => {
     setNegotiationForm({
