@@ -726,15 +726,8 @@ class LeadViewSet(viewsets.ModelViewSet):
                 # Get recent notes for display (limit to 3 most recent)
                 recent_notes = lead.lead_notes.all()[:3]
                 
-                # Check if lead has an associated opportunity in api_opportunity table
-                has_opportunity = False
-                try:
-                    # Check if there's an opportunity record for this lead
-                    has_opportunity = Opportunity.objects.filter(lead=lead).exists()
-                except Exception as e:
-                    # If there's an error checking opportunity, assume False
-                    print(f"Error checking opportunity for lead {lead.id}: {e}")
-                    has_opportunity = False
+                # Check if lead has been moved to opportunity using the dedicated field
+                has_opportunity = lead.moved_to_opportunity
 
                 lead_data = {
                     'id': lead.id,
@@ -1302,10 +1295,10 @@ class LeadViewSet(viewsets.ModelViewSet):
                     status=status.HTTP_400_BAD_REQUEST
                 )
 
-            # Check if opportunity already exists for this lead
-            if Opportunity.objects.filter(lead=lead).exists():
+            # Check if lead has already been moved to opportunity
+            if lead.moved_to_opportunity:
                 return Response(
-                    {'error': 'This lead already has an associated opportunity'},
+                    {'error': 'This lead has already been moved to opportunities'},
                     status=status.HTTP_400_BAD_REQUEST
                 )
 
@@ -1325,8 +1318,8 @@ class LeadViewSet(viewsets.ModelViewSet):
                 next_steps=opportunity_data.get('next_steps', 'Send initial proposal and schedule presentation')
             )
 
-            # Keep lead in the system but mark as moved to opportunity
-            # Add a note that it's been moved
+            # Mark lead as moved to opportunity and add note
+            lead.moved_to_opportunity = True
             timestamp = timezone.now().strftime('%Y-%m-%d %H:%M')
             move_note = f"[{timestamp}] Lead moved to opportunities - {opportunity.name}"
             

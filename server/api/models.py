@@ -255,6 +255,7 @@ class Lead(models.Model):
     assigned_agent = models.CharField(max_length=255, blank=True, null=True)
     next_action = models.CharField(max_length=255, blank=True)
     next_action_date = models.DateTimeField(null=True, blank=True)
+    moved_to_opportunity = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

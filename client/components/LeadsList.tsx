@@ -1111,7 +1111,7 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
           preferredClass: newCompanyForm.preferredClass || null,
           sustainability_focus: newCompanyForm.sustainabilityFocus || null,
           risk_level: newCompanyForm.riskLevel || null,
-          expansion_plans: newCompanyForm.expansionPlans || null,
+          expansionPlans: newCompanyForm.expansionPlans || null,
           specialties: newCompanyForm.specialties
             ? newCompanyForm.specialties
                 .split(",")
