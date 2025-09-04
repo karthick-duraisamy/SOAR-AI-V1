@@ -1389,7 +1389,6 @@ class LeadViewSet(viewsets.ModelViewSet):
         try:
             data = request.data
             company_data = data.get('company', {})
-            company_id = company_data.get('id', None) # Get company id from frontend data if available
 
             # Extract company information - prioritize top-level name if company.name is missing
             company_name = company_data.get('name') or data.get('name')
@@ -1409,32 +1408,15 @@ class LeadViewSet(viewsets.ModelViewSet):
                 'description': data.get('notes', '')
             }
 
-            # Check if company already exists, if yes, get it, otherwise create it
-            try:
-                company_instance = Company.objects.get(name=company_name)
-                print(f"Found existing company: {company_instance.name}")
-
-                # If we have a company_id from the frontend, update the existing company
-                if company_id and str(company_instance.id) == str(company_id):
-                    # Update the existing company record to mark it as moved to lead
-                    company_instance.move_as_lead = True
-                    company_instance.save()
-                    print(f"Updated existing company move_as_lead flag: {company_instance.name}")
-
-            except Company.DoesNotExist:
-                company_serializer = CompanySerializer(data=company_data_to_save)
-                if company_serializer.is_valid():
-                    company_instance = company_serializer.save()
-                    print(f"Created new company: {company_instance.name}")
-                else:
-                    print(f"Company creation errors: {company_serializer.errors}")
-                    return Response({'error': 'Invalid company data', 'details': company_serializer.errors}, 
-                                  status=status.HTTP_400_BAD_REQUEST)
-
+            # Create or get company
+            company, created = Company.objects.get_or_create(
+                name=company_name,
+                defaults=company_data_to_save
+            )
 
             # Create default contact
             contact, contact_created = Contact.objects.get_or_create(
-                company=company_instance, # Use company_instance here
+                company=company,
                 email=company_data.get('email', f"contact@{company_name.lower().replace(' ', '')}.com"),
                 defaults={
                     'first_name': company_name.split(' ')[0],
@@ -1447,7 +1429,7 @@ class LeadViewSet(viewsets.ModelViewSet):
 
             # Create the lead
             lead = Lead.objects.create(
-                company=company_instance, # Use company_instance here
+                company=company,
                 contact=contact,
                 status='new',
                 source='manual_entry',
@@ -1463,7 +1445,7 @@ class LeadViewSet(viewsets.ModelViewSet):
                 lead=lead,
                 history_type='lead_created',
                 action='Lead created from company data',
-                details=f"Lead created from manual company entry. Company: {company_instance.name}. Initial contact information collected.",
+                details=f"Lead created from manual company entry. Company: {company.name}. Initial contact information collected.",
                 icon='plus',
                 user=request.user if request.user.is_authenticated else None
             )
@@ -1472,7 +1454,7 @@ class LeadViewSet(viewsets.ModelViewSet):
             serializer = LeadSerializer(lead)
             return Response({
                 'lead': serializer.data,
-                'message': f'{company_instance.name} has been successfully added as a lead'
+                'message': f'{company.name} has been successfully added as a lead'
             }, status=status.HTTP_201_CREATED)
 
         except Exception as e:

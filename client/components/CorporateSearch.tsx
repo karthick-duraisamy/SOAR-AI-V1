@@ -547,19 +547,15 @@ export function CorporateSearch({
   // Function to check if companies exist as leads
   const checkCompaniesLeadStatus = useCallback(async (companies) => {
     try {
-      // Check move_as_lead flag directly from company data and update local state
+      // Check move_as_lead flag directly from company data
       const existingLeads = new Set();
-      const movedIds = new Set();
-      
       companies.forEach((company) => {
         if (company.move_as_lead) {
           existingLeads.add(company.name);
-          movedIds.add(company.id);
         }
       });
 
       setExistingLeadCompanies(existingLeads);
-      setMovedAsLeadIds(movedIds);
     } catch (error) {
       console.error("Error checking lead status:", error);
       // Don't show error to user as this is not critical functionality
@@ -811,35 +807,24 @@ export function CorporateSearch({
         score: corporate.aiScore,
         estimated_value: corporate.contractValue || null,
         notes: `Moved from corporate search. AI Score: ${corporate.aiScore}. ${corporate.aiRecommendation}. Specialties: ${corporate.specialties?.join(", ") || "N/A"}. Travel Frequency: ${corporate.travelFrequency || "N/A"}. Preferred Class: ${corporate.preferredClass || "N/A"}.`,
-        company_id: corporate.id, // Add the company ID so backend can update the move_as_lead flag
       };
 
-      // Call the API to create the lead - this should also mark the company as moved to lead
-      const createdLead = await moveToLead(leadData);
+      // Call the API to create the lead
+      const createdLead = await moveToLead(leadData); // Use moveToLead from useCompanyApi
 
-      console.log("Lead created successfully:", createdLead);
+      // Mark the company as moved to lead via API
+      try {
+        await companyApi.markCompanyAsMovedToLead(corporate.id);
+      } catch (error) {
+        console.warn(
+          "Failed to mark company flag, but lead was created successfully:",
+          error,
+        );
+      }
 
-      // Immediately update the local state to reflect the move
+      // Add to moved leads tracking
       setMovedAsLeadIds((prev) => new Set([...prev, corporate.id]));
       setExistingLeadCompanies((prev) => new Set([...prev, corporate.name]));
-
-      // Update the company in the filteredCorporates list to show it's moved
-      setFilteredCorporates((prev) =>
-        prev.map((company) =>
-          company.id === corporate.id
-            ? { ...company, move_as_lead: true }
-            : company,
-        ),
-      );
-
-      // Update the displayedCorporates list as well
-      setDisplayedCorporates((prev) =>
-        prev.map((company) =>
-          company.id === corporate.id
-            ? { ...company, move_as_lead: true }
-            : company,
-        ),
-      );
 
       // Show success message
       setSuccessMessage(
@@ -855,13 +840,8 @@ export function CorporateSearch({
       }
     } catch (error) {
       console.error("Error moving corporate as lead:", error);
-      const errorMessage = error.response?.data?.error || 
-                          error.response?.data?.message || 
-                          error.message || 
-                          "Failed to move company as lead";
-      
       setSuccessMessage(
-        `Error: ${errorMessage}. Please try again.`,
+        `Error: Failed to move ${corporate.name} as lead. Please try again.`,
       );
       setTimeout(() => setSuccessMessage(""), 5000);
     } finally {
