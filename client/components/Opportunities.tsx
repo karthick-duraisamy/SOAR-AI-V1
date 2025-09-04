@@ -2073,6 +2073,9 @@ const getRandomRiskLevel = () => {
     if (!selectedOpportunity) return;
 
     try {
+      // Set loading state for the send proposal button
+      setLoadingOpportunityId(selectedOpportunity.id);
+      
       // Prepare proposal data for sending
       const proposalData = {
         opportunity_id: selectedOpportunity.id,
@@ -2120,6 +2123,9 @@ const getRandomRiskLevel = () => {
     } catch (error) {
       console.error("Error sending proposal:", error);
       toast.error("Failed to send proposal. Please try again.");
+    } finally {
+      // Clear loading state
+      setLoadingOpportunityId(null);
     }
   }, [selectedOpportunity, proposalForm, generateEmailPreview, sendProposal, clearDraft, updateOpportunityStage]);
 
@@ -3785,11 +3791,15 @@ const getRandomRiskLevel = () => {
                     </Button>
                     <Button
                       onClick={handleSaveProposal}
-                      disabled={!proposalForm.title}
+                      disabled={!proposalForm.title || (selectedOpportunity && loadingOpportunityId === selectedOpportunity.id)}
                       className="bg-orange-500 hover:bg-orange-600 text-white"
                     >
-                      <Mail className="h-4 w-4 mr-2" />
-                      Send Proposal
+                      {selectedOpportunity && loadingOpportunityId === selectedOpportunity.id ? (
+                        <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                      ) : (
+                        <Mail className="h-4 w-4 mr-2" />
+                      )}
+                      {selectedOpportunity && loadingOpportunityId === selectedOpportunity.id ? "Sending..." : "Send Proposal"}
                     </Button>
                   </div>
 
