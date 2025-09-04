@@ -705,8 +705,8 @@ class LeadViewSet(viewsets.ModelViewSet):
                 elif engagement == 'Low':
                     leads = leads.filter(score__lt=60)
 
-            # Order and limit for performance
-            leads = leads.order_by('-created_at')[:100]  # Limit to 100 results for performance
+            # Order by most recent first (updated_at, then created_at as fallback)
+            leads = leads.order_by('-updated_at', '-created_at')[:100]  # Limit to 100 results for performance
 
             # Use standard serializer since OptimizedLeadSerializer might not exist
             serializer = self.get_serializer(leads, many=True)
