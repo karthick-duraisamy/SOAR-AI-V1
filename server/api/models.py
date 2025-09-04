@@ -3,11 +3,13 @@ from django.contrib.auth.models import User
 from django.utils import timezone
 import uuid
 
+
 class AirportCode(models.Model):
     """Model to store airport codes and their corresponding names"""
     code = models.CharField(max_length=3, unique=True, primary_key=True)
     name = models.CharField(max_length=200)
     city = models.CharField(max_length=100)
+    country_code = models.CharField(max_length=2)
     country = models.CharField(max_length=100)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -17,6 +19,7 @@ class AirportCode(models.Model):
 
     class Meta:
         ordering = ['code']
+
 
 class Company(models.Model):
     COMPANY_SIZES = [
@@ -101,7 +104,9 @@ class Company(models.Model):
 
     # Basic Info fields
     name = models.CharField(max_length=255)
-    company_type = models.CharField(max_length=50, choices=COMPANY_SIZES, blank=True)
+    company_type = models.CharField(max_length=50,
+                                    choices=COMPANY_SIZES,
+                                    blank=True)
     industry = models.CharField(max_length=50, choices=INDUSTRIES)
     location = models.CharField(max_length=255)
     email = models.EmailField(blank=True)
@@ -110,26 +115,50 @@ class Company(models.Model):
 
     # Business Details fields
     employee_count = models.IntegerField(null=True, blank=True)
-    annual_revenue = models.DecimalField(max_digits=15, decimal_places=2, null=True, blank=True)
+    annual_revenue = models.DecimalField(max_digits=15,
+                                         decimal_places=2,
+                                         null=True,
+                                         blank=True)
     year_established = models.IntegerField(null=True, blank=True)
     size = models.CharField(max_length=20, choices=COMPANY_SIZES)
-    credit_rating = models.CharField(max_length=10, choices=CREDIT_RATING_CHOICES, blank=True)
-    payment_terms = models.CharField(max_length=20, choices=PAYMENT_TERMS_CHOICES, blank=True)
+    credit_rating = models.CharField(max_length=10,
+                                     choices=CREDIT_RATING_CHOICES,
+                                     blank=True)
+    payment_terms = models.CharField(max_length=20,
+                                     choices=PAYMENT_TERMS_CHOICES,
+                                     blank=True)
 
     # Travel Profile fields
-    travel_budget = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
+    travel_budget = models.DecimalField(max_digits=12,
+                                        decimal_places=2,
+                                        null=True,
+                                        blank=True)
     annual_travel_volume = models.CharField(max_length=100, blank=True)
-    travel_frequency = models.CharField(max_length=20, choices=TRAVEL_FREQUENCY_CHOICES, blank=True)
-    preferred_class = models.CharField(max_length=20, choices=PREFERRED_CLASS_CHOICES, blank=True)
-    sustainability_focus = models.CharField(max_length=20, choices=SUSTAINABILITY_CHOICES, blank=True)
-    risk_level = models.CharField(max_length=20, choices=RISK_LEVEL_CHOICES, blank=True)
-    current_airlines = models.TextField(blank=True)  # Store as comma-separated values
+    travel_frequency = models.CharField(max_length=20,
+                                        choices=TRAVEL_FREQUENCY_CHOICES,
+                                        blank=True)
+    preferred_class = models.CharField(max_length=20,
+                                       choices=PREFERRED_CLASS_CHOICES,
+                                       blank=True)
+    sustainability_focus = models.CharField(max_length=20,
+                                            choices=SUSTAINABILITY_CHOICES,
+                                            blank=True)
+    risk_level = models.CharField(max_length=20,
+                                  choices=RISK_LEVEL_CHOICES,
+                                  blank=True)
+    current_airlines = models.TextField(
+        blank=True)  # Store as comma-separated values
 
     # Additional Info fields
-    expansion_plans = models.CharField(max_length=20, choices=EXPANSION_CHOICES, blank=True)
-    specialties = models.TextField(blank=True)  # Store as comma-separated values
-    technology_integration = models.TextField(blank=True)  # Store as comma-separated values
-    description = models.TextField(blank=True)  # This will be used for additional notes
+    expansion_plans = models.CharField(max_length=20,
+                                       choices=EXPANSION_CHOICES,
+                                       blank=True)
+    specialties = models.TextField(
+        blank=True)  # Store as comma-separated values
+    technology_integration = models.TextField(
+        blank=True)  # Store as comma-separated values
+    description = models.TextField(
+        blank=True)  # This will be used for additional notes
 
     is_active = models.BooleanField(default=True)
     move_as_lead = models.BooleanField(default=False)
@@ -138,6 +167,7 @@ class Company(models.Model):
 
     def __str__(self):
         return self.name
+
 
 class Contact(models.Model):
     DEPARTMENTS = [
@@ -153,13 +183,17 @@ class Contact(models.Model):
         ('other', 'Other'),
     ]
 
-    company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='contacts')
+    company = models.ForeignKey(Company,
+                                on_delete=models.CASCADE,
+                                related_name='contacts')
     first_name = models.CharField(max_length=100)
     last_name = models.CharField(max_length=100)
     email = models.EmailField()
     phone = models.CharField(max_length=20, blank=True)
     position = models.CharField(max_length=100)
-    department = models.CharField(max_length=20, choices=DEPARTMENTS, blank=True)
+    department = models.CharField(max_length=20,
+                                  choices=DEPARTMENTS,
+                                  blank=True)
     is_decision_maker = models.BooleanField(default=False)
     linkedin_profile = models.URLField(blank=True)
     notes = models.TextField(blank=True)
@@ -168,6 +202,7 @@ class Contact(models.Model):
 
     def __str__(self):
         return f"{self.first_name} {self.last_name} - {self.company.name}"
+
 
 class Lead(models.Model):
     LEAD_STATUS_CHOICES = [
@@ -200,13 +235,23 @@ class Lead(models.Model):
 
     company = models.ForeignKey(Company, on_delete=models.CASCADE)
     contact = models.ForeignKey(Contact, on_delete=models.CASCADE)
-    status = models.CharField(max_length=20, choices=LEAD_STATUS_CHOICES, default='new')
+    status = models.CharField(max_length=20,
+                              choices=LEAD_STATUS_CHOICES,
+                              default='new')
     source = models.CharField(max_length=20, choices=LEAD_SOURCE_CHOICES)
-    priority = models.CharField(max_length=10, choices=PRIORITY_LEVELS, default='medium')
+    priority = models.CharField(max_length=10,
+                                choices=PRIORITY_LEVELS,
+                                default='medium')
     score = models.IntegerField(default=0)
-    estimated_value = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
+    estimated_value = models.DecimalField(max_digits=12,
+                                          decimal_places=2,
+                                          null=True,
+                                          blank=True)
     notes = models.TextField(blank=True)
-    assigned_to = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    assigned_to = models.ForeignKey(User,
+                                    on_delete=models.SET_NULL,
+                                    null=True,
+                                    blank=True)
     assigned_agent = models.CharField(max_length=255, blank=True, null=True)
     next_action = models.CharField(max_length=255, blank=True)
     next_action_date = models.DateTimeField(null=True, blank=True)
@@ -215,6 +260,7 @@ class Lead(models.Model):
 
     def __str__(self):
         return f"Lead: {self.company.name} - {self.status}"
+
 
 class Opportunity(models.Model):
     OPPORTUNITY_STAGES = [
@@ -225,9 +271,13 @@ class Opportunity(models.Model):
         ('closed_lost', 'Closed Lost'),
     ]
 
-    lead = models.OneToOneField(Lead, on_delete=models.CASCADE, related_name='opportunity')
+    lead = models.OneToOneField(Lead,
+                                on_delete=models.CASCADE,
+                                related_name='opportunity')
     name = models.CharField(max_length=255)
-    stage = models.CharField(max_length=20, choices=OPPORTUNITY_STAGES, default='discovery')
+    stage = models.CharField(max_length=20,
+                             choices=OPPORTUNITY_STAGES,
+                             default='discovery')
     probability = models.IntegerField(default=0)
     estimated_close_date = models.DateField()
     actual_close_date = models.DateField(null=True, blank=True)
@@ -240,6 +290,7 @@ class Opportunity(models.Model):
     def __str__(self):
         return f"{self.name} - {self.stage}"
 
+
 class OpportunityActivity(models.Model):
     ACTIVITY_TYPES = [
         ('call', 'Phone Call'),
@@ -251,12 +302,17 @@ class OpportunityActivity(models.Model):
         ('other', 'Other'),
     ]
 
-    opportunity = models.ForeignKey(Opportunity, on_delete=models.CASCADE, related_name='activities')
+    opportunity = models.ForeignKey(Opportunity,
+                                    on_delete=models.CASCADE,
+                                    related_name='activities')
     type = models.CharField(max_length=20, choices=ACTIVITY_TYPES)
     description = models.TextField()
     date = models.DateField()
     created_at = models.DateTimeField(auto_now_add=True)
-    created_by = models.ForeignKey('auth.User', on_delete=models.SET_NULL, null=True, blank=True)
+    created_by = models.ForeignKey('auth.User',
+                                   on_delete=models.SET_NULL,
+                                   null=True,
+                                   blank=True)
 
     class Meta:
         ordering = ['-date', '-created_at']
@@ -264,6 +320,7 @@ class OpportunityActivity(models.Model):
 
     def __str__(self):
         return f"{self.get_type_display()} - {self.opportunity.name}"
+
 
 class Contract(models.Model):
     CONTRACT_STATUS_CHOICES = [
@@ -285,12 +342,20 @@ class Contract(models.Model):
         ('other', 'Other'),
     ]
 
-    opportunity = models.OneToOneField(Opportunity, on_delete=models.CASCADE, related_name='contract', null=True, blank=True)
+    opportunity = models.OneToOneField(Opportunity,
+                                       on_delete=models.CASCADE,
+                                       related_name='contract',
+                                       null=True,
+                                       blank=True)
     company = models.ForeignKey(Company, on_delete=models.CASCADE)
     contract_number = models.CharField(max_length=50, unique=True)
     title = models.CharField(max_length=255)
-    contract_type = models.CharField(max_length=30, choices=CONTRACT_TYPES, default='corporate_travel')
-    status = models.CharField(max_length=20, choices=CONTRACT_STATUS_CHOICES, default='draft')
+    contract_type = models.CharField(max_length=30,
+                                     choices=CONTRACT_TYPES,
+                                     default='corporate_travel')
+    status = models.CharField(max_length=20,
+                              choices=CONTRACT_STATUS_CHOICES,
+                              default='draft')
     start_date = models.DateField()
     end_date = models.DateField()
     value = models.DecimalField(max_digits=12, decimal_places=2)
@@ -304,6 +369,7 @@ class Contract(models.Model):
 
     def __str__(self):
         return f"{self.contract_number} - {self.title}"
+
 
 class ContractBreach(models.Model):
     BREACH_TYPES = [
@@ -322,18 +388,24 @@ class ContractBreach(models.Model):
         ('critical', 'Critical'),
     ]
 
-    contract = models.ForeignKey(Contract, on_delete=models.CASCADE, related_name='breaches')
+    contract = models.ForeignKey(Contract,
+                                 on_delete=models.CASCADE,
+                                 related_name='breaches')
     breach_type = models.CharField(max_length=20, choices=BREACH_TYPES)
     severity = models.CharField(max_length=10, choices=SEVERITY_LEVELS)
     description = models.TextField()
     detected_date = models.DateTimeField(auto_now_add=True)
     resolved_date = models.DateTimeField(null=True, blank=True)
     is_resolved = models.BooleanField(default=False)
-    financial_impact = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    financial_impact = models.DecimalField(max_digits=10,
+                                           decimal_places=2,
+                                           null=True,
+                                           blank=True)
     resolution_notes = models.TextField(blank=True)
 
     def __str__(self):
         return f"Breach: {self.contract.contract_number} - {self.breach_type}"
+
 
 class CampaignTemplate(models.Model):
     CHANNEL_TYPE_CHOICES = [
@@ -351,12 +423,17 @@ class CampaignTemplate(models.Model):
 
     name = models.CharField(max_length=255)
     description = models.TextField()
-    channel_type = models.CharField(max_length=20, choices=CHANNEL_TYPE_CHOICES, default='email')
+    channel_type = models.CharField(max_length=20,
+                                    choices=CHANNEL_TYPE_CHOICES,
+                                    default='email')
     target_industry = models.CharField(max_length=100, default='All')
     subject_line = models.CharField(max_length=255, blank=True, null=True)
     content = models.TextField()
     cta = models.CharField(max_length=255)
-    linkedin_type = models.CharField(max_length=20, choices=LINKEDIN_TYPE_CHOICES, blank=True, null=True)
+    linkedin_type = models.CharField(max_length=20,
+                                     choices=LINKEDIN_TYPE_CHOICES,
+                                     blank=True,
+                                     null=True)
     estimated_open_rate = models.FloatField(default=40.0)
     estimated_click_rate = models.FloatField(default=10.0)
     is_custom = models.BooleanField(default=True)
@@ -390,8 +467,12 @@ class EmailCampaign(models.Model):
 
     name = models.CharField(max_length=255)
     description = models.TextField()
-    campaign_type = models.CharField(max_length=20, choices=CAMPAIGN_TYPES, default='nurture')
-    status = models.CharField(max_length=20, choices=CAMPAIGN_STATUS_CHOICES, default='draft')
+    campaign_type = models.CharField(max_length=20,
+                                     choices=CAMPAIGN_TYPES,
+                                     default='nurture')
+    status = models.CharField(max_length=20,
+                              choices=CAMPAIGN_STATUS_CHOICES,
+                              default='draft')
     subject_line = models.CharField(max_length=255)
     email_content = models.TextField()
     cta_link = models.URLField(blank=True, null=True)
@@ -401,7 +482,8 @@ class EmailCampaign(models.Model):
     emails_opened = models.IntegerField(default=0)
     emails_clicked = models.IntegerField(default=0)
     target_leads = models.ManyToManyField('Lead', blank=True)
-    target_count = models.IntegerField(default=0)  # Track number of targeted leads
+    target_count = models.IntegerField(
+        default=0)  # Track number of targeted leads
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -438,21 +520,28 @@ class EmailCampaign(models.Model):
 
         # Create file handler for email logs
         import os
-        log_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'logs')
+        log_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)),
+                               'logs')
         os.makedirs(log_dir, exist_ok=True)
-        log_file = os.path.join(log_dir, f'email_campaign_{self.id}_{timezone.now().strftime("%Y%m%d_%H%M%S")}.log')
+        log_file = os.path.join(
+            log_dir,
+            f'email_campaign_{self.id}_{timezone.now().strftime("%Y%m%d_%H%M%S")}.log'
+        )
 
         file_handler = logging.FileHandler(log_file)
         file_handler.setLevel(logging.INFO)
-        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        formatter = logging.Formatter(
+            '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
         file_handler.setFormatter(formatter)
         smtp_logger.addHandler(file_handler)
 
         if not self.target_leads.exists():
-            smtp_logger.warning(f"Campaign {self.name} (ID: {self.id}): No target leads found")
+            smtp_logger.warning(
+                f"Campaign {self.name} (ID: {self.id}): No target leads found")
             return {'success': False, 'message': 'No target leads found'}
 
-        smtp_logger.info(f"Starting email campaign: {self.name} (ID: {self.id})")
+        smtp_logger.info(
+            f"Starting email campaign: {self.name} (ID: {self.id})")
         smtp_logger.info(f"Target leads count: {self.target_leads.count()}")
 
         # Prepare email data
@@ -466,23 +555,34 @@ class EmailCampaign(models.Model):
                 # Validate email address
                 if not lead.contact.email or not lead.contact.email.strip():
                     failed_count += 1
-                    smtp_logger.error(f"Skipping lead {lead.company.name} - no valid email address")
+                    smtp_logger.error(
+                        f"Skipping lead {lead.company.name} - no valid email address"
+                    )
                     continue
 
                 # Validate email format
                 email_address = lead.contact.email.strip()
                 if '@' not in email_address or '.' not in email_address:
                     failed_count += 1
-                    smtp_logger.error(f"Skipping lead {lead.company.name} - invalid email format: {email_address}")
+                    smtp_logger.error(
+                        f"Skipping lead {lead.company.name} - invalid email format: {email_address}"
+                    )
                     continue
 
                 # Create template context with lead data
                 context = Context({
-                    'contact_name': f"{lead.contact.first_name} {lead.contact.last_name}".strip() or 'Valued Customer',
-                    'company_name': lead.company.name,
-                    'industry': lead.company.get_industry_display(),
-                    'employees': lead.company.employee_count or 'your team',
-                    'travel_budget': f"${int(lead.company.travel_budget/1000000)}M" if lead.company.travel_budget else 'your budget'
+                    'contact_name':
+                    f"{lead.contact.first_name} {lead.contact.last_name}".
+                    strip() or 'Valued Customer',
+                    'company_name':
+                    lead.company.name,
+                    'industry':
+                    lead.company.get_industry_display(),
+                    'employees':
+                    lead.company.employee_count or 'your team',
+                    'travel_budget':
+                    f"${int(lead.company.travel_budget/1000000)}M"
+                    if lead.company.travel_budget else 'your budget'
                 })
 
                 # Render subject and content with dynamic data
@@ -499,7 +599,7 @@ class EmailCampaign(models.Model):
                     import re
                     # Try to extract CTA from the campaign launch request data
                     cta_text = getattr(self, '_temp_cta_text', None)
-                
+
                 # Construct CTA button with link if available
                 cta_button_html = ""
                 if cta_text and self.cta_link:
@@ -508,30 +608,34 @@ class EmailCampaign(models.Model):
                     cta_button_html = f'<p style="text-align: center; margin: 20px 0;"><span style="background-color: #cccccc; color: white; padding: 12px 24px; border-radius: 5px; display: inline-block; font-weight: bold;">{cta_text}</span></p>'
 
                 # Inject CTA button into email content
-                rendered_content_with_cta = rendered_content.replace('{{cta_button}}', cta_button_html).replace('{{cta}}', cta_button_html)
+                rendered_content_with_cta = rendered_content.replace(
+                    '{{cta_button}}',
+                    cta_button_html).replace('{{cta}}', cta_button_html)
 
                 # Create tracking record
                 tracking, created = EmailTracking.objects.get_or_create(
                     campaign=self,
                     lead=lead,
-                    defaults={'tracking_id': uuid.uuid4()}
-                )
+                    defaults={'tracking_id': uuid.uuid4()})
 
                 # Create EmailMessage for individual tracking
-                email_msg = EmailMessage(
-                    subject=rendered_subject,
-                    body=rendered_content_with_cta,
-                    from_email=settings.DEFAULT_FROM_EMAIL or 'noreply@soarai.com',
-                    to=[email_address]
-                )
+                email_msg = EmailMessage(subject=rendered_subject,
+                                         body=rendered_content_with_cta,
+                                         from_email=settings.DEFAULT_FROM_EMAIL
+                                         or 'noreply@soarai.com',
+                                         to=[email_address])
                 email_msg.content_subtype = 'html'  # Set as HTML email
                 emails_to_send.append((email_msg, lead, tracking))
 
-                smtp_logger.info(f"Prepared email for {email_address} ({lead.company.name})")
+                smtp_logger.info(
+                    f"Prepared email for {email_address} ({lead.company.name})"
+                )
 
             except Exception as e:
                 failed_count += 1
-                smtp_logger.error(f"Error preparing email for {lead.contact.email if lead.contact.email else 'unknown'}: {str(e)}")
+                smtp_logger.error(
+                    f"Error preparing email for {lead.contact.email if lead.contact.email else 'unknown'}: {str(e)}"
+                )
 
         # Send emails individually with detailed SMTP logging
         try:
@@ -554,21 +658,32 @@ class EmailCampaign(models.Model):
                                 tracking.email_sent = timezone.now()
                                 tracking.save()
 
-                                smtp_logger.info(f"✓ Email sent successfully to {lead.contact.email} ({lead.company.name})")
+                                smtp_logger.info(
+                                    f"✓ Email sent successfully to {lead.contact.email} ({lead.company.name})"
+                                )
                                 smtp_responses.append({
-                                    'email': lead.contact.email,
-                                    'company': lead.company.name,
-                                    'status': 'SUCCESS',
-                                    'message': 'Email sent successfully',
-                                    'tracking_id': str(tracking.tracking_id)
+                                    'email':
+                                    lead.contact.email,
+                                    'company':
+                                    lead.company.name,
+                                    'status':
+                                    'SUCCESS',
+                                    'message':
+                                    'Email sent successfully',
+                                    'tracking_id':
+                                    str(tracking.tracking_id)
                                 })
                             else:
                                 failed_count += 1
                                 smtp_responses.append({
-                                    'email': lead.contact.email,
-                                    'company': lead.company.name,
-                                    'status': 'FAILED',
-                                    'message': 'Send failed without SMTP error'
+                                    'email':
+                                    lead.contact.email,
+                                    'company':
+                                    lead.company.name,
+                                    'status':
+                                    'FAILED',
+                                    'message':
+                                    'Send failed without SMTP error'
                                 })
 
                         except Exception as e:
@@ -592,17 +707,23 @@ class EmailCampaign(models.Model):
                 self.save()
 
                 # Log final summary
-                smtp_logger.info(f"Campaign completed: {sent_count} sent, {failed_count} failed")
+                smtp_logger.info(
+                    f"Campaign completed: {sent_count} sent, {failed_count} failed"
+                )
 
                 return {
                     'success': True,
-                    'message': f'Campaign completed: {sent_count} sent, {failed_count} failed',
+                    'message':
+                    f'Campaign completed: {sent_count} sent, {failed_count} failed',
                     'emails_sent': sent_count,
                     'failed_count': failed_count,
                     'smtp_responses': smtp_responses,
                     'smtp_details': {
-                        'total_processed': len(emails_to_send),
-                        'success_rate': f'{(sent_count/len(emails_to_send)*100):.1f}%' if emails_to_send else '0%'
+                        'total_processed':
+                        len(emails_to_send),
+                        'success_rate':
+                        f'{(sent_count/len(emails_to_send)*100):.1f}%'
+                        if emails_to_send else '0%'
                     },
                     'log_file': log_file
                 }
@@ -626,9 +747,12 @@ class EmailCampaign(models.Model):
             smtp_logger.removeHandler(file_handler)
             file_handler.close()
 
+
 class EmailTracking(models.Model):
     """Track individual email opens and clicks"""
-    campaign = models.ForeignKey(EmailCampaign, on_delete=models.CASCADE, related_name='email_tracking')
+    campaign = models.ForeignKey(EmailCampaign,
+                                 on_delete=models.CASCADE,
+                                 related_name='email_tracking')
     lead = models.ForeignKey(Lead, on_delete=models.CASCADE)
     tracking_id = models.UUIDField(default=uuid.uuid4, unique=True)
     email_sent = models.DateTimeField(auto_now_add=True)
@@ -646,6 +770,7 @@ class EmailTracking(models.Model):
 
     class Meta:
         unique_together = ['campaign', 'lead']
+
 
 class TravelOffer(models.Model):
     OFFER_STATUS_CHOICES = [
@@ -666,22 +791,33 @@ class TravelOffer(models.Model):
     title = models.CharField(max_length=255)
     description = models.TextField()
     offer_type = models.CharField(max_length=20, choices=OFFER_TYPES)
-    status = models.CharField(max_length=15, choices=OFFER_STATUS_CHOICES, default='draft')
-    discount_percentage = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    status = models.CharField(max_length=15,
+                              choices=OFFER_STATUS_CHOICES,
+                              default='draft')
+    discount_percentage = models.DecimalField(max_digits=5,
+                                              decimal_places=2,
+                                              null=True,
+                                              blank=True)
     base_price = models.DecimalField(max_digits=10, decimal_places=2)
-    discounted_price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    discounted_price = models.DecimalField(max_digits=10,
+                                           decimal_places=2,
+                                           null=True,
+                                           blank=True)
     valid_from = models.DateTimeField()
     valid_until = models.DateTimeField()
     terms_conditions = models.TextField()
     target_companies = models.ManyToManyField(Company, blank=True)
     bookings_count = models.IntegerField(default=0)
-    revenue_generated = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    revenue_generated = models.DecimalField(max_digits=12,
+                                            decimal_places=2,
+                                            default=0)
     created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return self.title
+
 
 class SupportTicket(models.Model):
     PRIORITY_CHOICES = [
@@ -713,10 +849,19 @@ class SupportTicket(models.Model):
     contact = models.ForeignKey(Contact, on_delete=models.CASCADE)
     subject = models.CharField(max_length=255)
     description = models.TextField()
-    category = models.CharField(max_length=15, choices=CATEGORY_CHOICES, default='general')
-    priority = models.CharField(max_length=10, choices=PRIORITY_CHOICES, default='medium')
-    status = models.CharField(max_length=15, choices=STATUS_CHOICES, default='open')
-    assigned_to = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    category = models.CharField(max_length=15,
+                                choices=CATEGORY_CHOICES,
+                                default='general')
+    priority = models.CharField(max_length=10,
+                                choices=PRIORITY_CHOICES,
+                                default='medium')
+    status = models.CharField(max_length=15,
+                              choices=STATUS_CHOICES,
+                              default='open')
+    assigned_to = models.ForeignKey(User,
+                                    on_delete=models.SET_NULL,
+                                    null=True,
+                                    blank=True)
     resolution_notes = models.TextField(blank=True)
     satisfaction_rating = models.IntegerField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -731,6 +876,7 @@ class SupportTicket(models.Model):
     def __str__(self):
         return f"{self.ticket_number} - {self.subject}"
 
+
 class RevenueForecast(models.Model):
     PERIOD_TYPES = [
         ('monthly', 'Monthly'),
@@ -738,10 +884,15 @@ class RevenueForecast(models.Model):
         ('yearly', 'Yearly'),
     ]
 
-    period_type = models.CharField(max_length=15, choices=PERIOD_TYPES, default='monthly')
+    period_type = models.CharField(max_length=15,
+                                   choices=PERIOD_TYPES,
+                                   default='monthly')
     period = models.CharField(max_length=20)
     forecasted_revenue = models.DecimalField(max_digits=15, decimal_places=2)
-    actual_revenue = models.DecimalField(max_digits=15, decimal_places=2, null=True, blank=True)
+    actual_revenue = models.DecimalField(max_digits=15,
+                                         decimal_places=2,
+                                         null=True,
+                                         blank=True)
     confidence_level = models.IntegerField(default=80)
     factors = models.JSONField(default=dict, blank=True)
     notes = models.TextField(blank=True)
@@ -751,6 +902,7 @@ class RevenueForecast(models.Model):
     def __str__(self):
         return f"Revenue Forecast {self.period}"
 
+
 class LeadNote(models.Model):
     URGENCY_CHOICES = [
         ('Low', 'Low'),
@@ -759,11 +911,18 @@ class LeadNote(models.Model):
         ('Urgent', 'Urgent'),
     ]
 
-    lead = models.ForeignKey(Lead, on_delete=models.CASCADE, related_name='lead_notes')
+    lead = models.ForeignKey(Lead,
+                             on_delete=models.CASCADE,
+                             related_name='lead_notes')
     note = models.TextField()
     next_action = models.CharField(max_length=255, blank=True)
-    urgency = models.CharField(max_length=10, choices=URGENCY_CHOICES, default='Medium')
-    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    urgency = models.CharField(max_length=10,
+                               choices=URGENCY_CHOICES,
+                               default='Medium')
+    created_by = models.ForeignKey(User,
+                                   on_delete=models.SET_NULL,
+                                   null=True,
+                                   blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -772,6 +931,7 @@ class LeadNote(models.Model):
 
     class Meta:
         ordering = ['-created_at']
+
 
 class LeadHistory(models.Model):
     HISTORY_TYPES = [
@@ -813,13 +973,18 @@ class LeadHistory(models.Model):
         ('x', 'X'),
     ]
 
-    lead = models.ForeignKey(Lead, on_delete=models.CASCADE, related_name='history_entries')
+    lead = models.ForeignKey(Lead,
+                             on_delete=models.CASCADE,
+                             related_name='history_entries')
     history_type = models.CharField(max_length=255)  # <- this must be here
 
     action = models.CharField(max_length=255)
     details = models.TextField()
     icon = models.CharField(max_length=20, choices=ICON_TYPES, default='plus')
-    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    user = models.ForeignKey(User,
+                             on_delete=models.SET_NULL,
+                             null=True,
+                             blank=True)
     metadata = models.JSONField(default=dict, blank=True)
     timestamp = models.DateTimeField(auto_now_add=True)
 
@@ -828,6 +993,7 @@ class LeadHistory(models.Model):
 
     class Meta:
         ordering = ['timestamp']
+
 
 class ActivityLog(models.Model):
     ACTION_TYPES = [
@@ -856,6 +1022,7 @@ class ActivityLog(models.Model):
     class Meta:
         ordering = ['-timestamp']
 
+
 class AIConversation(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     session_id = models.UUIDField(default=uuid.uuid4, unique=True)
@@ -872,8 +1039,11 @@ class AIConversation(models.Model):
     class Meta:
         ordering = ['-created_at']
 
+
 class ProposalDraft(models.Model):
-    opportunity = models.OneToOneField(Opportunity, on_delete=models.CASCADE, related_name='proposal_draft')
+    opportunity = models.OneToOneField(Opportunity,
+                                       on_delete=models.CASCADE,
+                                       related_name='proposal_draft')
 
     # Proposal Information
     title = models.CharField(max_length=255, blank=True)
