@@ -726,8 +726,18 @@ class LeadViewSet(viewsets.ModelViewSet):
                 # Get recent notes for display (limit to 3 most recent)
                 recent_notes = lead.lead_notes.all()[:3]
                 
-                # Check if lead has been moved to opportunity using the dedicated field
-                has_opportunity = lead.moved_to_opportunity
+                # Check if lead has been moved to opportunity by checking both the field and the actual opportunity table
+                has_opportunity_in_db = Opportunity.objects.filter(lead=lead).exists()
+                
+                # Update the moved_to_opportunity field if it's out of sync
+                if has_opportunity_in_db and not lead.moved_to_opportunity:
+                    lead.moved_to_opportunity = True
+                    lead.save(update_fields=['moved_to_opportunity'])
+                elif not has_opportunity_in_db and lead.moved_to_opportunity:
+                    lead.moved_to_opportunity = False
+                    lead.save(update_fields=['moved_to_opportunity'])
+                
+                has_opportunity = has_opportunity_in_db
 
                 lead_data = {
                     'id': lead.id,
@@ -1295,8 +1305,15 @@ class LeadViewSet(viewsets.ModelViewSet):
                     status=status.HTTP_400_BAD_REQUEST
                 )
 
-            # Check if lead has already been moved to opportunity
-            if lead.moved_to_opportunity:
+            # Check if lead has already been moved to opportunity - check both the field and database
+            has_opportunity_in_db = Opportunity.objects.filter(lead=lead).exists()
+            
+            if has_opportunity_in_db or lead.moved_to_opportunity:
+                # Update the field if it's out of sync
+                if has_opportunity_in_db and not lead.moved_to_opportunity:
+                    lead.moved_to_opportunity = True
+                    lead.save(update_fields=['moved_to_opportunity'])
+                
                 return Response(
                     {'error': 'This lead has already been moved to opportunities'},
                     status=status.HTTP_400_BAD_REQUEST
