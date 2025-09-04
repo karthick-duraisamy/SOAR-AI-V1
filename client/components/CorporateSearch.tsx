@@ -361,7 +361,7 @@ export function CorporateSearch({
 
   // Initialize company API hook
   const { searchCompanies, createCompany, moveToLead, bulkUploadCompanies, downloadSampleExcel } = useCompanyApi();
-  
+
   // Initialize lead API hook for sending messages
   const leadApi = useLeadApi();
 
@@ -501,7 +501,7 @@ export function CorporateSearch({
         setUploadSuccess(`Upload successful! Created ${response.created_count || 0} companies, skipped ${response.skipped_count || 0} duplicates.`);
         // Refresh the company list
         loadCompanies({});
-        
+
         // Clear the file input
         setUploadFile(null);
         if (fileInputRef.current) {
@@ -812,7 +812,37 @@ export function CorporateSearch({
       // Call the API to create the lead
       const createdLead = await moveToLead(leadData); // Use moveToLead from useCompanyApi
 
-      // Add to moved leads tracking FIRST before any other async operations
+      // Mark the company as moved to lead via API call to update the backend
+      try {
+        const response = await fetch(`${import.meta.env?.VITE_API_URL || '/api'}/companies/${corporate.id}/mark_as_moved_to_lead/`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+
+        if (!response.ok) {
+          console.warn('Failed to mark company as moved to lead in backend');
+        }
+      } catch (markError) {
+        console.warn('Error marking company as moved to lead:', markError);
+      }
+
+      // Update the filtered corporates list to mark this company as moved
+      setFilteredCorporates((prev) =>
+        prev.map((c) =>
+          c.id === corporate.id ? { ...c, move_as_lead: true } : c
+        )
+      );
+
+      // Update displayed corporates as well
+      setDisplayedCorporates((prev) =>
+        prev.map((c) =>
+          c.id === corporate.id ? { ...c, move_as_lead: true } : c
+        )
+      );
+
+      // Add to moved leads tracking
       setMovedAsLeadIds((prev) => new Set([...prev, corporate.id]));
       setExistingLeadCompanies((prev) => new Set([...prev, corporate.name]));
 
@@ -3029,7 +3059,7 @@ export function CorporateSearch({
               />
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-            
+
             <div>
               <Label className="text-sm font-medium text-gray-700 mb-2 ">
                 Follow-up Date (Optional)
