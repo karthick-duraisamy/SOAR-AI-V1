@@ -630,7 +630,7 @@ interface PipelineColumnProps {
   onMoveToNegotiation?: (opportunity: Opportunity) => void;
   onCloseDeal?: (opportunity: Opportunity, status: string) => void;
   handleViewProfile: (opportunity: Opportunity) => void;
-  isDraftLoading?: boolean;
+  loadingOpportunityId?: number | null;
 }
 
 const PipelineColumn = memo(
@@ -645,7 +645,7 @@ const PipelineColumn = memo(
     onMoveToNegotiation,
     onCloseDeal,
     handleViewProfile,
-    isDraftLoading,
+    loadingOpportunityId,
   }: PipelineColumnProps) => {
     const [{ isOver }, drop] = useDrop(() => ({
       accept: ItemTypes.OPPORTUNITY,
@@ -716,7 +716,7 @@ const PipelineColumn = memo(
                 onMoveToNegotiation={onMoveToNegotiation}
                 onCloseDeal={onCloseDeal}
                 handleViewProfile={handleViewProfile}
-                isDraftLoading={isDraftLoading}
+                isDraftLoading={loadingOpportunityId === opportunity.id}
               />
             ))}
 
@@ -1140,6 +1140,7 @@ const getRandomRiskLevel = () => {
   const [showEmailPreview, setShowEmailPreview] = useState(false);
   const [emailPreviewContent, setEmailPreviewContent] = useState("");
   const [isDraftLoading, setIsDraftLoading] = useState(false);
+  const [loadingOpportunityId, setLoadingOpportunityId] = useState<number | null>(null);
 
   // Persistent draft management using API
   const saveDraft = useCallback(async (opportunityId: number, formData: any, file?: File) => {
@@ -1711,7 +1712,7 @@ const getRandomRiskLevel = () => {
 
   const handleSendProposal = useCallback(async (opportunity: Opportunity) => {
     setSelectedOpportunity(opportunity);
-    setIsDraftLoading(true);
+    setLoadingOpportunityId(opportunity.id);
 
     try {
       // Try to load existing draft
@@ -1829,7 +1830,7 @@ const getRandomRiskLevel = () => {
       // Reset attachment info on error
       setAttachmentInfo({ exists: false, filename: "", path: "" });
     } finally {
-      setIsDraftLoading(false);
+      setLoadingOpportunityId(null);
     }
 
     setShowProposalDialog(true);
@@ -2554,7 +2555,7 @@ const getRandomRiskLevel = () => {
                       onMoveToNegotiation={handleMoveToNegotiation}
                       onCloseDeal={handleCloseDeal}
                       handleViewProfile={handleViewProfile}
-                      isDraftLoading={isDraftLoading}
+                      isDraftLoading={loadingOpportunityId === opportunity.id}
                     />
                   ))}
                 </div>
@@ -2716,7 +2717,7 @@ const getRandomRiskLevel = () => {
                   onMoveToNegotiation={handleMoveToNegotiation}
                   onCloseDeal={handleCloseDeal}
                   handleViewProfile={handleViewProfile}
-                  isDraftLoading={isDraftLoading}
+                  loadingOpportunityId={loadingOpportunityId}
                 />
               ))}
             </div>
