@@ -734,6 +734,7 @@ const PipelineColumn = memo(
                 onCloseDeal={onCloseDeal}
                 handleViewProfile={handleViewProfile}
                 isDraftLoading={loadingOpportunityId === opportunity.id}
+                loadingOpportunityId={loadingOpportunityId}
               />
             ))}
 
@@ -1771,7 +1772,7 @@ const getRandomRiskLevel = () => {
           loyaltyBenefits: typeof existingDraft.loyalty_benefits === 'object' ? existingDraft.loyalty_benefits : prevForm.loyaltyBenefits,
           volumeIncentives: existingDraft.volume_incentives || prevForm.volumeIncentives,
           contractDuration: existingDraft.contract_duration || prevForm.contractDuration,
-          autoRenewal: existingDraft.auto_renewal !== undefined ? existingDraft.auto_renewal : prevForm.autoRenewal,
+          autoRenewal: existingDraft.auto_renewal !== undefined ? existingDraft.autoRenewal : prevForm.autoRenewal,
           paymentTerms: existingDraft.payment_terms || prevForm.paymentTerms,
           settlementType: existingDraft.settlement_type || prevForm.settlementType,
           airlineConcessions: existingDraft.airline_concessions || prevForm.airlineConcessions,
@@ -1898,7 +1899,7 @@ const getRandomRiskLevel = () => {
           loyaltyBenefits: typeof existingDraft.loyalty_benefits === 'object' ? existingDraft.loyalty_benefits : prevForm.loyaltyBenefits,
           volumeIncentives: existingDraft.volume_incentives || prevForm.volumeIncentives,
           contractDuration: existingDraft.contract_duration || prevForm.contractDuration,
-          autoRenewal: existingDraft.auto_renewal !== undefined ? existingDraft.auto_renewal : prevForm.autoRenewal,
+          autoRenewal: existingDraft.auto_renewal !== undefined ? existingDraft.autoRenewal : prevForm.autoRenewal,
           paymentTerms: existingDraft.payment_terms || prevForm.paymentTerms,
           settlementType: existingDraft.settlement_type || prevForm.settlementType,
           airlineConcessions: existingDraft.airline_concessions || prevForm.airlineConcessions,
