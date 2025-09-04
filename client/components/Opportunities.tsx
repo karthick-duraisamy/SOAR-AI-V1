@@ -1836,21 +1836,131 @@ const getRandomRiskLevel = () => {
     setShowProposalDialog(true);
   }, [loadDraft, formatCurrency]);
 
-  const handleMoveToNegotiation = useCallback((opportunity: Opportunity) => {
+  const handleMoveToNegotiation = useCallback(async (opportunity: Opportunity) => {
     setSelectedOpportunity(opportunity);
+    setLoadingOpportunityId(opportunity.id);
 
-    // Pre-populate form with opportunity data
-    setNegotiationForm({
-      ...negotiationForm,
-      dealTitle: `${opportunity.lead_info?.company?.name} Corporate Travel Agreement`,
-      corporateContact: `${opportunity.lead_info?.contact?.first_name} ${opportunity.lead_info?.contact?.last_name}`,
-      airlineAccountManager: "Current User", // In real app, get from auth
-      expectedCloseDate: opportunity.estimated_close_date,
-      corporateCommitments: `Annual volume commitment based on ${opportunity.lead_info?.company?.employee_count || 'N/A'} employees. Projected spend: ${formatCurrency(opportunity.value)}.`
-    });
+    try {
+      // Try to load existing draft
+      const response = await loadDraft(opportunity.id);
 
-    setShowNegotiationDialog(true);
-  }, [negotiationForm, formatCurrency]);
+      // Handle API response - extract data from response object
+      const existingDraft = response?.data || response;
+
+      if (existingDraft && Object.keys(existingDraft).length > 0) {
+        console.log("Loading existing draft for negotiation:", existingDraft);
+
+        // Load proposal form data from draft
+        setProposalForm({
+          title: existingDraft.title || `Negotiation Terms - ${opportunity.lead_info?.company?.name}`,
+          description: existingDraft.description || `Updated negotiation terms and conditions for ${opportunity.lead_info?.company?.name}'s corporate travel agreement.`,
+          validityPeriod: existingDraft.validity_period || "30",
+          specialTerms: existingDraft.special_terms || "",
+          deliveryMethod: existingDraft.delivery_method || "email",
+          attachedFile: null, // File is not saved in draft
+        });
+
+        // Load negotiation form data from draft
+        setNegotiationForm(prevForm => ({
+          ...prevForm,
+          dealTitle: existingDraft.deal_title || `${opportunity.lead_info?.company?.name} Corporate Travel Agreement - Negotiation`,
+          corporateContact: existingDraft.corporate_contact || `${opportunity.lead_info?.contact?.first_name} ${opportunity.lead_info?.contact?.last_name}`,
+          airlineAccountManager: existingDraft.airline_account_manager || "Current User",
+          expectedCloseDate: existingDraft.expected_close_date || opportunity.estimated_close_date,
+          travelFrequency: existingDraft.travel_frequency || prevForm.travelFrequency,
+          annualBookingVolume: existingDraft.annual_booking_volume || prevForm.annualBookingVolume,
+          projectedSpend: existingDraft.projected_spend || prevForm.projectedSpend,
+          preferredRoutes: existingDraft.preferred_routes || prevForm.preferredRoutes,
+          domesticEconomy: existingDraft.domestic_economy !== undefined ? existingDraft.domestic_economy : prevForm.domesticEconomy,
+          domesticBusiness: existingDraft.domestic_business !== undefined ? existingDraft.domestic_business : prevForm.domesticBusiness,
+          international: existingDraft.international !== undefined ? existingDraft.international : prevForm.international,
+          baseDiscount: existingDraft.base_discount || prevForm.baseDiscount,
+          routeDiscounts: Array.isArray(existingDraft.route_discounts) ? existingDraft.route_discounts : prevForm.routeDiscounts,
+          loyaltyBenefits: typeof existingDraft.loyalty_benefits === 'object' ? existingDraft.loyalty_benefits : prevForm.loyaltyBenefits,
+          volumeIncentives: existingDraft.volume_incentives || prevForm.volumeIncentives,
+          contractDuration: existingDraft.contract_duration || prevForm.contractDuration,
+          autoRenewal: existingDraft.auto_renewal !== undefined ? existingDraft.auto_renewal : prevForm.autoRenewal,
+          paymentTerms: existingDraft.payment_terms || prevForm.paymentTerms,
+          settlementType: existingDraft.settlement_type || prevForm.settlementType,
+          airlineConcessions: existingDraft.airline_concessions || prevForm.airlineConcessions,
+          corporateCommitments: existingDraft.corporate_commitments || `Annual volume commitment based on ${opportunity.lead_info?.company?.employee_count || 'N/A'} employees. Projected spend: ${formatCurrency(opportunity.value)}.`,
+          internalNotes: existingDraft.internal_notes || prevForm.internalNotes,
+          priorityLevel: existingDraft.priority_level || prevForm.priorityLevel,
+          discountApprovalRequired: existingDraft.discount_approval_required !== undefined ? existingDraft.discount_approval_required : prevForm.discountApprovalRequired,
+          revenueManagerAssigned: existingDraft.revenue_manager_assigned || prevForm.revenueManagerAssigned,
+          legalApprovalRequired: existingDraft.legal_approval_required !== undefined ? existingDraft.legal_approval_required : prevForm.legalApprovalRequired
+        }));
+
+        // Handle attachment info
+        if (existingDraft.attachment_info) {
+          setAttachmentInfo(existingDraft.attachment_info);
+        } else {
+          setAttachmentInfo({ exists: false, filename: "", path: "" });
+        }
+
+        toast.success(`Negotiation data loaded! Last saved: ${existingDraft.updated_at ? new Date(existingDraft.updated_at).toLocaleString() : 'Recently'}`);
+      } else {
+        console.log("No existing draft found, setting default negotiation values");
+
+        // Set default values for negotiation
+        setProposalForm({
+          title: `Negotiation Terms - ${opportunity.lead_info?.company?.name}`,
+          description: `Updated negotiation terms and conditions for ${opportunity.lead_info?.company?.name}'s corporate travel agreement.`,
+          validityPeriod: "30",
+          specialTerms: "",
+          deliveryMethod: "email",
+          attachedFile: null,
+        });
+
+        // Reset negotiation form to defaults for this opportunity
+        setNegotiationForm(prevForm => ({
+          ...prevForm,
+          dealTitle: `${opportunity.lead_info?.company?.name} Corporate Travel Agreement - Negotiation`,
+          corporateContact: `${opportunity.lead_info?.contact?.first_name} ${opportunity.lead_info?.contact?.last_name}`,
+          airlineAccountManager: "Current User",
+          expectedCloseDate: opportunity.estimated_close_date,
+          corporateCommitments: `Annual volume commitment based on ${opportunity.lead_info?.company?.employee_count || 'N/A'} employees. Projected spend: ${formatCurrency(opportunity.value)}.`
+        }));
+
+        // Reset attachment info
+        setAttachmentInfo({ exists: false, filename: "", path: "" });
+      }
+    } catch (error) {
+      console.error("Error loading draft for negotiation:", error);
+      console.error("Error details:", error.response?.data);
+
+      // Only show error if it's not a 404 (no draft found)
+      if (error.response?.status !== 404) {
+        toast.error("Failed to load negotiation data");
+      }
+
+      // Set default values as fallback
+      setProposalForm({
+        title: `Negotiation Terms - ${opportunity.lead_info?.company?.name}`,
+        description: `Updated negotiation terms and conditions for ${opportunity.lead_info?.company?.name}'s corporate travel agreement.`,
+        validityPeriod: "30",
+        specialTerms: "",
+        deliveryMethod: "email",
+        attachedFile: null,
+      });
+
+      setNegotiationForm(prevForm => ({
+        ...prevForm,
+        dealTitle: `${opportunity.lead_info?.company?.name} Corporate Travel Agreement - Negotiation`,
+        corporateContact: `${opportunity.lead_info?.contact?.first_name} ${opportunity.lead_info?.contact?.last_name}`,
+        airlineAccountManager: "Current User",
+        expectedCloseDate: opportunity.estimated_close_date,
+        corporateCommitments: `Annual volume commitment based on ${opportunity.lead_info?.company?.employee_count || 'N/A'} employees. Projected spend: ${formatCurrency(opportunity.value)}.`
+      }));
+
+      // Reset attachment info on error
+      setAttachmentInfo({ exists: false, filename: "", path: "" });
+    } finally {
+      setLoadingOpportunityId(null);
+    }
+
+    setShowProposalDialog(true);
+  }, [loadDraft, formatCurrency]);
 
   const handleCloseDeal = useCallback((opportunity: Opportunity, status: string) => {
     const updatedOpportunity = {
