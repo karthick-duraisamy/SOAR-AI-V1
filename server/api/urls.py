@@ -77,6 +77,9 @@ urlpatterns = [
     # Generic history endpoint
     path('get-history/', views.get_history, name='get_history'),
 
+    # Send proposal endpoint
+    path('opportunities/<int:pk>/send-proposal/', views.OpportunityViewSet.as_view({'post': 'send_proposal'}), name='send_proposal'),
+
     # Email tracking endpoints - Removed as per instructions
     # path('email-tracking/open/<uuid:tracking_id>/', views.track_email_open_pixel, name='track_email_open_pixel'),
     # path('email-tracking/click/<uuid:tracking_id>/', views.track_email_click_redirect, name='track_email_click_redirect'),
