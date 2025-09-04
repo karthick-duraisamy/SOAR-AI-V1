@@ -829,8 +829,8 @@ export const useLeadApi = () => {
   }, []);
 
   const addOpportunityActivity = useCallback(async (opportunityId: number, activityData: any) => {
-    // Placeholder for add opportunity activity API
-    return baseApi.post(`/opportunities/${opportunityId}/activities/`, activityData);
+    // Use the correct endpoint for adding activities to opportunities
+    return baseApi.post(`/opportunities/${opportunityId}/add_activity/`, activityData);
   }, []);
 
   const getOpportunityActivities = useCallback(async (opportunityId: number) => {
