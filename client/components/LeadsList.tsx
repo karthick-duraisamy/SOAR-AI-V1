@@ -262,7 +262,7 @@ const transformApiLeadToUILead = (apiLead: any) => {
         : new Date().toISOString().split("T")[0],
     nextAction: apiLead.next_action || "Follow up",
     notes: combinedNotes,
-    leadNotes: apiLead.all_notes || [], // Store all notes for display
+    leadNotes: apiLead.leadNotes || [], // Store all notes for display
     engagement:
       apiLead.score >= 80 ? "High" : apiLead.score >= 60 ? "Medium" : "Low",
     travelBudget: apiLead.company?.travel_budget
