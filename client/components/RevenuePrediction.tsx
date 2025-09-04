@@ -1083,7 +1083,7 @@ export function RevenuePrediction({ onNavigate }: RevenuePredictionProps) {
                   </p>
                   <ul className="text-xs text-green-600 ml-2">
                     {dynamicData.insights.slice(0, 2).map((insight, index) => (
-                      <li key={index}>• {insight}</li>
+                      <li key={index}>• {typeof insight === 'string' ? insight : JSON.stringify(insight)}</li>
                     ))}
                   </ul>
                 </div>
