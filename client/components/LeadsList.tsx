@@ -680,7 +680,7 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
   const [loading, setLoading] = useState(true);
   const leadApi = useLeadApi();
   const companyApi = useCompanyApi();
-  const [successMessage, setSuccessMessage] = useState("");
+  const [successMessage, setSuccessMessage] = useState<string>("");
   const [selectedLead, setSelectedLead] = useState<any>(null); // State for the lead selected in other dialogs
   const [showNewCompanyDialog, setShowNewCompanyDialog] = useState(false); // Changed from showNewLeadDialog
   const [showDisqualifyDialog, setShowDisqualifyDialog] = useState(false);
@@ -1351,6 +1351,10 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
   const handleQualifyLead = async (leadId: number) => {
     try {
       setQualifyingLeadId(leadId); // Start loading spinner
+      
+      // Find the lead name before API call
+      const leadName = leads.find(l => l.id === leadId)?.company || "Lead";
+      
       await leadApi.qualifyLead(leadId, {
         reason: "Lead meets all qualification criteria",
       });
@@ -1365,13 +1369,15 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
         ...prev,
         [leadId]: [],
       }));
-
-      // Find the lead name for the success message
-      const leadName = leads.find(l => l.id === leadId)?.company || "Lead";
       
       // Show success popup with updated status
-      setSuccessMessage(`${leadName} status successfully updated to 'Qualified'!`);
-      setTimeout(() => setSuccessMessage(""), 5000);
+      const message = `🎉 ${leadName} status successfully updated to 'Qualified'!`;
+      console.log("Setting success message:", message);
+      setSuccessMessage(message);
+      setTimeout(() => {
+        console.log("Clearing success message");
+        setSuccessMessage("");
+      }, 7000);
       
       toast.success("Lead qualified successfully");
     } catch (error) {
@@ -1418,8 +1424,13 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
       }));
 
       // Show success popup with updated status
-      setSuccessMessage(`${selectedLeadForDisqualify.company} status successfully updated to 'Unqualified'!`);
-      setTimeout(() => setSuccessMessage(""), 5000);
+      const message = `🎉 ${selectedLeadForDisqualify.company} status successfully updated to 'Unqualified'!`;
+      console.log("Setting disqualify success message:", message);
+      setSuccessMessage(message);
+      setTimeout(() => {
+        console.log("Clearing disqualify success message");
+        setSuccessMessage("");
+      }, 7000);
 
       toast.success("Lead disqualified successfully");
 
@@ -2004,12 +2015,15 @@ SOAR-AI Team`,
     <div className="min-h-screen bg-gray-50 p-6">
       {/* Success Message */}
       {successMessage && (
-        <div className="bg-green-50 border-2 border-green-200 rounded-lg p-4 flex items-center gap-3 mb-6 shadow-lg animate-in slide-in-from-top-2">
+        <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 bg-green-50 border-2 border-green-200 rounded-lg p-4 flex items-center gap-3 shadow-2xl animate-in slide-in-from-top-2 max-w-md">
           <CheckCircle className="h-6 w-6 text-green-600 flex-shrink-0" />
           <span className="text-green-800 font-medium text-base">{successMessage}</span>
           <button 
-            onClick={() => setSuccessMessage("")}
-            className="ml-auto text-green-600 hover:text-green-800 transition-colors"
+            onClick={() => {
+              console.log("Manual close success message");
+              setSuccessMessage("");
+            }}
+            className="ml-auto text-green-600 hover:text-green-800 transition-colors text-lg font-bold"
           >
             ✕
           </button>
