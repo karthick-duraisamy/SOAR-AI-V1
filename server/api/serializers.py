@@ -564,7 +564,7 @@ class CampaignTemplateSerializer(serializers.ModelSerializer):
     class Meta:
         model = CampaignTemplate
         fields = ['id', 'name', 'description', 'channel_type', 'target_industry', 
-                 'subject_line', 'content', 'cta', 'cta_link', 'linkedin_type', 'estimated_open_rate', 
+                 'subject_line', 'content', 'cta', 'linkedin_type', 'estimated_open_rate', 
                  'estimated_click_rate', 'is_custom', 'created_by', 'created_at', 'updated_at']
 
 class ProposalDraftSerializer(serializers.ModelSerializer):
