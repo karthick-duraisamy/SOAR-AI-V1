@@ -727,7 +727,12 @@ class LeadViewSet(viewsets.ModelViewSet):
                 recent_notes = lead.lead_notes.all()[:3]
                 
                 # Check if lead has an associated opportunity
-                has_opportunity = hasattr(lead, 'opportunity') and lead.opportunity is not None
+                has_opportunity = False
+                try:
+                    has_opportunity = hasattr(lead, 'opportunity') and lead.opportunity is not None
+                except:
+                    # If there's an error checking opportunity, assume False
+                    has_opportunity = False
 
                 lead_data = {
                     'id': lead.id,
@@ -1318,8 +1323,17 @@ class LeadViewSet(viewsets.ModelViewSet):
                 next_steps=opportunity_data.get('next_steps', 'Send initial proposal and schedule presentation')
             )
 
-            # Keep lead status as qualified but add a note that it's been moved
-            lead.notes = f"{lead.notes}\n\n[{timezone.now().strftime('%Y-%m-%d %H:%M')}] Lead moved to opportunities - {opportunity.name}"
+            # Keep lead in the system but mark as moved to opportunity
+            # Add a note that it's been moved
+            timestamp = timezone.now().strftime('%Y-%m-%d %H:%M')
+            move_note = f"[{timestamp}] Lead moved to opportunities - {opportunity.name}"
+            
+            if lead.notes:
+                lead.notes = f"{lead.notes}\n\n{move_note}"
+            else:
+                lead.notes = move_note
+            
+            # Don't change the lead status - keep it as qualified
             lead.save()
 
             # Create history entry for the conversion
