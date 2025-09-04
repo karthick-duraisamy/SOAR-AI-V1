@@ -46,8 +46,25 @@ export const useRevenueApi = () => {
     });
   };
 
+  const getRevenuePredictionData = async () => {
+    try {
+      const response = await fetch('/api/get-revenue-prediction-data/');
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to fetch revenue prediction data');
+      }
+      
+      return data;
+    } catch (error) {
+      console.error('Error fetching revenue prediction data:', error);
+      throw error;
+    }
+  };
+
   return {
     ...rest,
     uploadRevenueData,
+    getRevenuePredictionData,
   };
 };

@@ -2436,50 +2436,166 @@ def lead_dashboard_stats(request):
 
 @api_view(['GET'])
 @permission_classes([AllowAny])
-def list_revenue_files(request):
+def get_revenue_prediction_data(request):
     """
-    List files in the revenue_prediction folder
+    Process XLSX/CSV files from revenue_prediction folder and return structured + simulated KPIs
     """
     import os
+    import pandas as pd
+    from datetime import datetime
 
     try:
         # Get the revenue_prediction folder path
-        revenue_folder = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'revenue_prediction')
+        revenue_folder = os.path.join(
+            os.path.dirname(os.path.dirname(__file__)), 'revenue_prediction')
 
         if not os.path.exists(revenue_folder):
-            return Response({
-                'success': True,
-                'files': [],
-                'message': 'Revenue prediction folder does not exist yet'
-            })
+            return Response(
+                {
+                    'success': False,
+                    'error': 'Revenue prediction folder does not exist'
+                },
+                status=status.HTTP_404_NOT_FOUND)
 
-        files = []
-        for filename in os.listdir(revenue_folder):
-            file_path = os.path.join(revenue_folder, filename)
-            if os.path.isfile(file_path):
-                # Get file stats
-                file_stat = os.stat(file_path)
+        # Get all XLSX/CSV files
+        xlsx_files = [
+            f for f in os.listdir(revenue_folder)
+            if f.endswith(('.xlsx', '.xls', '.csv'))
+        ]
 
-                files.append({
-                    'name': filename,
-                    'size': file_stat.st_size,
-                    'uploadDate': datetime.fromtimestamp(file_stat.st_mtime).isoformat() + 'Z'
-                })
+        if not xlsx_files:
+            return Response(
+                {
+                    'success': False,
+                    'error': 'No data files found in revenue_prediction folder'
+                },
+                status=status.HTTP_404_NOT_FOUND)
 
-        # Sort by upload date (newest first)
-        files.sort(key=lambda x: x['uploadDate'], reverse=True)
+        # Use the most recent file
+        latest_file = max(
+            xlsx_files,
+            key=lambda f: os.path.getmtime(os.path.join(revenue_folder, f)))
+        file_path = os.path.join(revenue_folder, latest_file)
+
+        # Read the file
+        if latest_file.endswith('.csv'):
+            df = pd.read_csv(file_path)
+        else:
+            df = pd.read_excel(file_path)
+
+        # Ensure Booking_Month is in datetime format
+        if "Booking_Month" in df.columns:
+            df["Booking_Month"] = pd.to_datetime(df["Booking_Month"],
+                                                 errors="coerce")
+
+        # Process structured revenue insights
+        processed_data = process_revenue_data(df, latest_file)
 
         return Response({
             'success': True,
-            'files': files,
-            'count': len(files)
+            'data': processed_data,
+            'source_file': latest_file,
+            'last_updated': datetime.now().isoformat()
         })
 
     except Exception as e:
         return Response(
-            {'success': False, 'error': f'Failed to list files: {str(e)}'},
-            status=status.HTTP_500_INTERNAL_SERVER_ERROR
-        )
+            {
+                'success': False,
+                'error': f'Failed to process revenue data: {str(e)}'
+            },
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+def process_revenue_data(df, filename):
+    """
+    Process corporate bookings data and generate insights + KPIs
+    """
+    import random
+
+    # ================= REAL DATA INSIGHTS =================
+
+    # --- Business Performance Overview ---
+    business_performance = {
+        "totalBookings": int(df["Booking_ID"].nunique()),
+        "totalRevenue": float(df["Total_Fare_Amount"].sum()),
+        "activeClients": int(df["Corporate_Account_Code"].nunique()),
+        "avgBookingValue": round(float(df["Total_Fare_Amount"].mean()), 2)
+    }
+
+    # --- Top Destinations ---
+    top_destinations = (
+        df.groupby("Destination_Airport_Code")
+        .agg(bookings=("Booking_ID", "count"),
+             revenue=("Total_Fare_Amount", "sum"))
+        .reset_index()
+        .sort_values(by="bookings", ascending=False)
+        .head(5)
+        .to_dict(orient="records")
+    )
+
+    # --- Monthly Booking Trends ---
+    monthly_trends = (
+        df.groupby(df["Booking_Month"].dt.strftime("%b %Y"))
+        .agg(bookings=("Booking_ID", "count"),
+             revenue=("Total_Fare_Amount", "sum"))
+        .reset_index()
+        .rename(columns={"Booking_Month": "month"})
+        .sort_values("month")
+        .to_dict(orient="records")
+    )
+
+    # ================= SIMULATED KPI METRICS =================
+
+    total_rows = len(df)
+    current_revenue = df["Total_Fare_Amount"].sum()
+    base_revenue = current_revenue // 12 if current_revenue > 0 else 4000000
+
+    growth_rate = random.uniform(5, 20)
+
+    # Business Stats (simulated)
+    business_stats = {
+        "newClientsThisMonth": random.randint(50, 120),
+        "bookingGrowthRate": round(abs(growth_rate), 1),
+        "revenueGrowthRate": round(abs(growth_rate) + random.uniform(-5, 5), 1),
+        "clientRetentionRate": round(85 + random.uniform(-5, 10), 1),
+        "averageLeadTime": round(12 + random.uniform(-3, 8), 1),
+        "cancelationRate": round(3 + random.uniform(-1, 3), 1),
+        "repeatBookingRate": round(60 + random.uniform(-10, 15), 1),
+        "avgDealClosure": random.randint(20, 40)
+    }
+
+    # Key Metrics (simulated)
+    key_metrics = {
+        "totalPipelineValue": max(current_revenue * 1.25, 125000000),
+        "weightedPipelineValue": max(current_revenue * 0.75, 75000000),
+        "averageDealSize": max(current_revenue // 100, 850000),
+        "conversionRate": round(20 + random.uniform(-5, 10), 1),
+        "salesCycleLength": random.randint(35, 55),
+        "forecastAccuracy": round(88 + random.uniform(-5, 8), 1),
+        "quarterlyGrowthRate": round(abs(growth_rate) + random.uniform(-3, 8), 1),
+        "yearOverYearGrowth": round(abs(growth_rate), 1)
+    }
+
+    return {
+        "dataSource": {
+            "filename": filename,
+            "totalRows": total_rows,
+            "totalRevenue": float(current_revenue)
+        },
+        "businessPerformanceOverview": business_performance,
+        "topDestinations": top_destinations,
+        "monthlyBookingTrends": monthly_trends,
+        "businessStats": business_stats,
+        "keyMetrics": key_metrics,
+        "insights": [
+            f"Processed {total_rows} rows from {filename}",
+            f"Detected {business_performance['activeClients']} active clients",
+            f"Total revenue of {business_performance['totalRevenue']:.2f}",
+            f"Growth rate simulated at {growth_rate:.1f}%"
+        ]
+    }
+
 
 @api_view(['DELETE'])
 @permission_classes([AllowAny])
@@ -2491,14 +2607,16 @@ def delete_revenue_file(request, filename):
 
     try:
         # Get the revenue_prediction folder path
-        revenue_folder = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'revenue_prediction')
+        revenue_folder = os.path.join(
+            os.path.dirname(os.path.dirname(__file__)), 'revenue_prediction')
         file_path = os.path.join(revenue_folder, filename)
 
         if not os.path.exists(file_path):
-            return Response(
-                {'success': False, 'error': 'File not found'},
-                status=status.HTTP_404_NOT_FOUND
-            )
+            return Response({
+                'success': False,
+                'error': 'File not found'
+            },
+                            status=status.HTTP_404_NOT_FOUND)
 
         # Delete the file
         os.remove(file_path)
@@ -2510,9 +2628,12 @@ def delete_revenue_file(request, filename):
 
     except Exception as e:
         return Response(
-            {'success': False, 'error': f'Failed to delete file: {str(e)}'},
-            status=status.HTTP_500_INTERNAL_SERVER_ERROR
-        )
+            {
+                'success': False,
+                'error': f'Failed to delete file: {str(e)}'
+            },
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
@@ -2526,10 +2647,8 @@ def upload_revenue_data(request):
 
     try:
         if 'file' not in request.FILES:
-            return Response(
-                {'error': 'No file provided'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+            return Response({'error': 'No file provided'},
+                            status=status.HTTP_400_BAD_REQUEST)
 
         uploaded_file = request.FILES['file']
         folder = request.POST.get('folder', 'revenue_prediction')
@@ -2539,19 +2658,20 @@ def upload_revenue_data(request):
         file_extension = os.path.splitext(uploaded_file.name)[1].lower()
         if file_extension not in allowed_extensions:
             return Response(
-                {'error': 'Invalid file type. Please upload CSV or Excel files only.'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+                {
+                    'error':
+                    'Invalid file type. Please upload CSV or Excel files only.'
+                },
+                status=status.HTTP_400_BAD_REQUEST)
 
         # Validate file size (50MB limit)
         if uploaded_file.size > 50 * 1024 * 1024:
-            return Response(
-                {'error': 'File size exceeds 50MB limit'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+            return Response({'error': 'File size exceeds 50MB limit'},
+                            status=status.HTTP_400_BAD_REQUEST)
 
         # Create revenue_prediction directory if it doesn't exist
-        upload_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), folder)
+        upload_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)),
+                                  folder)
         os.makedirs(upload_dir, exist_ok=True)
 
         # Generate unique filename to prevent conflicts
@@ -2581,23 +2701,25 @@ def upload_revenue_data(request):
         except Exception as e:
             print(f"Error analyzing file: {e}")
 
-        return Response({
-            'success': True,
-            'message': f'File "{uploaded_file.name}" uploaded successfully to {folder} folder',
-            'filename': unique_filename,
-            'original_name': uploaded_file.name,
-            'file_path': file_path,
-            'size': uploaded_file.size,
-            'rows': rows,
-            'columns': columns,
-            'folder': folder
-        }, status=status.HTTP_201_CREATED)
+        return Response(
+            {
+                'success': True,
+                'message':
+                f'File "{uploaded_file.name}" uploaded successfully to {folder} folder',
+                'filename': unique_filename,
+                'original_name': uploaded_file.name,
+                'file_path': file_path,
+                'size': uploaded_file.size,
+                'rows': rows,
+                'columns': columns,
+                'folder': folder
+            },
+            status=status.HTTP_201_CREATED)
 
     except Exception as e:
-        return Response(
-            {'error': f'Upload failed: {str(e)}'},
-            status=status.HTTP_500_INTERNAL_SERVER_ERROR
-        )
+        return Response({'error': f'Upload failed: {str(e)}'},
+                        status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 
 @api_view(['GET'])
 @permission_classes([AllowAny])
@@ -2990,3 +3112,4 @@ def campaign_analytics(request):
             'success': False,
             'error': str(e)
         }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
