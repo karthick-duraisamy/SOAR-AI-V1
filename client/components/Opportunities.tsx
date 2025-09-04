@@ -2069,83 +2069,39 @@ const getRandomRiskLevel = () => {
     // The stored attachment will only be hidden if user explicitly removes it via the separate remove button
   }, [proposalForm]);
 
-  const handleSaveProposal = useCallback(async () => {
+  const handleSaveProposal = useCallback(() => {
     if (!selectedOpportunity) return;
 
-    try {
-      setIsDraftLoading(true);
-
-      // First save the draft with all form data
-      const combinedFormData = {
-        ...proposalForm,
-        negotiationData: negotiationForm
-      };
-
-      await saveDraft(selectedOpportunity.id, combinedFormData, proposalForm.attachedFile);
-
-      // Prepare email data
-      const emailData = {
-        to_email: selectedOpportunity.lead_info?.contact?.email,
-        subject: proposalForm.title,
-        html_content: generateEmailPreview(),
-        opportunity_id: selectedOpportunity.id,
-        company_name: selectedOpportunity.lead_info?.company?.name,
-        contact_name: `${selectedOpportunity.lead_info?.contact?.first_name} ${selectedOpportunity.lead_info?.contact?.last_name}`
-      };
-
-      // Create FormData for the email request to include attachments
-      const formData = new FormData();
-      Object.keys(emailData).forEach(key => {
-        formData.append(key, emailData[key]);
-      });
-
-      // Add attachment if exists
-      if (proposalForm.attachedFile) {
-        formData.append('attachment', proposalForm.attachedFile);
-      }
-
-      // Send email via API
-      const response = await fetch('/api/opportunities/send-proposal-email/', {
-        method: 'POST',
-        body: formData
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to send email');
-      }
-
-      // Clear the draft since proposal is being sent successfully
-      await clearDraft(selectedOpportunity.id);
-
-      // Move opportunity to proposal stage
-      const updatedOpportunity = {
-        ...selectedOpportunity,
-        stage: "proposal",
-        probability: 65,
-        updated_at: new Date().toISOString(),
-      };
-
-      setOpportunities((prev) =>
-        prev.map((opp) => 
-          opp.id === selectedOpportunity.id ? updatedOpportunity : opp
-        ),
-      );
-
-      setShowProposalDialog(false);
-      setSuccessMessage(
-        `Proposal sent to ${selectedOpportunity.lead_info?.company?.name} and moved to Proposal stage`,
-      );
-      setTimeout(() => setSuccessMessage(""), 5000);
-      toast.success("Proposal sent successfully!");
-
-    } catch (error) {
-      console.error("Error sending proposal:", error);
-      toast.error(error.message || "Failed to send proposal. Please try again.");
-    } finally {
-      setIsDraftLoading(false);
+    // In a real implementation, you would send this to the API including the file
+    if (proposalForm.attachedFile) {
+      console.log("File to upload:", proposalForm.attachedFile.name);
+      // Here you would typically upload the file to your server
     }
-  }, [selectedOpportunity, proposalForm, negotiationForm, saveDraft, clearDraft, generateEmailPreview]);
+
+    // Clear the draft since proposal is being sent
+    clearDraft(selectedOpportunity.id);
+
+    // Move opportunity to proposal stage
+    const updatedOpportunity = {
+      ...selectedOpportunity,
+      stage: "proposal",
+      probability: 65,
+      updated_at: new Date().toISOString(),
+    };
+
+    setOpportunities((prev) =>
+      prev.map((opp) => 
+        opp.id === selectedOpportunity.id ? updatedOpportunity : opp
+      ),
+    );
+
+    setShowProposalDialog(false);
+    setSuccessMessage(
+      `Proposal sent to ${selectedOpportunity.lead_info?.company?.name} and moved to Proposal stage`,
+    );
+    setTimeout(() => setSuccessMessage(""), 5000);
+    toast.success("Proposal sent successfully!");
+  }, [selectedOpportunity, proposalForm.attachedFile, clearDraft]);
 
   const handleSaveDraft = useCallback(async () => {
     if (!selectedOpportunity) return;
@@ -3809,15 +3765,11 @@ const getRandomRiskLevel = () => {
                     </Button>
                     <Button
                       onClick={handleSaveProposal}
-                      disabled={!proposalForm.title || isDraftLoading}
+                      disabled={!proposalForm.title}
                       className="bg-orange-500 hover:bg-orange-600 text-white"
                     >
-                      {isDraftLoading ? (
-                        <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                      ) : (
-                        <Mail className="h-4 w-4 mr-2" />
-                      )}
-                      {isDraftLoading ? "Sending..." : "Send Proposal"}
+                      <Mail className="h-4 w-4 mr-2" />
+                      Send Proposal
                     </Button>
                   </div>
 

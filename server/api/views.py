@@ -7,11 +7,6 @@ from .models import EmailTracking
 import urllib.parse
 import uuid
 import logging
-from django.core.mail import EmailMultiAlternatives
-from django.conf import settings
-import os
-from email.mime.base import MimeBase
-from email import encoders
 
 logger = logging.getLogger(__name__)
 
