@@ -794,6 +794,10 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
     [key: number]: boolean;
   }>({}); // Loading state for notes fetch
   const [showAddCompanyDialog, setShowAddCompanyDialog] = useState(false); // State for Add Company Dialog
+  const [showMarketingCampaign, setShowMarketingCampaign] = useState(false); // State for Marketing Campaign
+  const [showCorporateProfile, setShowCorporateProfile] = useState(false); // State for Corporate Profile
+  const [selectedCorporate, setSelectedCorporate] = useState<any>(null); // Selected corporate data
+  const [leadsForViewProfile, setLeadsForViewProfile] = useState<any[]>([]); // Leads data for view profile
 
   // Modal states
   const [showInitiateCallModal, setShowInitiateCallModal] = useState(false);
