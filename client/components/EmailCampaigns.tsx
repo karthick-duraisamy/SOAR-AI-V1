@@ -1211,16 +1211,16 @@ export function EmailCampaigns({ onNavigate }: EmailCampaignsProps) {
                           maxHeight: '300px',
                           overflowY: 'auto'
                         }}>
-                          <pre style={{ 
-                            fontSize: 'var(--text-sm)',
-                            fontFamily: 'var(--font-family)',
-                            color: 'var(--color-foreground)',
-                            whiteSpace: 'pre-wrap',
-                            wordWrap: 'break-word'
-                          }}>
+                          <pre 
+                            style={{ 
+                              fontSize: 'var(--text-sm)',
+                              fontFamily: 'var(--font-family)',
+                              color: 'var(--color-foreground)',
+                              whiteSpace: 'pre-wrap',
+                              wordWrap: 'break-word'
+                            }}
                             dangerouslySetInnerHTML={{ __html: selectedCampaign.email_content || "" }}
-
-                          </pre>
+                          /></pre>
                         </div>
                       </div>
                     </div>
