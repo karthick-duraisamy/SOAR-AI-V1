@@ -2116,6 +2116,9 @@ const getRandomRiskLevel = () => {
 
       await saveDraft(selectedOpportunity.id, combinedFormData, proposalForm.attachedFile);
       toast.success("Draft saved successfully");
+      
+      // Close the proposal dialog after successful save
+      setShowProposalDialog(false);
     } catch (error: any) {
       console.error("Error saving draft:", error);
       const errorMessage = error?.response?.data?.error || error?.message || "Failed to save draft";
@@ -3653,10 +3656,15 @@ const getRandomRiskLevel = () => {
                     <Button
                       variant="outline"
                       onClick={handleSaveDraft}
+                      disabled={isDraftLoading}
                       className="border-gray-300"
                     >
-                      <FileText className="h-4 w-4 mr-2" />
-                      Save Draft
+                      {isDraftLoading ? (
+                        <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                      ) : (
+                        <FileText className="h-4 w-4 mr-2" />
+                      )}
+                      {isDraftLoading ? "Saving..." : "Save Draft"}
                     </Button>
                     <Button
                       onClick={handleGenerateRevisedProposal}
