@@ -812,7 +812,21 @@ export function CorporateSearch({
       // Call the API to create the lead
       const createdLead = await moveToLead(leadData); // Use moveToLead from useCompanyApi
 
-      // Add to moved leads tracking FIRST before any other async operations
+      // Update the filtered corporates list to mark this company as moved
+      setFilteredCorporates((prev) =>
+        prev.map((c) =>
+          c.id === corporate.id ? { ...c, move_as_lead: true } : c
+        )
+      );
+
+      // Update displayed corporates as well
+      setDisplayedCorporates((prev) =>
+        prev.map((c) =>
+          c.id === corporate.id ? { ...c, move_as_lead: true } : c
+        )
+      );
+
+      // Add to moved leads tracking
       setMovedAsLeadIds((prev) => new Set([...prev, corporate.id]));
       setExistingLeadCompanies((prev) => new Set([...prev, corporate.name]));
 
@@ -1555,7 +1569,7 @@ export function CorporateSearch({
                             variant="outline"
                             size="sm"
                             onClick={() => handleMoveAsLead(corporate)}
-                            disabled={isMovingAsLead}
+                            disabled={isMovingAsLead && selectedCorporateForMove?.id === corporate.id}
                             className="border-gray-300 cls-addcomapany"
                           >
                             {isMovingAsLead &&
