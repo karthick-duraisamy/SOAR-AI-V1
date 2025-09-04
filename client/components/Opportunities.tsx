@@ -244,6 +244,7 @@ interface OpportunityCardProps {
   onCloseDeal?: (opportunity: Opportunity, status: string) => void;
   handleViewProfile: (profileId: string) => void;
   isDraftLoading?: boolean;
+  loadingOpportunityId?: number | null;
 }
 
 
@@ -259,7 +260,8 @@ const OpportunityCard = memo(
     onMoveToNegotiation,
     onCloseDeal,
     handleViewProfile,
-    isDraftLoading
+    isDraftLoading,
+    loadingOpportunityId
 
   }: OpportunityCardProps) => {
 
@@ -2782,6 +2784,7 @@ const getRandomRiskLevel = () => {
                       onCloseDeal={handleCloseDeal}
                       handleViewProfile={handleViewProfile}
                       isDraftLoading={loadingOpportunityId === opportunity.id}
+                      loadingOpportunityId={loadingOpportunityId}
                     />
                   ))}
                 </div>
