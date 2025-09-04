@@ -790,6 +790,7 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
   const [disqualifyingLeadId, setDisqualifyingLeadId] = useState<number | null>(
     null,
   );
+  const [movingToOpportunityId, setMovingToOpportunityId] = useState<number | null>(null);
   const [leadNotes, setLeadNotes] = useState<{ [key: number]: any[] }>({}); // Stores lead notes fetched from API
   const [isLoadingNotes, setIsLoadingNotes] = useState<{
     [key: number]: boolean;
@@ -1734,6 +1735,9 @@ SOAR-AI Team`,
   // Function to move qualified lead to opportunities
   const handleMoveToOpportunity = async (lead: Lead) => {
     try {
+      // Set loading state for this specific lead
+      setMovingToOpportunityId(lead.id);
+
       // Prepare opportunity data from lead - match Django Opportunity model fields exactly
       const opportunityData = {
         name: `${lead.company} - Corporate Travel Solution`,
@@ -1760,11 +1764,14 @@ SOAR-AI Team`,
       // Remove the lead from the leads list locally immediately
       setLeads((prev) => prev.filter((l) => l.id !== lead.id));
 
-      // Show success popup message
-      setSuccessMessage(
-        `🎉 Success! ${lead.company} has been successfully moved to opportunities and is now ready for advanced sales management!`,
-      );
-      setTimeout(() => setSuccessMessage(""), 7000);
+      // Show success popup message based on API response
+      const successMessage = response.message || `${lead.company} has been successfully moved to opportunities!`;
+      setSuccessMessage(`🎉 ${successMessage}`);
+      console.log("Setting move to opportunity success message:", successMessage);
+      setTimeout(() => {
+        console.log("Clearing move to opportunity success message");
+        setSuccessMessage("");
+      }, 7000);
 
       // Navigate to opportunities page with the new opportunity data
       if (onNavigate) {
@@ -1790,19 +1797,29 @@ SOAR-AI Team`,
             tags: lead.tags || [lead.industry, "Qualified Lead"],
             owner: lead.assignedAgent || "Current User",
           },
-          message:
-            response.message ||
-            `${lead.company} has been converted to a sales opportunity`,
+          message: successMessage,
         });
       }
 
       toast.success(`${lead.company} moved to opportunities successfully!`);
     } catch (error) {
       console.error("Error moving lead to opportunity:", error);
-      toast.error("Failed to move lead to opportunities. Please try again.");
+      const errorMessage = error.response?.data?.error || 
+                          error.response?.data?.message || 
+                          error.message || 
+                          "Failed to move lead to opportunities. Please try again.";
+      
+      // Show error message in success message area
+      setSuccessMessage(`❌ Error: ${errorMessage}`);
+      setTimeout(() => setSuccessMessage(""), 7000);
+      
+      toast.error(errorMessage);
 
       // If there's an error, refresh the leads to ensure consistency
       await fetchLeads();
+    } finally {
+      // Reset loading state
+      setMovingToOpportunityId(null);
     }
   };
 
@@ -3124,9 +3141,19 @@ SOAR-AI Team`,
                         variant="outline"
                         className="text-green-700 border-green-200 bg-green-50 hover:bg-green-100"
                         onClick={() => handleMoveToOpportunity(lead)}
+                        disabled={movingToOpportunityId === lead.id}
                       >
-                        <TrendingUpIcon className="h-4 w-4 mr-1" />
-                        Move to Opportunity
+                        {movingToOpportunityId === lead.id ? (
+                          <>
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-green-600 mr-1"></div>
+                            Moving...
+                          </>
+                        ) : (
+                          <>
+                            <TrendingUpIcon className="h-4 w-4 mr-1" />
+                            Move to Opportunity
+                          </>
+                        )}
                       </Button>
                     )}
                   </div>
