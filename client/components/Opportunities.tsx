@@ -782,14 +782,25 @@ const leadApi = useLeadApi();
     const [showCorporateProfile, setShowCorporateProfile] = useState(false);   
     const [leadData,setleads] = useState([]);
 
-  const handleViewProfile = (opportunityId: string) => {
-    const companyName = opportunities.find(opp => String(opp.id) === opportunityId)?.lead_info?.company?.name;
+  const handleViewProfile = (companyId: string) => {
+    // Find the opportunity that matches the company ID
+    const opportunity = opportunities.find(opp => String(opp.lead_info?.company?.id) === companyId);
+    const companyName = opportunity?.lead_info?.company?.name;
     console.log(leadData,'leadData');
+    console.log('Looking for company:', companyName);
 
+    // Find the corresponding lead data by company name
     const item = leadData.find(entry => entry.company === companyName);
     console.log(item, 'item');
-    setSelectedCorporate(item);
-    setShowCorporateProfile(true);
+    
+    if (item) {
+      setSelectedCorporate(item);
+      setShowCorporateProfile(true);
+    } else {
+      console.log('No corporate profile found for company:', companyName);
+      // You could show a toast notification here if needed
+      // toast.error(`No profile data found for ${companyName}`);
+    }
   };
   console.log(showCorporateProfile,'showCorporateProfile',selectedCorporate); 
 
