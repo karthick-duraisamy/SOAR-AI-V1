@@ -554,6 +554,7 @@ export function RevenuePrediction({ onNavigate }: RevenuePredictionProps) {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [dynamicData, setDynamicData] = useState<any>(null);
   const [dataSource, setDataSource] = useState<string>("static");
+  const [airportCodes, setAirportCodes] = useState<{[key: string]: {name: string, city: string, country: string}}>({});
   const [filters, setFilters] = useState({
     region: "all",
     industry: "all",
@@ -842,6 +843,20 @@ export function RevenuePrediction({ onNavigate }: RevenuePredictionProps) {
     }
   };
 
+  // Load airport codes
+  useEffect(() => {
+    const loadAirportCodes = async () => {
+      try {
+        const codes = await getAirportCodes();
+        setAirportCodes(codes);
+      } catch (error) {
+        console.error("Failed to load airport codes:", error);
+      }
+    };
+
+    loadAirportCodes();
+  }, [getAirportCodes]);
+
   // Function to get current data (dynamic or static)
   const getCurrentBusinessStats = () => {
     if (dataSource === "dynamic" && dynamicData) {
@@ -956,12 +971,16 @@ export function RevenuePrediction({ onNavigate }: RevenuePredictionProps) {
       dynamicData.topDestinations
     ) {
       return dynamicData.topDestinations.map((dest) => ({
-        city: dest.Destination_Airport_Code, // Use airport code as city name
+        city: airportCodes[dest.Destination_Airport_Code]?.name || dest.Destination_Airport_Code, // Use airport name if found, else code
         bookings: dest.bookings,
         revenue: dest.revenue,
       }));
     }
-    return businessStats.topDestinations;
+    return businessStats.topDestinations.map((dest) => ({
+      city: dest.city, // Use city name from static data
+      bookings: dest.bookings,
+      revenue: dest.revenue,
+    }));
   };
 
   // Load revenue prediction data on component mount

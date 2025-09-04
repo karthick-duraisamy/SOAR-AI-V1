@@ -2,7 +2,7 @@ from rest_framework import serializers
 from .models import (
     Company, Contact, Lead, Opportunity, OpportunityActivity, Contract, ContractBreach,
     CampaignTemplate, EmailCampaign, TravelOffer, SupportTicket, RevenueForecast,
-    ActivityLog, AIConversation, LeadNote, LeadHistory, ProposalDraft, EmailTracking
+    ActivityLog, AIConversation, LeadNote, LeadHistory, ProposalDraft, EmailTracking, AirportCode
 )
 
 class CompanySerializer(serializers.ModelSerializer):
@@ -575,3 +575,8 @@ class ProposalDraftSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProposalDraft
         fields = '__all__'
+
+class AirportCodeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AirportCode
+        fields = ['code', 'name', 'city', 'country']

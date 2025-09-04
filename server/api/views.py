@@ -21,14 +21,14 @@ from datetime import datetime, timedelta
 from .models import (
     Company, Contact, Lead, Opportunity, OpportunityActivity, Contract, ContractBreach,
     CampaignTemplate, EmailCampaign, TravelOffer, SupportTicket,
-    RevenueForecast, LeadNote, LeadHistory, ActivityLog, AIConversation, ProposalDraft
+    RevenueForecast, LeadNote, LeadHistory, ActivityLog, AIConversation, ProposalDraft, AirportCode
 )
 from .serializers import (
     CompanySerializer, ContactSerializer, LeadSerializer, OpportunitySerializer,
     OpportunityActivitySerializer, ContractSerializer, ContractBreachSerializer,
     CampaignTemplateSerializer, EmailCampaignSerializer, TravelOfferSerializer,
     SupportTicketSerializer, RevenueForecastSerializer, LeadNoteSerializer,
-    LeadHistorySerializer, ActivityLogSerializer, AIConversationSerializer, ProposalDraftSerializer
+    LeadHistorySerializer, ActivityLogSerializer, AIConversationSerializer, ProposalDraftSerializer, AirportCodeSerializer
 )
 
 # Helper function to create lead history entries
@@ -2961,6 +2961,40 @@ class LeadHistoryViewSet(viewsets.ModelViewSet):
 class ProposalDraftViewSet(viewsets.ModelViewSet):
     queryset = ProposalDraft.objects.all()
     serializer_class = ProposalDraftSerializer
+
+class AirportCodeViewSet(viewsets.ModelViewSet):
+    queryset = AirportCode.objects.all()
+    serializer_class = AirportCodeSerializer
+
+    @action(detail=False, methods=['get'])
+    def lookup(self, request):
+        """Lookup airport name by code"""
+        code = request.query_params.get('code', '').upper()
+        if not code:
+            return Response({'error': 'Airport code is required'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        try:
+            airport = AirportCode.objects.get(code=code)
+            serializer = self.get_serializer(airport)
+            return Response(serializer.data)
+        except AirportCode.DoesNotExist:
+            return Response({
+                'code': code,
+                'name': f'{code} Airport',
+                'city': code,
+                'country': 'Unknown'
+            }, status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=['get'])
+    def all_codes(self, request):
+        """Get all airport codes for mapping"""
+        airports = self.queryset.all()
+        airport_dict = {airport.code: {
+            'name': airport.name,
+            'city': airport.city,
+            'country': airport.country
+        } for airport in airports}
+        return Response(airport_dict)
 
 class EmailCampaignViewSet(viewsets.ModelViewSet):
     queryset = EmailCampaign.objects.all()
