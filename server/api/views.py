@@ -727,19 +727,10 @@ class LeadViewSet(viewsets.ModelViewSet):
                 recent_notes = lead.lead_notes.all()[:3]
                 
                 # Check if lead has been moved to opportunity by checking the actual opportunity table
+                # Use the database state as the source of truth without updating during search
                 has_opportunity_in_db = Opportunity.objects.filter(lead=lead).exists()
                 
-                # Update the moved_to_opportunity field to match the database state
-                # moved_to_opportunity should be True ONLY if lead exists in opportunity table
-                if has_opportunity_in_db and not lead.moved_to_opportunity:
-                    # Lead is in opportunity table but field is False - set to True
-                    lead.moved_to_opportunity = True
-                    lead.save(update_fields=['moved_to_opportunity'])
-                elif not has_opportunity_in_db and lead.moved_to_opportunity:
-                    # Lead is NOT in opportunity table but field is True - set to False
-                    lead.moved_to_opportunity = False
-                    lead.save(update_fields=['moved_to_opportunity'])
-                
+                # Use the database state directly - don't update during search to prevent race conditions
                 has_opportunity = has_opportunity_in_db
 
                 lead_data = {
@@ -1308,58 +1299,71 @@ class LeadViewSet(viewsets.ModelViewSet):
                     status=status.HTTP_400_BAD_REQUEST
                 )
 
-            # Check if lead has already been moved to opportunity - check both the field and database
-            has_opportunity_in_db = Opportunity.objects.filter(lead=lead).exists()
-            
-            if has_opportunity_in_db or lead.moved_to_opportunity:
-                # Update the field if it's out of sync
-                if has_opportunity_in_db and not lead.moved_to_opportunity:
-                    lead.moved_to_opportunity = True
-                    lead.save(update_fields=['moved_to_opportunity'])
-                
+            # Check if lead has already been moved to opportunity using database as source of truth
+            if Opportunity.objects.filter(lead=lead).exists():
                 return Response(
                     {'error': 'This lead has already been moved to opportunities'},
                     status=status.HTTP_400_BAD_REQUEST
                 )
+            
+            # Double-check to prevent race conditions - use select_for_update to lock the lead record
+            from django.db import transaction
+            try:
+                with transaction.atomic():
+                    # Lock the lead record to prevent concurrent modifications
+                    locked_lead = Lead.objects.select_for_update().get(id=lead.id)
+                    
+                    # Final check after acquiring lock
+                    if Opportunity.objects.filter(lead=locked_lead).exists():
+                        return Response(
+                            {'error': 'This lead has already been moved to opportunities'},
+                            status=status.HTTP_400_BAD_REQUEST
+                        )</old_str>
 
             # Get opportunity data from request
-            opportunity_data = request.data
+                    opportunity_data = request.data
 
-            # Create the opportunity
-            opportunity = Opportunity.objects.create(
-                lead=lead,
-                name=opportunity_data.get('name', f"{lead.company.name} - Corporate Travel Solution"),
-                stage=opportunity_data.get('stage', 'discovery'),
-                probability=opportunity_data.get('probability', 65),
-                estimated_close_date=opportunity_data.get('estimated_close_date',
-                    (timezone.now().date() + timedelta(days=30))),
-                value=opportunity_data.get('value', lead.estimated_value or 250000),
-                description=opportunity_data.get('description', f"Opportunity created from qualified lead. {lead.notes}"),
-                next_steps=opportunity_data.get('next_steps', 'Send initial proposal and schedule presentation')
-            )
+                    # Create the opportunity within the transaction
+                    opportunity = Opportunity.objects.create(
+                        lead=locked_lead,
+                        name=opportunity_data.get('name', f"{locked_lead.company.name} - Corporate Travel Solution"),
+                        stage=opportunity_data.get('stage', 'discovery'),
+                        probability=opportunity_data.get('probability', 65),
+                        estimated_close_date=opportunity_data.get('estimated_close_date',
+                            (timezone.now().date() + timedelta(days=30))),
+                        value=opportunity_data.get('value', locked_lead.estimated_value or 250000),
+                        description=opportunity_data.get('description', f"Opportunity created from qualified lead. {locked_lead.notes}"),
+                        next_steps=opportunity_data.get('next_steps', 'Send initial proposal and schedule presentation')
+                    )
 
-            # Mark lead as moved to opportunity and add note
-            lead.moved_to_opportunity = True
-            timestamp = timezone.now().strftime('%Y-%m-%d %H:%M')
-            move_note = f"[{timestamp}] Lead moved to opportunities - {opportunity.name}"
-            
-            if lead.notes:
-                lead.notes = f"{lead.notes}\n\n{move_note}"
-            else:
-                lead.notes = move_note
-            
-            # Don't change the lead status - keep it as qualified
-            lead.save()
+                    # Mark lead as moved to opportunity and add note
+                    locked_lead.moved_to_opportunity = True
+                    timestamp = timezone.now().strftime('%Y-%m-%d %H:%M')
+                    move_note = f"[{timestamp}] Lead moved to opportunities - {opportunity.name}"
+                    
+                    if locked_lead.notes:
+                        locked_lead.notes = f"{locked_lead.notes}\n\n{move_note}"
+                    else:
+                        locked_lead.notes = move_note
+                    
+                    # Don't change the lead status - keep it as qualified
+                    locked_lead.save()
 
-            # Create history entry for the conversion
-            create_lead_history(
-                lead=lead,
-                history_type='opportunity_created',
-                action='Lead moved to opportunity',
-                details=f'Lead successfully moved to sales opportunity: {opportunity.name}. Deal value: ${opportunity.value:,.0f}. Lead remains in leads table for tracking.',
-                icon='briefcase',
-                user=request.user if request.user.is_authenticated else None
-            )
+                    # Create history entry for the conversion
+                    create_lead_history(
+                        lead=locked_lead,
+                        history_type='opportunity_created',
+                        action='Lead moved to opportunity',
+                        details=f'Lead successfully moved to sales opportunity: {opportunity.name}. Deal value: ${opportunity.value:,.0f}. Lead remains in leads table for tracking.',
+                        icon='briefcase',
+                        user=request.user if request.user.is_authenticated else None
+                    )
+                    
+            except Exception as e:
+                return Response(
+                    {'error': f'Failed to create opportunity: {str(e)}'},
+                    status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                )</old_str>
 
             # Serialize the created opportunity
             opportunity_serializer = OpportunitySerializer(opportunity)
@@ -1370,7 +1374,7 @@ class LeadViewSet(viewsets.ModelViewSet):
                 'opportunity': opportunity_serializer.data,
                 'lead_id': lead.id,
                 'has_opportunity': True
-            }, status=status.HTTP_201_CREATED)
+            }, status=status.HTTP_201_CREATED)</old_str>
 
         except Exception as e:
             print(f"Error in move_to_opportunity: {str(e)}")
