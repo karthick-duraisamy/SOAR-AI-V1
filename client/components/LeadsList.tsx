@@ -1424,7 +1424,7 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
       }));
 
       // Show success popup with updated status
-      const message = `🎉 ${selectedLeadForDisqualify.company} status successfully updated to 'Unqualified'!`;
+      const message = `🎉 ${selectedLeadForDisqualify.company} status successfully updated to 'disqualify'!`;
       console.log("Setting disqualify success message:", message);
       setSuccessMessage(message);
       setTimeout(() => {
@@ -2161,7 +2161,7 @@ SOAR-AI Team`,
                   <SelectItem value="contacted">Contacted</SelectItem>
                   <SelectItem value="in-progress">In Progress</SelectItem>
                   <SelectItem value="responded">Responded</SelectItem>
-                  <SelectItem value="unqualified">Unqualified</SelectItem>
+                  <SelectItem value="unqualified">disqualify </SelectItem>
                   <SelectItem value="new">New</SelectItem>
                 </SelectContent>
               </Select>
@@ -2269,7 +2269,7 @@ SOAR-AI Team`,
                       <div className="flex items-center justify-between">
                         <div>
                           <p className="text-sm font-medium text-gray-600 mb-1">
-                            Unqualified Leads
+                            Disqualifed  Leads
                           </p>
                           <p className="text-2xl font-bold text-gray-900">
                             {
@@ -2659,7 +2659,7 @@ SOAR-AI Team`,
                                 : lead.status === "responded"
                                   ? "Responded"
                                   : lead.status === "unqualified"
-                                    ? "Unqualified"
+                                    ? "Disqualifed"
                                     : lead.status === "new"
                                       ? "New"
                                       : lead.status}
