@@ -552,16 +552,21 @@ const OpportunityCard = memo(
             {opportunity.stage === "proposal" && (
               <Button
                 size="sm"
-                className="h-8 px-3 text-xs bg-orange-500 hover:bg-orange-600 text-white rounded-md font-medium"
+                className="h-8 px-3 text-xs bg-orange-500 hover:bg-orange-600 text-white rounded-md font-medium disabled:opacity-50"
                 onClick={(e) => {
                   e.stopPropagation();
                   if (onMoveToNegotiation) {
                     onMoveToNegotiation(opportunity);
                   }
                 }}
+                disabled={isDraftLoading}
               >
-                <ArrowRight className="h-3 w-3 mr-1" />
-                Negotiate
+                {isDraftLoading ? (
+                  <RefreshCw className="h-3 w-3 mr-1 animate-spin" />
+                ) : (
+                  <ArrowRight className="h-3 w-3 mr-1" />
+                )}
+                {isDraftLoading ? "Loading..." : "Negotiate"}
               </Button>
             )}
 
