@@ -6,7 +6,9 @@ from django.utils.decorators import method_decorator
 from .models import EmailTracking
 import urllib.parse
 import uuid
+import logging
 
+logger = logging.getLogger(__name__)
 
 from rest_framework import viewsets, status
 from rest_framework.decorators import action, api_view, permission_classes
@@ -2630,13 +2632,13 @@ class EmailCampaignViewSet(viewsets.ModelViewSet):
 
             # Handle both targetLeads and target_leads formats
             all_target_leads = target_leads + target_lead_ids
-            
+
             if not subject_line:
                 return Response(
                     {'error': 'Subject line is required'},
                     status=status.HTTP_400_BAD_REQUEST
                 )
-            
+
             if not message_content:
                 return Response(
                     {'error': 'Message content is required'},

@@ -110,6 +110,7 @@ export function MarketingCampaignWizard({ selectedLeads, onBack, onComplete }: M
 
   const { 
     launchCampaign,
+    updateLead,
     loading: campaignLoading,
     error: campaignError
   } = useLeadApi();
@@ -232,25 +233,75 @@ export function MarketingCampaignWizard({ selectedLeads, onBack, onComplete }: M
     setIsLaunching(true);
 
     try {
-      // Create the campaign via API
-      const response = await launchCampaign({
-        ...campaignData,
+      // Prepare campaign data for API
+      const campaignPayload = {
+        name: campaignData.name,
+        description: campaignData.selectedTemplate?.description || '',
+        objective: campaignData.objective,
+        channels: campaignData.channels,
         targetAudience: selectedLeads,
-        target_leads: selectedLeads.map(lead => lead.id)
-      });
+        target_leads: selectedLeads.map(lead => lead.id),
+        content: campaignData.content,
+        settings: campaignData.settings,
+        selectedTemplate: campaignData.selectedTemplate
+      };
 
-      // Show success message and complete
-      onComplete({
-        ...campaignData,
-        campaignId: response.id || response.campaign_id,
-        launched: true,
-        launchDate: new Date().toISOString(),
-        response: response
-      });
+      console.log('Launching campaign with payload:', campaignPayload);
+
+      // Launch the campaign via API
+      const response = await launchCampaign(campaignPayload);
+
+      console.log('Campaign launch response:', response);
+
+      // After successful campaign launch, update lead statuses
+      if (response && response.success) {
+        try {
+          // Update status for leads that were 'new' to 'contacted'
+          const leadsToUpdate = selectedLeads.filter(lead => lead.status === 'new');
+          
+          if (leadsToUpdate.length > 0) {
+            console.log(`Updating ${leadsToUpdate.length} leads from 'new' to 'contacted'`);
+            
+            // Update each lead's status
+            const updatePromises = leadsToUpdate.map(async (lead) => {
+              try {
+                const updatedLead = await updateLead(lead.id, {
+                  status: 'contacted'
+                });
+                console.log(`Updated lead ${lead.id} status to contacted`);
+                return { leadId: lead.id, success: true, updatedLead };
+              } catch (error) {
+                console.error(`Error updating lead ${lead.id}:`, error);
+                return { leadId: lead.id, success: false, error };
+              }
+            });
+
+            const updateResults = await Promise.all(updatePromises);
+            const successfulUpdates = updateResults.filter(result => result.success);
+            
+            console.log(`Successfully updated ${successfulUpdates.length} lead statuses`);
+          }
+        } catch (error) {
+          console.error('Error updating lead statuses:', error);
+          // Don't fail the entire operation if lead updates fail
+        }
+
+        // Show success and complete
+        onComplete({
+          ...campaignData,
+          campaignId: response.campaign_id,
+          launched: true,
+          launchDate: new Date().toISOString(),
+          response: response,
+          emailsSent: response.emails_sent,
+          targetLeadsProcessed: response.target_leads_processed
+        });
+      } else {
+        throw new Error(response?.message || 'Campaign launch failed');
+      }
     } catch (error: any) {
       console.error('Failed to launch campaign:', error);
-      // You can add error handling UI here
-      alert(`Failed to launch campaign: ${error.message}`);
+      alert(`Failed to launch campaign: ${error.response?.data?.error || error.message}`);
     } finally {
       setIsLaunching(false);
     }
@@ -773,6 +824,30 @@ TechCorp Solutions can achieve complete travel governance without slowing down y
         );
 
       case 5:
+        // Calculate AI predictions based on selected template and leads
+        const calculateAIPredictions = () => {
+          const leadsCount = selectedLeads.length;
+          const template = campaignData.selectedTemplate;
+          
+          if (!template || leadsCount === 0) {
+            return { opens: 0, clicks: 0, responses: 0, conversions: 0 };
+          }
+          
+          const expectedOpens = Math.round((leadsCount * template.estimated_open_rate) / 100);
+          const expectedClicks = Math.round((leadsCount * template.estimated_click_rate) / 100);
+          const expectedResponses = Math.round(expectedClicks * 0.3); // 30% of clicks respond
+          const expectedConversions = Math.round(expectedResponses * 0.2); // 20% of responses convert
+          
+          return {
+            opens: expectedOpens,
+            clicks: expectedClicks,
+            responses: expectedResponses,
+            conversions: expectedConversions
+          };
+        };
+
+        const predictions = calculateAIPredictions();
+
         return (
           <div className="space-y-6">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -784,30 +859,41 @@ TechCorp Solutions can achieve complete travel governance without slowing down y
                   <div className="space-y-4">
                     <div className="flex items-center justify-between py-3 border-b">
                       <span className="text-gray-600 font-medium">Campaign Name:</span>
-                      <span className="font-semibold text-gray-900">{campaignData.name || 'Nagu'}</span>
+                      <span className="font-semibold text-gray-900">{campaignData.name || 'Untitled Campaign'}</span>
                     </div>
 
                     <div className="flex items-center justify-between py-3 border-b">
                       <span className="text-gray-600 font-medium">Objective:</span>
-                      <span className="font-semibold text-gray-900 capitalize">Lead Nurturing</span>
+                      <span className="font-semibold text-gray-900 capitalize">{campaignData.objective.replace('-', ' ')}</span>
                     </div>
 
                     <div className="flex items-center justify-between py-3 border-b">
                       <span className="text-gray-600 font-medium">Channels:</span>
                       <div className="flex items-center gap-2">
-                        <Mail className="h-4 w-4 text-gray-600" />
-                        <span className="font-semibold text-gray-900">email</span>
+                        {campaignData.channels.map(channel => (
+                          <div key={channel} className="flex items-center gap-1">
+                            {channel === 'email' && <Mail className="h-4 w-4 text-blue-600" />}
+                            {channel === 'whatsapp' && <MessageSquare className="h-4 w-4 text-green-600" />}
+                            {channel === 'linkedin' && <Linkedin className="h-4 w-4 text-blue-700" />}
+                            <span className="font-semibold text-gray-900 text-sm capitalize">{channel}</span>
+                          </div>
+                        ))}
                       </div>
                     </div>
 
                     <div className="flex items-center justify-between py-3 border-b">
+                      <span className="text-gray-600 font-medium">Template:</span>
+                      <span className="font-semibold text-gray-900">{campaignData.selectedTemplate?.name || 'No template selected'}</span>
+                    </div>
+
+                    <div className="flex items-center justify-between py-3 border-b">
                       <span className="text-gray-600 font-medium">Target Leads:</span>
-                      <span className="font-semibold text-gray-900">{targetLeads.length}</span>
+                      <span className="font-semibold text-gray-900">{selectedLeads.length}</span>
                     </div>
 
                     <div className="flex items-center justify-between py-3 border-b">
                       <span className="text-gray-600 font-medium">Start Date:</span>
-                      <span className="font-semibold text-gray-900">2025-08-26</span>
+                      <span className="font-semibold text-gray-900">{new Date().toISOString().split('T')[0]}</span>
                     </div>
                   </div>
                 </div>
@@ -821,19 +907,19 @@ TechCorp Solutions can achieve complete travel governance without slowing down y
 
                   <div className="grid grid-cols-2 gap-6">
                     <div className="text-center">
-                      <div className="text-3xl font-bold text-blue-600 mb-1">0</div>
+                      <div className="text-3xl font-bold text-blue-600 mb-1">{predictions.opens}</div>
                       <div className="text-sm text-gray-500">Expected Opens</div>
                     </div>
                     <div className="text-center">
-                      <div className="text-3xl font-bold text-blue-600 mb-1">0</div>
+                      <div className="text-3xl font-bold text-blue-600 mb-1">{predictions.clicks}</div>
                       <div className="text-sm text-gray-500">Expected Clicks</div>
                     </div>
                     <div className="text-center">
-                      <div className="text-3xl font-bold text-blue-600 mb-1">0</div>
+                      <div className="text-3xl font-bold text-blue-600 mb-1">{predictions.responses}</div>
                       <div className="text-sm text-gray-500">Expected Responses</div>
                     </div>
                     <div className="text-center">
-                      <div className="text-3xl font-bold text-blue-600 mb-1">0</div>
+                      <div className="text-3xl font-bold text-blue-600 mb-1">{predictions.conversions}</div>
                       <div className="text-sm text-gray-500">Expected Conversions</div>
                     </div>
                   </div>
@@ -852,24 +938,39 @@ TechCorp Solutions can achieve complete travel governance without slowing down y
                     <div>
                       <div className="text-sm font-medium text-gray-700 mb-2">Subject:</div>
                       <div className="bg-gray-50 p-3 rounded-md border text-sm font-medium">
-                        Ensure 100% travel policy compliance at {'{{company_name}}'}
+                        {campaignData.content.email.subject || campaignData.selectedTemplate?.subject_line || 'No subject line'}
                       </div>
                     </div>
 
                     {/* Email Body Preview */}
                     <div>
                       <div className="text-sm font-medium text-gray-700 mb-2">Message:</div>
-                      <div className="bg-gray-50 p-4 rounded-md border text-sm leading-relaxed">
-                        <div className="mb-3">Hi {'{{contact_name}}'}.</div>
-
-                        <div className="mb-4">
-                          Managing travel compliance for {'{{company_name}}'} employees can be challenging. SOAR-AI 
-                          ensures 100% policy adherence while maintaining traveler satisfaction.
+                      <div className="bg-gray-50 p-4 rounded-md border text-sm leading-relaxed max-h-60 overflow-y-auto">
+                        <div className="whitespace-pre-wrap">
+                          {campaignData.content.email.body || campaignData.selectedTemplate?.content || 'No content available'}
                         </div>
-
-                        <div className="text-blue-600 underline text-sm">See Compliance Demo</div>
+                        {campaignData.content.email.cta && (
+                          <div className="mt-4">
+                            <div className="inline-block bg-blue-600 text-white px-4 py-2 rounded text-sm">
+                              {campaignData.content.email.cta}
+                            </div>
+                          </div>
+                        )}
                       </div>
                     </div>
+
+                    {/* Template Info */}
+                    {campaignData.selectedTemplate && (
+                      <div className="mt-4 p-3 bg-blue-50 rounded-md border border-blue-200">
+                        <div className="text-sm text-blue-800">
+                          <div className="font-medium mb-1">Template: {campaignData.selectedTemplate.name}</div>
+                          <div className="text-xs">
+                            Expected Open Rate: {campaignData.selectedTemplate.estimated_open_rate}% | 
+                            Click Rate: {campaignData.selectedTemplate.estimated_click_rate}%
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -879,7 +980,7 @@ TechCorp Solutions can achieve complete travel governance without slowing down y
             <div className="flex justify-center mt-12">
               <Button 
                 onClick={handleLaunchCampaign}
-                disabled={isLaunching || campaignLoading}
+                disabled={isLaunching || campaignLoading || !campaignData.selectedTemplate}
                 className="bg-[#FD9646] hover:bg-[#FD9646]/90 text-white px-12 py-4 text-lg font-semibold rounded-lg shadow-lg w-full max-w-md"
                 size="lg"
               >
@@ -896,6 +997,14 @@ TechCorp Solutions can achieve complete travel governance without slowing down y
                 )}
               </Button>
             </div>
+
+            {!campaignData.selectedTemplate && (
+              <Alert>
+                <AlertDescription>
+                  Please select a template in step 1 to launch the campaign.
+                </AlertDescription>
+              </Alert>
+            )}
           </div>
         );
 
