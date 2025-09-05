@@ -1416,6 +1416,7 @@ class LeadViewSet(viewsets.ModelViewSet):
 
             # Create default contact
             contact, contact_created = Contact.objects.get_or_create(
+                print(company),
                 company=company,
                 email=company_data.get('email', f"contact@{company_name.lower().replace(' ', '')}.com"),
                 defaults={
