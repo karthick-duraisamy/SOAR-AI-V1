@@ -261,7 +261,14 @@ class CompanyViewSet(viewsets.ModelViewSet):
                 if file_extension == 'csv':
                     df = pd.read_csv(io.BytesIO(uploaded_file.read()))
                 else:
-                    df = pd.read_excel(io.BytesIO(uploaded_file.read()))
+                    # Specify engine explicitly based on file extension
+                    if file_extension == 'xlsx':
+                        df = pd.read_excel(io.BytesIO(uploaded_file.read()), engine='openpyxl')
+                    elif file_extension == 'xls':
+                        df = pd.read_excel(io.BytesIO(uploaded_file.read()), engine='xlrd')
+                    else:
+                        # Fallback to openpyxl for unknown Excel formats
+                        df = pd.read_excel(io.BytesIO(uploaded_file.read()), engine='openpyxl')
             except Exception as e:
                 return Response(
                     {'error': f'Failed to read file: {str(e)}'},
