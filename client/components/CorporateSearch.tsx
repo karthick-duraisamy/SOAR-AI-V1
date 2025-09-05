@@ -448,11 +448,12 @@ export function CorporateSearch({
     corporateData: null,
   });
   const [showContactDialog, setShowContactDialog] = useState(false);
+  const [isSendingMessage, setIsSendingMessage] = useState(false); // Spinner loader state
   const [showMoveAsLeadDialog, setShowMoveAsLeadDialog] = useState(false);
   const [selectedCorporateForMove, setSelectedCorporateForMove] =
     useState(null);
   const [isMovingAsLead, setIsMovingAsLead] = useState(false);
-  const [isSendingMessage, setIsSendingMessage] = useState(false);
+
 
   // Upload Company states
   const [showUploadCompanyDialog, setShowUploadCompanyDialog] = useState(false);
@@ -927,8 +928,8 @@ export function CorporateSearch({
           ? parseInt(newCompany.established)
           : null,
         size: newCompany.companySize,
-        credit_rating: newCompany.creditRating,
-        payment_terms: newCompany.paymentTerms,
+        creditRating: newCompany.creditRating,
+        paymentTerms: newCompany.paymentTerms,
 
         // Travel Profile
         travel_budget: newCompany.travelBudget
@@ -1067,16 +1068,12 @@ export function CorporateSearch({
 
   // Function to send message to corporate contact
   const handleSendMessage = async () => {
-    if (
-      !contactForm.corporateData ||
-      !contactForm.subject ||
-      !contactForm.message
-    ) {
+    if (!contactForm.corporateData || !contactForm.subject || !contactForm.message) {
       toast.error("Please fill in all required fields");
       return;
     }
 
-    setIsSendingMessage(true);
+    setIsSendingMessage(true); // Start spinner
 
     try {
       // Use the leadApi to send message (we'll use company data to create a temporary lead-like structure)
@@ -1120,7 +1117,7 @@ export function CorporateSearch({
         "Failed to send message";
       toast.error(errorMessage);
     } finally {
-      setIsSendingMessage(false);
+      setIsSendingMessage(false); // Stop spinner
     }
   };
   return (

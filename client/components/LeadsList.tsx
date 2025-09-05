@@ -1479,6 +1479,8 @@ SOAR-AI Team`,
   };
 
   // Function to send message (and create history entry) via API
+  const [isSendingMessage, setIsSendingMessage] = useState(false);
+
   const handleSendMessage = async () => {
     if (
       !selectedLeadForContact ||
@@ -1490,6 +1492,8 @@ SOAR-AI Team`,
     }
 
     try {
+      setIsSendingMessage(true);
+      
       // Call the backend API to send email via SMTP
       const response = await leadApi.sendMessage(selectedLeadForContact.id, {
         method: contactForm.method,
@@ -1546,6 +1550,8 @@ SOAR-AI Team`,
         error.message ||
         "Failed to send message";
       toast.error(errorMessage);
+    } finally {
+      setIsSendingMessage(false);
     }
   };
 
@@ -3470,10 +3476,19 @@ SOAR-AI Team`,
             <Button
               onClick={handleSendMessage}
               className="bg-orange-500 hover:bg-orange-600 text-white"
-              disabled={!contactForm.subject || !contactForm.message}
+              disabled={!contactForm.subject || !contactForm.message || isSendingMessage}
             >
-              <Mail className="h-4 w-4 mr-2" />
-              Send Message
+              {isSendingMessage ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                  Sending...
+                </>
+              ) : (
+                <>
+                  <Mail className="h-4 w-4 mr-2" />
+                  Send Message
+                </>
+              )}
             </Button>
           </DialogFooter>
         </DialogContent>

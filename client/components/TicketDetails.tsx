@@ -207,12 +207,13 @@ interface TicketDetailsProps {
 
 export function TicketDetails({ ticketId, onNavigate, onClose }: TicketDetailsProps) {
   const [activeTab, setActiveTab] = useState('overview');
-  const [newMessage, setNewMessage] = useState('');
   const [isEditing, setIsEditing] = useState(false);
   const [editedStatus, setEditedStatus] = useState(ticketDetails.status);
   const [editedPriority, setEditedPriority] = useState(ticketDetails.priority);
   const [editedAssignee, setEditedAssignee] = useState(ticketDetails.assignedTo.name);
+  const [newMessage, setNewMessage] = useState('');
   const [internalNote, setInternalNote] = useState('');
+  const [isSendingMessage, setIsSendingMessage] = useState(false);
 
   const getChannelIcon = (channel: string) => {
     switch (channel) {
@@ -255,11 +256,15 @@ export function TicketDetails({ ticketId, onNavigate, onClose }: TicketDetailsPr
     }
   };
 
-  const handleSendMessage = () => {
+  const handleSendMessage = async () => {
     if (newMessage.trim()) {
+      setIsSendingMessage(true);
       // Here you would send the message via API
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 1000)); 
       console.log('Sending message:', newMessage);
       setNewMessage('');
+      setIsSendingMessage(false);
     }
   };
 
@@ -281,14 +286,14 @@ export function TicketDetails({ ticketId, onNavigate, onClose }: TicketDetailsPr
     const now = new Date();
     const resolution = new Date(expectedResolution);
     const diff = resolution.getTime() - now.getTime();
-    
+
     if (diff < 0) {
       return { value: 'Overdue', color: 'text-red-600' };
     }
-    
+
     const hours = Math.floor(diff / (1000 * 60 * 60));
     const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-    
+
     if (hours < 2) {
       return { value: `${hours}h ${minutes}m`, color: 'text-red-600' };
     } else if (hours < 8) {
@@ -492,7 +497,7 @@ export function TicketDetails({ ticketId, onNavigate, onClose }: TicketDetailsPr
                         const isCustomer = message.sender === 'customer';
                         const isAgent = message.sender === 'agent';
                         const isSystem = message.sender === 'system';
-                        
+
                         return (
                           <div 
                             key={message.id} 
@@ -527,9 +532,9 @@ export function TicketDetails({ ticketId, onNavigate, onClose }: TicketDetailsPr
                       })}
                     </div>
                   </ScrollArea>
-                  
+
                   <Separator className="my-4" />
-                  
+
                   <div className="space-y-3">
                     <Textarea
                       placeholder="Type your response to the customer..."
@@ -548,9 +553,17 @@ export function TicketDetails({ ticketId, onNavigate, onClose }: TicketDetailsPr
                           Use AI
                         </Button>
                       </div>
-                      <Button onClick={handleSendMessage} disabled={!newMessage.trim()}>
-                        <Send className="h-4 w-4 mr-1" />
-                        Send Reply
+                      <Button 
+                        onClick={() => handleSendMessage()}
+                        disabled={!newMessage.trim() || isSendingMessage}
+                        size="sm"
+                        className="rounded-full px-4"
+                      >
+                        {isSendingMessage ? (
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                        ) : (
+                          <Send className="h-4 w-4" />
+                        )}
                       </Button>
                     </div>
                   </div>
@@ -781,7 +794,7 @@ export function TicketDetails({ ticketId, onNavigate, onClose }: TicketDetailsPr
                   </p>
                 </div>
               </div>
-              
+
               <Button className="w-full" size="sm">
                 <Zap className="h-4 w-4 mr-1" />
                 Apply AI Suggestion
