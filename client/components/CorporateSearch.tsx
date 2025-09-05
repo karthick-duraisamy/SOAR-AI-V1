@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react"; // Import useCallback
+import { useState, useEffect, useCallback, useRef } from "react"; // Import useCallback and useRef
 import {
   Card,
   CardContent,
@@ -462,6 +462,9 @@ export function CorporateSearch({
   const [isUploading, setIsUploading] = useState(false);
   const [uploadError, setUploadError] = useState("");
   const [uploadSuccess, setUploadSuccess] = useState("");
+  
+  // File input ref for clearing after upload
+  const fileInputRef = useRef(null);
 
   // Function to handle file upload
   const handleFileUpload = (event) => {
@@ -2873,6 +2876,7 @@ export function CorporateSearch({
                 </Button>
                 <Input
                   id="file-upload-input"
+                  ref={fileInputRef}
                   type="file"
                   accept=".xlsx, .xls"
                   onChange={handleFileUpload}
