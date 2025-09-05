@@ -3558,17 +3558,18 @@ SOAR-AI Team`,
               Cancel
             </Button>
             <Button
+              className="bg-orange-500 hover:bg-orange-600 text-white"
               onClick={handleSaveNote}
               disabled={isSavingNote || !noteForm.note.trim()}
             >
               {isSavingNote ? (
                 <>
-                  <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                  <RefreshCw className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
                   Saving...
                 </>
               ) : (
                 <>
-                  <Save className="mr-2 h-4 w-4" />
+                  <Save className="mr-2 h-4 w-4 bg-orange-500" />
                   Save Note
                 </>
               )}
