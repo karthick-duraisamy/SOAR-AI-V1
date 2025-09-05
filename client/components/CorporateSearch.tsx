@@ -185,6 +185,7 @@ const transformCompanyData = (company) => {
     expansionPlans: company.expansion_plans || getRandomExpansionPlans(),
     riskLevel: company.risk_level || getRandomRiskLevel(),
     created_at: company.created_at,
+    updated_at: company.updated_at
   };
 };
 
@@ -681,10 +682,13 @@ export function CorporateSearch({
             break;
           default:
             comparison = 0;
+
         }
 
         return sortOrder === "asc" ? comparison : -comparison;
       });
+      filtered.sort((a, b) => new Date(b.updated_at) - new Date(a.updated_at));
+
 
       // Calculate pagination
       const totalItems = filtered.length;
