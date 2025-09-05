@@ -277,7 +277,7 @@ class CompanyViewSet(viewsets.ModelViewSet):
 
             # Validate required columns
             required_columns = [
-                'Company Name', 'Industry', 'Company Size Category', 'Location', 'Email'
+                'name','company_type', 'industry', 'employee_count', 'location', 'email'
             ]
 
             missing_columns = [col for col in required_columns if col not in df.columns]
