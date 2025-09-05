@@ -1072,17 +1072,18 @@ export default function App() {
                                     item.id === "unqualified-leads" ||
                                     item.id === "opportunities" ||
                                     item.id === "all-leads") && (
-                                    <Badge
-                                      className="bg-[#FD9646] text-white text-xs font-medium px-2 py-0.5 rounded-full flex-shrink-0"
-                                      style={{
-                                        backgroundColor: "#FD9646",
-                                        color: "white",
-                                        border: "none",
-                                        marginLeft: "8px",
-                                      }}
-                                    >
-                                      {getBadgeCount(item.id)}
-                                    </Badge>
+                                      <div></div>
+                                    // <Badge
+                                    //   className="bg-[#FD9646] text-white text-xs font-medium px-2 py-0.5 rounded-full flex-shrink-0"
+                                    //   style={{
+                                    //     backgroundColor: "#FD9646",
+                                    //     color: "white",
+                                    //     border: "none",
+                                    //     marginLeft: "8px",
+                                    //   }}
+                                    // >
+                                    //   {/* {getBadgeCount(item.id)} */}
+                                    // </Badge>
                                   )}
                                 </SidebarMenuButton>
                               </SidebarMenuItem>
