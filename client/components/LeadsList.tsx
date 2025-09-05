@@ -689,6 +689,8 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
   const [selectedLeadForDisqualify, setSelectedLeadForDisqualify] =
     useState<any>(null);
   const [disqualifyReason, setDisqualifyReason] = useState("");
+  const [showQualifyDialog, setShowQualifyDialog] = useState(false);
+  const [selectedLeadForQualify, setSelectedLeadForQualify] = useState<any>(null);
   const [selectedLeads, setSelectedLeads] = useState<number[]>([]);
   const [selectAll, setSelectAll] = useState(false);
   const [showContactDialog, setShowContactDialog] = useState(false);
@@ -1351,31 +1353,36 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
     }
   };
 
-  // Function to qualify a lead via API
-  const handleQualifyLead = async (leadId: number) => {
+  // Function to open qualify confirmation dialog
+  const handleQualifyLead = (lead: any) => {
+    setSelectedLeadForQualify(lead);
+    setShowQualifyDialog(true);
+  };
+
+  // Function to confirm qualification via API
+  const handleConfirmQualify = async () => {
+    if (!selectedLeadForQualify) return;
+
     try {
-      setQualifyingLeadId(leadId); // Start loading spinner
+      setQualifyingLeadId(selectedLeadForQualify.id); // Start loading spinner
 
-      // Find the lead name before API call
-      const leadName = leads.find(l => l.id === leadId)?.company || "Lead";
-
-      await leadApi.qualifyLead(leadId, {
+      await leadApi.qualifyLead(selectedLeadForQualify.id, {
         reason: "Lead meets all qualification criteria",
       });
 
       // Update the local state
       setLeads((prev) =>
-        prev.map((l) => (l.id === leadId ? { ...l, status: "qualified" } : l)),
+        prev.map((l) => (l.id === selectedLeadForQualify.id ? { ...l, status: "qualified" } : l)),
       );
 
       // Clear history for this lead to force refresh
       setLeadHistory((prev) => ({
         ...prev,
-        [leadId]: [],
+        [selectedLeadForQualify.id]: [],
       }));
 
       // Show success popup with updated status
-      const message = `🎉 ${leadName} status successfully updated to 'Qualified'!`;
+      const message = `🎉 ${selectedLeadForQualify.company} status successfully updated to 'Qualified'!`;
       console.log("Setting success message:", message);
       setSuccessMessage(message);
       setTimeout(() => {
@@ -1384,6 +1391,10 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
       }, 7000);
 
       toast.success("Lead qualified successfully");
+
+      // Close dialog and reset state
+      setShowQualifyDialog(false);
+      setSelectedLeadForQualify(null);
     } catch (error) {
       console.error("Error qualifying lead:", error);
       toast.error("Failed to qualify lead");
@@ -3184,7 +3195,7 @@ SOAR-AI Team`,
                           size="sm"
                           variant="outline"
                           className="text-green-700 border-green-300 hover:bg-green-50"
-                          onClick={() => handleQualifyLead(lead.id)}
+                          onClick={() => handleQualifyLead(lead)}
                           disabled={qualifyingLeadId === lead.id}
                         >
                           {qualifyingLeadId === lead.id ? (
@@ -3785,6 +3796,48 @@ SOAR-AI Team`,
               className="bg-[#FD9646] hover:bg-[#FD9646]/90 text-white"
             >
               Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Qualify Confirmation Dialog */}
+      <Dialog open={showQualifyDialog} onOpenChange={setShowQualifyDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-green-700">
+              <UserCheck className="h-5 w-5" />
+              Qualify Lead
+            </DialogTitle>
+            <DialogDescription>
+              Are you sure to qualify this corporate{" "}
+              <span className="font-semibold">{selectedLeadForQualify?.company}</span>?
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="flex gap-2">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowQualifyDialog(false);
+                setSelectedLeadForQualify(null);
+              }}
+              className="text-gray-600 border-gray-300"
+            >
+              No
+            </Button>
+            <Button
+              onClick={handleConfirmQualify}
+              className="bg-green-500 hover:bg-green-600 text-white"
+              disabled={qualifyingLeadId !== null}
+            >
+              {qualifyingLeadId !== null ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                  Qualifying...
+                </>
+              ) : (
+                "Yes"
+              )}
             </Button>
           </DialogFooter>
         </DialogContent>
