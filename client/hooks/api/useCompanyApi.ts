@@ -308,7 +308,7 @@ export const useCompanyApi = () => {
       formData.append('file', file);
 
       const response = await axios.post(
-        `${API_BASE_URL}/companies/bulk-upload/`,
+        `${API_BASE_URL}/companies/upload/`,
         formData,
         {
           headers: {

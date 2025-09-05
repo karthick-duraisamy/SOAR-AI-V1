@@ -504,6 +504,160 @@ class CompanyViewSet(viewsets.ModelViewSet):
         except (ValueError, TypeError):
             return None
 
+    @action(detail=False, methods=['get'])
+    def download_sample(self, request):
+        """Download sample Excel template for company upload"""
+        import pandas as pd
+        from django.http import HttpResponse
+        import io
+
+        try:
+            # Create sample data with all required columns
+            sample_data = {
+                'Company Name': [
+                    'TechCorp Solutions', 
+                    'Global Manufacturing Inc', 
+                    'Healthcare Plus'
+                ],
+                'Industry': [
+                    'Technology', 
+                    'Manufacturing', 
+                    'Healthcare'
+                ],
+                'Company Size Category': [
+                    'Large (1001-5000)', 
+                    'Enterprise (5000+)', 
+                    'Medium (201-1000)'
+                ],
+                'Location': [
+                    'San Francisco, CA', 
+                    'Chicago, IL', 
+                    'Boston, MA'
+                ],
+                'Email': [
+                    'contact@techcorp.com', 
+                    'info@globalmanufacturing.com', 
+                    'admin@healthcareplus.com'
+                ],
+                'Phone': [
+                    '+1 (555) 123-4567', 
+                    '+1 (555) 987-6543', 
+                    '+1 (555) 456-7890'
+                ],
+                'Website': [
+                    'www.techcorp.com', 
+                    'www.globalmanufacturing.com', 
+                    'www.healthcareplus.com'
+                ],
+                'Company Type': [
+                    'Corporation', 
+                    'Corporation', 
+                    'Corporation'
+                ],
+                'Year Established': [2010, 1995, 2005],
+                'Number of Employees': [2500, 8000, 750],
+                'Annual Revenue (Millions)': [150, 500, 80],
+                'Annual Travel Budget (Millions)': [5, 15, 3],
+                'Annual Travel Volume': [
+                    '500+ trips/year', 
+                    '1000+ trips/year', 
+                    '200+ trips/year'
+                ],
+                'Travel Frequency': [
+                    'Weekly', 
+                    'Daily', 
+                    'Monthly'
+                ],
+                'Preferred Class': [
+                    'Business', 
+                    'Economy Plus', 
+                    'Economy'
+                ],
+                'Credit Rating': ['AAA', 'AA', 'A'],
+                'Payment Terms': [
+                    'Net 30', 
+                    'Net 15', 
+                    'Net 45'
+                ],
+                'Sustainability Focus': [
+                    'High', 
+                    'Very High', 
+                    'Medium'
+                ],
+                'Risk Level': [
+                    'Low', 
+                    'Very Low', 
+                    'Medium'
+                ],
+                'Expansion Plans': [
+                    'Aggressive', 
+                    'Moderate', 
+                    'Conservative'
+                ],
+                'Specialties (comma-separated)': [
+                    'Software Development, Cloud Services', 
+                    'Heavy Machinery, Industrial Equipment', 
+                    'Medical Devices, Telemedicine'
+                ],
+                'Technology Integration (comma-separated)': [
+                    'API Integration, Mobile Apps', 
+                    'IoT, Automation Systems', 
+                    'EMR Systems, Patient Portals'
+                ],
+                'Current Airlines (comma-separated)': [
+                    'Delta, United, American', 
+                    'Southwest, JetBlue', 
+                    'Alaska, Spirit'
+                ],
+                'Notes': [
+                    'High-growth tech company looking for corporate travel solutions',
+                    'Large manufacturing company with global operations',
+                    'Healthcare provider expanding regionally'
+                ]
+            }
+
+            # Create DataFrame
+            df = pd.DataFrame(sample_data)
+
+            # Create Excel file in memory
+            output = io.BytesIO()
+            with pd.ExcelWriter(output, engine='openpyxl') as writer:
+                df.to_excel(writer, sheet_name='Companies', index=False)
+                
+                # Get the workbook and worksheet
+                workbook = writer.book
+                worksheet = writer.sheets['Companies']
+                
+                # Auto-adjust column widths
+                for column in worksheet.columns:
+                    max_length = 0
+                    column_letter = column[0].column_letter
+                    for cell in column:
+                        try:
+                            if len(str(cell.value)) > max_length:
+                                max_length = len(str(cell.value))
+                        except:
+                            pass
+                    adjusted_width = min(max_length + 2, 50)
+                    worksheet.column_dimensions[column_letter].width = adjusted_width
+
+            output.seek(0)
+
+            # Create HTTP response
+            response = HttpResponse(
+                output.getvalue(),
+                content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+            )
+            response['Content-Disposition'] = 'attachment; filename="corporate_data_sample_template.xlsx"'
+            
+            return response
+
+        except Exception as e:
+            return Response(
+                {'error': f'Failed to generate sample file: {str(e)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
 class ContactViewSet(viewsets.ModelViewSet):
     queryset = Contact.objects.all()
     serializer_class = ContactSerializer
