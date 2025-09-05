@@ -1648,8 +1648,8 @@ class LeadViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
-    @action(detail=False, methods=['post'])
-    def send_message(self, request):
+    @action(detail=False, methods=['post'], url_path='send_message')
+    def send_corporate_message(self, request):
         """Send message to corporate contacts (general endpoint for non-lead contacts)"""
         try:
             contact_type = request.data.get('contact_type', '')
