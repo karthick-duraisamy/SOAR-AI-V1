@@ -277,7 +277,7 @@ class CompanyViewSet(viewsets.ModelViewSet):
 
             # Validate required columns
             required_columns = [
-                'name','company_type', 'industry', 'employee_count', 'location', 'email'
+                'Company Name', 'Company Type', 'Industry', 'Number of Employees', 'Location', 'Email'
             ]
 
             missing_columns = [col for col in required_columns if col not in df.columns]
@@ -511,7 +511,7 @@ class CompanyViewSet(viewsets.ModelViewSet):
         except (ValueError, TypeError):
             return None
 
-    @action(detail=False, methods=['get'])
+    @action(detail=False, methods=['get'], url_path='download-sample')
     def download_sample(self, request):
         """Download sample Excel template for company upload"""
         import pandas as pd

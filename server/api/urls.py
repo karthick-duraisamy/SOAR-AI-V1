@@ -46,7 +46,7 @@ urlpatterns = [
     path('leads/dashboard/top-qualified/', views.top_qualified_leads, name='top_qualified_leads'),
 
     # Company bulk operations
-    path('companies/bulk-upload/', views.CompanyViewSet.as_view({'post': 'upload'}), name='bulk_upload_companies'),
+    path('companies/upload/', views.CompanyViewSet.as_view({'post': 'upload'}), name='bulk_upload_companies'),
     path('companies/download-sample/', views.CompanyViewSet.as_view({'get': 'download_sample'}), name='download_sample_excel'),
 
     # SMTP status endpoints - Removed as per instructions
