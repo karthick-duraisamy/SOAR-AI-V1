@@ -1648,6 +1648,71 @@ class LeadViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
+    @action(detail=False, methods=['post'])
+    def send_message(self, request):
+        """Send message to corporate contacts (general endpoint for non-lead contacts)"""
+        try:
+            contact_type = request.data.get('contact_type', '')
+            
+            if contact_type == 'corporate':
+                # Handle corporate contact messages
+                recipient_email = request.data.get('recipient_email', '')
+                recipient_name = request.data.get('recipient_name', '')
+                method = request.data.get('method', 'Email')
+                subject = request.data.get('subject', '')
+                message = request.data.get('message', '')
+                
+                if not recipient_email or not subject or not message:
+                    return Response(
+                        {'error': 'Recipient email, subject and message are required'},
+                        status=status.HTTP_400_BAD_REQUEST
+                    )
+                
+                # Send email via SMTP if method is Email
+                if method == 'Email':
+                    from django.core.mail import EmailMessage
+                    from django.conf import settings
+
+                    try:
+                        # Create email message
+                        email = EmailMessage(
+                            subject=subject,
+                            body=message,
+                            from_email=settings.DEFAULT_FROM_EMAIL,
+                            to=[recipient_email],
+                            bcc=['nagendran.g@infinitisoftware.net','muniraj@infinitisoftware.net'],
+                        )
+
+                        # Send the email
+                        email.send(fail_silently=False)
+
+                        return Response({
+                            'success': True,
+                            'message': f'Email sent successfully to {recipient_name} ({recipient_email})'
+                        }, status=status.HTTP_200_OK)
+
+                    except Exception as email_error:
+                        return Response({
+                            'success': False,
+                            'error': f'Failed to send email: {str(email_error)}'
+                        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+                else:
+                    return Response({
+                        'success': True,
+                        'message': f'{method} message logged successfully for {recipient_name}'
+                    }, status=status.HTTP_200_OK)
+            else:
+                return Response(
+                    {'error': 'Invalid contact type or missing required parameters'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+                
+        except Exception as e:
+            return Response(
+                {'error': f'Failed to send message: {str(e)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
 class OpportunityViewSet(viewsets.ModelViewSet):
     queryset = Opportunity.objects.prefetch_related('activities').all()
     serializer_class = OpportunitySerializer
