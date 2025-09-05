@@ -2595,16 +2595,16 @@ export function RevenuePrediction({ onNavigate }: RevenuePredictionProps) {
             <Button
               onClick={handleUpload}
               disabled={!uploadFile || isUploading || isDeleting}
-              className="min-w-[120px]"
+              className="min-w-[120px]  bg-orange-500 hover:bg-orange-600 text-white"
             >
               {isUploading ? (
                 <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  <Loader2 className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
                   Uploading...
                 </>
               ) : (
                 <>
-                  <Upload className="h-4 w-4 mr-2" />
+                  <Upload className="h-4 w-4 mr-2  bg-orange-500 hover:bg-orange-600 text-white" />
                   Upload File
                 </>
               )}

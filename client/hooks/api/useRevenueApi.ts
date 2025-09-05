@@ -1,5 +1,6 @@
 
 import { useBaseApi } from './useBaseApi';
+const API_BASE_URL = (import.meta.env?.VITE_API_URL) || '/api';
 
 export const useRevenueApi = () => {
   const { post, ...rest } = useBaseApi();
@@ -41,14 +42,14 @@ export const useRevenueApi = () => {
         reject(new Error('Network error'));
       };
 
-      xhr.open('POST', '/api/upload-revenue-data/');
+      xhr.open('POST', `${API_BASE_URL}/upload-revenue-data/`);
       xhr.send(formData);
     });
   };
 
   const getRevenuePredictionData = async () => {
     try {
-      const response = await fetch('/api/get-revenue-prediction-data/');
+      const response = await fetch(`${API_BASE_URL}/get-revenue-prediction-data/`);
       const data = await response.json();
       
       if (!response.ok) {
