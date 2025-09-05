@@ -184,6 +184,7 @@ const transformCompanyData = (company) => {
     loyaltyPotential: Math.floor(Math.random() * 30) + 70,
     expansionPlans: company.expansion_plans || getRandomExpansionPlans(),
     riskLevel: company.risk_level || getRandomRiskLevel(),
+    created_at: company.created_at,
   };
 };
 
@@ -360,7 +361,13 @@ export function CorporateSearch({
   const debouncedSearchParams = useDebounce(searchParams, 500); // 500ms debounce delay
 
   // Initialize company API hook
-  const { searchCompanies, createCompany, moveToLead, bulkUploadCompanies, downloadSampleExcel } = useCompanyApi();
+  const {
+    searchCompanies,
+    createCompany,
+    moveToLead,
+    bulkUploadCompanies,
+    downloadSampleExcel,
+  } = useCompanyApi();
 
   // Initialize lead API hook for sending messages
   const leadApi = useLeadApi();
@@ -451,16 +458,16 @@ export function CorporateSearch({
   const [uploadFile, setUploadFile] = useState(null);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [isUploading, setIsUploading] = useState(false);
-  const [uploadError, setUploadError] = useState('');
-  const [uploadSuccess, setUploadSuccess] = useState('');
+  const [uploadError, setUploadError] = useState("");
+  const [uploadSuccess, setUploadSuccess] = useState("");
 
   // Function to handle file upload
   const handleFileUpload = (event) => {
     const file = event.target.files?.[0];
     if (file) {
       setUploadFile(file);
-      setUploadError(''); // Clear previous errors
-      setUploadSuccess(''); // Clear previous success messages
+      setUploadError(""); // Clear previous errors
+      setUploadSuccess(""); // Clear previous success messages
     }
   };
 
@@ -468,57 +475,67 @@ export function CorporateSearch({
   const handleDownloadSample = async () => {
     try {
       await downloadSampleExcel();
-      toast.success('Sample template downloaded successfully');
+      toast.success("Sample template downloaded successfully");
     } catch (error) {
-      console.error('Download failed:', error);
-      toast.error('Failed to download sample template');
+      console.error("Download failed:", error);
+      toast.error("Failed to download sample template");
     }
   };
 
   // Function to handle the upload process
   const handleUpload = async () => {
     if (!uploadFile) {
-      setUploadError('Please select a file to upload.');
+      setUploadError("Please select a file to upload.");
       return;
     }
 
     setIsUploading(true);
     setUploadProgress(0);
-    setUploadError('');
-    setUploadSuccess('');
+    setUploadError("");
+    setUploadSuccess("");
 
     try {
       const formData = new FormData();
-      formData.append('file', uploadFile); // Use 'file' to match the backend expectation
+      formData.append("file", uploadFile); // Use 'file' to match the backend expectation
 
-      const response = await bulkUploadCompanies(uploadFile, (progressEvent) => {
-        const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
-        setUploadProgress(percentCompleted);
-      });
+      const response = await bulkUploadCompanies(
+        uploadFile,
+        (progressEvent) => {
+          const percentCompleted = Math.round(
+            (progressEvent.loaded * 100) / progressEvent.total,
+          );
+          setUploadProgress(percentCompleted);
+        },
+      );
 
       // Handle successful response
       if (response.success !== false) {
-        setUploadSuccess(`Upload successful! Created ${response.created_count || 0} companies, skipped ${response.skipped_count || 0} duplicates.`);
+        setUploadSuccess(
+          `Upload successful! Created ${response.created_count || 0} companies, skipped ${response.skipped_count || 0} duplicates.`,
+        );
         // Refresh the company list
         loadCompanies({});
 
         // Clear the file input
         setUploadFile(null);
         if (fileInputRef.current) {
-          fileInputRef.current.value = '';
+          fileInputRef.current.value = "";
         }
       } else {
         // Handle validation errors or other issues reported by the API
-        setUploadError(`Upload failed: ${response.errors?.join(', ') || response.message || 'Unknown error'}`);
+        setUploadError(
+          `Upload failed: ${response.errors?.join(", ") || response.message || "Unknown error"}`,
+        );
       }
     } catch (error) {
-      console.error('Error uploading file:', error);
-      setUploadError(`Upload failed: ${error.message || 'Please check the file format and content.'}`);
+      console.error("Error uploading file:", error);
+      setUploadError(
+        `Upload failed: ${error.message || "Please check the file format and content."}`,
+      );
     } finally {
       setIsUploading(false);
     }
   };
-
 
   const loadCompanies = useCallback(async (filters = {}) => {
     setIsLoading(true);
@@ -631,7 +648,7 @@ export function CorporateSearch({
   const applyFiltersAndSort = useCallback(
     (companies) => {
       let filtered = [...companies];
-
+      console.log("eeefilteredfilteredeeee", filtered);
       // Apply name filter
       if (nameFilter.trim()) {
         filtered = filtered.filter((company) =>
@@ -814,32 +831,35 @@ export function CorporateSearch({
 
       // Mark the company as moved to lead via API call to update the backend
       try {
-        const response = await fetch(`${import.meta.env?.VITE_API_URL || '/api'}/companies/${corporate.id}/mark_as_moved_to_lead/`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
+        const response = await fetch(
+          `${import.meta.env?.VITE_API_URL || "/api"}/companies/${corporate.id}/mark_as_moved_to_lead/`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
           },
-        });
+        );
 
         if (!response.ok) {
-          console.warn('Failed to mark company as moved to lead in backend');
+          console.warn("Failed to mark company as moved to lead in backend");
         }
       } catch (markError) {
-        console.warn('Error marking company as moved to lead:', markError);
+        console.warn("Error marking company as moved to lead:", markError);
       }
 
       // Update the filtered corporates list to mark this company as moved
       setFilteredCorporates((prev) =>
         prev.map((c) =>
-          c.id === corporate.id ? { ...c, move_as_lead: true } : c
-        )
+          c.id === corporate.id ? { ...c, move_as_lead: true } : c,
+        ),
       );
 
       // Update displayed corporates as well
       setDisplayedCorporates((prev) =>
         prev.map((c) =>
-          c.id === corporate.id ? { ...c, move_as_lead: true } : c
-        )
+          c.id === corporate.id ? { ...c, move_as_lead: true } : c,
+        ),
       );
 
       // Add to moved leads tracking
@@ -963,12 +983,15 @@ export function CorporateSearch({
 
       // Refresh the companies list to show the new company
       try {
+        setIsLoading(true);
         const companies = await searchCompanies(searchParams); // Use searchCompanies from useCompanyApi
         const transformedCompanies = companies.map(transformCompanyData);
         setFilteredCorporates(transformedCompanies);
         applyFiltersAndSort(transformedCompanies);
       } catch (refreshError) {
         console.error("Error refreshing companies list:", refreshError);
+      } finally {
+        setIsLoading(false);
       }
 
       setTimeout(() => setSuccessMessage(""), 5000);
@@ -1040,8 +1063,12 @@ export function CorporateSearch({
 
   // Function to send message to corporate contact
   const handleSendMessage = async () => {
-    if (!contactForm.corporateData || !contactForm.subject || !contactForm.message) {
-      toast.error('Please fill in all required fields');
+    if (
+      !contactForm.corporateData ||
+      !contactForm.subject ||
+      !contactForm.message
+    ) {
+      toast.error("Please fill in all required fields");
       return;
     }
 
@@ -1058,31 +1085,35 @@ export function CorporateSearch({
         // Add corporate-specific data
         recipient_email: contactForm.corporateData.email,
         recipient_name: contactForm.corporateData.name,
-        contact_type: 'corporate'
+        contact_type: "corporate",
       });
 
       if (response && response.success) {
-        setSuccessMessage(`Email sent to ${contactForm.corporateData.name} successfully!`);
-        setTimeout(() => setSuccessMessage(''), 5000);
-        toast.success('Email sent successfully');
+        setSuccessMessage(
+          `Email sent to ${contactForm.corporateData.name} successfully!`,
+        );
+        setTimeout(() => setSuccessMessage(""), 5000);
+        toast.success("Email sent successfully");
       } else {
-        throw new Error(response?.message || 'Failed to send email');
+        throw new Error(response?.message || "Failed to send email");
       }
 
       // Close dialog and reset state
       setShowContactDialog(false);
       setContactForm({
-        method: 'Email',
-        subject: '',
-        message: '',
-        followUpDate: '',
-        followUpMode: '',
-        corporateData: null
+        method: "Email",
+        subject: "",
+        message: "",
+        followUpDate: "",
+        followUpMode: "",
+        corporateData: null,
       });
-
     } catch (error) {
-      console.error('Error sending message:', error);
-      const errorMessage = error.response?.data?.error || error.message || 'Failed to send message';
+      console.error("Error sending message:", error);
+      const errorMessage =
+        error.response?.data?.error ||
+        error.message ||
+        "Failed to send message";
       toast.error(errorMessage);
     } finally {
       setIsSendingMessage(false);
@@ -1115,11 +1146,17 @@ export function CorporateSearch({
           </div>
         </div>
         <div className="flex gap-3">
-          <Button onClick={() => setShowAddCompanyDialog(true)} className="cls-addcomapany">
+          <Button
+            onClick={() => setShowAddCompanyDialog(true)}
+            className="cls-addcomapany"
+          >
             <Plus className="h-4 w-4 mr-2" />
             Add Company
           </Button>
-          <Button onClick={() => setShowUploadCompanyDialog(true)} className="bg-green-500 hover:bg-green-600 text-white">
+          <Button
+            onClick={() => setShowUploadCompanyDialog(true)}
+            className="bg-green-500 hover:bg-green-600 text-white"
+          >
             <Upload className="h-4 w-4 mr-2" />
             Upload Company
           </Button>
@@ -2147,7 +2184,7 @@ export function CorporateSearch({
         open={showAddCompanyDialog}
         onOpenChange={setShowAddCompanyDialog}
       >
-        <DialogContent className="max-w-[87rem] w-[95vw] max-h-[85vh] overflow-y-auto">
+        <DialogContent className="max-w-[87rem] w-[95vw]">
           <DialogHeader className="pb-[24px] pt-[0px] pr-[0px] pl-[0px] m-[0px]">
             <DialogTitle className="flex items-center gap-3 text-xl">
               <Plus className="h-6 w-6 text-orange-500" />
@@ -2190,7 +2227,7 @@ export function CorporateSearch({
               </TabsTrigger>
             </TabsList>
 
-            <ScrollArea className="max-h-[55vh] pr-4">
+            <ScrollArea className="max-h-[45vh] pr-4 cls-scroll">
               <TabsContent value="basic" className="space-y-6 mt-0">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
@@ -2786,7 +2823,10 @@ export function CorporateSearch({
       </Dialog>
 
       {/* Upload Company Dialog */}
-      <Dialog open={showUploadCompanyDialog} onOpenChange={setShowUploadCompanyDialog}>
+      <Dialog
+        open={showUploadCompanyDialog}
+        onOpenChange={setShowUploadCompanyDialog}
+      >
         <DialogContent className="max-w-xl">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
@@ -2794,7 +2834,8 @@ export function CorporateSearch({
               Upload Companies via Excel
             </DialogTitle>
             <DialogDescription>
-              Download a template, fill it with company data, and upload it here.
+              Download a template, fill it with company data, and upload it
+              here.
             </DialogDescription>
           </DialogHeader>
 
@@ -2821,7 +2862,9 @@ export function CorporateSearch({
               <div className="mb-4">
                 <Button
                   variant="outline"
-                  onClick={() => document.getElementById('file-upload-input')?.click()}
+                  onClick={() =>
+                    document.getElementById("file-upload-input")?.click()
+                  }
                   className="border-gray-300"
                 >
                   <Upload className="h-4 w-4 mr-2" />
@@ -2882,8 +2925,8 @@ export function CorporateSearch({
                 setShowUploadCompanyDialog(false);
                 setUploadFile(null); // Clear selected file
                 setUploadProgress(0);
-                setUploadError('');
-                setUploadSuccess('');
+                setUploadError("");
+                setUploadSuccess("");
               }}
               className="text-gray-600 border-gray-300"
             >
@@ -3059,48 +3102,47 @@ export function CorporateSearch({
               />
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-
-            <div>
-              <Label className="text-sm font-medium text-gray-700 mb-2 ">
-                Follow-up Date (Optional)
-              </Label>
-              <Input
-                type="date"
-                value={contactForm.followUpDate}
-                onChange={(e) =>
-                  setContactForm({
-                    ...contactForm,
-                    followUpDate: e.target.value,
-                  })
-                }
-                className="border-gray-300 focus:border-orange-500 focus:ring-orange-500"
-              />
-            </div>
-
-            <div>
-              <Label className="text-sm font-medium text-gray-700 mb-2 block">
-                Follow-up Mode  (Optional)
-              </Label>
-              <Select
-                value={contactForm.followUpMode || ""}
-                onValueChange={(value) =>
-                  setContactForm({
-                    ...contactForm,
-                    followUpMode: value,
-                  })
-                }
-              >
-                <SelectTrigger className="border-gray-300 focus:border-orange-500 focus:ring-orange-500">
-                  <SelectValue placeholder="Select follow-up mode" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Call">Call</SelectItem>
-                  <SelectItem value="In Person">In Person</SelectItem>
-                  <SelectItem value="Online Meet">Online Meet</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+              <div>
+                <Label className="text-sm font-medium text-gray-700 mb-2 ">
+                  Follow-up Date (Optional)
+                </Label>
+                <Input
+                  type="date"
+                  value={contactForm.followUpDate}
+                  onChange={(e) =>
+                    setContactForm({
+                      ...contactForm,
+                      followUpDate: e.target.value,
+                    })
+                  }
+                  className="border-gray-300 focus:border-orange-500 focus:ring-orange-500"
+                />
               </div>
+
+              <div>
+                <Label className="text-sm font-medium text-gray-700 mb-2 block">
+                  Follow-up Mode (Optional)
+                </Label>
+                <Select
+                  value={contactForm.followUpMode || ""}
+                  onValueChange={(value) =>
+                    setContactForm({
+                      ...contactForm,
+                      followUpMode: value,
+                    })
+                  }
+                >
+                  <SelectTrigger className="border-gray-300 focus:border-orange-500 focus:ring-orange-500">
+                    <SelectValue placeholder="Select follow-up mode" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Call">Call</SelectItem>
+                    <SelectItem value="In Person">In Person</SelectItem>
+                    <SelectItem value="Online Meet">Online Meet</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
           </div>
           <DialogFooter className=" flex gap-2">
             <Button
@@ -3123,7 +3165,9 @@ export function CorporateSearch({
             <Button
               onClick={handleSendMessage}
               className="bg-orange-500 hover:bg-orange-600 text-white"
-              disabled={!contactForm.subject || !contactForm.message || isSendingMessage}
+              disabled={
+                !contactForm.subject || !contactForm.message || isSendingMessage
+              }
             >
               {isSendingMessage ? (
                 <>

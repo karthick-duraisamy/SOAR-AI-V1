@@ -3146,7 +3146,7 @@ SOAR-AI Team`,
                       <Button
                         variant="outline"
                         size="sm"
-                        className="h-8 px-3 text-white bg-green-600 hover:bg-green-700 "
+                        className="h-8 px-3 text-white bg-green-100 text-green-700 border-green-200"
                         onClick={(e) => {
                           e.stopPropagation();
                           handleMoveToOpportunity(lead);
@@ -3841,17 +3841,17 @@ SOAR-AI Team`,
         open={showAddCompanyDialog}
         onOpenChange={setShowAddCompanyDialog}
       >
-        <DialogContent className="max-w-[87rem] w-[95vw] max-h-[85vh] overflow-y-auto">
+        <DialogContent className="max-w-[87rem] w-[95vw]">
           <DialogHeader className="pb-[24px] pt-[0px] pr-[0px] pl-[0px] m-[0px]">
             <DialogTitle className="flex items-center gap-3 text-xl">
               <Plus className="h-6 w-6 text-orange-500" />
-              Add New Company
+              Add New Lead
             </DialogTitle>
             <DialogDescription
               className="text-base mt-2"
               style={{ color: "#717182" }}
             >
-              Add a new company to the corporate database for potential
+              Add a new lead to the corporate database for potential
               partnership opportunities
             </DialogDescription>
           </DialogHeader>
@@ -3884,7 +3884,7 @@ SOAR-AI Team`,
               </TabsTrigger>
             </TabsList>
 
-            <ScrollArea className="max-h-[55vh] pr-4">
+            <ScrollArea className="max-h-[45vh] pr-4 cls-scroll">
               <TabsContent value="basic" className="space-y-6 mt-0">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
