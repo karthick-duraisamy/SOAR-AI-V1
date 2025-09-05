@@ -3157,7 +3157,7 @@ SOAR-AI Team`,
                           e.stopPropagation();
                           handleMoveToOpportunity(lead);
                         }}
-                        disabled={movingToOpportunityId === lead.id}
+                        disabled={movingToOpportunityId === lead.id || lead.contractReady}
                       >
                         {movingToOpportunityId === lead.id ? (
                           <>
@@ -3165,9 +3165,12 @@ SOAR-AI Team`,
                             Moving...
                           </>
                         ) : (
+                        !lead.contractReady?
                           <>
                             <ArrowRight className="h-3 w-3 mr-1" />
                             Move to Opportunity
+                          </>:<>
+                            Already Moved to Opportunity
                           </>
                         )}
                       </Button>
