@@ -47,7 +47,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
+  DialogContent,
 } from "./ui/dialog";
 import {
   DropdownMenu,
@@ -860,7 +860,14 @@ export function AllLeads({ onNavigate }: AllLeadsProps) {
 
                 <div className="space-y-2">
                   <div className="text-sm">
-                    <span className="font-medium">Last Contact:</span> {lead.updated_at}
+                    <span className="font-medium">Last Contact:</span>
+                    <div className="text-xs text-gray-500">
+                    {new Date(lead.created_at).toLocaleDateString("en-GB", {
+                      day: "2-digit",
+                      month: "2-digit", 
+                      year: "numeric"
+                    })}
+                  </div>
                   </div>
                   <div className="text-sm">
                     <span className="font-medium">Follow-up Date:</span> N/A
@@ -1355,9 +1362,9 @@ export function AllLeads({ onNavigate }: AllLeadsProps) {
 
                     const formatTimestamp = (timestamp: string) => {
                       const date = new Date(timestamp);
-                      return date.toLocaleDateString('en-US', {
-                        month: 'numeric',
-                        day: 'numeric',
+                      return date.toLocaleDateString('en-GB', {
+                        day: '2-digit',
+                        month: '2-digit',
                         year: 'numeric'
                       }) + ' at ' + date.toLocaleTimeString('en-US', {
                         hour: 'numeric',

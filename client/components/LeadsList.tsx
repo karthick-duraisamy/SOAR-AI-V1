@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useCallback, useEffect, useMemo, useRef } from "react";
 import {
   Card,
   CardContent,
@@ -105,6 +105,7 @@ import { ScrollArea } from "./ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs"; // Added Tabs components
 import { CorporateProfile } from "./CorporateProfile";
 import { MarketingCampaignWizard } from "./MarketingCampaignWizard";
+import { formatDate, formatDateTime } from '../utils/dateFormatter';
 
 interface LeadsListProps {
   initialFilters?: any;
@@ -229,7 +230,7 @@ const transformApiLeadToUILead = (apiLead: any) => {
   const combinedNotes = [
     apiLead.notes || "",
     latestNote
-      ? `[${new Date(latestNote.created_at).toLocaleDateString()}] ${latestNote.note}`
+      ? `[${formatDate(new Date(latestNote.created_at))}] ${latestNote.note}`
       : "",
   ]
     .filter(Boolean)
@@ -257,10 +258,10 @@ const transformApiLeadToUILead = (apiLead: any) => {
     score: apiLead.score || 50,
     source: apiLead.source || "Unknown",
     lastContact: apiLead.last_contact_at
-      ? new Date(apiLead.last_contact_at).toISOString().split("T")[0]
+      ? formatDate(new Date(apiLead.last_contact_at))
       : apiLead.created_at
-        ? new Date(apiLead.created_at).toISOString().split("T")[0]
-        : new Date().toISOString().split("T")[0],
+        ? formatDate(new Date(apiLead.created_at))
+        : formatDate(new Date()),
     nextAction: apiLead.next_action || "Follow up",
     notes: combinedNotes,
     leadNotes: apiLead.leadNotes || [], // Store all notes for display
@@ -275,15 +276,13 @@ const transformApiLeadToUILead = (apiLead: any) => {
     tags: [apiLead.company?.industry || "General", apiLead.status || "New"],
     contractReady: apiLead.status === "qualified",
     lastActivity: apiLead.updated_at
-      ? new Date(apiLead.updated_at).toISOString().split("T")[0]
+      ? formatDate(new Date(apiLead.updated_at))
       : apiLead.created_at
-        ? new Date(apiLead.created_at).toISOString().split("T")[0]
-        : new Date().toISOString().split("T")[0],
+        ? formatDate(new Date(apiLead.created_at))
+        : formatDate(new Date()),
     followUpDate:
       apiLead.next_action_date ||
-      new Date(Date.now() + 2 * 24 * 60 * 60 * 1000)
-        .toISOString()
-        .split("T")[0],
+      formatDate(new Date(Date.now() + 2 * 24 * 60 * 60 * 1000)),
     assignedAgent: apiLead.assigned_to?.username || null,
     assigned_agent_details: apiLead.assigned_to
       ? {
@@ -958,7 +957,7 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
           status: "new",
           score: initialFilters.newLead.aiScore || 75,
           source: initialFilters.newLead.source || "Corporate Search",
-          lastContact: new Date().toISOString().split("T")[0],
+          lastContact: formatDate(new Date()),
           nextAction: "Initial contact and qualification",
           notes: initialFilters.newLead.notes,
           engagement: "Low", // Default engagement
@@ -968,10 +967,8 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
           aiSuggestion: `High-potential lead from corporate search. AI Score: ${initialFilters.newLead.aiScore || 75}. Recommend immediate outreach and qualification.`,
           tags: initialFilters.newLead.tags || ["Corporate Search", "New Lead"],
           contractReady: false,
-          lastActivity: new Date().toISOString().split("T")[0],
-          followUpDate: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000)
-            .toISOString()
-            .split("T")[0],
+          lastActivity: formatDate(new Date()),
+          followUpDate: formatDate(new Date(Date.now() + 2 * 24 * 60 * 60 * 1000)),
           history_entries: [], // Will be fetched if needed, or use the provided notes as initial history
           has_opportunity: false, // Default to false
         };
@@ -1156,9 +1153,7 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
           : null,
         notes: newCompanyForm.notes || "",
         next_action: "Initial outreach and qualification",
-        next_action_date: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000)
-          .toISOString()
-          .split("T")[0], // Default next action in 2 days
+        next_action_date: formatDate(new Date(Date.now() + 2 * 24 * 60 * 60 * 1000)), // Default next action in 2 days
       };
 
       console.log("Creating lead with data:", leadData);
@@ -1484,9 +1479,7 @@ Would you be available for a brief call this week to discuss how we can support 
 
 Best regards,
 SOAR-AI Team`,
-      followUpDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
-        .toISOString()
-        .split("T")[0], // 7 days from now
+      followUpDate: formatDate(new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)), // 7 days from now
       followUpMode: "",
     });
     setShowContactDialog(true);
@@ -1525,7 +1518,7 @@ SOAR-AI Team`,
               ? {
                   ...l,
                   status: "contacted",
-                  lastContact: new Date().toISOString().split("T")[0],
+                  lastContact: formatDate(new Date()),
                 }
               : l,
           ),
@@ -1608,7 +1601,7 @@ SOAR-AI Team`,
               nextAction: response.lead.next_action || l.nextAction,
               urgency: response.lead.priority || l.urgency,
               notes:
-                `${l.notes}\n[${new Date().toLocaleDateString()}] ${noteForm.note}`.trim(),
+                `${l.notes}\n[${formatDate(new Date())}] ${noteForm.note}`.trim(),
             };
           }
           return l;
@@ -1774,9 +1767,7 @@ SOAR-AI Team`,
         name: `${selectedLeadForOpportunity.company} - Corporate Travel Solution`,
         stage: "discovery",
         probability: 65,
-        estimated_close_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
-          .toISOString()
-          .split("T")[0],
+        estimated_close_date: formatDate(new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)),
         value: parseInt(selectedLeadForOpportunity.travelBudget.replace(/[^0-9]/g, "")) || 250000,
         description: `Opportunity created from qualified lead. ${selectedLeadForOpportunity.notes}`,
         next_steps: "Send initial proposal and schedule presentation",
@@ -2848,15 +2839,6 @@ SOAR-AI Team`,
                         {lead.assignedAgent}
                       </div>
                     )}
-                    {/* <div className="text-sm flex items-center gap-1">
-                      <Mail className="h-3 w-3 text-gray-500" />
-                      <span className="font-medium text-gray-600">
-                        Email Campaigns:
-                      </span>{" "}
-                      <span className="text-blue-600 font-medium">
-                        {lead.campaignCount || 0} campaign{(lead.campaignCount || 0) !== 1 ? 's' : ''}
-                      </span>
-                    </div> */}
                   </div>
                   <div className="space-y-2">
                     <div className="text-sm">
@@ -2945,28 +2927,7 @@ SOAR-AI Team`,
                       </div>
 
                       <CollapsibleContent className="space-y-2">
-                        {/* Original notes */}
-                        {/* <div className="text-xs text-gray-600 mb-1">
-                            <strong>Original Notes:</strong> {lead.notes.split(' | ')[0]}
-                          </div>
-                        */}
-                        {/* Recent lead notes */}
                         <div>
-                          {/* <div className="flex items-center justify-between mb-2">
-                          <h4 className="font-medium text-gray-900 flex items-center gap-2">
-                            <MessageSquare className="h-4 w-4" />
-                            Recent Notes ({Array.isArray(lead.leadNotes) ? lead.leadNotes.length : 0})
-                          </h4>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => handleAddNote(lead)}
-                            className="text-blue-600 border-blue-300 hover:bg-blue-50"
-                          >
-                            <Plus className="h-3 w-3 mr-1" />
-                            Add Note
-                          </Button>
-                        </div> */}
                           {Array.isArray(lead.leadNotes) &&
                           lead.leadNotes.length > 0 ? (
                             <div className="space-y-2">
@@ -2984,9 +2945,11 @@ SOAR-AI Team`,
                                   >
                                     <div className="flex items-start justify-between mb-2">
                                       <span className="text-xs text-gray-500">
-                                        {new Date(
-                                          note.created_at,
-                                        ).toLocaleDateString()}{" "}
+                                        {formatDate(
+                                          new Date(
+                                            note.created_at,
+                                          ),
+                                        )}{" "}
                                         at{" "}
                                         {new Date(
                                           note.created_at,
@@ -3188,7 +3151,7 @@ SOAR-AI Team`,
                       >
                         {movingToOpportunityId === lead.id ? (
                           <>
-                            <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white mr-1"></div>
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-1"></div>
                             Moving...
                           </>
                         ) : (
@@ -3409,8 +3372,6 @@ SOAR-AI Team`,
                 <SelectContent>
                   <SelectItem value="Email">Email</SelectItem>
                   <SelectItem value="Phone">SMS</SelectItem>
-                  {/* <SelectItem value="LinkedIn">LinkedIn</SelectItem>
-                  <SelectItem value="In-Person Meeting">In-Person Meeting</SelectItem> */}
                 </SelectContent>
               </Select>
             </div>
@@ -3720,7 +3681,6 @@ SOAR-AI Team`,
                                   {entry.details}
                                 </p>
 
-                                {/* Show agent assignment details */}
                                 {(entry.history_type === "agent_assignment" ||
                                   entry.history_type ===
                                     "agent_reassignment") && (

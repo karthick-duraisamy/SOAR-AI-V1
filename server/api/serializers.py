@@ -121,8 +121,8 @@ class LeadHistorySerializer(serializers.ModelSerializer):
         from datetime import datetime
 
         if obj.timestamp:
-            # Format as "7/8/2024 at 9:15:00 AM"
-            return obj.timestamp.strftime('%m/%d/%Y at %I:%M:%S %p')
+            # Format as "08/07/2024 at 9:15:00 AM"
+            return obj.timestamp.strftime('%d/%m/%Y at %I:%M:%S %p')
         return ""
 
     def get_assigned_agent(self, obj):

@@ -2532,7 +2532,11 @@ export function RevenuePrediction({ onNavigate }: RevenuePredictionProps) {
                             <span>{formatFileSize(file.size)}</span>
                             <span>•</span>
                             <span>
-                              Uploaded {formatUploadDate(file.uploadDate)}
+                              Uploaded {new Date(file.uploadDate).toLocaleDateString("en-GB", {
+                                day: "2-digit",
+                                month: "2-digit",
+                                year: "numeric"
+                              })}
                             </span>
                           </div>
                         </div>

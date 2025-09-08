@@ -542,43 +542,43 @@ class CompanyViewSet(viewsets.ModelViewSet):
             # Create sample data with all required columns
             sample_data = {
                 'Company Name': [
-                    'TechCorp Solutions', 
-                    'Global Manufacturing Inc', 
+                    'TechCorp Solutions',
+                    'Global Manufacturing Inc',
                     'Healthcare Plus'
                 ],
                 'Industry': [
-                    'Technology', 
-                    'Manufacturing', 
+                    'Technology',
+                    'Manufacturing',
                     'Healthcare'
                 ],
                 'Company Size Category': [
-                    'Large (1001-5000)', 
-                    'Enterprise (5000+)', 
+                    'Large (1001-5000)',
+                    'Enterprise (5000+)',
                     'Medium (201-1000)'
                 ],
                 'Location': [
-                    'San Francisco, CA', 
-                    'Chicago, IL', 
+                    'San Francisco, CA',
+                    'Chicago, IL',
                     'Boston, MA'
                 ],
                 'Email': [
-                    'contact@techcorp.com', 
-                    'info@globalmanufacturing.com', 
+                    'contact@techcorp.com',
+                    'info@globalmanufacturing.com',
                     'admin@healthcareplus.com'
                 ],
                 'Phone': [
-                    '+1 (555) 123-4567', 
-                    '+1 (555) 987-6543', 
+                    '+1 (555) 123-4567',
+                    '+1 (555) 987-6543',
                     '+1 (555) 456-7890'
                 ],
                 'Website': [
-                    'www.techcorp.com', 
-                    'www.globalmanufacturing.com', 
+                    'www.techcorp.com',
+                    'www.globalmanufacturing.com',
                     'www.healthcareplus.com'
                 ],
                 'Company Type': [
-                    'Corporation', 
-                    'Corporation', 
+                    'Corporation',
+                    'Corporation',
                     'Corporation'
                 ],
                 'Year Established': [2010, 1995, 2005],
@@ -586,54 +586,54 @@ class CompanyViewSet(viewsets.ModelViewSet):
                 'Annual Revenue (Millions)': [150, 500, 80],
                 'Annual Travel Budget (Millions)': [5, 15, 3],
                 'Annual Travel Volume': [
-                    '500+ trips/year', 
-                    '1000+ trips/year', 
+                    '500+ trips/year',
+                    '1000+ trips/year',
                     '200+ trips/year'
                 ],
                 'Travel Frequency': [
-                    'Weekly', 
-                    'Daily', 
+                    'Weekly',
+                    'Daily',
                     'Monthly'
                 ],
                 'Preferred Class': [
-                    'Business', 
-                    'Economy Plus', 
+                    'Business',
+                    'Economy Plus',
                     'Economy'
                 ],
                 'Credit Rating': ['AAA', 'AA', 'A'],
                 'Payment Terms': [
-                    'Net 30', 
-                    'Net 15', 
+                    'Net 30',
+                    'Net 15',
                     'Net 45'
                 ],
                 'Sustainability Focus': [
-                    'High', 
-                    'Very High', 
+                    'High',
+                    'Very High',
                     'Medium'
                 ],
                 'Risk Level': [
-                    'Low', 
-                    'Very Low', 
+                    'Low',
+                    'Very Low',
                     'Medium'
                 ],
                 'Expansion Plans': [
-                    'Aggressive', 
-                    'Moderate', 
+                    'Aggressive',
+                    'Moderate',
                     'Conservative'
                 ],
                 'Specialties (comma-separated)': [
-                    'Software Development, Cloud Services', 
-                    'Heavy Machinery, Industrial Equipment', 
+                    'Software Development, Cloud Services',
+                    'Heavy Machinery, Industrial Equipment',
                     'Medical Devices, Telemedicine'
                 ],
                 'Technology Integration (comma-separated)': [
-                    'API Integration, Mobile Apps', 
-                    'IoT, Automation Systems', 
+                    'API Integration, Mobile Apps',
+                    'IoT, Automation Systems',
                     'EMR Systems, Patient Portals'
                 ],
                 'Current Airlines (comma-separated)': [
-                    'Delta, United, American', 
-                    'Southwest, JetBlue', 
+                    'Delta, United, American',
+                    'Southwest, JetBlue',
                     'Alaska, Spirit'
                 ],
                 'Notes': [
@@ -650,11 +650,11 @@ class CompanyViewSet(viewsets.ModelViewSet):
             output = io.BytesIO()
             with pd.ExcelWriter(output, engine='openpyxl') as writer:
                 df.to_excel(writer, sheet_name='Companies', index=False)
-                
+
                 # Get the workbook and worksheet
                 workbook = writer.book
                 worksheet = writer.sheets['Companies']
-                
+
                 # Auto-adjust column widths
                 for column in worksheet.columns:
                     max_length = 0
@@ -676,7 +676,7 @@ class CompanyViewSet(viewsets.ModelViewSet):
                 content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
             )
             response['Content-Disposition'] = 'attachment; filename="corporate_data_sample_template.xlsx"'
-            
+
             return response
 
         except Exception as e:
@@ -1859,7 +1859,7 @@ class LeadViewSet(viewsets.ModelViewSet):
         """Send message to corporate contacts (general endpoint for non-lead contacts)"""
         try:
             contact_type = request.data.get('contact_type', '')
-            
+
             if contact_type == 'corporate':
                 # Handle corporate contact messages
                 recipient_email = request.data.get('recipient_email', '')
@@ -1867,13 +1867,13 @@ class LeadViewSet(viewsets.ModelViewSet):
                 method = request.data.get('method', 'Email')
                 subject = request.data.get('subject', '')
                 message = request.data.get('message', '')
-                
+
                 if not recipient_email or not subject or not message:
                     return Response(
                         {'error': 'Recipient email, subject and message are required'},
                         status=status.HTTP_400_BAD_REQUEST
                     )
-                
+
                 # Send email via SMTP if method is Email
                 if method == 'Email':
                     from django.core.mail import EmailMessage
@@ -1912,7 +1912,7 @@ class LeadViewSet(viewsets.ModelViewSet):
                     {'error': 'Invalid contact type or missing required parameters'},
                     status=status.HTTP_400_BAD_REQUEST
                 )
-                
+
         except Exception as e:
             return Response(
                 {'error': f'Failed to send message: {str(e)}'},
@@ -2147,7 +2147,7 @@ class OpportunityViewSet(viewsets.ModelViewSet):
         """Send proposal email for opportunity"""
         try:
             opportunity = self.get_object()
-            
+
             subject = request.data.get('subject', f'Travel Solutions Proposal - {opportunity.lead.company.name if opportunity.lead else "Opportunity"}')
             email_content = request.data.get('email_content', '')
             delivery_method = request.data.get('delivery_method', 'email')
@@ -2166,7 +2166,7 @@ class OpportunityViewSet(viewsets.ModelViewSet):
                 }, status=status.HTTP_400_BAD_REQUEST)
 
             recipient_email = opportunity.lead.contact.email
-            
+
             # Send email via SMTP if delivery method is email
             if delivery_method == 'email':
                 from django.core.mail import EmailMessage
@@ -2181,10 +2181,10 @@ class OpportunityViewSet(viewsets.ModelViewSet):
                         to=[recipient_email],
                         bcc=['nagendran.g@infinitisoftware.net', 'muniraj@infinitisoftware.net'],
                     )
-                    
+
                     # Set content type to HTML
                     email.content_subtype = 'html'
-                    
+
                     # Send the email
                     email.send(fail_silently=False)
 
@@ -2399,7 +2399,7 @@ Ready to see how we can help? Let's schedule a 15-minute discovery call.''',
                     'estimated_click_rate': 12.0,
                     'is_custom': False,
                     'created_by': 'System',
-                    'created_at': '2024-01-01T00:00:00Z',
+                    'created_at': '2024-01-01-01T00:00:00Z',
                     'updated_at': '2024-01-01T00:00:00Z'
                 },
                 {
