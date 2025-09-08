@@ -424,7 +424,12 @@ class CampaignTemplate(models.Model):
 
     name = models.CharField(max_length=200)
     description = models.TextField(blank=True)
-    subject_line = models.CharField(max_length=200)
+    subject_line = models.CharField(
+        max_length=255,
+        default="Default Subject",  # ✅ safe default
+        null=False,
+        blank=False
+    )
     content = models.TextField()
     channel_type = models.CharField(max_length=50, default='email')
     target_industry = models.CharField(max_length=100, blank=True)
@@ -467,7 +472,12 @@ class EmailCampaign(models.Model):
     status = models.CharField(max_length=20,
                               choices=CAMPAIGN_STATUS_CHOICES,
                               default='draft')
-    subject_line = models.CharField(max_length=255)
+    subject_line = models.CharField(
+        max_length=255,
+        default="Default Subject",  # ✅ safe default
+        null=False,
+        blank=False
+    )
     email_content = models.TextField()
     cta_link = models.URLField(blank=True, null=True)
     scheduled_date = models.DateTimeField()
