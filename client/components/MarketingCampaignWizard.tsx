@@ -406,6 +406,9 @@ export function MarketingCampaignWizard({ onNavigate, initialCampaignData, editM
       // Ensure template data is properly integrated
       const template = campaignData.selectedTemplate;
       
+      // Get the rendered HTML content from the campaign data
+      const renderedContent = campaignData.content?.email?.body || '';
+      
       // Prepare enhanced campaign data for API with template integration
       const campaignPayload = {
         name: campaignData.name,
@@ -414,7 +417,13 @@ export function MarketingCampaignWizard({ onNavigate, initialCampaignData, editM
         channels: campaignData.channels,
         targetAudience: selectedLeads,
         target_leads: selectedLeads.map(lead => lead.id),
-        content: campaignData.content,
+        content: {
+          ...campaignData.content,
+          email: {
+            ...campaignData.content?.email,
+            body: renderedContent // Use the rendered HTML content
+          }
+        },
         settings: campaignData.settings,
         
         // Enhanced template integration
@@ -424,7 +433,7 @@ export function MarketingCampaignWizard({ onNavigate, initialCampaignData, editM
         
         // Template-specific fields for API compatibility
         subjectLine: campaignData.content?.email?.subject || template?.subject_line || '',
-        messageContent: campaignData.content?.email?.body || template?.content || '',
+        messageContent: renderedContent, // Use the rendered HTML content here too
         cta: campaignData.content?.email?.cta || template?.cta || '',
         cta_link: campaignData.content?.email?.cta_link || template?.cta_link || 'https://soarai.infinitisoftware.net/',
         
