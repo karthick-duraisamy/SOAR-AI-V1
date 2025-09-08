@@ -2035,6 +2035,7 @@ SOAR-AI Team`,
     return (
       <MarketingCampaignWizard
         selectedLeads={selectedLeadData}
+        onNavigate={handleCampaignBack}
         onBack={handleCampaignBack}
         onComplete={handleCampaignComplete}
       />

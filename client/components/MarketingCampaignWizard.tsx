@@ -42,6 +42,7 @@ interface MarketingCampaignWizardProps {
   onNavigate: (screen: string, filters?: any) => void;
   initialCampaignData?: any;
   editMode?: boolean;
+  selectedLeads?: any[];
 }
 
 interface CampaignTemplate {
@@ -69,7 +70,7 @@ const steps = [
   { id: 5, name: 'Review & Launch', description: 'Final review and campaign launch' }
 ];
 
-export function MarketingCampaignWizard({ onNavigate, initialCampaignData, editMode = false }: MarketingCampaignWizardProps) {
+export function MarketingCampaignWizard({ onNavigate, initialCampaignData, editMode = false, selectedLeads: propSelectedLeads }: MarketingCampaignWizardProps) {
   const [currentStep, setCurrentStep] = useState(1);
   const [showCreateTemplate, setShowCreateTemplate] = useState(false);
   const [templates, setTemplates] = useState<CampaignTemplate[]>([]);
@@ -155,11 +156,8 @@ export function MarketingCampaignWizard({ onNavigate, initialCampaignData, editM
   });
   const [isLaunching, setIsLaunching] = useState(false);
 
-  // Mock selectedLeads data for now - moved before usage
-  const selectedLeads = [
-    { id: 1, company: 'TechCorp Solutions', contact: 'Sarah Johnson', industry: 'Technology', score: 85, status: 'new' },
-    { id: 2, company: 'Global Industries', contact: 'Mike Chen', industry: 'Manufacturing', score: 78, status: 'new' },
-  ];
+  // Use actual selectedLeads from props instead of mock data
+  const selectedLeads = propSelectedLeads || [];
 
   const targetLeads = selectedLeads; // Alias for clarity in case 5
 
