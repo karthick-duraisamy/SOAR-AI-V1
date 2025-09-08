@@ -400,22 +400,45 @@ export function MarketingCampaignWizard({ onNavigate, initialCampaignData, editM
 
   const handleLaunchCampaign = async () => {
     setIsLaunching(true);
-console.log(campaignData,'campaignData')
+    console.log(campaignData, 'campaignData')
+    
     try {
-      // Prepare campaign data for API
+      // Ensure template data is properly integrated
+      const template = campaignData.selectedTemplate;
+      
+      // Prepare enhanced campaign data for API with template integration
       const campaignPayload = {
         name: campaignData.name,
-        description: campaignData.selectedTemplate?.description || '',
+        description: campaignData.description || template?.description || '',
         objective: campaignData.objective,
         channels: campaignData.channels,
         targetAudience: selectedLeads,
         target_leads: selectedLeads.map(lead => lead.id),
         content: campaignData.content,
         settings: campaignData.settings,
-        selectedTemplate: campaignData.selectedTemplate
+        
+        // Enhanced template integration
+        selectedTemplate: template,
+        templateId: template?.id,
+        templateName: template?.name,
+        
+        // Template-specific fields for API compatibility
+        subjectLine: campaignData.content?.email?.subject || template?.subject_line || '',
+        messageContent: campaignData.content?.email?.body || template?.content || '',
+        cta: campaignData.content?.email?.cta || template?.cta || '',
+        cta_link: campaignData.content?.email?.cta_link || template?.cta_link || 'https://soarai.infinitisoftware.net/',
+        
+        // Campaign type and template info
+        campaign_type: campaignData.objective === 'lead-nurturing' ? 'nurture' : campaignData.objective,
+        template_type: template?.channel_type || 'email',
+        is_custom_template: template?.is_custom || false,
+        
+        // Performance expectations from template
+        expected_open_rate: template?.estimated_open_rate || 40,
+        expected_click_rate: template?.estimated_click_rate || 10
       };
 
-      console.log('Launching campaign with payload:', campaignPayload);
+      console.log('Launching campaign with enhanced payload:', campaignPayload);
 
       // Launch the campaign via API
       const response = await launchCampaign(campaignPayload);
@@ -455,7 +478,7 @@ console.log(campaignData,'campaignData')
           // Don't fail the entire operation if lead updates fail
         }
 
-        // Show success and complete
+        // Show success and complete with enhanced template info
         onComplete({
           ...campaignData,
           campaignId: response.campaign_id,
@@ -463,7 +486,13 @@ console.log(campaignData,'campaignData')
           launchDate: new Date().toISOString(),
           response: response,
           emailsSent: response.emails_sent,
-          targetLeadsProcessed: response.target_leads_processed
+          targetLeadsProcessed: response.target_leads_processed,
+          templateUsed: template?.name,
+          templateType: template?.channel_type,
+          performanceExpected: {
+            opens: Math.round((selectedLeads.length * (template?.estimated_open_rate || 40)) / 100),
+            clicks: Math.round((selectedLeads.length * (template?.estimated_click_rate || 10)) / 100)
+          }
         });
       } else {
         throw new Error(response?.message || 'Campaign launch failed');
