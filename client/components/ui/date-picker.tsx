@@ -28,12 +28,14 @@ export function DatePicker({
   const [open, setOpen] = React.useState(false)
 
   const formatDateForDisplay = (date: Date) => {
-    // Format as dd/mm/yyyy
-    return date.toLocaleDateString("en-GB", {
+    // Format as dd-mm-yyyy
+    const formatted = date.toLocaleDateString("en-GB", {
       day: "2-digit",
       month: "2-digit",
       year: "numeric"
-    })
+    });
+    // Replace slashes with dashes
+    return formatted.replace(/\//g, '-');
   }
 
   return (

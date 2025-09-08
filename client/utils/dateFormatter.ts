@@ -8,11 +8,14 @@ export const formatDate = (dateString: string | Date): string => {
     return '';
   }
   
-  return date.toLocaleDateString("en-GB", {
+  const formatted = date.toLocaleDateString("en-GB", {
     day: "2-digit",
     month: "2-digit", 
     year: "numeric",
   });
+  
+  // Replace slashes with dashes
+  return formatted.replace(/\//g, '-');
 };
 
 export const formatDateTime = (dateString: string | Date): string => {
