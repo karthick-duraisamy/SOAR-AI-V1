@@ -188,73 +188,107 @@ export function MarketingCampaignWizard({ onNavigate, initialCampaignData, editM
     }
   };
 
-  const handleTemplateSelect = (template: CampaignTemplate) => {
-    // Standard layout with CTA button
-    const standardLayout = (content: string, cta: string, ctaLink: string) => `
+  const handleTemplateSelect = (template: any) => {
+    if (!template) return;
+
+    // Standard layout with proper email structure
+    const renderEmailTemplate = (content: string, cta: string, ctaLink: string, subject: string) => `
       <!DOCTYPE html>
-      <html>
+      <html xmlns="http://www.w3.org/1999/xhtml" lang="en">
       <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>${template.subject_line || `Partnership Opportunity - ${template.name}`}</title>
-      </head>
-      <body style="margin:0; padding:0; font-family: Arial, sans-serif; background-color:#f9f9f9;">
-        <!-- Header -->
-        <table width="100%" bgcolor="#007bff" cellpadding="0" cellspacing="0" style="padding:20px; text-align:center; color:#fff;">
-          <tr>
-            <td>
-              <h2 style="margin:0;">Your Company</h2>
-            </td>
-          </tr>
-        </table>
-
-        <!-- Body -->
-        <table width="100%" cellpadding="20" cellspacing="0" style="background-color:#ffffff; margin:20px auto; max-width:600px; border-radius:8px;">
-          <tr>
-            <td style="font-size:16px; line-height:1.5; color:#333;">
-              ${content} <!-- ✅ Dynamic template content -->
-            </td>
-          </tr>
-          ${
-            cta && ctaLink
-              ? `
-          <tr>
-            <td align="center" style="padding:20px 0;">
-              <a href="${ctaLink}" target="_blank"
-                style="background-color:#007bff; color:#fff; padding:12px 24px; 
-                       text-decoration:none; font-size:16px; font-weight:bold; 
-                       border-radius:5px; display:inline-block;">
-                ${cta}
-              </a>
-            </td>
-          </tr>` 
-              : ""
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>${subject}</title>
+        <style>
+          /* CLIENT-SAFE, INLINE-FRIENDLY STYLES */
+          body { margin:0; padding:0; -webkit-text-size-adjust:100%; -ms-text-size-adjust:100%; font-family: Arial, sans-serif; }
+          table { border-spacing:0; }
+          img { border:0; display:block; }
+          a { color:inherit; text-decoration:none; }
+          .wrapper { width:100%; background-color:#f5f7fb; padding:20px 0; }
+          .content { max-width:600px; margin:0 auto; background:#ffffff; border-radius:6px; overflow:hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+          .header { padding:20px; text-align:center; background-color:#007bff; color:#ffffff; }
+          .main { padding:24px; font-family:Arial, 'Helvetica Neue', Helvetica, sans-serif; color:#333333; font-size:16px; line-height:24px; }
+          .h1 { font-size:22px; margin:0 0 16px 0; color:#111827; font-weight:600; }
+          .p { margin:0 0 16px 0; }
+          .button { display:inline-block; padding:12px 24px; border-radius:6px; background:#007bff; color:#ffffff; font-weight:600; text-decoration:none; margin:20px 0; }
+          .button:hover { background:#0056b3; }
+          .footer { padding:16px 20px; font-size:12px; color:#8b94a6; text-align:center; background-color:#f1f1f1; }
+          .cta-container { text-align:center; margin:24px 0; }
+          @media screen and (max-width:480px) {
+            .content { width:100% !important; border-radius:0; margin:0; }
+            .main { padding:16px; }
+            .h1 { font-size:20px; }
+            .header { padding:16px; }
           }
-        </table>
+        </style>
+      </head>
+      <body>
+        <div class="wrapper">
+          <table class="content" width="600" cellpadding="0" cellspacing="0" role="presentation">
+            <!-- Header -->
+            <tr>
+              <td class="header">
+                <h2 style="margin:0; font-size:24px;">SOAR-AI</h2>
+                <p style="margin:8px 0 0 0; font-size:14px; opacity:0.9;">Corporate Travel Solutions</p>
+              </td>
+            </tr>
 
-        <!-- Footer -->
-        <table width="100%" bgcolor="#f1f1f1" cellpadding="10" cellspacing="0" style="text-align:center; color:#666; font-size:12px;">
-          <tr>
-            <td>
-              © ${new Date().getFullYear()} Your Company. All rights reserved.
-            </td>
-          </tr>
-        </table>
+            <!-- Main Content -->
+            <tr>
+              <td class="main">
+                <div>${content}</div>
+
+                ${cta && ctaLink ? `
+                <div class="cta-container">
+                  <a href="${ctaLink}" class="button" target="_blank">
+                    ${cta}
+                  </a>
+                </div>
+                <p class="p" style="font-size:13px;color:#6b7280;">
+                  If the button doesn't work, copy and paste the following URL into your browser: <br />
+                  <a href="${ctaLink}" style="color:#007bff;">${ctaLink}</a>
+                </p>
+                ` : ''}
+              </td>
+            </tr>
+
+            <!-- Footer -->
+            <tr>
+              <td class="footer">
+                <p style="margin:0 0 8px 0;">SOAR-AI • Transforming Corporate Travel</p>
+                <p style="margin:0 0 8px 0;">
+                  <a href="#" style="color:#8b94a6;">Unsubscribe</a> | 
+                  <a href="#" style="color:#8b94a6;">Privacy Policy</a>
+                </p>
+                <p style="margin:0;">&copy; ${new Date().getFullYear()} SOAR-AI. All rights reserved.</p>
+              </td>
+            </tr>
+          </table>
+        </div>
       </body>
       </html>
     `;
 
+    const subject = template.subject_line || `Partnership Opportunity - ${template.name}`;
+    const renderedContent = renderEmailTemplate(
+      template.content || '', 
+      template.cta || 'Learn More', 
+      template.cta_link || '#',
+      subject
+    );
+
     setCampaignData(prev => ({
       ...prev,
       selectedTemplate: template,
-      channels: template.channel_type === 'mixed'
-        ? ['email', 'whatsapp', 'linkedin']
+      channels: template.channel_type === 'mixed' 
+        ? ['email', 'whatsapp', 'linkedin'] 
         : [template.channel_type],
       content: {
         ...prev.content,
         email: {
-          subject: template.subject_line || `Partnership Opportunity - ${template.name}`,
-          body: standardLayout(template.content, template.cta, template.cta_link), // ✅ content + CTA
+          subject: subject,
+          body: renderedContent,
           cta: template.cta,
           cta_link: template.cta_link || ''
         }
@@ -593,7 +627,7 @@ console.log(campaignData,'campaignData')
                 ))}
               </div>
             </div>
-            
+
             {(campaignData.selectedTemplate) && (
               <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
                 <div className="flex items-center gap-2">
