@@ -8,6 +8,13 @@ import urllib.parse
 import uuid
 import logging
 
+# Import pandas at the top level
+try:
+    import pandas as pd
+    PANDAS_AVAILABLE = True
+except ImportError:
+    PANDAS_AVAILABLE = False
+
 logger = logging.getLogger(__name__)
 
 from rest_framework import viewsets, status
@@ -228,10 +235,15 @@ class CompanyViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['post'])
     def upload(self, request):
         """Upload companies from Excel/CSV file"""
-        import pandas as pd
         import io
 
         try:
+            # Check if pandas is available
+            if not PANDAS_AVAILABLE:
+                return Response(
+                    {'error': 'Pandas library is not installed. Please install it to use file upload functionality.'},
+                    status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                )
             if 'file' not in request.FILES:
                 return Response(
                     {'error': 'No file provided'},
@@ -514,11 +526,16 @@ class CompanyViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['get'], url_path='download-sample')
     def download_sample(self, request):
         """Download sample Excel template for company upload"""
-        import pandas as pd
         from django.http import HttpResponse
         import io
 
         try:
+            # Check if pandas is available
+            if not PANDAS_AVAILABLE:
+                return Response(
+                    {'error': 'Pandas library is not installed. Please install it to use file download functionality.'},
+                    status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                )
             # Create sample data with all required columns
             sample_data = {
                 'Company Name': [
