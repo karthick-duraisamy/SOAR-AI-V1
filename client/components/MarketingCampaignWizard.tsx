@@ -7,6 +7,7 @@ import { Label } from './ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { Checkbox } from './ui/checkbox';
 import { Alert, AlertDescription } from './ui/alert';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import { useTemplateApi } from '../hooks/api/useTemplateApi';
 import { useLeadApi } from '../hooks/api/useLeadApi';
 import { 
@@ -22,7 +23,10 @@ import {
   Loader2,
   Brain,
   RefreshCw,
-  Send
+  Send,
+  Eye,
+  FileText,
+  Lightbulb
 } from 'lucide-react';
 import {
   Dialog,
@@ -150,13 +154,13 @@ export function MarketingCampaignWizard({ onNavigate, initialCampaignData, editM
     };
   });
   const [isLaunching, setIsLaunching] = useState(false);
-  
+
   // Mock selectedLeads data for now - moved before usage
   const selectedLeads = [
     { id: 1, company: 'TechCorp Solutions', contact: 'Sarah Johnson', industry: 'Technology', score: 85, status: 'new' },
     { id: 2, company: 'Global Industries', contact: 'Mike Chen', industry: 'Manufacturing', score: 78, status: 'new' },
   ];
-  
+
   const targetLeads = selectedLeads; // Alias for clarity in case 5
 
   const { 
@@ -300,7 +304,7 @@ export function MarketingCampaignWizard({ onNavigate, initialCampaignData, editM
     onNavigate('email-campaigns');
   };
 
-  
+
 
   const handleLaunchCampaign = async () => {
     setIsLaunching(true);
@@ -532,6 +536,20 @@ export function MarketingCampaignWizard({ onNavigate, initialCampaignData, editM
                 ))}
               </div>
             </div>
+            
+            {(campaignData.selectedTemplate) && (
+              <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+                <div className="flex items-center gap-2">
+                  <CheckCircle className="h-4 w-4 text-green-600" />
+                  <span className="text-sm font-medium text-green-800">
+                    Template Selected: {campaignData.selectedTemplate?.name}
+                  </span>
+                </div>
+                <p className="text-xs text-green-600 mt-1">
+                  {campaignData.selectedTemplate.is_custom ? 'Custom Campaign Template' : 'Standard Email Template'}
+                </p>
+              </div>
+            )}
           </div>
         );
 
