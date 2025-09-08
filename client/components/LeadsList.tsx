@@ -807,6 +807,9 @@ export function LeadsList({ initialFilters, onNavigate }: LeadsListProps) {
     useState(false);
   const [showScheduleDemoModal, setShowScheduleDemoModal] = useState(false);
   const [showAssignAgentModal, setShowAssignAgentModal] = useState(false);
+  const [showMoveToOpportunityDialog, setShowMoveToOpportunityDialog] = useState(false); // New state for confirmation dialog
+  const [selectedLeadForOpportunity, setSelectedLeadForOpportunity] = useState<any>(null); // State to hold the lead for the confirmation dialog
+
 
   // Selected lead for actions
   const [selectedLeadForAction, setSelectedLeadForAction] = useState<any>(null);
@@ -1504,7 +1507,7 @@ SOAR-AI Team`,
 
     try {
       setIsSendingMessage(true);
-      
+
       // Call the backend API to send email via SMTP
       const response = await leadApi.sendMessage(selectedLeadForContact.id, {
         method: contactForm.method,
@@ -1754,20 +1757,28 @@ SOAR-AI Team`,
 
   // Function to move qualified lead to opportunities
   const handleMoveToOpportunity = async (lead: Lead) => {
+    // Open the confirmation dialog first
+    setSelectedLeadForOpportunity(lead);
+    setShowMoveToOpportunityDialog(true);
+  };
+
+  const handleConfirmMoveToOpportunity = async () => {
+    if (!selectedLeadForOpportunity) return;
+
     try {
       // Set loading state for this specific lead
-      setMovingToOpportunityId(lead.id);
+      setMovingToOpportunityId(selectedLeadForOpportunity.id);
 
       // Prepare opportunity data from lead - match Django Opportunity model fields exactly
       const opportunityData = {
-        name: `${lead.company} - Corporate Travel Solution`,
+        name: `${selectedLeadForOpportunity.company} - Corporate Travel Solution`,
         stage: "discovery",
         probability: 65,
         estimated_close_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
           .toISOString()
           .split("T")[0],
-        value: parseInt(lead.travelBudget.replace(/[^0-9]/g, "")) || 250000,
-        description: `Opportunity created from qualified lead. ${lead.notes}`,
+        value: parseInt(selectedLeadForOpportunity.travelBudget.replace(/[^0-9]/g, "")) || 250000,
+        description: `Opportunity created from qualified lead. ${selectedLeadForOpportunity.notes}`,
         next_steps: "Send initial proposal and schedule presentation",
       };
 
@@ -1777,19 +1788,19 @@ SOAR-AI Team`,
 
       // Call the API to move the lead to opportunity
       const response = await leadApi.moveToOpportunity(
-        lead.id,
+        selectedLeadForOpportunity.id,
         opportunityData,
       );
 
       // Update the local state to mark the lead as having an opportunity
       setLeads((prev) =>
         prev.map((l) =>
-          l.id === lead.id ? { ...l, has_opportunity: true, status: "opportunity" } : l,
+          l.id === selectedLeadForOpportunity.id ? { ...l, has_opportunity: true, status: "opportunity" } : l,
         ),
       );
 
       // Show success popup message based on API response
-      const successMessage = response.message || `${lead.company} has been successfully moved to opportunities!`;
+      const successMessage = response.message || `${selectedLeadForOpportunity.company} has been successfully moved to opportunities!`;
       setSuccessMessage(`🎉 ${successMessage}`);
       console.log("Setting move to opportunity success message:", successMessage);
       setTimeout(() => {
@@ -1803,29 +1814,34 @@ SOAR-AI Team`,
           newOpportunity: {
             ...response.opportunity,
             leadId: response.lead_id,
-            company: lead.company,
-            contact: lead.contact,
-            title: lead.title,
-            email: lead.email,
-            phone: lead.phone,
-            industry: lead.industry,
+            company: selectedLeadForOpportunity.company,
+            contact: selectedLeadForOpportunity.contact,
+            title: selectedLeadForOpportunity.title,
+            email: selectedLeadForOpportunity.email,
+            phone: selectedLeadForOpportunity.phone,
+            industry: selectedLeadForOpportunity.industry,
             employees:
-              typeof lead.employees === "number"
-                ? lead.employees
-                : parseInt(lead.employees as string) || 0,
-            revenue: lead.revenue,
-            location: lead.location,
-            source: lead.source,
-            travelBudget: lead.travelBudget,
-            decisionMaker: lead.decisionMaker,
-            tags: lead.tags || [lead.industry, "Qualified Lead"],
-            owner: lead.assignedAgent || "Current User",
+              typeof selectedLeadForOpportunity.employees === "number"
+                ? selectedLeadForOpportunity.employees
+                : parseInt(selectedLeadForOpportunity.employees as string) || 0,
+            revenue: selectedLeadForOpportunity.revenue,
+            location: selectedLeadForOpportunity.location,
+            source: selectedLeadForOpportunity.source,
+            travelBudget: selectedLeadForOpportunity.travelBudget,
+            decisionMaker: selectedLeadForOpportunity.decisionMaker,
+            tags: selectedLeadForOpportunity.tags || [selectedLeadForOpportunity.industry, "Qualified Lead"],
+            owner: selectedLeadForOpportunity.assignedAgent || "Current User",
           },
           message: successMessage,
         });
       }
 
-      toast.success(`${lead.company} moved to opportunities successfully!`);
+      toast.success(`${selectedLeadForOpportunity.company} moved to opportunities successfully!`);
+
+      // Close the confirmation dialog
+      setShowMoveToOpportunityDialog(false);
+      setSelectedLeadForOpportunity(null);
+
     } catch (error) {
       console.error("Error moving lead to opportunity:", error);
       const errorMessage = error.response?.data?.error ||
@@ -3086,7 +3102,7 @@ SOAR-AI Team`,
                       size="sm"
                       variant="outline"
                       className="text-orange-700 border-orange-200 bg-orange-50"
-                      onClick={async (e) => {
+                      onClick={(e) => {
                         e.stopPropagation();
                         setSelectedLeads([lead.id]);
                         setShowMarketingCampaign(true);
@@ -5188,6 +5204,80 @@ Key Topics: Travel volume, preferred airlines, booking preferences, cost optimiz
                   {selectedLeadForAssign?.assignedAgent
                     ? "Reassign Agent"
                     : "Assign Agent"}
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Move to Opportunity Confirmation Dialog */}
+      <Dialog open={showMoveToOpportunityDialog} onOpenChange={setShowMoveToOpportunityDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-lg font-semibold">
+              <ArrowRight className="h-5 w-5 text-green-600" />
+              Move to Opportunities
+            </DialogTitle>
+            <DialogDescription>
+              Are you sure you want to move "{selectedLeadForOpportunity?.company}" to the Opportunities menu?
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+              <div className="flex items-center gap-2 mb-2">
+                <Info className="h-4 w-4 text-blue-600" />
+                <span className="text-sm font-medium text-blue-900">What happens next?</span>
+              </div>
+              <ul className="text-sm text-blue-700 space-y-1">
+                <li>• Lead will be converted to an opportunity</li>
+                <li>• Opportunity stage will be set to "Discovery"</li>
+                <li>• You'll be redirected to the Opportunities page</li>
+                <li>• Lead will remain in the leads list for tracking</li>
+              </ul>
+            </div>
+
+            {selectedLeadForOpportunity && (
+              <div className="space-y-2">
+                <div className="text-sm">
+                  <span className="font-medium">Company:</span> {selectedLeadForOpportunity.company}
+                </div>
+                <div className="text-sm">
+                  <span className="font-medium">Contact:</span> {selectedLeadForOpportunity.contact}
+                </div>
+                <div className="text-sm">
+                  <span className="font-medium">Estimated Value:</span> {selectedLeadForOpportunity.travelBudget}
+                </div>
+              </div>
+            )}
+          </div>
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowMoveToOpportunityDialog(false);
+                setSelectedLeadForOpportunity(null);
+              }}
+              className="text-gray-600 border-gray-300"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleConfirmMoveToOpportunity}
+              disabled={movingToOpportunityId === selectedLeadForOpportunity?.id}
+              className="bg-green-600 hover:bg-green-700 text-white"
+            >
+              {movingToOpportunityId === selectedLeadForOpportunity?.id ? (
+                <>
+                  <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                  Moving...
+                </>
+              ) : (
+                <>
+                  <ArrowRight className="h-4 w-4 mr-2" />
+                  Move to Opportunities
                 </>
               )}
             </Button>
