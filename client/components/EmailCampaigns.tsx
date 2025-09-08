@@ -187,11 +187,12 @@ export function EmailCampaigns({ onNavigate }: EmailCampaignsProps) {
   useEffect(() => {
     loadCampaigns();
     loadStandardTemplates();
+    fetchTemplates(); // Load templates from API as well
   }, []);
 
   const loadStandardTemplates = () => {
-    const templates = EmailTemplateService.getStandardTemplates();
-    setStandardTemplates(templates);
+    const builtInTemplates = EmailTemplateService.getStandardTemplates();
+    setStandardTemplates(builtInTemplates);
   };
 
   const loadCampaigns = async () => {
@@ -297,16 +298,34 @@ export function EmailCampaigns({ onNavigate }: EmailCampaignsProps) {
 
     // Generate preview with sample data
     const sampleVariables = {
-      company_name: 'Acme Corporation',
+      subject: 'Welcome to SOAR-AI Corporate Travel Solutions',
+      preheader: 'Your comprehensive travel management solution awaits',
+      logo_url: 'https://via.placeholder.com/160x60/2563eb/ffffff?text=SOAR-AI',
+      company_name: 'SOAR-AI',
+      main_heading: 'Welcome John Smith from Acme Corporation!',
+      intro_paragraph: 'We\'re excited to help Acme Corporation transform your corporate travel experience.',
+      body_content: `
+        <p>Based on your Technology industry background and 500 employees, we've identified several opportunities:</p>
+        <ul>
+          <li>✈️ Reduce travel costs by up to 35%</li>
+          <li>📊 Streamline booking and approval processes</li>
+          <li>🌍 Access our global partner network</li>
+          <li>🤖 AI-powered travel recommendations</li>
+        </ul>
+        <p>Ready to see how we can save you $87,500 annually? Let's schedule a quick call.</p>
+      `,
+      cta_url: 'https://calendly.com/soar-ai/demo',
+      cta_text: 'Schedule Demo',
+      company_address: '123 Business Ave, San Francisco, CA 94105',
+      unsubscribe_url: 'https://soar-ai.com/unsubscribe',
+      year: new Date().getFullYear().toString(),
+      // Legacy variables for backward compatibility
       contact_name: 'John Smith',
       industry: 'Technology',
       employees: '500',
       travel_budget: '$250,000',
       calculated_savings: '$87,500',
-      last_interaction: 'phone call last week',
-      proposal_value: '$180,000',
-      validity_period: '30 days',
-      cta_link: '#'
+      cta_link: 'https://calendly.com/soar-ai/demo'
     };
 
     const previewHTML = EmailTemplateService.generateEmailHTML(template, sampleVariables);
@@ -314,9 +333,27 @@ export function EmailCampaigns({ onNavigate }: EmailCampaignsProps) {
   };
 
   const handleUseTemplate = (template: EmailTemplate) => {
-    if (selectedCampaign) {
-      // Apply template to existing campaign
-      const templateHTML = EmailTemplateService.generateEmailHTML(template, {
+    let templateVariables: Record<string, string> = {};
+    
+    if (template.layout === 'standard') {
+      // Standard layout variables
+      templateVariables = {
+        subject: '{{subject}}',
+        preheader: '{{preheader}}',
+        logo_url: '{{logo_url}}',
+        company_name: '{{company_name}}',
+        main_heading: '{{main_heading}}',
+        intro_paragraph: '{{intro_paragraph}}',
+        body_content: '{{body_content}}',
+        cta_url: '{{cta_url}}',
+        cta_text: '{{cta_text}}',
+        company_address: '{{company_address}}',
+        unsubscribe_url: '{{unsubscribe_url}}',
+        year: '{{year}}'
+      };
+    } else {
+      // Custom layout variables
+      templateVariables = {
         company_name: '{{company_name}}',
         contact_name: '{{contact_name}}',
         industry: '{{industry}}',
@@ -327,28 +364,22 @@ export function EmailCampaigns({ onNavigate }: EmailCampaignsProps) {
         proposal_value: '{{proposal_value}}',
         validity_period: '{{validity_period}}',
         cta_link: '{{cta_link}}'
-      });
+      };
+    }
 
-      // This would update the campaign content
+    if (selectedCampaign) {
+      // Apply template to existing campaign
+      const templateHTML = EmailTemplateService.generateEmailHTML(template, templateVariables);
       console.log('Apply template to campaign:', selectedCampaign.id, templateHTML);
       toast.success(`Template "${template.name}" applied to campaign`);
     } else {
       // Create new campaign with template
+      const templateHTML = EmailTemplateService.generateEmailHTML(template, templateVariables);
       onNavigate('marketing-campaign', { 
         templateMode: true, 
         selectedTemplate: template,
-        templateHTML: EmailTemplateService.generateEmailHTML(template, {
-          company_name: '{{company_name}}',
-          contact_name: '{{contact_name}}',
-          industry: '{{industry}}',
-          employees: '{{employees}}',
-          travel_budget: '{{travel_budget}}',
-          calculated_savings: '{{calculated_savings}}',
-          last_interaction: '{{last_interaction}}',
-          proposal_value: '{{proposal_value}}',
-          validity_period: '{{validity_period}}',
-          cta_link: '{{cta_link}}'
-        })
+        templateHTML: templateHTML,
+        isStandardLayout: template.layout === 'standard'
       });
     }
   };
@@ -413,43 +444,48 @@ export function EmailCampaigns({ onNavigate }: EmailCampaignsProps) {
         throw new Error('Failed to fetch templates');
       }
       const data = await response.json();
-      // Assuming the API returns templates with id, name, description, subject_line, content, etc.
-      // And we need to map them to our EmailTemplate structure
+      
       const formattedTemplates: EmailTemplate[] = data.map((templateData: any) => {
-        // Attempt to parse content as JSON if it's a standard layout template
         let variables: string[] = [];
         let sections = [];
+        let layout: 'standard' | 'custom' = 'custom';
+        
         if (templateData.is_standard_layout && templateData.content) {
           try {
             const parsedContent = JSON.parse(templateData.content);
             variables = Object.keys(parsedContent);
-            // Example of creating sections from variables (adjust as needed)
-            sections = Object.keys(parsedContent).map(key => ({
-              type: key.replace('_', ' ').toUpperCase(),
-              content: `This is the content for ${key}`
-            }));
+            layout = 'standard';
+            // For standard layout templates, sections are not used
+            sections = [];
           } catch (e) {
             console.error("Error parsing standard template content:", e);
-            sections = [{ type: 'GENERAL', content: templateData.content }];
+            // Fallback to custom if parsing fails
+            sections = [{ type: 'body', content: templateData.content }];
+            variables = EmailTemplateService.extractVariables(templateData.content);
           }
         } else {
-          // For custom templates, assume content is HTML and parse sections crudely
-          sections = [{ type: 'CUSTOM', content: templateData.content }];
+          // For custom templates, create sections from content
+          sections = [{ type: 'body', content: templateData.content || '' }];
+          variables = EmailTemplateService.extractVariables(templateData.content || '');
         }
 
         return {
-          id: templateData.id,
+          id: templateData.id.toString(),
           name: templateData.name,
           description: templateData.description,
           variables: variables,
           sections: sections,
-          // Map other properties as needed
+          layout: layout
         };
       });
-      setStandardTemplates(formattedTemplates);
+      
+      // Combine built-in templates with API templates
+      const builtInTemplates = EmailTemplateService.getStandardTemplates();
+      const allTemplates = [...builtInTemplates, ...formattedTemplates];
+      setStandardTemplates(allTemplates);
     } catch (error) {
       console.error('Error fetching templates:', error);
-      // Handle error, maybe show a toast or set an error state
+      toast.error('Failed to load templates');
     }
   };
 
@@ -1150,7 +1186,7 @@ export function EmailCampaigns({ onNavigate }: EmailCampaignsProps) {
                       {template.name}
                     </CardTitle>
                     <Badge variant="outline">
-                      {template.sections.length} sections
+                      {template.layout === 'standard' ? 'Standard Layout' : `${template.sections.length} sections`}
                     </Badge>
                   </div>
                   <CardDescription style={{ 

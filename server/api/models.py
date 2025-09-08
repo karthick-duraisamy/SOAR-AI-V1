@@ -422,23 +422,16 @@ class CampaignTemplate(models.Model):
         ('connection', 'Connection Request'),
     ]
 
-    name = models.CharField(max_length=255)
-    description = models.TextField()
-    channel_type = models.CharField(max_length=20,
-                                    choices=CHANNEL_TYPE_CHOICES,
-                                    default='email')
-    target_industry = models.CharField(max_length=100, default='All')
-    subject_line = models.CharField(max_length=255, blank=True, null=True)
+    name = models.CharField(max_length=200)
+    description = models.TextField(blank=True)
+    subject_line = models.CharField(max_length=200)
     content = models.TextField()
-    cta = models.CharField(max_length=255)
-    linkedin_type = models.CharField(max_length=20,
-                                     choices=LINKEDIN_TYPE_CHOICES,
-                                     blank=True,
-                                     null=True)
-    estimated_open_rate = models.FloatField(default=40.0)
-    estimated_click_rate = models.FloatField(default=10.0)
-    is_custom = models.BooleanField(default=True)
-    created_by = models.CharField(max_length=255, default='User')
+    channel_type = models.CharField(max_length=50, default='email')
+    target_industry = models.CharField(max_length=100, blank=True)
+    cta = models.CharField(max_length=200, blank=True)
+    estimated_open_rate = models.FloatField(default=0.0)
+    estimated_click_rate = models.FloatField(default=0.0)
+    is_standard_layout = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

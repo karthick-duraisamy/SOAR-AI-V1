@@ -332,7 +332,7 @@ export class EmailTemplateService {
       {
         id: 'corporate-welcome-standard',
         name: 'Corporate Welcome (Standard Layout)',
-        description: 'Standard welcome template using the new layout structure',
+        description: 'Professional welcome template with standardized sections including header, body, and footer',
         layout: 'standard',
         variables: [
           'subject',
@@ -343,14 +343,17 @@ export class EmailTemplateService {
           'cta_text',
           'cta_url',
           'company_name',
-          'company_address'
+          'company_address',
+          'logo_url',
+          'unsubscribe_url',
+          'year'
         ],
         sections: [] // Not used for standard layout
       },
       {
         id: 'cost-savings-standard',
         name: 'Cost Savings (Standard Layout)',
-        description: 'Cost savings template using the new layout structure',
+        description: 'Highlight cost savings and ROI with professional layout including header, personalized content, and clear call-to-action',
         layout: 'standard',
         variables: [
           'subject',
@@ -361,7 +364,10 @@ export class EmailTemplateService {
           'cta_text',
           'cta_url',
           'company_name',
-          'company_address'
+          'company_address',
+          'logo_url',
+          'unsubscribe_url',
+          'year'
         ],
         sections: [] // Not used for standard layout
       },

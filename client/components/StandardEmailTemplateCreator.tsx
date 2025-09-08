@@ -73,11 +73,17 @@ export function StandardEmailTemplateCreator({
   };
 
   const handleSave = () => {
-    const template = EmailTemplateService.createStandardLayoutTemplate(
-      templateName,
-      templateDescription,
-      templateVariables
-    );
+    if (!templateName.trim()) {
+      alert('Please enter a template name');
+      return;
+    }
+
+    const template = {
+      name: templateName,
+      description: templateDescription,
+      variables: templateVariables,
+      isStandardLayout: true
+    };
     
     onSave?.(template);
   };
@@ -235,11 +241,9 @@ export function StandardEmailTemplateCreator({
                 <div>
                   <Label className="text-sm font-medium mb-2 block">Email Body Content</Label>
                   <RichTextEditor
-                    value={templateVariables.body_content || ''}
+                    content={templateVariables.body_content || ''}
                     onChange={(value) => handleVariableUpdate('body_content', value)}
                     placeholder="Enter your email content here..."
-                    showVariables={true}
-                    variables={availableVariables}
                   />
                 </div>
               </TabsContent>
