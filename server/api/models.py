@@ -987,7 +987,7 @@ class LeadHistory(models.Model):
                              null=True,
                              blank=True)
     metadata = models.JSONField(default=dict, blank=True)
-    timestamp = models.DateTimeField(auto_now_add=True)
+    timestamp = models.DateTimeField(default=timezone.now)
 
     def __str__(self):
         return f"{self.lead.company.name} - {self.action}"

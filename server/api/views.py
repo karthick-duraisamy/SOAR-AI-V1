@@ -42,17 +42,20 @@ from .serializers import (
 def create_lead_history(lead, history_type, action, details, icon=None, user=None):
     """Creates a LeadHistory entry if the table exists."""
     try:
+        from .models import LeadHistory
         LeadHistory.objects.create(
             lead=lead,
             history_type=history_type,
             action=action,
             details=details,
-            icon=icon,
-            created_by=user,
+            icon=icon or 'plus',
+            user=user,
+            metadata={},
             timestamp=timezone.now()
         )
-    except Exception:
-        # Silently handle case where LeadHistory table doesn't exist yet
+    except Exception as e:
+        # Log the error but don't fail the main operation
+        print(f"Error creating lead history: {str(e)}")
         pass
 
 class CompanyViewSet(viewsets.ModelViewSet):
@@ -1065,15 +1068,21 @@ class LeadViewSet(viewsets.ModelViewSet):
             lead.status = 'qualified'
             lead.save()
 
-            # Create history entry for status change
-            create_lead_history(
-                lead=lead,
-                history_type='qualification',
-                action=f'Lead qualified',
-                details=self._get_status_change_details(old_status, lead.status, lead),
-                icon=self._get_status_icon(lead.status),
-                user=request.user if request.user.is_authenticated else None
-            )
+            # Create history entry for qualification
+            try:
+                from .models import LeadHistory
+                LeadHistory.objects.create(
+                    lead=lead,
+                    history_type='qualification',
+                    action='Lead qualified',
+                    details=self._get_status_change_details(old_status, lead.status, lead),
+                    icon=self._get_status_icon(lead.status),
+                    user=request.user if request.user.is_authenticated else None,
+                    metadata={},
+                    timestamp=timezone.now()
+                )
+            except Exception as history_error:
+                print(f"Error creating qualification history: {history_error}")
 
             return Response({'status': 'lead qualified'})
         except Exception as e:
@@ -1501,16 +1510,27 @@ class LeadViewSet(viewsets.ModelViewSet):
                     # Get opportunity data from request
                     opportunity_data = request.data
 
+                    # Validate and process opportunity value
+                    try:
+                        opp_value = opportunity_data.get('value', locked_lead.estimated_value or 250000)
+                        if isinstance(opp_value, str):
+                            # Remove any non-numeric characters except decimal point
+                            import re
+                            opp_value = re.sub(r'[^\d.]', '', str(opp_value))
+                            opp_value = float(opp_value) if opp_value else 250000
+                    except (ValueError, TypeError):
+                        opp_value = 250000
+
                     # Create the opportunity within the transaction
                     opportunity = Opportunity.objects.create(
                         lead=locked_lead,
                         name=opportunity_data.get('name', f"{locked_lead.company.name} - Corporate Travel Solution"),
                         stage=opportunity_data.get('stage', 'discovery'),
-                        probability=opportunity_data.get('probability', 65),
+                        probability=int(opportunity_data.get('probability', 65)),
                         estimated_close_date=opportunity_data.get('estimated_close_date',
                             (timezone.now().date() + timedelta(days=30))),
-                        value=opportunity_data.get('value', locked_lead.estimated_value or 250000),
-                        description=opportunity_data.get('description', f"Opportunity created from qualified lead. {locked_lead.notes}"),
+                        value=opp_value,
+                        description=opportunity_data.get('description', f"Opportunity created from qualified lead. {locked_lead.notes or 'No additional notes.'}"),
                         next_steps=opportunity_data.get('next_steps', 'Send initial proposal and schedule presentation')
                     )
 
@@ -1527,17 +1547,24 @@ class LeadViewSet(viewsets.ModelViewSet):
                     # Don't change the lead status - keep it as qualified
                     locked_lead.save()
 
-                    # Create history entry for the conversion
-                    create_lead_history(
-                        lead=locked_lead,
-                        history_type='opportunity_created',
-                        action='Lead moved to opportunity',
-                        details=f'Lead successfully moved to sales opportunity: {opportunity.name}. Deal value: ${opportunity.value:,.0f}. Lead remains in leads table for tracking.',
-                        icon='briefcase',
-                        user=request.user if request.user.is_authenticated else None
-                    )
+                    # Create history entry for the conversion using try-catch to handle any LeadHistory issues
+                    try:
+                        from .models import LeadHistory
+                        LeadHistory.objects.create(
+                            lead=locked_lead,
+                            history_type='opportunity_created',
+                            action='Lead moved to opportunity',
+                            details=f'Lead successfully moved to sales opportunity: {opportunity.name}. Deal value: ${opp_value:,.0f}. Lead remains in leads table for tracking.',
+                            icon='briefcase',
+                            user=request.user if request.user.is_authenticated else None,
+                            timestamp=timezone.now()
+                        )
+                    except Exception as history_error:
+                        print(f"Error creating lead history: {history_error}")
+                        # Continue even if history creation fails
 
             except Exception as e:
+                print(f"Error in transaction: {str(e)}")
                 return Response(
                     {'error': f'Failed to create opportunity: {str(e)}'},
                     status=status.HTTP_500_INTERNAL_SERVER_ERROR
