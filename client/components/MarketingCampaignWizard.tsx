@@ -289,8 +289,8 @@ export function MarketingCampaignWizard({ onNavigate, initialCampaignData, editM
         email: {
           subject: subject,
           body: renderedContent,
-          cta: template.cta,
-          cta_link: template.cta_link || ''
+          cta: template.cta || 'Learn More',
+          cta_link: template.cta_link || 'https://calendly.com/soar-ai/demo'
         }
       }
     }));
@@ -838,7 +838,7 @@ console.log(campaignData,'campaignData')
                                 email: { ...prev.content.email, cta_link: e.target.value }
                               }
                             }))}
-                            placeholder="https://example.com/demo"
+                            placeholder="https://calendly.com/soar-ai/demo"
                             className="mt-1"
                           />
                         </div>
@@ -1112,43 +1112,93 @@ TechCorp Solutions can achieve complete travel governance without slowing down y
               <div>
                 <h3 className="text-xl font-semibold text-gray-900 mb-6">Final Content Review</h3>
 
-                <div className="bg-white border rounded-lg p-6">
-                  <h4 className="font-semibold text-gray-900 mb-4">Email Campaign:</h4>
+                <div className="bg-white border rounded-lg overflow-hidden">
+                  <div className="bg-gray-50 px-4 py-3 border-b">
+                    <h4 className="font-semibold text-gray-900">Email Preview</h4>
+                    <p className="text-sm text-gray-600 mt-1">This is how your email will appear to recipients</p>
+                  </div>
 
-                  <div className="space-y-4">
-                    {/* Subject Line */}
-                    <div>
-                      <div className="text-sm font-medium text-gray-700 mb-2">Subject:</div>
-                      <div className="bg-gray-50 p-3 rounded-md border text-sm font-medium">
-                        {campaignData.content.email.subject || campaignData.selectedTemplate?.subject_line || 'No subject line'}
+                  <div className="p-4">
+                    {/* Email Header Info */}
+                    <div className="bg-gray-50 p-3 rounded-md mb-4 text-sm">
+                      <div className="flex justify-between items-center mb-2">
+                        <span className="font-medium text-gray-700">Subject:</span>
+                        <span className="text-gray-900">
+                          {campaignData.content.email.subject || campaignData.selectedTemplate?.subject_line || 'No subject line'}
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="font-medium text-gray-700">From:</span>
+                        <span className="text-gray-900">SOAR-AI &lt;corporate@soar-ai.com&gt;</span>
                       </div>
                     </div>
 
-                    {/* Email Body Preview */}
-                    <div>
-                      <div className="text-sm font-medium text-gray-700 mb-2">Message:</div>
-                      <div className="bg-gray-50 p-4 rounded-md border text-sm leading-relaxed max-h-60 overflow-y-auto">
-                        <div className="whitespace-pre-wrap">
-                          {campaignData.content.email.body || campaignData.selectedTemplate?.content || 'No content available'}
-                        </div>
-                        {campaignData.content.email.cta && (
-                          <div className="mt-4">
-                            <div className="inline-block bg-blue-600 text-white px-4 py-2 rounded text-sm">
-                              {campaignData.content.email.cta}
+                    {/* Email Body Preview with proper styling */}
+                    <div className="border rounded-lg overflow-hidden bg-white">
+                      <iframe
+                        srcDoc={campaignData.content.email.body || `
+                          <div style="font-family: Arial, sans-serif; padding: 20px; background-color: #f5f7fb;">
+                            <div style="max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 6px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                              <div style="padding: 20px; text-align: center; background-color: #007bff; color: #ffffff;">
+                                <h2 style="margin: 0; font-size: 24px;">SOAR-AI</h2>
+                                <p style="margin: 8px 0 0 0; font-size: 14px; opacity: 0.9;">Corporate Travel Solutions</p>
+                              </div>
+                              <div style="padding: 24px; color: #333333; font-size: 16px; line-height: 24px;">
+                                <p>Preview not available. Please select a template to see the email preview.</p>
+                              </div>
+                              <div style="padding: 16px 20px; font-size: 12px; color: #8b94a6; text-align: center; background-color: #f1f1f1;">
+                                <p style="margin: 0;">&copy; ${new Date().getFullYear()} SOAR-AI. All rights reserved.</p>
+                              </div>
                             </div>
                           </div>
-                        )}
-                      </div>
+                        `}
+                        style={{
+                          width: '100%',
+                          height: '400px',
+                          border: 'none',
+                          borderRadius: '4px'
+                        }}
+                        title="Email Preview"
+                      />
                     </div>
 
-                    {/* Template Info */}
+                    {/* Template Info and Stats */}
                     {campaignData.selectedTemplate && (
-                      <div className="mt-4 p-3 bg-blue-50 rounded-md border border-blue-200">
-                        <div className="text-sm text-blue-800">
-                          <div className="font-medium mb-1">Template: {campaignData.selectedTemplate.name}</div>
-                          <div className="text-xs">
-                            Expected Open Rate: {campaignData.selectedTemplate.estimated_open_rate}% | 
-                            Click Rate: {campaignData.selectedTemplate.estimated_click_rate}%
+                      <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="p-3 bg-blue-50 rounded-md border border-blue-200">
+                          <div className="text-sm text-blue-800">
+                            <div className="font-medium mb-1">Template: {campaignData.selectedTemplate.name}</div>
+                            <div className="text-xs text-blue-600">
+                              {campaignData.selectedTemplate.description}
+                            </div>
+                          </div>
+                        </div>
+                        <div className="p-3 bg-green-50 rounded-md border border-green-200">
+                          <div className="text-sm text-green-800">
+                            <div className="font-medium mb-1">Expected Performance</div>
+                            <div className="text-xs text-green-600">
+                              Open Rate: {campaignData.selectedTemplate.estimated_open_rate}% | 
+                              Click Rate: {campaignData.selectedTemplate.estimated_click_rate}%
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* CTA Preview */}
+                    {campaignData.content.email.cta && (
+                      <div className="mt-4 p-3 bg-orange-50 rounded-md border border-orange-200">
+                        <div className="text-sm text-orange-800">
+                          <div className="font-medium mb-1">Call-to-Action</div>
+                          <div className="flex items-center gap-2">
+                            <span className="inline-block bg-orange-600 text-white px-3 py-1 rounded text-xs font-medium">
+                              {campaignData.content.email.cta}
+                            </span>
+                            {campaignData.content.email.cta_link && (
+                              <span className="text-xs text-orange-600">
+                                → {campaignData.content.email.cta_link}
+                              </span>
+                            )}
                           </div>
                         </div>
                       </div>
