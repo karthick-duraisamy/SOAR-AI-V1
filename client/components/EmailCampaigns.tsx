@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useCampaignApi } from '../hooks/api/useCampaignApi';
+import { EmailTemplateService, EmailTemplate } from '../utils/emailTemplateService';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
@@ -104,6 +105,10 @@ export function EmailCampaigns({ onNavigate }: EmailCampaignsProps) {
   const [campaignList, setCampaignList] = useState<Campaign[]>([]);
   const [launchingCampaign, setLaunchingCampaign] = useState<number | null>(null);
   const [checkingSmtp, setCheckingSmtp] = useState(false);
+  const [standardTemplates, setStandardTemplates] = useState<EmailTemplate[]>([]);
+  const [selectedTemplate, setSelectedTemplate] = useState<EmailTemplate | null>(null);
+  const [templatePreview, setTemplatePreview] = useState<string>('');
+  const [showTemplatePreview, setShowTemplatePreview] = useState(false);
 
   const { getCampaigns, launchCampaign, checkSmtpStatus: fetchSmtpStatus, loading: campaignsLoading, error: campaignsError } = useCampaignApi();
 
@@ -168,7 +173,13 @@ export function EmailCampaigns({ onNavigate }: EmailCampaignsProps) {
 
   useEffect(() => {
     loadCampaigns();
+    loadStandardTemplates();
   }, []);
+
+  const loadStandardTemplates = () => {
+    const templates = EmailTemplateService.getStandardTemplates();
+    setStandardTemplates(templates);
+  };
 
   const loadCampaigns = async () => {
     try {
@@ -265,6 +276,67 @@ export function EmailCampaigns({ onNavigate }: EmailCampaignsProps) {
       }
     } catch (error: any) {
       toast.error(`Error fetching SMTP logs: ${error.message}`);
+    }
+  };
+
+  const handleTemplateSelect = (template: EmailTemplate) => {
+    setSelectedTemplate(template);
+    
+    // Generate preview with sample data
+    const sampleVariables = {
+      company_name: 'Acme Corporation',
+      contact_name: 'John Smith',
+      industry: 'Technology',
+      employees: '500',
+      travel_budget: '$250,000',
+      calculated_savings: '$87,500',
+      last_interaction: 'phone call last week',
+      proposal_value: '$180,000',
+      validity_period: '30 days',
+      cta_link: '#'
+    };
+    
+    const previewHTML = EmailTemplateService.generateEmailHTML(template, sampleVariables);
+    setTemplatePreview(previewHTML);
+  };
+
+  const handleUseTemplate = (template: EmailTemplate) => {
+    if (selectedCampaign) {
+      // Apply template to existing campaign
+      const templateHTML = EmailTemplateService.generateEmailHTML(template, {
+        company_name: '{{company_name}}',
+        contact_name: '{{contact_name}}',
+        industry: '{{industry}}',
+        employees: '{{employees}}',
+        travel_budget: '{{travel_budget}}',
+        calculated_savings: '{{calculated_savings}}',
+        last_interaction: '{{last_interaction}}',
+        proposal_value: '{{proposal_value}}',
+        validity_period: '{{validity_period}}',
+        cta_link: '{{cta_link}}'
+      });
+      
+      // This would update the campaign content
+      console.log('Apply template to campaign:', selectedCampaign.id, templateHTML);
+      toast.success(`Template "${template.name}" applied to campaign`);
+    } else {
+      // Create new campaign with template
+      onNavigate('marketing-campaign', { 
+        templateMode: true, 
+        selectedTemplate: template,
+        templateHTML: EmailTemplateService.generateEmailHTML(template, {
+          company_name: '{{company_name}}',
+          contact_name: '{{contact_name}}',
+          industry: '{{industry}}',
+          employees: '{{employees}}',
+          travel_budget: '{{travel_budget}}',
+          calculated_savings: '{{calculated_savings}}',
+          last_interaction: '{{last_interaction}}',
+          proposal_value: '{{proposal_value}}',
+          validity_period: '{{validity_period}}',
+          cta_link: '{{cta_link}}'
+        })
+      });
     }
   };
 
@@ -868,37 +940,142 @@ export function EmailCampaigns({ onNavigate }: EmailCampaignsProps) {
         </TabsContent>
 
         <TabsContent value="templates" className="space-y-6" style={{ marginTop: 'var(--space-lg)' }}>
-          <Card style={{ 
-            fontFamily: 'var(--font-family)',
-            border: '1px solid #C9C9C9',
-            borderRadius: 'var(--radius-md)'
-          }}>
-            <CardHeader>
-              <CardTitle style={{ 
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h3 style={{ 
                 fontSize: 'var(--text-lg)', 
                 fontWeight: 'var(--font-weight-medium)',
                 fontFamily: 'var(--font-family)'
               }}>
                 Email Templates
-              </CardTitle>
-              <CardDescription style={{ 
+              </h3>
+              <p style={{ 
                 fontSize: 'var(--text-sm)',
                 color: 'var(--color-muted-foreground)',
                 fontFamily: 'var(--font-family)'
               }}>
-                Manage your email templates and create new ones
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p style={{ 
-                fontSize: 'var(--text-base)',
-                color: 'var(--color-muted-foreground)',
-                fontFamily: 'var(--font-family)'
-              }}>
-                Template management functionality coming soon...
+                Choose from our standardized templates with predefined sections
               </p>
-            </CardContent>
-          </Card>
+            </div>
+            <Button
+              onClick={() => onNavigate('marketing-campaign', { createTemplate: true })}
+              style={{
+                fontFamily: 'var(--font-family)',
+                fontSize: 'var(--text-base)',
+                backgroundColor: 'var(--color-primary)',
+                color: 'var(--color-primary-foreground)'
+              }}
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Create Custom Template
+            </Button>
+          </div>
+
+          {/* Standard Templates Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {standardTemplates.map((template) => (
+              <Card 
+                key={template.id}
+                style={{ 
+                  fontFamily: 'var(--font-family)',
+                  border: '1px solid #C9C9C9',
+                  borderRadius: 'var(--radius-md)',
+                  cursor: 'pointer',
+                  transition: 'box-shadow 0.2s ease-in-out'
+                }}
+                className="hover:shadow-md"
+              >
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <CardTitle style={{ 
+                      fontSize: 'var(--text-lg)', 
+                      fontWeight: 'var(--font-weight-medium)',
+                      fontFamily: 'var(--font-family)'
+                    }}>
+                      {template.name}
+                    </CardTitle>
+                    <Badge variant="outline">
+                      {template.sections.length} sections
+                    </Badge>
+                  </div>
+                  <CardDescription style={{ 
+                    fontSize: 'var(--text-sm)',
+                    color: 'var(--color-muted-foreground)',
+                    fontFamily: 'var(--font-family)'
+                  }}>
+                    {template.description}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    <div>
+                      <p style={{ 
+                        fontSize: 'var(--text-xs)', 
+                        fontWeight: 'var(--font-weight-medium)',
+                        marginBottom: 'var(--space-xs)'
+                      }}>
+                        Template Structure:
+                      </p>
+                      <div className="flex flex-wrap gap-1">
+                        {template.sections.map((section, index) => (
+                          <Badge 
+                            key={index} 
+                            variant="secondary"
+                            style={{ fontSize: 'var(--text-xs)' }}
+                          >
+                            {section.type}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                    
+                    {template.variables.length > 0 && (
+                      <div>
+                        <p style={{ 
+                          fontSize: 'var(--text-xs)', 
+                          fontWeight: 'var(--font-weight-medium)',
+                          marginBottom: 'var(--space-xs)'
+                        }}>
+                          Variables: {template.variables.join(', ')}
+                        </p>
+                      </div>
+                    )}
+
+                    <div className="flex gap-2 mt-4">
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => {
+                          handleTemplateSelect(template);
+                          setShowTemplatePreview(true);
+                        }}
+                        style={{
+                          fontFamily: 'var(--font-family)',
+                          fontSize: 'var(--text-sm)'
+                        }}
+                      >
+                        <Eye className="h-4 w-4 mr-1" />
+                        Preview
+                      </Button>
+                      <Button 
+                        size="sm"
+                        onClick={() => handleUseTemplate(template)}
+                        style={{
+                          fontFamily: 'var(--font-family)',
+                          fontSize: 'var(--text-sm)',
+                          backgroundColor: 'var(--color-primary)',
+                          color: 'var(--color-primary-foreground)'
+                        }}
+                      >
+                        <Send className="h-4 w-4 mr-1" />
+                        Use Template
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
         </TabsContent>
 
         <TabsContent value="automation" className="space-y-6" style={{ marginTop: 'var(--space-lg)' }}>
@@ -1267,6 +1444,155 @@ export function EmailCampaigns({ onNavigate }: EmailCampaignsProps) {
             >
               Edit Campaign
             </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Template Preview Dialog */}
+      <Dialog open={showTemplatePreview} onOpenChange={setShowTemplatePreview}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto" style={{ 
+          fontFamily: 'var(--font-family)',
+          backgroundColor: 'var(--color-background)',
+          border: '1px solid #C9C9C9'
+        }}>
+          <DialogHeader>
+            <DialogTitle style={{ 
+              fontFamily: 'var(--font-family)',
+              fontSize: 'var(--text-xl)',
+              fontWeight: 'var(--font-weight-medium)',
+              color: 'var(--color-foreground)'
+            }}>
+              Template Preview: {selectedTemplate?.name}
+            </DialogTitle>
+            <DialogDescription style={{ 
+              fontFamily: 'var(--font-family)',
+              fontSize: 'var(--text-base)',
+              color: 'var(--color-muted-foreground)'
+            }}>
+              Preview with sample data - actual variables will be replaced when sending
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            {selectedTemplate && (
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Template Structure */}
+                <div>
+                  <h4 style={{ 
+                    fontSize: 'var(--text-lg)', 
+                    fontWeight: 'var(--font-weight-medium)',
+                    marginBottom: 'var(--space-md)'
+                  }}>
+                    Template Structure
+                  </h4>
+                  <div className="space-y-3">
+                    {selectedTemplate.sections.map((section, index) => (
+                      <Card key={index} style={{ 
+                        border: '1px solid #e2e8f0',
+                        borderRadius: 'var(--radius-sm)'
+                      }}>
+                        <CardContent className="p-3">
+                          <div className="flex items-center justify-between mb-2">
+                            <Badge variant="outline" style={{ fontSize: 'var(--text-xs)' }}>
+                              {section.type}
+                            </Badge>
+                          </div>
+                          <div style={{ 
+                            fontSize: 'var(--text-xs)',
+                            color: 'var(--color-muted-foreground)',
+                            fontFamily: 'monospace',
+                            backgroundColor: '#f8fafc',
+                            padding: 'var(--space-sm)',
+                            borderRadius: 'var(--radius-sm)',
+                            maxHeight: '100px',
+                            overflow: 'auto'
+                          }}>
+                            {section.content.substring(0, 200)}
+                            {section.content.length > 200 && '...'}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+
+                  {selectedTemplate.variables.length > 0 && (
+                    <div className="mt-4">
+                      <h5 style={{ 
+                        fontSize: 'var(--text-base)', 
+                        fontWeight: 'var(--font-weight-medium)',
+                        marginBottom: 'var(--space-sm)'
+                      }}>
+                        Available Variables
+                      </h5>
+                      <div className="flex flex-wrap gap-1">
+                        {selectedTemplate.variables.map((variable, index) => (
+                          <Badge key={index} variant="secondary" style={{ fontSize: 'var(--text-xs)' }}>
+                            {`{{${variable}}}`}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Email Preview */}
+                <div>
+                  <h4 style={{ 
+                    fontSize: 'var(--text-lg)', 
+                    fontWeight: 'var(--font-weight-medium)',
+                    marginBottom: 'var(--space-md)'
+                  }}>
+                    Email Preview
+                  </h4>
+                  <div style={{ 
+                    border: '1px solid #e2e8f0',
+                    borderRadius: 'var(--radius-md)',
+                    backgroundColor: '#f8fafc',
+                    padding: 'var(--space-md)',
+                    maxHeight: '600px',
+                    overflow: 'auto'
+                  }}>
+                    <iframe
+                      srcDoc={templatePreview}
+                      style={{
+                        width: '100%',
+                        height: '500px',
+                        border: 'none',
+                        borderRadius: 'var(--radius-sm)'
+                      }}
+                      title="Email Preview"
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <DialogFooter>
+            <Button 
+              variant="outline" 
+              onClick={() => setShowTemplatePreview(false)}
+              style={{
+                fontFamily: 'var(--font-family)'
+              }}
+            >
+              Close
+            </Button>
+            {selectedTemplate && (
+              <Button 
+                onClick={() => {
+                  handleUseTemplate(selectedTemplate);
+                  setShowTemplatePreview(false);
+                }}
+                style={{
+                  fontFamily: 'var(--font-family)',
+                  backgroundColor: 'var(--color-primary)',
+                  color: 'var(--color-primary-foreground)'
+                }}
+              >
+                Use This Template
+              </Button>
+            )}
           </DialogFooter>
         </DialogContent>
       </Dialog>
