@@ -1,6 +1,6 @@
 
 export interface EmailTemplateSection {
-  type: 'header' | 'body' | 'footer' | 'cta' | 'spacer';
+  type: 'header' | 'body' | 'footer' | 'cta' | 'spacer' | 'hero' | 'intro';
   content: string;
   styles?: Record<string, string>;
 }
@@ -11,9 +11,110 @@ export interface EmailTemplate {
   description: string;
   sections: EmailTemplateSection[];
   variables: string[];
+  layout?: 'standard' | 'custom';
+}
+
+export interface StandardLayoutVariables {
+  subject?: string;
+  preheader?: string;
+  logo_url?: string;
+  company_name?: string;
+  main_heading?: string;
+  intro_paragraph?: string;
+  body_content?: string;
+  cta_url?: string;
+  cta_text?: string;
+  company_address?: string;
+  unsubscribe_url?: string;
+  year?: string;
 }
 
 export class EmailTemplateService {
+  private static standardLayoutTemplate = `<!doctype html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{subject}}</title>
+    <style>
+      /* CLIENT-SAFE, INLINE-FRIENDLY STYLES (keep minimal) */
+      body { margin:0; padding:0; -webkit-text-size-adjust:100%; -ms-text-size-adjust:100%; }
+      table { border-spacing:0; }
+      img { border:0; display:block; }
+      a { color:inherit; text-decoration:none; }
+      .wrapper { width:100%; background-color:#f5f7fb; padding:20px 0; }
+      .content { max-width:600px; margin:0 auto; background:#ffffff; border-radius:6px; overflow:hidden; }
+      .header { padding:20px; text-align:center; }
+      .logo { max-width:160px; height:auto; }
+      .preheader { display:none !important; visibility:hidden; opacity:0; color:transparent; height:0; width:0; }
+      .main { padding:24px; font-family:Arial, 'Helvetica Neue', Helvetica, sans-serif; color:#333333; font-size:16px; line-height:24px; }
+      .h1 { font-size:22px; margin:0 0 10px 0; color:#111827; }
+      .p { margin:0 0 16px 0; }
+      .button { display:inline-block; padding:12px 20px; border-radius:6px; background:#ff7a00; color:#ffffff; font-weight:600; }
+      .footer { padding:16px 20px; font-size:12px; color:#8b94a6; text-align:center; }
+      @media screen and (max-width:480px) {
+        .content { width:100% !important; border-radius:0; }
+        .main { padding:16px; }
+        .h1 { font-size:20px; }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Preheader: invisible preview text -->
+    <div class="preheader">{{preheader}}</div>
+
+    <table class="wrapper" width="100%" cellpadding="0" cellspacing="0" role="presentation">
+      <tr>
+        <td align="center">
+          <table class="content" width="600" cellpadding="0" cellspacing="0" role="presentation">
+
+            <!-- Header -->
+            <tr>
+              <td class="header">
+                <!-- Logo -->
+                <img src="{{logo_url}}" alt="{{company_name}}" class="logo" width="160" />
+              </td>
+            </tr>
+
+            <!-- Hero / Body -->
+            <tr>
+              <td class="main">
+                <!-- Main heading -->
+                <h1 class="h1">{{main_heading}}</h1>
+
+                <!-- Intro paragraph -->
+                <p class="p">{{intro_paragraph}}</p>
+
+                <!-- Content block (use for dynamic HTML/content) -->
+                <div>{{body_content}}</div>
+
+                <!-- CTA -->
+                <p style="margin-top:20px;">
+                  <a href="{{cta_url}}" class="button">{{cta_text}}</a>
+                </p>
+
+                <!-- Small note / fallback link -->
+                <p class="p" style="font-size:13px;color:#6b7280;">If the button doesn't work, copy and paste the following URL into your browser: <br /><a href="{{cta_url}}">{{cta_url}}</a></p>
+
+              </td>
+            </tr>
+
+            <!-- Footer -->
+            <tr>
+              <td class="footer">
+                <p style="margin:0 0 8px 0;">{{company_name}} • {{company_address}}</p>
+                <p style="margin:0 0 8px 0;">If you no longer wish to receive these emails, <a href="{{unsubscribe_url}}">unsubscribe</a>.</p>
+                <p style="margin:0;">&copy; {{year}} {{company_name}}. All rights reserved.</p>
+              </td>
+            </tr>
+
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>`;
+
   private static defaultStyles = {
     container: {
       fontFamily: 'Arial, sans-serif',
@@ -59,7 +160,40 @@ export class EmailTemplateService {
     }
   };
 
+  static generateStandardLayoutHTML(variables: StandardLayoutVariables): string {
+    let html = this.standardLayoutTemplate;
+    
+    // Set default values
+    const defaultVariables: StandardLayoutVariables = {
+      subject: variables.subject || 'SOAR-AI Email',
+      preheader: variables.preheader || 'Your corporate travel solution',
+      logo_url: variables.logo_url || 'https://via.placeholder.com/160x60/2563eb/ffffff?text=SOAR-AI',
+      company_name: variables.company_name || 'SOAR-AI',
+      main_heading: variables.main_heading || 'Welcome to SOAR-AI',
+      intro_paragraph: variables.intro_paragraph || 'We\'re excited to help transform your corporate travel experience.',
+      body_content: variables.body_content || '<p>Your content goes here...</p>',
+      cta_url: variables.cta_url || '#',
+      cta_text: variables.cta_text || 'Get Started',
+      company_address: variables.company_address || '123 Business Ave, City, State 12345',
+      unsubscribe_url: variables.unsubscribe_url || '#',
+      year: variables.year || new Date().getFullYear().toString()
+    };
+
+    // Replace all variables
+    Object.entries(defaultVariables).forEach(([key, value]) => {
+      const regex = new RegExp(`{{${key}}}`, 'g');
+      html = html.replace(regex, value || '');
+    });
+    
+    return html;
+  }
+
   static generateEmailHTML(template: EmailTemplate, variables: Record<string, string> = {}): string {
+    if (template.layout === 'standard') {
+      return this.generateStandardLayoutHTML(variables as StandardLayoutVariables);
+    }
+
+    // Fallback to old method for custom layouts
     let html = this.getBaseTemplate();
     
     // Replace template sections
@@ -196,9 +330,46 @@ export class EmailTemplateService {
   static getStandardTemplates(): EmailTemplate[] {
     return [
       {
+        id: 'corporate-welcome-standard',
+        name: 'Corporate Welcome (Standard Layout)',
+        description: 'Standard welcome template using the new layout structure',
+        layout: 'standard',
+        variables: [
+          'subject',
+          'preheader', 
+          'main_heading',
+          'intro_paragraph',
+          'body_content',
+          'cta_text',
+          'cta_url',
+          'company_name',
+          'company_address'
+        ],
+        sections: [] // Not used for standard layout
+      },
+      {
+        id: 'cost-savings-standard',
+        name: 'Cost Savings (Standard Layout)',
+        description: 'Cost savings template using the new layout structure',
+        layout: 'standard',
+        variables: [
+          'subject',
+          'preheader',
+          'main_heading', 
+          'intro_paragraph',
+          'body_content',
+          'cta_text',
+          'cta_url',
+          'company_name',
+          'company_address'
+        ],
+        sections: [] // Not used for standard layout
+      },
+      {
         id: 'corporate-welcome',
         name: 'Corporate Welcome Template',
         description: 'Standard welcome template for new corporate clients',
+        layout: 'custom',
         variables: ['company_name', 'contact_name', 'industry', 'employees'],
         sections: [
           {
@@ -239,150 +410,23 @@ export class EmailTemplateService {
             `
           }
         ]
-      },
-      {
-        id: 'cost-savings-focus',
-        name: 'Cost Savings Template',
-        description: 'Template emphasizing ROI and cost reduction benefits',
-        variables: ['company_name', 'contact_name', 'industry', 'travel_budget', 'calculated_savings'],
-        sections: [
-          {
-            type: 'header',
-            content: '{{company_name}}: Cut Travel Costs by 35%'
-          },
-          {
-            type: 'body',
-            content: `
-              <p>Hello {{contact_name}},</p>
-              
-              <p>Companies like {{company_name}} in the {{industry}} sector are saving an average of 35% on travel costs with SOAR-AI.</p>
-              
-              <div style="background-color: #f8fafc; padding: 20px; border-radius: 8px; margin: 20px 0;">
-                <h3 style="margin: 0 0 15px 0; color: #1e40af;">Your Potential Savings:</h3>
-                <p style="margin: 5px 0;"><strong>Current estimated budget:</strong> {{travel_budget}}</p>
-                <p style="margin: 5px 0;"><strong>Potential annual savings:</strong> <span style="color: #059669; font-weight: bold;">{{calculated_savings}}</span></p>
-                <p style="margin: 5px 0;"><strong>ROI timeline:</strong> 3-6 months</p>
-              </div>
-              
-              <p>Ready to start saving? Let's discuss your specific travel needs.</p>
-            `
-          },
-          {
-            type: 'cta',
-            content: '<a href="{{cta_link}}" class="cta-button">Get Your Savings Report</a>'
-          },
-          {
-            type: 'footer',
-            content: `
-              <p>Best regards,<br>
-              The SOAR-AI Sales Team</p>
-              
-              <p>© 2024 SOAR-AI. All rights reserved.<br>
-              <a href="#" style="color: #64748b;">Unsubscribe</a> | <a href="#" style="color: #64748b;">Privacy Policy</a></p>
-            `
-          }
-        ]
-      },
-      {
-        id: 'follow-up-template',
-        name: 'Follow-up Template',
-        description: 'Standard follow-up template for existing prospects',
-        variables: ['company_name', 'contact_name', 'last_interaction'],
-        sections: [
-          {
-            type: 'header',
-            content: 'Following up on our conversation'
-          },
-          {
-            type: 'body',
-            content: `
-              <p>Hi {{contact_name}},</p>
-              
-              <p>I hope this email finds you well. I wanted to follow up on our {{last_interaction}} regarding {{company_name}}'s corporate travel needs.</p>
-              
-              <p>Since our last conversation, we've helped several companies in your industry achieve:</p>
-              
-              <ul>
-                <li>Significant cost reductions on business travel</li>
-                <li>Improved travel policy compliance</li>
-                <li>Better employee satisfaction with travel experiences</li>
-              </ul>
-              
-              <p>I'd love to show you how we can deliver similar results for {{company_name}}.</p>
-            `
-          },
-          {
-            type: 'cta',
-            content: '<a href="{{cta_link}}" class="cta-button">Schedule a Quick Call</a>'
-          },
-          {
-            type: 'footer',
-            content: `
-              <p>Best regards,<br>
-              Your SOAR-AI Account Manager</p>
-              
-              <p>© 2024 SOAR-AI. All rights reserved.<br>
-              <a href="#" style="color: #64748b;">Unsubscribe</a> | <a href="#" style="color: #64748b;">Privacy Policy</a></p>
-            `
-          }
-        ]
-      },
-      {
-        id: 'proposal-template',
-        name: 'Proposal Submission Template',
-        description: 'Template for sending proposals to prospects',
-        variables: ['company_name', 'contact_name', 'proposal_value', 'validity_period'],
-        sections: [
-          {
-            type: 'header',
-            content: 'Your Corporate Travel Proposal is Ready'
-          },
-          {
-            type: 'body',
-            content: `
-              <p>Dear {{contact_name}},</p>
-              
-              <p>Thank you for your interest in SOAR-AI's corporate travel solutions. I'm pleased to present our customized proposal for {{company_name}}.</p>
-              
-              <div style="background-color: #f0f9ff; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #2563eb;">
-                <h3 style="margin: 0 0 15px 0; color: #1e40af;">Proposal Highlights:</h3>
-                <p style="margin: 5px 0;"><strong>Proposed Solution Value:</strong> {{proposal_value}}</p>
-                <p style="margin: 5px 0;"><strong>Estimated Annual Savings:</strong> Up to 35%</p>
-                <p style="margin: 5px 0;"><strong>Implementation Timeline:</strong> 2-4 weeks</p>
-                <p style="margin: 5px 0;"><strong>Proposal Valid Until:</strong> {{validity_period}}</p>
-              </div>
-              
-              <p>This proposal includes detailed pricing, implementation plan, and expected ROI for your organization.</p>
-            `
-          },
-          {
-            type: 'cta',
-            content: '<a href="{{cta_link}}" class="cta-button">View Full Proposal</a>'
-          },
-          {
-            type: 'spacer'
-          },
-          {
-            type: 'body',
-            content: `
-              <p style="font-size: 12px; color: #64748b; text-align: center;">
-                Have questions? Reply to this email or call us at +1 (555) 123-4567
-              </p>
-            `
-          },
-          {
-            type: 'footer',
-            content: `
-              <p>Best regards,<br>
-              The SOAR-AI Proposals Team</p>
-              
-              <p>© 2024 SOAR-AI. All rights reserved.<br>
-              <a href="#" style="color: #64748b;">Unsubscribe</a> | <a href="#" style="color: #64748b;">Privacy Policy</a></p>
-            `
-          }
-        ]
       }
     ];
+  }
+
+  static createStandardLayoutTemplate(
+    name: string,
+    description: string,
+    templateVariables: StandardLayoutVariables
+  ): EmailTemplate {
+    return {
+      id: `standard-${Date.now()}`,
+      name,
+      description,
+      layout: 'standard',
+      sections: [], // Not used for standard layout
+      variables: Object.keys(templateVariables)
+    };
   }
 
   static createCustomTemplate(
@@ -421,6 +465,7 @@ export class EmailTemplateService {
       id: `custom-${Date.now()}`,
       name,
       description,
+      layout: 'custom',
       sections,
       variables
     };
@@ -447,29 +492,48 @@ export class EmailTemplateService {
       errors.push('Template name is required');
     }
 
-    if (!template.sections || template.sections.length === 0) {
-      errors.push('Template must have at least one section');
-    }
+    if (template.layout === 'custom') {
+      if (!template.sections || template.sections.length === 0) {
+        errors.push('Custom template must have at least one section');
+      }
 
-    const hasHeader = template.sections.some(section => section.type === 'header');
-    const hasBody = template.sections.some(section => section.type === 'body');
-    const hasFooter = template.sections.some(section => section.type === 'footer');
+      const hasHeader = template.sections.some(section => section.type === 'header');
+      const hasBody = template.sections.some(section => section.type === 'body');
+      const hasFooter = template.sections.some(section => section.type === 'footer');
 
-    if (!hasHeader) {
-      errors.push('Template should have a header section');
-    }
+      if (!hasHeader) {
+        errors.push('Custom template should have a header section');
+      }
 
-    if (!hasBody) {
-      errors.push('Template must have a body section');
-    }
+      if (!hasBody) {
+        errors.push('Custom template must have a body section');
+      }
 
-    if (!hasFooter) {
-      errors.push('Template should have a footer section');
+      if (!hasFooter) {
+        errors.push('Custom template should have a footer section');
+      }
     }
 
     return {
       isValid: errors.length === 0,
       errors
     };
+  }
+
+  static getStandardLayoutVariables(): string[] {
+    return [
+      'subject',
+      'preheader',
+      'logo_url',
+      'company_name',
+      'main_heading',
+      'intro_paragraph',
+      'body_content',
+      'cta_url',
+      'cta_text',
+      'company_address',
+      'unsubscribe_url',
+      'year'
+    ];
   }
 }

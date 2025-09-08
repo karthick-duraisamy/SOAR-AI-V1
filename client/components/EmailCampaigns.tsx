@@ -72,6 +72,10 @@ import {
   UserCheck
 } from 'lucide-react';
 import { toast } from 'react-toastify';
+import RichTextEditor from './RichTextEditor';
+import { Separator } from './ui/separator';
+import { formatDate } from '../utils/dateFormatter';
+import StandardEmailTemplateCreator from './StandardEmailTemplateCreator';
 
 
 interface EmailCampaignsProps {
@@ -109,6 +113,15 @@ export function EmailCampaigns({ onNavigate }: EmailCampaignsProps) {
   const [selectedTemplate, setSelectedTemplate] = useState<EmailTemplate | null>(null);
   const [templatePreview, setTemplatePreview] = useState<string>('');
   const [showTemplatePreview, setShowTemplatePreview] = useState(false);
+  const [showCreateTemplate, setShowCreateTemplate] = useState(false);
+  const [showCreateStandardTemplate, setShowCreateStandardTemplate] = useState(false);
+  const [newTemplate, setNewTemplate] = useState({
+    name: '',
+    description: '',
+    subject: '',
+    content: '',
+    variables: [] as string[],
+  });
 
   const { getCampaigns, launchCampaign, checkSmtpStatus: fetchSmtpStatus, loading: campaignsLoading, error: campaignsError } = useCampaignApi();
 
@@ -281,7 +294,7 @@ export function EmailCampaigns({ onNavigate }: EmailCampaignsProps) {
 
   const handleTemplateSelect = (template: EmailTemplate) => {
     setSelectedTemplate(template);
-    
+
     // Generate preview with sample data
     const sampleVariables = {
       company_name: 'Acme Corporation',
@@ -295,7 +308,7 @@ export function EmailCampaigns({ onNavigate }: EmailCampaignsProps) {
       validity_period: '30 days',
       cta_link: '#'
     };
-    
+
     const previewHTML = EmailTemplateService.generateEmailHTML(template, sampleVariables);
     setTemplatePreview(previewHTML);
   };
@@ -315,7 +328,7 @@ export function EmailCampaigns({ onNavigate }: EmailCampaignsProps) {
         validity_period: '{{validity_period}}',
         cta_link: '{{cta_link}}'
       });
-      
+
       // This would update the campaign content
       console.log('Apply template to campaign:', selectedCampaign.id, templateHTML);
       toast.success(`Template "${template.name}" applied to campaign`);
@@ -384,6 +397,150 @@ export function EmailCampaigns({ onNavigate }: EmailCampaignsProps) {
     if (campaign.open_rate >= 50) return 'high';
     if (campaign.open_rate >= 25) return 'medium';
     return 'low';
+  };
+
+  // Placeholder for extractCTA function
+  const extractCTA = (content: string): string => {
+    // Simple regex to find a link, could be more sophisticated
+    const match = content.match(/<a\s+[^>]*href=["']([^"']*)["'][^>]*>(.*?)<\/a>/i);
+    return match ? match[2] : 'Learn More';
+  };
+
+  const fetchTemplates = async () => {
+    try {
+      const response = await fetch('http://localhost:8000/api/campaign-templates/');
+      if (!response.ok) {
+        throw new Error('Failed to fetch templates');
+      }
+      const data = await response.json();
+      // Assuming the API returns templates with id, name, description, subject_line, content, etc.
+      // And we need to map them to our EmailTemplate structure
+      const formattedTemplates: EmailTemplate[] = data.map((templateData: any) => {
+        // Attempt to parse content as JSON if it's a standard layout template
+        let variables: string[] = [];
+        let sections = [];
+        if (templateData.is_standard_layout && templateData.content) {
+          try {
+            const parsedContent = JSON.parse(templateData.content);
+            variables = Object.keys(parsedContent);
+            // Example of creating sections from variables (adjust as needed)
+            sections = Object.keys(parsedContent).map(key => ({
+              type: key.replace('_', ' ').toUpperCase(),
+              content: `This is the content for ${key}`
+            }));
+          } catch (e) {
+            console.error("Error parsing standard template content:", e);
+            sections = [{ type: 'GENERAL', content: templateData.content }];
+          }
+        } else {
+          // For custom templates, assume content is HTML and parse sections crudely
+          sections = [{ type: 'CUSTOM', content: templateData.content }];
+        }
+
+        return {
+          id: templateData.id,
+          name: templateData.name,
+          description: templateData.description,
+          variables: variables,
+          sections: sections,
+          // Map other properties as needed
+        };
+      });
+      setStandardTemplates(formattedTemplates);
+    } catch (error) {
+      console.error('Error fetching templates:', error);
+      // Handle error, maybe show a toast or set an error state
+    }
+  };
+
+  const handleCreateTemplate = () => {
+    setShowCreateTemplate(true);
+  };
+
+  const handleCreateStandardTemplate = () => {
+    setShowCreateStandardTemplate(true);
+  };
+
+  const handleCancelTemplate = () => {
+    setShowCreateTemplate(false);
+    setShowCreateStandardTemplate(false);
+    setNewTemplate({
+      name: '',
+      description: '',
+      subject: '',
+      content: '',
+      variables: []
+    });
+  };
+
+  const handleSaveTemplate = async () => {
+    if (!newTemplate.name.trim()) {
+      alert('Please enter a template name');
+      return;
+    }
+
+    try {
+      const templateData = {
+        name: newTemplate.name,
+        description: newTemplate.description,
+        subject_line: newTemplate.subject,
+        content: newTemplate.content,
+        channel_type: 'email',
+        target_industry: 'All',
+        cta: extractCTA(newTemplate.content),
+        estimated_open_rate: 40.0,
+        estimated_click_rate: 10.0
+      };
+
+      await fetch('http://localhost:8000/api/campaign-templates/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(templateData),
+      });
+
+      // Refresh templates
+      fetchTemplates();
+      handleCancelTemplate();
+      alert('Template saved successfully!');
+    } catch (error) {
+      console.error('Error saving template:', error);
+      alert('Error saving template');
+    }
+  };
+
+  const handleSaveStandardTemplate = async (template: any) => {
+    try {
+      const templateData = {
+        name: template.name,
+        description: template.description,
+        subject_line: template.variables.subject || 'Standard Email',
+        content: JSON.stringify(template.variables), // Store variables as JSON
+        channel_type: 'email',
+        target_industry: 'All',
+        cta: template.variables.cta_text || 'Get Started',
+        estimated_open_rate: 40.0,
+        estimated_click_rate: 10.0,
+        is_standard_layout: true // Flag to identify standard layout templates
+      };
+
+      await fetch('http://localhost:8000/api/campaign-templates/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(templateData),
+      });
+
+      // Refresh templates
+      fetchTemplates();
+      handleCancelTemplate();
+      alert('Standard template saved successfully!');
+    } catch (error) {
+      console.error('Error saving standard template:', error);
+      alert('Error saving standard template');
+    }
   };
 
   return (
@@ -957,18 +1114,16 @@ export function EmailCampaigns({ onNavigate }: EmailCampaignsProps) {
                 Choose from our standardized templates with predefined sections
               </p>
             </div>
-            <Button
-              onClick={() => onNavigate('marketing-campaign', { createTemplate: true })}
-              style={{
-                fontFamily: 'var(--font-family)',
-                fontSize: 'var(--text-base)',
-                backgroundColor: 'var(--color-primary)',
-                color: 'var(--color-primary-foreground)'
-              }}
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              Create Custom Template
-            </Button>
+            <div className="flex gap-3 mb-6">
+              <Button onClick={handleCreateStandardTemplate}>
+                <Plus className="h-4 w-4 mr-2" />
+                Create Standard Template
+              </Button>
+              <Button variant="outline" onClick={handleCreateTemplate}>
+                <Plus className="h-4 w-4 mr-2" />
+                Create Custom Template
+              </Button>
+            </div>
           </div>
 
           {/* Standard Templates Grid */}
@@ -1028,7 +1183,7 @@ export function EmailCampaigns({ onNavigate }: EmailCampaignsProps) {
                         ))}
                       </div>
                     </div>
-                    
+
                     {template.variables.length > 0 && (
                       <div>
                         <p style={{ 
@@ -1596,6 +1751,110 @@ export function EmailCampaigns({ onNavigate }: EmailCampaignsProps) {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {showCreateStandardTemplate && (
+        <StandardEmailTemplateCreator
+          onSave={handleSaveStandardTemplate}
+          onCancel={handleCancelTemplate}
+        />
+      )}
+
+      {showCreateTemplate && (
+        <Dialog open={showCreateTemplate} onOpenChange={setShowCreateTemplate}>
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto" style={{ 
+            fontFamily: 'var(--font-family)',
+            backgroundColor: 'var(--color-background)',
+            border: '1px solid #C9C9C9'
+          }}>
+            <DialogHeader>
+              <DialogTitle style={{ 
+                fontFamily: 'var(--font-family)',
+                fontSize: 'var(--text-xl)',
+                fontWeight: 'var(--font-weight-medium)',
+                color: 'var(--color-foreground)'
+              }}>
+                Create New Email Template
+              </DialogTitle>
+              <DialogDescription style={{ 
+                fontFamily: 'var(--font-family)',
+                fontSize: 'var(--text-base)',
+                color: 'var(--color-muted-foreground)'
+              }}>
+                Define your custom email template
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div className="space-y-4">
+                <Label htmlFor="template-name">Template Name</Label>
+                <Input
+                  id="template-name"
+                  value={newTemplate.name}
+                  onChange={(e) => setNewTemplate({ ...newTemplate, name: e.target.value })}
+                  placeholder="e.g., Welcome Email"
+                  style={{ fontFamily: 'var(--font-family)' }}
+                />
+
+                <Label htmlFor="template-description">Description</Label>
+                <Input
+                  id="template-description"
+                  value={newTemplate.description}
+                  onChange={(e) => setNewTemplate({ ...newTemplate, description: e.target.value })}
+                  placeholder="Briefly describe the template"
+                  style={{ fontFamily: 'var(--font-family)' }}
+                />
+
+                <Label htmlFor="template-subject">Subject Line</Label>
+                <Input
+                  id="template-subject"
+                  value={newTemplate.subject}
+                  onChange={(e) => setNewTemplate({ ...newTemplate, subject: e.target.value })}
+                  placeholder="e.g., Your Weekly Newsletter"
+                  style={{ fontFamily: 'var(--font-family)' }}
+                />
+              </div>
+
+              <div className="space-y-4">
+                <Label htmlFor="template-variables">Variables (comma-separated)</Label>
+                <Input
+                  id="template-variables"
+                  value={newTemplate.variables.join(', ')}
+                  onChange={(e) => setNewTemplate({ ...newTemplate, variables: e.target.value.split(',').map(v => v.trim()).filter(v => v) })}
+                  placeholder="e.g., {{name}}, {{company}}, {{date}}"
+                  style={{ fontFamily: 'var(--font-family)' }}
+                />
+
+                <Label htmlFor="template-content">Email Content</Label>
+                <RichTextEditor 
+                  content={newTemplate.content} 
+                  onChange={(htmlContent) => setNewTemplate({ ...newTemplate, content: htmlContent })} 
+                />
+              </div>
+            </div>
+
+            <DialogFooter>
+              <Button 
+                variant="outline" 
+                onClick={handleCancelTemplate}
+                style={{ fontFamily: 'var(--font-family)' }}
+              >
+                Cancel
+              </Button>
+              <Button 
+                onClick={handleSaveTemplate}
+                style={{
+                  fontFamily: 'var(--font-family)',
+                  backgroundColor: 'var(--color-primary)',
+                  color: 'var(--color-primary-foreground)'
+                }}
+              >
+                <Save className="h-4 w-4 mr-1" />
+                Save Template
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 }
