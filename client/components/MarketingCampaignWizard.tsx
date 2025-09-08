@@ -406,8 +406,93 @@ export function MarketingCampaignWizard({ onNavigate, initialCampaignData, editM
       // Ensure template data is properly integrated
       const template = campaignData.selectedTemplate;
       
-      // Get the rendered HTML content from the campaign data
-      const renderedContent = campaignData.content?.email?.body || '';
+      // Get the rendered HTML content from the campaign data or re-render if needed
+      let renderedContent = campaignData.content?.email?.body || '';
+      
+      // If no rendered content exists but we have a template, render it now
+      if (!renderedContent && template) {
+        const subject = campaignData.content?.email?.subject || template.subject_line || `Partnership Opportunity - ${template.name}`;
+        const ctaLink = campaignData.content?.email?.cta_link || template.cta_link || 'https://soarai.infinitisoftware.net/';
+        
+        // Re-render the email template
+        renderedContent = `
+          <!DOCTYPE html>
+          <html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+          <head>
+            <meta charset="utf-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>${subject}</title>
+            <style>
+              /* CLIENT-SAFE, INLINE-FRIENDLY STYLES */
+              body { margin:0; padding:0; -webkit-text-size-adjust:100%; -ms-text-size-adjust:100%; font-family: Arial, sans-serif; }
+              table { border-spacing:0; }
+              img { border:0; display:block; }
+              a { color:inherit; text-decoration:none; }
+              .wrapper { width:100%; background-color:#f5f7fb; padding:20px 0; }
+              .content { max-width:600px; margin:0 auto; background:#ffffff; border-radius:6px; overflow:hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+              .header { padding:20px; text-align:center; background-color:#007bff; color:#ffffff; }
+              .main { padding:24px; font-family:Arial, 'Helvetica Neue', Helvetica, sans-serif; color:#333333; font-size:16px; line-height:24px; }
+              .h1 { font-size:22px; margin:0 0 16px 0; color:#111827; font-weight:600; }
+              .p { margin:0 0 16px 0; }
+              .button { display:inline-block; padding:12px 24px; border-radius:6px; background:#007bff; color:#ffffff; font-weight:600; text-decoration:none; margin:20px 0; }
+              .button:hover { background:#0056b3; }
+              .footer { padding:16px 20px; font-size:12px; color:#8b94a6; text-align:center; background-color:#f1f1f1; }
+              .cta-container { text-align:center; margin:24px 0; }
+              @media screen and (max-width:480px) {
+                .content { width:100% !important; border-radius:0; margin:0; }
+                .main { padding:16px; }
+                .h1 { font-size:20px; }
+                .header { padding:16px; }
+              }
+            </style>
+          </head>
+          <body>
+            <div class="wrapper">
+              <table class="content" width="600" cellpadding="0" cellspacing="0" role="presentation">
+                <!-- Header -->
+                <tr>
+                  <td class="header">
+                    <h2 style="margin:0; font-size:24px;">SOAR-AI</h2>
+                    <p style="margin:8px 0 0 0; font-size:14px; opacity:0.9;">Corporate Travel Solutions</p>
+                  </td>
+                </tr>
+
+                <!-- Main Content -->
+                <tr>
+                  <td class="main">
+                    <div>${template.content || ''}</div>
+
+                    ${(template.cta && ctaLink && ctaLink !== '#') ? `
+                    <div class="cta-container">
+                      <a href="${ctaLink}" class="button" target="_blank">
+                        ${template.cta}
+                      </a>
+                    </div>
+                    <p class="p" style="font-size:13px;color:#6b7280;">
+                      If the button doesn't work, copy and paste the following URL into your browser: <br />
+                      <a href="${ctaLink}" style="color:#007bff;">${ctaLink}</a>
+                    </p>
+                    ` : ''}
+                  </td>
+                </tr>
+
+                <!-- Footer -->
+                <tr>
+                  <td class="footer">
+                    <p style="margin:0 0 8px 0;">SOAR-AI • Transforming Corporate Travel</p>
+                    <p style="margin:0 0 8px 0;">
+                      <a href="#" style="color:#8b94a6;">Unsubscribe</a> | 
+                      <a href="#" style="color:#8b94a6;">Privacy Policy</a>
+                    </p>
+                    <p style="margin:0;">&copy; ${new Date().getFullYear()} SOAR-AI. All rights reserved.</p>
+                  </td>
+                </tr>
+              </table>
+            </div>
+          </body>
+          </html>
+        `;
+      }
       
       // Prepare enhanced campaign data for API with template integration
       const campaignPayload = {
