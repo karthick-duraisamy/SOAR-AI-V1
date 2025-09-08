@@ -239,7 +239,7 @@ export function MarketingCampaignWizard({ onNavigate, initialCampaignData, editM
               <td class="main">
                 <div>${content}</div>
 
-                ${cta && ctaLink ? `
+                ${cta && ctaLink && ctaLink !== '#' ? `
                 <div class="cta-container">
                   <a href="${ctaLink}" class="button" target="_blank">
                     ${cta}
@@ -271,10 +271,11 @@ export function MarketingCampaignWizard({ onNavigate, initialCampaignData, editM
     `;
 
     const subject = template.subject_line || `Partnership Opportunity - ${template.name}`;
+    const ctaLink = campaignData.content?.email?.cta_link || template.cta_link || 'https://soarai.infinitisoftware.net/';
     const renderedContent = renderEmailTemplate(
       template.content || '', 
       template.cta || 'Learn More', 
-      template.cta_link || '#',
+      ctaLink,
       subject
     );
 
@@ -290,7 +291,7 @@ export function MarketingCampaignWizard({ onNavigate, initialCampaignData, editM
           subject: subject,
           body: renderedContent,
           cta: template.cta || 'Learn More',
-          cta_link: template.cta_link || 'https://calendly.com/soar-ai/demo'
+          cta_link: ctaLink
         }
       }
     }));

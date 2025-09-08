@@ -596,25 +596,8 @@ class EmailCampaign(models.Model):
                 rendered_subject = subject_template.render(context)
                 rendered_content = content_template.render(context)
 
-                # Extract CTA from email content or use campaign CTA
-                cta_text = None
-                if '{{cta_button}}' in rendered_content or '{{cta}}' in rendered_content:
-                    # Check if there's CTA info from the campaign data
-                    import re
-                    # Try to extract CTA from the campaign launch request data
-                    cta_text = getattr(self, '_temp_cta_text', None)
-
-                # Construct CTA button with link if available
-                cta_button_html = ""
-                if cta_text and self.cta_link:
-                    cta_button_html = f'<p style="text-align: center; margin: 20px 0;"><a href="{self.cta_link}" style="background-color: #4CAF50; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block; font-weight: bold;">{cta_text}</a></p>'
-                elif cta_text:
-                    cta_button_html = f'<p style="text-align: center; margin: 20px 0;"><span style="background-color: #cccccc; color: white; padding: 12px 24px; border-radius: 5px; display: inline-block; font-weight: bold;">{cta_text}</span></p>'
-
-                # Inject CTA button into email content
-                rendered_content_with_cta = rendered_content.replace(
-                    '{{cta_button}}',
-                    cta_button_html).replace('{{cta}}', cta_button_html)
+                # Use the rendered content as-is since CTA is already embedded in the HTML template
+                rendered_content_with_cta = rendered_content
 
                 # Create tracking record
                 tracking, created = EmailTracking.objects.get_or_create(
