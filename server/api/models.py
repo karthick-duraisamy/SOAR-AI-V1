@@ -343,20 +343,12 @@ class Contract(models.Model):
         ('other', 'Other'),
     ]
 
-    opportunity = models.OneToOneField(Opportunity,
-                                       on_delete=models.CASCADE,
-                                       related_name='contract',
-                                       null=True,
-                                       blank=True)
+    opportunity = models.OneToOneField(Opportunity, on_delete=models.CASCADE, related_name='contract', null=True, blank=True)
     company = models.ForeignKey(Company, on_delete=models.CASCADE)
     contract_number = models.CharField(max_length=50, unique=True)
     title = models.CharField(max_length=255)
-    contract_type = models.CharField(max_length=30,
-                                     choices=CONTRACT_TYPES,
-                                     default='corporate_travel')
-    status = models.CharField(max_length=20,
-                              choices=CONTRACT_STATUS_CHOICES,
-                              default='draft')
+    contract_type = models.CharField(max_length=30, choices=CONTRACT_TYPES, default='corporate_travel')
+    status = models.CharField(max_length=20, choices=CONTRACT_STATUS_CHOICES, default='draft')
     start_date = models.DateField()
     end_date = models.DateField()
     value = models.DecimalField(max_digits=12, decimal_places=2)
@@ -365,12 +357,19 @@ class Contract(models.Model):
     auto_renewal = models.BooleanField(default=False)
     notice_period_days = models.IntegerField(default=30)
     risk_score = models.IntegerField(default=0)
+    sla_requirements = models.TextField(blank=True)
+    payment_terms_days = models.IntegerField(default=30)
+    performance_bonus = models.BooleanField(default=False)
+    exclusivity = models.BooleanField(default=False)
+    custom_clauses = models.TextField(blank=True)
+    client_department = models.CharField(max_length=100, blank=True)
+    company_email = models.EmailField(blank=True)
+    comments = models.JSONField(default=list, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return f"{self.contract_number} - {self.title}"
-
 
 class ContractBreach(models.Model):
     BREACH_TYPES = [
@@ -389,24 +388,18 @@ class ContractBreach(models.Model):
         ('critical', 'Critical'),
     ]
 
-    contract = models.ForeignKey(Contract,
-                                 on_delete=models.CASCADE,
-                                 related_name='breaches')
+    contract = models.ForeignKey(Contract, on_delete=models.CASCADE, related_name='breaches')
     breach_type = models.CharField(max_length=20, choices=BREACH_TYPES)
     severity = models.CharField(max_length=10, choices=SEVERITY_LEVELS)
     description = models.TextField()
     detected_date = models.DateTimeField(auto_now_add=True)
     resolved_date = models.DateTimeField(null=True, blank=True)
     is_resolved = models.BooleanField(default=False)
-    financial_impact = models.DecimalField(max_digits=10,
-                                           decimal_places=2,
-                                           null=True,
-                                           blank=True)
+    financial_impact = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     resolution_notes = models.TextField(blank=True)
 
     def __str__(self):
         return f"Breach: {self.contract.contract_number} - {self.breach_type}"
-
 
 class CampaignTemplate(models.Model):
     CHANNEL_TYPE_CHOICES = [

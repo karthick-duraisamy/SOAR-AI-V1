@@ -3659,3 +3659,914 @@ def campaign_analytics(request):
             'success': False,
             'error': str(e)
         }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class ContractViewSet(viewsets.ModelViewSet):
+    queryset = Contract.objects.all()
+    serializer_class = ContractSerializer
+
+    def get_queryset(self):
+        """Return contracts with company info"""
+        return Contract.objects.select_related('company').all().order_by(
+            '-created_at')
+
+    def get_object(self):
+        """Get contract by ID or contract_number"""
+        lookup_value = self.kwargs.get('pk')
+
+        try:
+            # First try to get by database ID
+            if lookup_value.isdigit():
+                return Contract.objects.select_related('company').get(
+                    id=int(lookup_value))
+            else:
+                # Try to get by contract_number
+                return Contract.objects.select_related('company').get(
+                    contract_number=lookup_value)
+        except Contract.DoesNotExist:
+            # Fallback to default behavior
+            return super().get_object()
+
+    def list(self, request, *args, **kwargs):
+        """Override list to return formatted contract data"""
+        try:
+            # Add request tracking
+            print(f"ContractViewSet.list called - Request ID: {id(request)}")
+            
+            # Get all contracts with related company data
+            contracts = Contract.objects.select_related('company').all().order_by('-created_at')
+            
+            print(f"Database query executed - Found {contracts.count()} contracts")
+            
+            # If no contracts found, return empty array
+            if not contracts.exists():
+                print("No contracts found in database")
+                return Response([], status=200)
+
+            # Format data for frontend compatibility
+            formatted_contracts = []
+            for contract in contracts:
+                try:
+                    # Safely handle the formatting with more defensive checks
+                    contract_id = getattr(contract, 'contract_number', None) or f"CTR-{getattr(contract, 'id', 'unknown')}"
+                    company_name = getattr(contract.company, 'name', 'Unknown Company') if contract.company else 'Unknown Company'
+                    
+                    formatted_contract = {
+                        'id': contract_id,
+                        'vendor': company_name,
+                        'client': getattr(contract, 'client_department', None) or 'SOAR-AI Airlines',
+                        'type': getattr(contract, 'title', None) or 'Contract',
+                        'value': float(getattr(contract, 'value', 0)) if getattr(contract, 'value', None) else 0,
+                        'status': getattr(contract, 'status', 'draft'),
+                        'startDate': contract.start_date.strftime('%Y-%m-%d') if getattr(contract, 'start_date', None) else None,
+                        'endDate': contract.end_date.strftime('%Y-%m-%d') if getattr(contract, 'end_date', None) else None,
+                        'signedDate': None,
+                        'progress': 75 if getattr(contract, 'status', '') == 'active' else 50 if getattr(contract, 'status', '') == 'pending_signature' else 25,
+                        'nextAction': self._get_next_action(getattr(contract, 'status', 'draft')),
+                        'documents': 1,
+                        'breachRisk': self._calculate_breach_risk(contract),
+                        'breachCount': 0,  # Simplified for now to avoid errors
+                        'parties': [company_name],
+                        'attachedOffer': None,
+                        'milestones': [{
+                            'name': 'Contract Creation',
+                            'date': contract.start_date.strftime('%Y-%m-%d') if getattr(contract, 'start_date', None) else None,
+                            'status': 'completed'
+                        }],
+                        'comments': getattr(contract, 'comments', []) if isinstance(getattr(contract, 'comments', []), list) else [],
+                        'attachments': self._get_contract_documents_safe(contract),
+                        'lastActivity': contract.updated_at.strftime('%Y-%m-%d') if getattr(contract, 'updated_at', None) else None,
+                        'performanceScore': 85,
+                        'slaCompliance': 92,
+                        'customerSatisfaction': 4.2,
+                        'costEfficiency': 88,
+                        'breachHistory': [],
+                        'marketPosition': 'Preferred',
+                        'alternativeVendors': [],
+                        'financialHealth': 'Good',
+                        'technicalCapability': 'Advanced',
+                        'relationshipScore': 87,
+                        'terms': getattr(contract, 'terms', None) or 'Standard terms and conditions',
+                        'description': f"Contract with {company_name}"
+                    }
+                    formatted_contracts.append(formatted_contract)
+                    print(f"Successfully formatted contract: {contract_id}")
+
+                except Exception as contract_error:
+                    print(f"Error formatting contract {getattr(contract, 'id', 'unknown')}: {str(contract_error)}")
+                    # Continue processing other contracts instead of failing completely
+                    continue
+
+            print(f"Successfully formatted {len(formatted_contracts)} contracts")
+            return Response(formatted_contracts, status=200)
+
+        except Exception as e:
+            print(f"Error in ContractViewSet.list: {str(e)}")
+            import traceback
+            traceback.print_exc()
+            # Return a proper error response instead of 500
+            return Response({
+                'error': 'Failed to fetch contracts',
+                'detail': str(e)
+            }, status=500)
+
+    def create(self, request, *args, **kwargs):
+        """Create a new contract"""
+        try:
+            data = request.data
+            print(f"Contract creation data received: {data}")
+
+            # Find or create company
+            company_name = data.get('company_name', '')
+            company_email = data.get('company_email', '')
+
+            if not company_name:
+                return Response({'error': 'Company name is required'},
+                                status=status.HTTP_400_BAD_REQUEST)
+
+            # Try to find existing company or create new one
+            company, created = Company.objects.get_or_create(
+                name=company_name,
+                defaults={
+                    'email': company_email,
+                    'industry': 'other',
+                    'location': 'Unknown',
+                    'size': 'medium',
+                    'is_active': True
+                })
+
+            # Generate contract number
+            import uuid
+            contract_number = f"CTR-{timezone.now().strftime('%Y')}-{str(uuid.uuid4())[:8].upper()}"
+
+            # Validate contract type
+            contract_type = data.get('contract_type', 'corporate_travel')
+            valid_types = [choice[0] for choice in Contract.CONTRACT_TYPES]
+            if contract_type not in valid_types:
+                contract_type = 'other'
+
+            # Parse and validate dates
+            from datetime import datetime
+            start_date = None
+            end_date = None
+
+            try:
+                if data.get('start_date'):
+                    if isinstance(data.get('start_date'), str):
+                        start_date = datetime.strptime(data.get('start_date'),
+                                                       '%Y-%m-%d').date()
+                    else:
+                        start_date = data.get('start_date')
+
+                if data.get('end_date'):
+                    if isinstance(data.get('end_date'), str):
+                        end_date = datetime.strptime(data.get('end_date'),
+                                                     '%Y-%m-%d').date()
+                    else:
+                        end_date = data.get('end_date')
+            except ValueError as date_error:
+                return Response(
+                    {'error': f'Invalid date format: {str(date_error)}'},
+                    status=status.HTTP_400_BAD_REQUEST)
+
+            # Validate required fields before creation
+            if not start_date or not end_date:
+                return Response(
+                    {'error': 'Both start_date and end_date are required'},
+                    status=status.HTTP_400_BAD_REQUEST)
+
+            # Ensure value is a valid number
+            try:
+                contract_value = float(data.get('value', 0))
+                if contract_value < 0:
+                    contract_value = 0
+            except (ValueError, TypeError):
+                contract_value = 0
+
+            # Create contract with all required fields - ensuring single insertion
+            contract_data = {
+                'company':
+                company,
+                'contract_number':
+                contract_number,
+                'title':
+                data.get('title', f"Contract - {company_name}"),
+                'contract_type':
+                contract_type,
+                'status':
+                'draft',
+                'start_date':
+                start_date,
+                'end_date':
+                end_date,
+                'value':
+                contract_value,
+                'terms':
+                data.get(
+                    'terms',
+                    'Standard corporate travel agreement terms and conditions'
+                ),
+                'renewal_terms':
+                data.get(
+                    'renewal_terms',
+                    'Auto-renewal for 12 months unless terminated with 30 days notice'
+                ),
+                'auto_renewal':
+                data.get('auto_renewal', False),
+                'notice_period_days':
+                int(data.get('notice_period_days', 30)),
+                'risk_score':
+                int(data.get('risk_score', 0)),
+                'sla_requirements':
+                data.get('sla_requirements', ''),
+                'payment_terms_days':
+                self._get_payment_terms_days(
+                    data.get('payment_terms', 'net_30')),
+                'performance_bonus':
+                data.get('performance_bonus', False),
+                'exclusivity':
+                data.get('exclusivity', False),
+                'custom_clauses':
+                data.get('custom_clauses', ''),
+                'client_department':
+                data.get('client_department', ''),
+                'company_email':
+                company_email or ''
+            }
+
+            # Create single contract record
+            contract = Contract.objects.create(**contract_data)
+
+            serializer = self.get_serializer(contract)
+            return Response(
+                {
+                    'success': True,
+                    'message':
+                    f'Contract {contract.contract_number} created successfully',
+                    'contract': serializer.data
+                },
+                status=status.HTTP_201_CREATED)
+
+        except Exception as e:
+            print(f"Error creating contract: {str(e)}")
+            return Response({'error': f'Failed to create contract: {str(e)}'},
+                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    def _get_payment_terms_days(self, payment_terms):
+        """Convert payment terms string to days"""
+        terms_mapping = {
+            'net_15': 15,
+            'net_30': 30,
+            'net_45': 45,
+            'net_60': 60,
+            'Net 15': 15,
+            'Net 30': 30,
+            'Net 45': 45,
+            'Net 60': 60
+        }
+        return terms_mapping.get(payment_terms, 30)
+
+    def _get_next_action(self, status):
+        """Get appropriate next action based on contract status"""
+        action_mapping = {
+            'draft': 'Review contract terms',
+            'pending_signature': 'Obtain signatures',
+            'active': 'Monitor performance',
+            'expired': 'Initiate renewal',
+            'terminated': 'Archive contract',
+            'at_risk': 'Risk mitigation',
+            'breach': 'Resolve breach'
+        }
+        return action_mapping.get(status, 'Review contract')
+
+    def _calculate_breach_risk(self, contract):
+        """Calculate breach risk level based on contract data"""
+        if contract.risk_score >= 7:
+            return 'High'
+        elif contract.risk_score >= 4:
+            return 'Medium'
+        else:
+            return 'Low'
+
+    @action(detail=False, methods=['get'])
+    def renewal_alerts(self, request):
+        days_ahead = int(request.query_params.get('days', 30))
+        alert_date = timezone.now().date() + timedelta(days=days_ahead)
+
+        contracts = self.queryset.filter(end_date__lte=alert_date,
+                                         status='active').order_by('end_date')
+
+        serializer = self.get_serializer(contracts, many=True)
+        return Response(serializer.data)
+
+    @action(detail=False, methods=['get'])
+    def at_risk(self, request):
+        contracts = self.queryset.filter(
+            Q(status='at_risk') | Q(risk_score__gte=7)).order_by('-risk_score')
+
+        serializer = self.get_serializer(contracts, many=True)
+        return Response(serializer.data)
+
+    def update(self, request, *args, **kwargs):
+        """Update an existing contract"""
+        try:
+            instance = self.get_object()
+            data = request.data
+            print(
+                f"Updating contract {instance.contract_number} with data: {data}"
+            )
+
+            # Update company information if provided
+            if data.get('company_name'):
+                company_name = data.get('company_name')
+                company_email = data.get('company_email', '')
+
+                # Update or create company
+                company, created = Company.objects.get_or_create(
+                    name=company_name,
+                    defaults={
+                        'email': company_email,
+                        'industry': 'other',
+                        'location': 'Unknown',
+                        'size': 'medium',
+                        'is_active': True
+                    })
+                instance.company = company
+
+            # Update contract fields
+            if data.get('title'):
+                instance.title = data.get('title')
+
+            if data.get('contract_type'):
+                contract_type = data.get('contract_type')
+                valid_types = [choice[0] for choice in Contract.CONTRACT_TYPES]
+                if contract_type in valid_types:
+                    instance.contract_type = contract_type
+
+            if data.get('client_department'):
+                instance.client_department = data.get('client_department')
+
+            if data.get('value') is not None:
+                try:
+                    instance.value = float(data.get('value'))
+                except (ValueError, TypeError):
+                    pass
+
+            # Handle date updates
+            if data.get('start_date'):
+                try:
+                    from datetime import datetime
+                    if isinstance(data.get('start_date'), str):
+                        instance.start_date = datetime.strptime(
+                            data.get('start_date'), '%Y-%m-%d').date()
+                    else:
+                        instance.start_date = data.get('start_date')
+                except ValueError:
+                    pass
+
+            if data.get('end_date'):
+                try:
+                    from datetime import datetime
+                    if isinstance(data.get('end_date'), str):
+                        instance.end_date = datetime.strptime(
+                            data.get('end_date'), '%Y-%m-%d').date()
+                    else:
+                        instance.end_date = data.get('end_date')
+                except ValueError:
+                    pass
+
+            # Update other fields
+            if data.get('terms'):
+                instance.terms = data.get('terms')
+
+            if data.get('sla_requirements'):
+                instance.sla_requirements = data.get('sla_requirements')
+
+            if data.get('payment_terms_days'):
+                instance.payment_terms_days = int(
+                    data.get('payment_terms_days'))
+
+            if data.get('auto_renewal') is not None:
+                instance.auto_renewal = data.get('auto_renewal')
+
+            if data.get('performance_bonus') is not None:
+                instance.performance_bonus = data.get('performance_bonus')
+
+            if data.get('exclusivity') is not None:
+                instance.exclusivity = data.get('exclusivity')
+
+            if data.get('custom_clauses'):
+                instance.custom_clauses = data.get('custom_clauses')
+
+            if data.get('company_email'):
+                instance.company_email = data.get('company_email')
+
+            # Save the updated instance
+            instance.save()
+
+            # Return the updated data
+            serializer = self.get_serializer(instance)
+            return Response(
+                {
+                    'success': True,
+                    'message':
+                    f'Contract {instance.contract_number} updated successfully',
+                    'contract': serializer.data
+                },
+                status=status.HTTP_200_OK)
+
+        except Contract.DoesNotExist:
+            return Response({'error': 'Contract not found'},
+                            status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            print(f"Error updating contract: {str(e)}")
+            return Response({'error': f'Failed to update contract: {str(e)}'},
+                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    @action(detail=True, methods=['post'])
+    def upload_document(self, request, pk=None):
+        """Upload a document for a specific contract"""
+        try:
+            contract = self.get_object()
+            
+            if 'document' not in request.FILES:
+                return Response({'error': 'No file provided'}, 
+                              status=status.HTTP_400_BAD_REQUEST)
+            
+            uploaded_file = request.FILES['document']
+            
+            # Validate file type
+            allowed_extensions = ['.pdf', '.doc', '.docx', '.xls', '.xlsx', '.txt', '.rtf']
+            allowed_mime_types = [
+                'application/pdf',
+                'application/msword',
+                'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                'application/vnd.ms-excel',
+                'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                'text/plain',
+                'application/rtf'
+            ]
+            
+            file_extension = uploaded_file.name.lower().split('.')[-1]
+            if f'.{file_extension}' not in allowed_extensions and uploaded_file.content_type not in allowed_mime_types:
+                return Response({
+                    'error': 'Invalid file type. Only PDF, DOC, DOCX, XLS, XLSX, TXT, RTF files are allowed.'
+                }, status=status.HTTP_400_BAD_REQUEST)
+            
+            # Validate file size (10MB limit)
+            max_size = 10 * 1024 * 1024  # 10MB
+            if uploaded_file.size > max_size:
+                return Response({
+                    'error': 'File size exceeds 10MB limit.'
+                }, status=status.HTTP_400_BAD_REQUEST)
+            
+            # Create documents directory if it doesn't exist
+            import os
+            documents_dir = os.path.join('Documents', 'contracts')
+            if not os.path.exists(documents_dir):
+                os.makedirs(documents_dir)
+            
+            # Generate unique filename
+            import uuid
+            file_name = f"{contract.contract_number}_{uuid.uuid4().hex[:8]}_{uploaded_file.name}"
+            file_path = os.path.join(documents_dir, file_name)
+            
+            # Save the file
+            with open(file_path, 'wb+') as destination:
+                for chunk in uploaded_file.chunks():
+                    destination.write(chunk)
+            
+            # Store document metadata in contract's custom_clauses field as JSON
+            import json
+            document_metadata = {
+                'name': uploaded_file.name,
+                'file_path': file_path,
+                'size': uploaded_file.size,
+                'content_type': uploaded_file.content_type,
+                'uploaded_at': timezone.now().isoformat(),
+                'document_id': uuid.uuid4().hex[:8]
+            }
+            
+            # Get existing documents from custom_clauses
+            existing_docs = []
+            if contract.custom_clauses:
+                try:
+                    # Try to parse existing documents
+                    if contract.custom_clauses.startswith('['):
+                        existing_docs = json.loads(contract.custom_clauses)
+                    else:
+                        # If custom_clauses contains text, preserve it
+                        existing_docs = [{'type': 'text', 'content': contract.custom_clauses}]
+                except json.JSONDecodeError:
+                    # If it's not JSON, treat as text and preserve it
+                    existing_docs = [{'type': 'text', 'content': contract.custom_clauses}]
+            
+            # Add new document
+            existing_docs.append({
+                'type': 'document',
+                'metadata': document_metadata
+            })
+            
+            # Update contract with new document list
+            contract.custom_clauses = json.dumps(existing_docs)
+            contract.save()
+            
+            return Response({
+                'success': True,
+                'message': f'Document {uploaded_file.name} uploaded successfully',
+                'document': {
+                    'name': uploaded_file.name,
+                    'size': f"{uploaded_file.size / 1024 / 1024:.2f} MB",
+                    'uploadDate': timezone.now().strftime('%Y-%m-%d'),
+                    'type': self._get_document_type(uploaded_file.name),
+                    'file_path': file_path
+                }
+            }, status=status.HTTP_201_CREATED)
+            
+        except Exception as e:
+            return Response({
+                'error': f'Failed to upload document: {str(e)}'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    @action(detail=True, methods=['get'])
+    def get_documents(self, request, pk=None):
+        """Get all documents for a specific contract"""
+        try:
+            contract = self.get_object()
+            documents = []
+            
+            import os
+            import glob
+            from datetime import datetime
+            
+            # First, try to get documents from filesystem
+            search_patterns = [
+                f"Documents/contracts/{contract.contract_number}_*",
+                f"contract_documents/{contract.contract_number}_*"
+            ]
+            
+            for pattern in search_patterns:
+                matching_files = glob.glob(pattern)
+                for file_path in matching_files:
+                    if os.path.isfile(file_path):
+                        file_name = os.path.basename(file_path)
+                        file_size = os.path.getsize(file_path)
+                        file_mtime = os.path.getmtime(file_path)
+                        
+                        # Extract document_id and original name from filename
+                        # Pattern: contract_number_document_id_original_name
+                        parts = file_name.split('_', 2)
+                        document_id = parts[1] if len(parts) >= 2 else file_name
+                        original_name = parts[2] if len(parts) >= 3 else file_name
+                        
+                        documents.append({
+                            'name': original_name,
+                            'size': f"{file_size / 1024 / 1024:.2f} MB",
+                            'uploadDate': datetime.fromtimestamp(file_mtime).strftime('%Y-%m-%d'),
+                            'type': self._get_document_type(original_name),
+                            'file_path': file_path,
+                            'document_id': document_id
+                        })
+            
+            # If no files found in filesystem, try to get from custom_clauses metadata
+            if not documents and contract.custom_clauses:
+                try:
+                    import json
+                    if contract.custom_clauses.startswith('['):
+                        clauses_data = json.loads(contract.custom_clauses)
+                        if isinstance(clauses_data, list):
+                            for item in clauses_data:
+                                if isinstance(item, dict) and item.get('type') == 'document':
+                                    metadata = item.get('metadata', {})
+                                    documents.append({
+                                        'name': metadata.get('name', ''),
+                                        'size': f"{metadata.get('size', 0) / 1024 / 1024:.2f} MB",
+                                        'uploadDate': metadata.get('uploaded_at', '').split('T')[0] if metadata.get('uploaded_at') else '',
+                                        'type': self._get_document_type(metadata.get('name', '')),
+                                        'file_path': metadata.get('file_path', ''),
+                                        'document_id': metadata.get('document_id', '')
+                                    })
+                except (json.JSONDecodeError, AttributeError):
+                    # If custom_clauses is not valid JSON, ignore
+                    pass
+            
+            return Response({
+                'success': True,
+                'documents': documents
+            })
+            
+        except Exception as e:
+            return Response({
+                'error': f'Failed to retrieve documents: {str(e)}'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
+    def _get_document_type(self, filename):
+        """Get document type based on file extension"""
+        extension = filename.lower().split('.')[-1]
+        type_mapping = {
+            'pdf': 'PDF Document',
+            'doc': 'Word Document',
+            'docx': 'Word Document',
+            'xls': 'Excel Spreadsheet',
+            'xlsx': 'Excel Spreadsheet',
+            'txt': 'Text Document',
+            'rtf': 'Rich Text Document'
+        }
+        return type_mapping.get(extension, 'Document')
+
+    def _get_contract_documents_safe(self, contract):
+        """Safely get documents for a contract from filesystem and metadata"""
+        try:
+            return self._get_contract_documents(contract)
+        except Exception as e:
+            print(f"Error getting documents for contract {getattr(contract, 'id', 'unknown')}: {str(e)}")
+            return []  # Return empty list on error
+    
+    def _get_contract_documents(self, contract):
+        """Get documents for a contract from filesystem and metadata"""
+        documents = []
+        
+        try:
+            import os
+            import glob
+            from datetime import datetime
+            
+            contract_number = getattr(contract, 'contract_number', None)
+            if not contract_number:
+                return documents
+                
+            # Search for files in filesystem
+            search_patterns = [
+                f"Documents/contracts/{contract_number}_*",
+                f"contract_documents/{contract_number}_*"
+            ]
+            
+            for pattern in search_patterns:
+                try:
+                    matching_files = glob.glob(pattern)
+                    for file_path in matching_files:
+                        if os.path.isfile(file_path):
+                            file_name = os.path.basename(file_path)
+                            file_size = os.path.getsize(file_path)
+                            file_mtime = os.path.getmtime(file_path)
+                            
+                            # Extract document_id and original name from filename
+                            parts = file_name.split('_', 2)
+                            document_id = parts[1] if len(parts) >= 2 else file_name
+                            original_name = parts[2] if len(parts) >= 3 else file_name
+                            
+                            documents.append({
+                                'name': original_name,
+                                'size': f"{file_size / 1024 / 1024:.2f} MB",
+                                'uploadDate': datetime.fromtimestamp(file_mtime).strftime('%Y-%m-%d'),
+                                'type': self._get_document_type(original_name),
+                                'file_path': file_path,
+                                'document_id': document_id
+                            })
+                except Exception as pattern_error:
+                    print(f"Error processing pattern {pattern}: {str(pattern_error)}")
+                    continue
+            
+            # If no files found, try metadata fallback
+            if not documents and hasattr(contract, 'custom_clauses') and contract.custom_clauses:
+                try:
+                    import json
+                    if contract.custom_clauses.startswith('['):
+                        clauses_data = json.loads(contract.custom_clauses)
+                        if isinstance(clauses_data, list):
+                            for item in clauses_data:
+                                if isinstance(item, dict) and item.get('type') == 'document':
+                                    metadata = item.get('metadata', {})
+                                    documents.append({
+                                        'name': metadata.get('name', ''),
+                                        'size': f"{metadata.get('size', 0) / 1024 / 1024:.2f} MB",
+                                        'uploadDate': metadata.get('uploaded_at', '').split('T')[0] if metadata.get('uploaded_at') else '',
+                                        'type': self._get_document_type(metadata.get('name', '')),
+                                        'file_path': metadata.get('file_path', ''),
+                                        'document_id': metadata.get('document_id', '')
+                                    })
+                except (json.JSONDecodeError, AttributeError) as json_error:
+                    print(f"Error parsing custom_clauses JSON: {str(json_error)}")
+                    pass
+            
+        except Exception as e:
+            print(f"Error in _get_contract_documents: {str(e)}")
+        
+        return documents
+
+    @action(detail=True, methods=['get'])
+    def download_document(self, request, pk=None):
+        """Download a specific document for a contract"""
+        try:
+            contract = self.get_object()
+            document_id = request.query_params.get('document_id')
+            
+            if not document_id:
+                return Response({
+                    'error': 'Document ID is required'
+                }, status=status.HTTP_400_BAD_REQUEST)
+            
+            import os
+            import glob
+            
+            # Look for files in both possible directories
+            search_patterns = [
+                f"Documents/contracts/{contract.contract_number}_{document_id}_*",
+                f"contract_documents/{contract.contract_number}_{document_id}_*",
+                f"Documents/contracts/*{document_id}*",
+                f"contract_documents/*{document_id}*"
+            ]
+            
+            file_path = None
+            original_name = None
+            
+            # Search for the file using different patterns
+            for pattern in search_patterns:
+                matching_files = glob.glob(pattern)
+                if matching_files:
+                    file_path = matching_files[0]  # Take the first match
+                    original_name = os.path.basename(file_path)
+                    # Extract original name from filename pattern: contract_id_document_id_original_name
+                    parts = original_name.split('_', 2)
+                    if len(parts) >= 3:
+                        original_name = parts[2]
+                    break
+            
+            # If still not found, try to get from custom_clauses metadata
+            if not file_path and contract.custom_clauses:
+                try:
+                    import json
+                    if contract.custom_clauses.startswith('['):
+                        clauses_data = json.loads(contract.custom_clauses)
+                        if isinstance(clauses_data, list):
+                            for item in clauses_data:
+                                if (isinstance(item, dict) and 
+                                    item.get('type') == 'document' and
+                                    item.get('metadata', {}).get('document_id') == document_id):
+                                    metadata = item.get('metadata', {})
+                                    file_path = metadata.get('file_path')
+                                    original_name = metadata.get('name')
+                                    break
+                except (json.JSONDecodeError, AttributeError):
+                    pass
+            
+            if not file_path or not os.path.exists(file_path):
+                return Response({
+                    'error': f'Document file not found. Searched for document_id: {document_id} in contract: {contract.contract_number}'
+                }, status=status.HTTP_404_NOT_FOUND)
+            
+            # Serve the file for viewing (inline) rather than download
+            from django.http import FileResponse
+            from django.utils.encoding import smart_str
+            import mimetypes
+            
+            try:
+                # Determine content type based on file extension
+                content_type, _ = mimetypes.guess_type(file_path)
+                if not content_type:
+                    content_type = 'application/octet-stream'
+                
+                response = FileResponse(
+                    open(file_path, 'rb'),
+                    content_type=content_type
+                )
+                
+                # Set headers for inline viewing instead of download
+                response['Content-Disposition'] = f'inline; filename="{smart_str(original_name or os.path.basename(file_path))}"'
+                
+                # Add headers to prevent caching issues
+                response['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+                response['Pragma'] = 'no-cache'
+                response['Expires'] = '0'
+                
+                return response
+            except Exception as e:
+                return Response({
+                    'error': f'Failed to serve document: {str(e)}'
+                }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+                
+        except Exception as e:
+            return Response({
+                'error': f'Failed to download document: {str(e)}'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    @action(detail=True, methods=['post'])
+    def add_comment(self, request, pk=None):
+        """Add a comment to a specific contract"""
+        try:
+            contract = self.get_object()
+            comment_text = request.data.get('comment', '').strip()
+            author = request.data.get('author', 'Anonymous')
+            
+            if not comment_text:
+                return Response({
+                    'error': 'Comment text is required'
+                }, status=status.HTTP_400_BAD_REQUEST)
+            
+            # Create comment object
+            new_comment = {
+                'id': len(contract.comments) + 1,
+                'author': author,
+                'date': timezone.now().strftime('%Y-%m-%d'),
+                'content': comment_text,
+                'timestamp': timezone.now().isoformat()
+            }
+            
+            # Add comment to contract's comments list
+            if not isinstance(contract.comments, list):
+                contract.comments = []
+            
+            contract.comments.append(new_comment)
+            contract.save()
+            
+            return Response({
+                'success': True,
+                'message': 'Comment added successfully',
+                'comment': new_comment
+            }, status=status.HTTP_201_CREATED)
+            
+        except Exception as e:
+            return Response({
+                'error': f'Failed to add comment: {str(e)}'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    @action(detail=False, methods=['get'])
+    def dashboard_stats(self, request):
+        total_contracts = self.queryset.count()
+        active_contracts = self.queryset.filter(status='active').count()
+        expiring_soon = self.queryset.filter(
+            end_date__lte=timezone.now().date() + timedelta(days=30),
+            status='active').count()
+
+        stats = {
+            'total_contracts':
+            total_contracts,
+            'active_contracts':
+            active_contracts,
+            'expiring_soon':
+            expiring_soon,
+            'total_value':
+            self.queryset.aggregate(total=Sum('value'))['total'] or 0,
+            'average_value':
+            self.queryset.aggregate(avg=Avg('value'))['avg'] or 0,
+            'breach_count':
+            ContractBreach.objects.filter(is_resolved=False).count()
+        }
+
+        return Response(stats)
+
+
+# New helper function for updating contracts
+def update_contract(request, contract_id):
+    """Update an existing contract"""
+    if request.method == 'PUT':
+        try:
+            # Get the contract to update
+            contract = Contract.objects.get(id=contract_id)
+
+            # Update contract with new data
+            serializer = ContractSerializer(contract,
+                                            data=request.data,
+                                            partial=True)
+            if serializer.is_valid():
+                contract = serializer.save()
+                return Response(serializer.data, status=status.HTTP_200_OK)
+            else:
+                return Response(
+                    {
+                        'error': 'Invalid data',
+                        'details': serializer.errors
+                    },
+                    status=status.HTTP_400_BAD_REQUEST)
+        except Contract.DoesNotExist:
+            return Response({'error': 'Contract not found'},
+                            status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            print(f"Error updating contract: {str(e)}")
+            return Response({'error': f'Failed to update contract: {str(e)}'},
+                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    return Response({'error': 'Method not allowed'},
+                    status=status.HTTP_405_METHOD_NOT_ALLOWED)
+
+
+class ContractBreachViewSet(viewsets.ModelViewSet):
+    queryset = ContractBreach.objects.all()
+    serializer_class = ContractBreachSerializer
+
+    @action(detail=False, methods=['get'])
+    def active_breaches(self, request):
+        breaches = self.queryset.filter(is_resolved=False).order_by(
+            '-severity', '-detected_date')
+        serializer = self.get_serializer(breaches, many=True)
+        return Response(breaches.data)
+
+    @action(detail=True, methods=['post'])
+    def resolve(self, request, pk=None):
+        breach = self.get_object()
+        breach.is_resolved = True
+        breach.resolved_date = timezone.now()
+        breach.resolution_notes = request.data.get('notes', '')
+        breach.save()
+
+        return Response({'status': 'breach resolved'})

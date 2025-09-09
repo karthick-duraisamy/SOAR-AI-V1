@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useContractApi } from '../hooks/api/useContractApi';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
@@ -109,6 +110,8 @@ const contractTemplates = [
 export function ContractCreation({ vendorData, onNavigate, onBack }: ContractCreationProps) {
   const [activeStep, setActiveStep] = useState('choose-method');
   const [selectedTemplate, setSelectedTemplate] = useState(null);
+  const [isCreating, setIsCreating] = useState(false);
+  const { createContract } = useContractApi();
   const [contractData, setContractData] = useState({
     type: '',
     vendor: vendorData?.name || '',
@@ -119,7 +122,7 @@ export function ContractCreation({ vendorData, onNavigate, onBack }: ContractCre
     endDate: '',
     terms: '',
     slaRequirements: '',
-    paymentTerms: '30',
+    paymentTerms: 'net-30',
     autoRenewal: false,
     performanceBonus: false,
     exclusivity: false,
@@ -145,7 +148,7 @@ We would appreciate your feedback and are available to discuss any questions or 
 Best regards,
 SOAR-AI Contract Management Team`,
     ccRecipients: '',
-    priority: 'normal'
+    priority: 'normal-priority'
   });
 
   const handleTemplateSelect = (template) => {
@@ -162,9 +165,26 @@ SOAR-AI Contract Management Team`,
     setActiveStep('configure');
   };
 
-  const handleGenerateContract = () => {
-    console.log('Generating contract with data:', contractData);
-    setActiveStep('review');
+  const handleGenerateContract = async () => {
+    setIsCreating(true);
+    try {
+      const result = await createContract({
+        ...contractData,
+        contractType: selectedTemplate?.name || 'Custom Contract'
+      });
+
+      if (result.success) {
+        console.log('Contract created successfully:', result.data);
+        setActiveStep('review');
+      } else {
+        alert(`Failed to create contract: ${result.error}`);
+      }
+    } catch (error) {
+      console.error('Error creating contract:', error);
+      alert('Failed to create contract. Please try again.');
+    } finally {
+      setIsCreating(false);
+    }
   };
 
   const handleSendContract = () => {
@@ -391,11 +411,11 @@ SOAR-AI Contract Management Team`,
                       <SelectValue placeholder="Select client department" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="airline-operations">Airline Operations</SelectItem>
-                      <SelectItem value="business-travel">Business Travel Department</SelectItem>
-                      <SelectItem value="executive-services">Executive Services</SelectItem>
-                      <SelectItem value="regional-operations">Regional Operations</SelectItem>
-                      <SelectItem value="procurement">Procurement</SelectItem>
+                      <SelectItem value="Airline Operations">Airline Operations</SelectItem>
+                      <SelectItem value="Business Travel Dept">Business Travel Department</SelectItem>
+                      <SelectItem value="Executive Services">Executive Services</SelectItem>
+                      <SelectItem value="Regional Operations">Regional Operations</SelectItem>
+                      <SelectItem value="Procurement">Procurement</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -475,10 +495,10 @@ SOAR-AI Contract Management Team`,
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="15">Net 15 Days</SelectItem>
-                    <SelectItem value="30">Net 30 Days</SelectItem>
-                    <SelectItem value="45">Net 45 Days</SelectItem>
-                    <SelectItem value="60">Net 60 Days</SelectItem>
+                    <SelectItem value="net-15">Net 15 Days</SelectItem>
+                    <SelectItem value="net-30">Net 30 Days</SelectItem>
+                    <SelectItem value="net-45">Net 45 Days</SelectItem>
+                    <SelectItem value="net-60">Net 60 Days</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -535,9 +555,9 @@ SOAR-AI Contract Management Team`,
 
       <div className="flex justify-end gap-3">
         <Button variant="outline">Save as Draft</Button>
-        <Button onClick={handleGenerateContract}>
+        <Button onClick={handleGenerateContract} disabled={isCreating}>
           <FileCheck className="h-4 w-4 mr-2" />
-          Generate Contract
+          {isCreating ? 'Generating...' : 'Generate Contract'}
         </Button>
       </div>
     </div>
@@ -666,9 +686,9 @@ SOAR-AI Contract Management Team`,
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="low">Low</SelectItem>
-                    <SelectItem value="normal">Normal</SelectItem>
-                    <SelectItem value="high">High</SelectItem>
+                    <SelectItem value="low-priority">Low</SelectItem>
+                    <SelectItem value="normal-priority">Normal</SelectItem>
+                    <SelectItem value="high-priority">High</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
