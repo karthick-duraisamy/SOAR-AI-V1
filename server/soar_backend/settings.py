@@ -154,16 +154,17 @@ EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'nagendran.g@infinitisoftware.net'
-EMAIL_HOST_PASSWORD = 'kcvj rqid pkmu wptx'
-DEFAULT_FROM_EMAIL = 'nagendran.g@infinitisoftware.net'
+EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', 'nagendran.g@infinitisoftware.net')
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', 'kcvj rqid pkmu wptx')
+DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', 'nagendran.g@infinitisoftware.net')
 
 # Base URL for email tracking
 BASE_URL = 'https://f08f172c-ab06-433f-aa2f-30c498986833-00-2n6bjrfy6tvjp.pike.replit.dev:5173'
 
 # For development, you can use console backend
-if DEBUG and not EMAIL_HOST_USER:
+if DEBUG and not os.getenv('EMAIL_HOST_PASSWORD'):
     EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+    print("Using console email backend - emails will be printed to console")
 
 
 # Domain URL for email tracking
