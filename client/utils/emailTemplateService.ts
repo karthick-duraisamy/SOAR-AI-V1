@@ -491,6 +491,88 @@ export class EmailTemplateService {
     return variables;
   }
 
+  static generateStandardLayoutHTML(variables: StandardLayoutVariables): string {
+    return `
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${variables.subject}</title>
+  <style>
+    body { margin:0; padding:0; -webkit-text-size-adjust:100%; -ms-text-size-adjust:100%; font-family: Arial, sans-serif; }
+    table { border-spacing:0; }
+    img { border:0; display:block; }
+    a { color:inherit; text-decoration:none; }
+    .wrapper { width:100%; background-color:#f5f7fb; padding:20px 0; }
+    .content { max-width:600px; margin:0 auto; background:#ffffff; border-radius:6px; overflow:hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+    .header { padding:20px; text-align:center; background-color:#007bff; color:#ffffff; }
+    .main { padding:24px; font-family:Arial, 'Helvetica Neue', Helvetica, sans-serif; color:#333333; font-size:16px; line-height:24px; }
+    .h1 { font-size:22px; margin:0 0 16px 0; color:#111827; font-weight:600; }
+    .p { margin:0 0 16px 0; }
+    .button { display:inline-block; padding:12px 24px; border-radius:6px; background:#007bff; color:#ffffff; font-weight:600; text-decoration:none; margin:20px 0; }
+    .button:hover { background:#0056b3; }
+    .footer { padding:16px 20px; font-size:12px; color:#8b94a6; text-align:center; background-color:#f1f1f1; }
+    .cta-container { text-align:center; margin:24px 0; }
+    @media screen and (max-width:480px) {
+      .content { width:100% !important; border-radius:0; margin:0; }
+      .main { padding:16px; }
+      .h1 { font-size:20px; }
+      .header { padding:16px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    <table class="content" width="600" cellpadding="0" cellspacing="0" role="presentation">
+      <!-- Header -->
+      <tr>
+        <td class="header">
+          <h2 style="margin:0; font-size:24px;">${variables.company_name}</h2>
+          <p style="margin:8px 0 0 0; font-size:14px; opacity:0.9;">Corporate Travel Solutions</p>
+        </td>
+      </tr>
+
+      <!-- Main Content -->
+      <tr>
+        <td class="main">
+          <h1 class="h1">${variables.main_heading}</h1>
+          <p class="p">${variables.intro_paragraph}</p>
+          
+          <div>${variables.body_content}</div>
+
+          ${variables.cta_text && variables.cta_url ? `
+          <div class="cta-container">
+            <a href="${variables.cta_url}" class="button" target="_blank">
+              ${variables.cta_text}
+            </a>
+          </div>
+          <p class="p" style="font-size:13px;color:#6b7280;">
+            If the button doesn't work, copy and paste the following URL into your browser: <br />
+            <a href="${variables.cta_url}" style="color:#007bff;">${variables.cta_url}</a>
+          </p>
+          ` : ''}
+        </td>
+      </tr>
+
+      <!-- Footer -->
+      <tr>
+        <td class="footer">
+          <p style="margin:0 0 8px 0;">${variables.company_name} • Transforming Corporate Travel</p>
+          <p style="margin:0 0 8px 0;">
+            <a href="${variables.unsubscribe_url}" style="color:#8b94a6;">Unsubscribe</a> | 
+            <a href="#" style="color:#8b94a6;">Privacy Policy</a>
+          </p>
+          <p style="margin:0;">&copy; ${variables.year} ${variables.company_name}. All rights reserved.</p>
+        </td>
+      </tr>
+    </table>
+  </div>
+</body>
+</html>
+    `;
+  }
+
   static validateTemplate(template: EmailTemplate): { isValid: boolean; errors: string[] } {
     const errors: string[] = [];
 

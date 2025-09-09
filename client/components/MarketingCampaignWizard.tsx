@@ -278,12 +278,51 @@ export function MarketingCampaignWizard({ onNavigate, initialCampaignData, editM
 
     const subject = template.subject_line || `Partnership Opportunity - ${template.name}`;
     const ctaLink = campaignData.content?.email?.cta_link || template.cta_link || 'https://soarai.infinitisoftware.net/';
-    const renderedContent = renderEmailTemplate(
-      template.content || '', 
-      template.cta || 'Learn More', 
-      ctaLink,
-      subject
-    );
+    
+    let renderedContent = '';
+    
+    // Check if this is a standard layout template
+    if (template.layout === 'standard' || template.is_standard_layout) {
+      // For standard layout, parse the JSON content and generate HTML
+      try {
+        const templateVariables = typeof template.content === 'string' 
+          ? JSON.parse(template.content) 
+          : template.content;
+        
+        // Use EmailTemplateService to generate proper HTML
+        renderedContent = EmailTemplateService.generateStandardLayoutHTML({
+          subject: templateVariables.subject || subject,
+          preheader: templateVariables.preheader || 'Your corporate travel solution awaits',
+          logo_url: templateVariables.logo_url || 'https://soarai.infinitisoftware.net/assets/SOAR%20Logo-Bnqz16_i.svg',
+          company_name: templateVariables.company_name || 'SOAR-AI',
+          main_heading: templateVariables.main_heading || 'Welcome to {{contact_name}}!',
+          intro_paragraph: templateVariables.intro_paragraph || 'We\'re excited to help {{company_name}} transform your corporate travel experience.',
+          body_content: templateVariables.body_content || '',
+          cta_url: templateVariables.cta_url || ctaLink,
+          cta_text: templateVariables.cta_text || template.cta || 'Learn More',
+          company_address: templateVariables.company_address || '123 Business Ave, City, State 12345',
+          unsubscribe_url: templateVariables.unsubscribe_url || 'https://soar-ai.com/unsubscribe',
+          year: templateVariables.year || new Date().getFullYear().toString()
+        });
+      } catch (error) {
+        console.error('Error parsing standard template content:', error);
+        // Fallback to custom template rendering
+        renderedContent = renderEmailTemplate(
+          template.content || '', 
+          template.cta || 'Learn More', 
+          ctaLink,
+          subject
+        );
+      }
+    } else {
+      // For custom templates, use the existing rendering method
+      renderedContent = renderEmailTemplate(
+        template.content || '', 
+        template.cta || 'Learn More', 
+        ctaLink,
+        subject
+      );
+    }
 
     setCampaignData(prev => ({
       ...prev,
