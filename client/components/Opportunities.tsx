@@ -1705,11 +1705,11 @@ const getRandomRiskLevel = () => {
       try {
         // Use the new comprehensive history API endpoint
         const historyData = await getOpportunityHistory(opportunity.id);
-
+          console.log(historyData,'Fetched opportunity history')
         // Ensure we have an array, even if empty
-        const formattedHistory = Array.isArray(historyData) ? historyData : [];
-
-        setHistoryData(formattedHistory);
+        const formattedHistory = Array.isArray(historyData.data) ? historyData.data : [];
+  console.log("Fetched opportunity history:",formattedHistory)
+        setHistoryData(historyData.data);
 
         // Show success message if we got data, info if empty
         if (formattedHistory.length > 0) {
