@@ -1614,16 +1614,16 @@ class LeadViewSet(viewsets.ModelViewSet):
                 'phone': company_data.get('phone', ''),
                 'description': data.get('notes', '')
             }
-            
+
             # print("Company data to save:", company_data_to_save)
 
-            
+
             # Create or get company
             company, created = Company.objects.get_or_create(
                 name=company_name,
                 defaults=company_data_to_save
-            )   
-            
+            )
+
             # Ensure company has email before binding
             if not company.email and company_data.get('email'):
                 company.email = company_data.get('email')
@@ -1643,7 +1643,7 @@ class LeadViewSet(viewsets.ModelViewSet):
                     'is_decision_maker': True
                 }
             )
-            # print("Contact created:", contact)  
+            # print("Contact created:", contact)
 
             # Create the lead
             lead = Lead.objects.create(
@@ -3573,7 +3573,7 @@ class EmailCampaignViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
-@api_view(['POST'])
+@api_view(['GET'])
 @permission_classes([AllowAny])
 def get_history(request):
     """Get history for leads or opportunities"""
@@ -3703,12 +3703,12 @@ class ContractViewSet(viewsets.ModelViewSet):
         try:
             # Add request tracking
             print(f"ContractViewSet.list called - Request ID: {id(request)}")
-            
+
             # Get all contracts with related company data
             contracts = Contract.objects.select_related('company').all().order_by('-created_at')
-            
+
             print(f"Database query executed - Found {contracts.count()} contracts")
-            
+
             # If no contracts found, return empty array
             if not contracts.exists():
                 print("No contracts found in database")
@@ -3721,7 +3721,7 @@ class ContractViewSet(viewsets.ModelViewSet):
                     # Safely handle the formatting with more defensive checks
                     contract_id = getattr(contract, 'contract_number', None) or f"CTR-{getattr(contract, 'id', 'unknown')}"
                     company_name = getattr(contract.company, 'name', 'Unknown Company') if contract.company else 'Unknown Company'
-                    
+
                     formatted_contract = {
                         'id': contract_id,
                         'vendor': company_name,
@@ -4099,13 +4099,13 @@ class ContractViewSet(viewsets.ModelViewSet):
         """Upload a document for a specific contract"""
         try:
             contract = self.get_object()
-            
+
             if 'document' not in request.FILES:
-                return Response({'error': 'No file provided'}, 
+                return Response({'error': 'No file provided'},
                               status=status.HTTP_400_BAD_REQUEST)
-            
+
             uploaded_file = request.FILES['document']
-            
+
             # Validate file type
             allowed_extensions = ['.pdf', '.doc', '.docx', '.xls', '.xlsx', '.txt', '.rtf']
             allowed_mime_types = [
@@ -4117,36 +4117,36 @@ class ContractViewSet(viewsets.ModelViewSet):
                 'text/plain',
                 'application/rtf'
             ]
-            
+
             file_extension = uploaded_file.name.lower().split('.')[-1]
             if f'.{file_extension}' not in allowed_extensions and uploaded_file.content_type not in allowed_mime_types:
                 return Response({
                     'error': 'Invalid file type. Only PDF, DOC, DOCX, XLS, XLSX, TXT, RTF files are allowed.'
                 }, status=status.HTTP_400_BAD_REQUEST)
-            
+
             # Validate file size (10MB limit)
             max_size = 10 * 1024 * 1024  # 10MB
             if uploaded_file.size > max_size:
                 return Response({
                     'error': 'File size exceeds 10MB limit.'
                 }, status=status.HTTP_400_BAD_REQUEST)
-            
+
             # Create documents directory if it doesn't exist
             import os
             documents_dir = os.path.join('Documents', 'contracts')
             if not os.path.exists(documents_dir):
                 os.makedirs(documents_dir)
-            
+
             # Generate unique filename
             import uuid
             file_name = f"{contract.contract_number}_{uuid.uuid4().hex[:8]}_{uploaded_file.name}"
             file_path = os.path.join(documents_dir, file_name)
-            
+
             # Save the file
             with open(file_path, 'wb+') as destination:
                 for chunk in uploaded_file.chunks():
                     destination.write(chunk)
-            
+
             # Store document metadata in contract's custom_clauses field as JSON
             import json
             document_metadata = {
@@ -4157,7 +4157,7 @@ class ContractViewSet(viewsets.ModelViewSet):
                 'uploaded_at': timezone.now().isoformat(),
                 'document_id': uuid.uuid4().hex[:8]
             }
-            
+
             # Get existing documents from custom_clauses
             existing_docs = []
             if contract.custom_clauses:
@@ -4171,17 +4171,17 @@ class ContractViewSet(viewsets.ModelViewSet):
                 except json.JSONDecodeError:
                     # If it's not JSON, treat as text and preserve it
                     existing_docs = [{'type': 'text', 'content': contract.custom_clauses}]
-            
+
             # Add new document
             existing_docs.append({
                 'type': 'document',
                 'metadata': document_metadata
             })
-            
+
             # Update contract with new document list
             contract.custom_clauses = json.dumps(existing_docs)
             contract.save()
-            
+
             return Response({
                 'success': True,
                 'message': f'Document {uploaded_file.name} uploaded successfully',
@@ -4193,7 +4193,7 @@ class ContractViewSet(viewsets.ModelViewSet):
                     'file_path': file_path
                 }
             }, status=status.HTTP_201_CREATED)
-            
+
         except Exception as e:
             return Response({
                 'error': f'Failed to upload document: {str(e)}'
@@ -4205,17 +4205,17 @@ class ContractViewSet(viewsets.ModelViewSet):
         try:
             contract = self.get_object()
             documents = []
-            
+
             import os
             import glob
             from datetime import datetime
-            
+
             # First, try to get documents from filesystem
             search_patterns = [
                 f"Documents/contracts/{contract.contract_number}_*",
                 f"contract_documents/{contract.contract_number}_*"
             ]
-            
+
             for pattern in search_patterns:
                 matching_files = glob.glob(pattern)
                 for file_path in matching_files:
@@ -4223,13 +4223,13 @@ class ContractViewSet(viewsets.ModelViewSet):
                         file_name = os.path.basename(file_path)
                         file_size = os.path.getsize(file_path)
                         file_mtime = os.path.getmtime(file_path)
-                        
+
                         # Extract document_id and original name from filename
                         # Pattern: contract_number_document_id_original_name
                         parts = file_name.split('_', 2)
                         document_id = parts[1] if len(parts) >= 2 else file_name
                         original_name = parts[2] if len(parts) >= 3 else file_name
-                        
+
                         documents.append({
                             'name': original_name,
                             'size': f"{file_size / 1024 / 1024:.2f} MB",
@@ -4238,7 +4238,7 @@ class ContractViewSet(viewsets.ModelViewSet):
                             'file_path': file_path,
                             'document_id': document_id
                         })
-            
+
             # If no files found in filesystem, try to get from custom_clauses metadata
             if not documents and contract.custom_clauses:
                 try:
@@ -4260,17 +4260,17 @@ class ContractViewSet(viewsets.ModelViewSet):
                 except (json.JSONDecodeError, AttributeError):
                     # If custom_clauses is not valid JSON, ignore
                     pass
-            
+
             return Response({
                 'success': True,
                 'documents': documents
             })
-            
+
         except Exception as e:
             return Response({
                 'error': f'Failed to retrieve documents: {str(e)}'
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-    
+
     def _get_document_type(self, filename):
         """Get document type based on file extension"""
         extension = filename.lower().split('.')[-1]
@@ -4292,26 +4292,26 @@ class ContractViewSet(viewsets.ModelViewSet):
         except Exception as e:
             print(f"Error getting documents for contract {getattr(contract, 'id', 'unknown')}: {str(e)}")
             return []  # Return empty list on error
-    
+
     def _get_contract_documents(self, contract):
         """Get documents for a contract from filesystem and metadata"""
         documents = []
-        
+
         try:
             import os
             import glob
             from datetime import datetime
-            
+
             contract_number = getattr(contract, 'contract_number', None)
             if not contract_number:
                 return documents
-                
+
             # Search for files in filesystem
             search_patterns = [
                 f"Documents/contracts/{contract_number}_*",
                 f"contract_documents/{contract_number}_*"
             ]
-            
+
             for pattern in search_patterns:
                 try:
                     matching_files = glob.glob(pattern)
@@ -4320,12 +4320,12 @@ class ContractViewSet(viewsets.ModelViewSet):
                             file_name = os.path.basename(file_path)
                             file_size = os.path.getsize(file_path)
                             file_mtime = os.path.getmtime(file_path)
-                            
+
                             # Extract document_id and original name from filename
                             parts = file_name.split('_', 2)
                             document_id = parts[1] if len(parts) >= 2 else file_name
                             original_name = parts[2] if len(parts) >= 3 else file_name
-                            
+
                             documents.append({
                                 'name': original_name,
                                 'size': f"{file_size / 1024 / 1024:.2f} MB",
@@ -4337,7 +4337,7 @@ class ContractViewSet(viewsets.ModelViewSet):
                 except Exception as pattern_error:
                     print(f"Error processing pattern {pattern}: {str(pattern_error)}")
                     continue
-            
+
             # If no files found, try metadata fallback
             if not documents and hasattr(contract, 'custom_clauses') and contract.custom_clauses:
                 try:
@@ -4359,10 +4359,10 @@ class ContractViewSet(viewsets.ModelViewSet):
                 except (json.JSONDecodeError, AttributeError) as json_error:
                     print(f"Error parsing custom_clauses JSON: {str(json_error)}")
                     pass
-            
+
         except Exception as e:
             print(f"Error in _get_contract_documents: {str(e)}")
-        
+
         return documents
 
     @action(detail=True, methods=['get'])
@@ -4371,15 +4371,15 @@ class ContractViewSet(viewsets.ModelViewSet):
         try:
             contract = self.get_object()
             document_id = request.query_params.get('document_id')
-            
+
             if not document_id:
                 return Response({
                     'error': 'Document ID is required'
                 }, status=status.HTTP_400_BAD_REQUEST)
-            
+
             import os
             import glob
-            
+
             # Look for files in both possible directories
             search_patterns = [
                 f"Documents/contracts/{contract.contract_number}_{document_id}_*",
@@ -4387,10 +4387,10 @@ class ContractViewSet(viewsets.ModelViewSet):
                 f"Documents/contracts/*{document_id}*",
                 f"contract_documents/*{document_id}*"
             ]
-            
+
             file_path = None
             original_name = None
-            
+
             # Search for the file using different patterns
             for pattern in search_patterns:
                 matching_files = glob.glob(pattern)
@@ -4402,7 +4402,7 @@ class ContractViewSet(viewsets.ModelViewSet):
                     if len(parts) >= 3:
                         original_name = parts[2]
                     break
-            
+
             # If still not found, try to get from custom_clauses metadata
             if not file_path and contract.custom_clauses:
                 try:
@@ -4411,7 +4411,7 @@ class ContractViewSet(viewsets.ModelViewSet):
                         clauses_data = json.loads(contract.custom_clauses)
                         if isinstance(clauses_data, list):
                             for item in clauses_data:
-                                if (isinstance(item, dict) and 
+                                if (isinstance(item, dict) and
                                     item.get('type') == 'document' and
                                     item.get('metadata', {}).get('document_id') == document_id):
                                     metadata = item.get('metadata', {})
@@ -4420,42 +4420,42 @@ class ContractViewSet(viewsets.ModelViewSet):
                                     break
                 except (json.JSONDecodeError, AttributeError):
                     pass
-            
+
             if not file_path or not os.path.exists(file_path):
                 return Response({
                     'error': f'Document file not found. Searched for document_id: {document_id} in contract: {contract.contract_number}'
                 }, status=status.HTTP_404_NOT_FOUND)
-            
+
             # Serve the file for viewing (inline) rather than download
             from django.http import FileResponse
             from django.utils.encoding import smart_str
             import mimetypes
-            
+
             try:
                 # Determine content type based on file extension
                 content_type, _ = mimetypes.guess_type(file_path)
                 if not content_type:
                     content_type = 'application/octet-stream'
-                
+
                 response = FileResponse(
                     open(file_path, 'rb'),
                     content_type=content_type
                 )
-                
+
                 # Set headers for inline viewing instead of download
                 response['Content-Disposition'] = f'inline; filename="{smart_str(original_name or os.path.basename(file_path))}"'
-                
+
                 # Add headers to prevent caching issues
                 response['Cache-Control'] = 'no-cache, no-store, must-revalidate'
                 response['Pragma'] = 'no-cache'
                 response['Expires'] = '0'
-                
+
                 return response
             except Exception as e:
                 return Response({
                     'error': f'Failed to serve document: {str(e)}'
                 }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-                
+
         except Exception as e:
             return Response({
                 'error': f'Failed to download document: {str(e)}'
@@ -4468,12 +4468,12 @@ class ContractViewSet(viewsets.ModelViewSet):
             contract = self.get_object()
             comment_text = request.data.get('comment', '').strip()
             author = request.data.get('author', 'Anonymous')
-            
+
             if not comment_text:
                 return Response({
                     'error': 'Comment text is required'
                 }, status=status.HTTP_400_BAD_REQUEST)
-            
+
             # Create comment object
             new_comment = {
                 'id': len(contract.comments) + 1,
@@ -4482,20 +4482,20 @@ class ContractViewSet(viewsets.ModelViewSet):
                 'content': comment_text,
                 'timestamp': timezone.now().isoformat()
             }
-            
+
             # Add comment to contract's comments list
             if not isinstance(contract.comments, list):
                 contract.comments = []
-            
+
             contract.comments.append(new_comment)
             contract.save()
-            
+
             return Response({
                 'success': True,
                 'message': 'Comment added successfully',
                 'comment': new_comment
             }, status=status.HTTP_201_CREATED)
-            
+
         except Exception as e:
             return Response({
                 'error': f'Failed to add comment: {str(e)}'
@@ -4581,3 +4581,109 @@ class ContractBreachViewSet(viewsets.ModelViewSet):
         breach.save()
 
         return Response({'status': 'breach resolved'})
+
+# URLs for tracking email opens and clicks
+from .views import track_email_open, track_email_click # Import the tracking functions
+
+# Email campaign real-time stats URLs
+    path('email-campaigns/<int:pk>/real_time_stats/', views.EmailCampaignViewSet.as_view({'get': 'real_time_stats'}), name='campaign-real-time-stats'),
+    path('email-campaigns/<int:pk>/tracking_details/', views.EmailCampaignViewSet.as_view({'get': 'tracking_details'}), name='campaign-tracking-details'),
+
+    # Email tracking endpoints
+    path('track/open/<uuid:tracking_id>/', views.track_email_open, name='track-email-open'),
+    path('track/click/<uuid:tracking_id>/', views.track_email_click, name='track-email-click'),
+
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def track_email_open(request, tracking_id):
+    """Track email opens via tracking pixel"""
+    try:
+        tracking = EmailTracking.objects.get(tracking_id=tracking_id)
+
+        # Update open tracking
+        if not tracking.first_opened:
+            tracking.first_opened = timezone.now()
+        tracking.last_opened = timezone.now()
+        tracking.open_count += 1
+
+        # Capture user agent and IP
+        tracking.user_agent = request.META.get('HTTP_USER_AGENT', '')
+        tracking.ip_address = request.META.get('REMOTE_ADDR') or request.META.get('HTTP_X_FORWARDED_FOR', '').split(',')[0].strip()
+
+        tracking.save()
+
+        # Return a 1x1 transparent pixel
+        from django.http import HttpResponse
+        import base64
+
+        # 1x1 transparent GIF pixel
+        pixel_data = base64.b64decode('R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7')
+        response = HttpResponse(pixel_data, content_type='image/gif')
+        response['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+        response['Pragma'] = 'no-cache'
+        response['Expires'] = '0'
+        return response
+
+    except EmailTracking.DoesNotExist:
+        # Return pixel even if tracking not found
+        from django.http import HttpResponse
+        import base64
+        pixel_data = base64.b64decode('R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7')
+        return HttpResponse(pixel_data, content_type='image/gif')
+    except Exception as e:
+        logger.error(f"Error tracking email open: {str(e)}")
+        from django.http import HttpResponse
+        import base64
+        pixel_data = base64.b64decode('R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7')
+        return HttpResponse(pixel_data, content_type='image/gif')
+
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def track_email_click(request, tracking_id):
+    """Track email clicks and redirect to original URL"""
+    try:
+        tracking = EmailTracking.objects.get(tracking_id=tracking_id)
+
+        # Update click tracking
+        if not tracking.first_clicked:
+            tracking.first_clicked = timezone.now()
+        tracking.last_clicked = timezone.now()
+        tracking.click_count += 1
+
+        # Capture user agent and IP
+        tracking.user_agent = request.META.get('HTTP_USER_AGENT', '')
+        tracking.ip_address = request.META.get('REMOTE_ADDR') or request.META.get('HTTP_X_FORWARDED_FOR', '').split(',')[0].strip()
+
+        tracking.save()
+
+        # Get the original URL from query parameter
+        original_url = request.GET.get('url', '')
+        if original_url:
+            import urllib.parse
+            decoded_url = urllib.parse.unquote(original_url)
+            return HttpResponseRedirect(decoded_url)
+        else:
+            # Fallback to campaign's CTA link or company website
+            if tracking.campaign.cta_link:
+                return HttpResponseRedirect(tracking.campaign.cta_link)
+            else:
+                return HttpResponseRedirect('https://example.com')
+
+    except EmailTracking.DoesNotExist:
+        # If tracking not found, redirect to fallback
+        original_url = request.GET.get('url', 'https://example.com')
+        if original_url:
+            import urllib.parse
+            decoded_url = urllib.parse.unquote(original_url)
+            return HttpResponseRedirect(decoded_url)
+        return HttpResponseRedirect('https://example.com')
+    except Exception as e:
+        logger.error(f"Error tracking email click: {str(e)}")
+        original_url = request.GET.get('url', 'https://example.com')
+        if original_url:
+            import urllib.parse
+            decoded_url = urllib.parse.unquote(original_url)
+            return HttpResponseRedirect(decoded_url)
+        return HttpResponseRedirect('https://example.com')
