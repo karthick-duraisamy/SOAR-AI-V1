@@ -2420,7 +2420,7 @@ Ready to see how we can help? Let's schedule a 15-minute discovery call.''',
                     'description': 'Emphasizes ROI and cost reduction benefits',
                     'channel_type': 'email',
                     'target_industry': 'Manufacturing',
-                    'subject_line': ''{{company_name}}: Cut travel costs by 35% with SOAR-AI',
+                    'subject_line': '{{company_name}}: Cut travel costs by 35% with SOAR-AI',
                     'content': '''{{contact_name}},
 
 Companies like {{company_name}} in the {{industry}} sector are saving an average of 35% on travel costs with SOAR-AI.
