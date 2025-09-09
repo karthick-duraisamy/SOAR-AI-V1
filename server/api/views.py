@@ -3573,6 +3573,82 @@ class EmailCampaignViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
+    @action(detail=True, methods=['get'])
+    def real_time_stats(self, request, pk=None):
+        """Get real-time stats for a campaign"""
+        try:
+            campaign = self.get_object()
+            
+            # Get tracking data from EmailTracking model
+            tracking_records = EmailTracking.objects.filter(campaign=campaign)
+            
+            total_sent = campaign.emails_sent or 0
+            total_opened = tracking_records.filter(open_count__gt=0).count()
+            total_clicked = tracking_records.filter(click_count__gt=0).count()
+            
+            # Calculate rates
+            open_rate = (total_opened / total_sent * 100) if total_sent > 0 else 0
+            click_rate = (total_clicked / total_sent * 100) if total_sent > 0 else 0
+            
+            stats = {
+                'campaign_id': campaign.id,
+                'campaign_name': campaign.name,
+                'emails_sent': total_sent,
+                'emails_opened': total_opened,
+                'emails_clicked': total_clicked,
+                'open_rate': round(open_rate, 2),
+                'click_rate': round(click_rate, 2),
+                'status': campaign.status,
+                'sent_date': campaign.sent_date.isoformat() if campaign.sent_date else None
+            }
+            
+            return Response(stats)
+            
+        except Exception as e:
+            return Response(
+                {'error': f'Failed to get campaign stats: {str(e)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+    @action(detail=True, methods=['get'])
+    def tracking_details(self, request, pk=None):
+        """Get detailed tracking information for a campaign"""
+        try:
+            campaign = self.get_object()
+            
+            # Get all tracking records for this campaign
+            tracking_records = EmailTracking.objects.filter(campaign=campaign).select_related('lead')
+            
+            tracking_data = []
+            for tracking in tracking_records:
+                tracking_data.append({
+                    'tracking_id': str(tracking.tracking_id),
+                    'lead_id': tracking.lead.id if tracking.lead else None,
+                    'lead_name': f"{tracking.lead.company.name}" if tracking.lead and tracking.lead.company else 'Unknown',
+                    'contact_email': tracking.lead.contact.email if tracking.lead and tracking.lead.contact else 'Unknown',
+                    'open_count': tracking.open_count,
+                    'click_count': tracking.click_count,
+                    'first_opened': tracking.first_opened.isoformat() if tracking.first_opened else None,
+                    'last_opened': tracking.last_opened.isoformat() if tracking.last_opened else None,
+                    'first_clicked': tracking.first_clicked.isoformat() if tracking.first_clicked else None,
+                    'last_clicked': tracking.last_clicked.isoformat() if tracking.last_clicked else None,
+                    'user_agent': tracking.user_agent,
+                    'ip_address': tracking.ip_address
+                })
+            
+            return Response({
+                'campaign_id': campaign.id,
+                'campaign_name': campaign.name,
+                'total_tracking_records': len(tracking_data),
+                'tracking_details': tracking_data
+            })
+            
+        except Exception as e:
+            return Response(
+                {'error': f'Failed to get tracking details: {str(e)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def get_history(request):
@@ -4582,16 +4658,7 @@ class ContractBreachViewSet(viewsets.ModelViewSet):
 
         return Response({'status': 'breach resolved'})
 
-# URLs for tracking email opens and clicks
-from .views import track_email_open, track_email_click # Import the tracking functions
-
-# Email campaign real-time stats URLs
-    path('email-campaigns/<int:pk>/real_time_stats/', views.EmailCampaignViewSet.as_view({'get': 'real_time_stats'}), name='campaign-real-time-stats'),
-    path('email-campaigns/<int:pk>/tracking_details/', views.EmailCampaignViewSet.as_view({'get': 'tracking_details'}), name='campaign-tracking-details'),
-
-    # Email tracking endpoints
-    path('track/open/<uuid:tracking_id>/', views.track_email_open, name='track-email-open'),
-    path('track/click/<uuid:tracking_id>/', views.track_email_click, name='track-email-click'),
+# Email tracking functions are defined below
 
 
 @api_view(['GET'])
