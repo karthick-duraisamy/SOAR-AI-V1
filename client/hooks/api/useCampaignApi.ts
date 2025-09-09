@@ -268,24 +268,31 @@ export const useCampaignApi = () => {
   }, [setLoading, setError, setData]);
 
   // Check SMTP status
-  const checkSmtpStatus = useCallback(async (campaignId?: string) => {
-    setLoading(true);
-    setError(null);
+  const checkSmtpStatus = async (campaignId?: string) => {
     try {
-      const endpoint = campaignId ? `/campaigns/${campaignId}/smtp-status/` : '/campaigns/smtp-status/';
-      const response = await fetch(`${API_BASE_URL}${endpoint}`);
+      setLoading(true);
+      const url = campaignId 
+        ? `${API_BASE_URL}/api/campaigns/${campaignId}/smtp-logs/`
+        : `${API_BASE_URL}/api/campaigns/smtp-status/`;
+
+      const response = await fetch(url);
+
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
-      return await response.json();
+
+      const result = await response.json();
+      setError(null); // Clear any previous errors
+      return result;
     } catch (err: any) {
+      console.error('SMTP Status Check Error:', err);
       const errorMessage = err.message || 'Failed to check SMTP status';
       setError(errorMessage);
       throw new Error(errorMessage);
     } finally {
       setLoading(false);
     }
-  }, [setLoading, setError, setData]);
+  };
 
   const getRealTimeStats = async (campaignId: string) => {
     setLoading(true);

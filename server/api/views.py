@@ -1352,7 +1352,7 @@ class LeadViewSet(viewsets.ModelViewSet):
                             try:
                                 # Parse the date
                                 import datetime
-                                assignment_time = datetime.datetime.strptime(date_str, '%Y-%m-%d %H:%M')
+                                assignment_time = datetime.strptime(date_str, '%Y-%m-%d %H:%M')
                                 assignment_time = timezone.make_aware(assignment_time)
                             except:
                                 assignment_time = current_time + timedelta(hours=idx + 1)
@@ -3578,18 +3578,18 @@ class EmailCampaignViewSet(viewsets.ModelViewSet):
         """Get real-time stats for a campaign"""
         try:
             campaign = self.get_object()
-            
+
             # Get tracking data from EmailTracking model
             tracking_records = EmailTracking.objects.filter(campaign=campaign)
-            
+
             total_sent = campaign.emails_sent or 0
             total_opened = tracking_records.filter(open_count__gt=0).count()
             total_clicked = tracking_records.filter(click_count__gt=0).count()
-            
+
             # Calculate rates
             open_rate = (total_opened / total_sent * 100) if total_sent > 0 else 0
             click_rate = (total_clicked / total_sent * 100) if total_sent > 0 else 0
-            
+
             stats = {
                 'campaign_id': campaign.id,
                 'campaign_name': campaign.name,
@@ -3601,9 +3601,9 @@ class EmailCampaignViewSet(viewsets.ModelViewSet):
                 'status': campaign.status,
                 'sent_date': campaign.sent_date.isoformat() if campaign.sent_date else None
             }
-            
+
             return Response(stats)
-            
+
         except Exception as e:
             return Response(
                 {'error': f'Failed to get campaign stats: {str(e)}'},
@@ -3615,10 +3615,10 @@ class EmailCampaignViewSet(viewsets.ModelViewSet):
         """Get detailed tracking information for a campaign"""
         try:
             campaign = self.get_object()
-            
+
             # Get all tracking records for this campaign
             tracking_records = EmailTracking.objects.filter(campaign=campaign).select_related('lead')
-            
+
             tracking_data = []
             for tracking in tracking_records:
                 tracking_data.append({
@@ -3635,14 +3635,14 @@ class EmailCampaignViewSet(viewsets.ModelViewSet):
                     'user_agent': tracking.user_agent,
                     'ip_address': tracking.ip_address
                 })
-            
+
             return Response({
                 'campaign_id': campaign.id,
                 'campaign_name': campaign.name,
                 'total_tracking_records': len(tracking_data),
                 'tracking_details': tracking_data
             })
-            
+
         except Exception as e:
             return Response(
                 {'error': f'Failed to get tracking details: {str(e)}'},
@@ -4242,7 +4242,7 @@ class ContractViewSet(viewsets.ModelViewSet):
                     if contract.custom_clauses.startswith('['):
                         existing_docs = json.loads(contract.custom_clauses)
                     else:
-                        # If custom_clauses contains text, preserve it
+                        # If custom_clauses is not JSON, preserve it as text
                         existing_docs = [{'type': 'text', 'content': contract.custom_clauses}]
                 except json.JSONDecodeError:
                     # If it's not JSON, treat as text and preserve it
@@ -4414,8 +4414,8 @@ class ContractViewSet(viewsets.ModelViewSet):
                     print(f"Error processing pattern {pattern}: {str(pattern_error)}")
                     continue
 
-            # If no files found, try metadata fallback
-            if not documents and hasattr(contract, 'custom_clauses') and contract.custom_clauses:
+            # If no files found, try to get from custom_clauses metadata
+            if not documents and contract.custom_clauses:
                 try:
                     import json
                     if contract.custom_clauses.startswith('['):
@@ -4502,7 +4502,7 @@ class ContractViewSet(viewsets.ModelViewSet):
                     'error': f'Document file not found. Searched for document_id: {document_id} in contract: {contract.contract_number}'
                 }, status=status.HTTP_404_NOT_FOUND)
 
-            # Serve the file for viewing (inline) rather than download
+            # Serve the file for viewing (inline) instead of download
             from django.http import FileResponse
             from django.utils.encoding import smart_str
             import mimetypes
@@ -4711,46 +4711,66 @@ def track_email_open(request, tracking_id):
 def track_email_click(request, tracking_id):
     """Track email clicks and redirect to original URL"""
     try:
-        tracking = EmailTracking.objects.get(tracking_id=tracking_id)
+        # Get the original URL from query parameters
+        original_url = request.GET.get('url')
+        if not original_url:
+            return HttpResponseRedirect('https://soarai.com')  # Default redirect
 
-        # Update click tracking
-        if not tracking.first_clicked:
-            tracking.first_clicked = timezone.now()
-        tracking.last_clicked = timezone.now()
-        tracking.click_count += 1
+        # Decode the URL
+        original_url = urllib.parse.unquote(original_url)
 
-        # Capture user agent and IP
-        tracking.user_agent = request.META.get('HTTP_USER_AGENT', '')
-        tracking.ip_address = request.META.get('REMOTE_ADDR') or request.META.get('HTTP_X_FORWARDED_FOR', '').split(',')[0].strip()
+        # Find and update tracking record
+        try:
+            tracking = EmailTracking.objects.get(tracking_id=tracking_id)
+            tracking.click_count += 1
+            tracking.last_clicked = timezone.now()
+            if not tracking.first_clicked:
+                tracking.first_clicked = timezone.now()
 
-        tracking.save()
+            # Capture user agent and IP
+            tracking.user_agent = request.META.get('HTTP_USER_AGENT', '')[:500]  # Limit length
+            tracking.ip_address = request.META.get('REMOTE_ADDR')
+            tracking.save()
 
-        # Get the original URL from query parameter
-        original_url = request.GET.get('url', '')
-        if original_url:
-            import urllib.parse
-            decoded_url = urllib.parse.unquote(original_url)
-            return HttpResponseRedirect(decoded_url)
-        else:
-            # Fallback to campaign's CTA link or company website
-            if tracking.campaign.cta_link:
-                return HttpResponseRedirect(tracking.campaign.cta_link)
-            else:
-                return HttpResponseRedirect('https://example.com')
+            logger.info(f"Email click tracked: {tracking_id} -> {original_url}")
+        except EmailTracking.DoesNotExist:
+            logger.warning(f"Tracking record not found: {tracking_id}")
 
-    except EmailTracking.DoesNotExist:
-        # If tracking not found, redirect to fallback
-        original_url = request.GET.get('url', 'https://example.com')
-        if original_url:
-            import urllib.parse
-            decoded_url = urllib.parse.unquote(original_url)
-            return HttpResponseRedirect(decoded_url)
-        return HttpResponseRedirect('https://example.com')
+        # Redirect to original URL
+        return HttpResponseRedirect(original_url)
+
     except Exception as e:
         logger.error(f"Error tracking email click: {str(e)}")
-        original_url = request.GET.get('url', 'https://example.com')
-        if original_url:
-            import urllib.parse
-            decoded_url = urllib.parse.unquote(original_url)
-            return HttpResponseRedirect(decoded_url)
-        return HttpResponseRedirect('https://example.com')
+        return HttpResponseRedirect('https://soarai.com')  # Safe fallback
+
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def check_smtp_status(request):
+    """Check SMTP server connection status"""
+    try:
+        from django.core.mail import get_connection
+        from django.conf import settings
+
+        # Test SMTP connection
+        connection = get_connection()
+        connection.open()
+        connection.close()
+
+        return Response({
+            'status': 'connected',
+            'message': f'SMTP server ({settings.EMAIL_HOST}) is accessible',
+            'backend': settings.EMAIL_BACKEND,
+            'host': settings.EMAIL_HOST,
+            'port': settings.EMAIL_PORT,
+            'use_tls': settings.EMAIL_USE_TLS,
+        })
+
+    except Exception as e:
+        return Response({
+            'status': 'error',
+            'message': f'SMTP connection failed: {str(e)}',
+            'backend': getattr(settings, 'EMAIL_BACKEND', 'unknown'),
+            'host': getattr(settings, 'EMAIL_HOST', 'unknown'),
+            'port': getattr(settings, 'EMAIL_PORT', 'unknown'),
+        }, status=500)

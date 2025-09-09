@@ -134,7 +134,7 @@ CORS_PREFLIGHT_MAX_AGE = 86400
 # Disable CSRF for API endpoints to avoid cross-origin issues
 CSRF_TRUSTED_ORIGINS = [
     "http://localhost:5173",
-    "http://localhost:5174", 
+    "http://localhost:5174",
     "http://0.0.0.0:5173",
     "http://0.0.0.0:5174",
     "https://f08f172c-ab06-433f-aa2f-30c498986833-00-2n6bjrfy6tvjp.pike.replit.dev",
@@ -150,7 +150,6 @@ REST_FRAMEWORK = {
 }
 
 # Email settings
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
@@ -161,10 +160,15 @@ DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', 'agencyautofe-notify@infini
 # Base URL for email tracking
 BASE_URL = 'https://f08f172c-ab06-433f-aa2f-30c498986833-00-2n6bjrfy6tvjp.pike.replit.dev:5173'
 
-# For development, you can use console backend
-if DEBUG and not os.getenv('EMAIL_HOST_PASSWORD'):
+# Always use SMTP backend for email sending
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+
+# Only use console backend if explicitly requested
+if os.getenv('USE_CONSOLE_EMAIL_BACKEND') == 'true':
     EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
     print("Using console email backend - emails will be printed to console")
+else:
+    print("Using SMTP email backend for actual email sending")
 
 
 # Domain URL for email tracking

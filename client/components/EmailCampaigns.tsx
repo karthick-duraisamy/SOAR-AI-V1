@@ -193,6 +193,13 @@ export function EmailCampaigns({ onNavigate }: EmailCampaignsProps) {
     fetchTemplates(); // Load templates from API as well
   }, []);
 
+  // Refresh campaigns when activeTab changes back to campaigns
+  useEffect(() => {
+    if (activeTab === 'campaigns') {
+      loadCampaigns();
+    }
+  }, [activeTab]);
+
   // Auto-refresh real-time stats for active campaigns
   useEffect(() => {
     const interval = setInterval(async () => {
@@ -264,7 +271,7 @@ export function EmailCampaigns({ onNavigate }: EmailCampaignsProps) {
 
   const handleLaunchCampaign = async (campaignId: string) => {
     try {
-      setLaunchingCampaign(campaignId);
+      setLaunchingCampaign(parseInt(campaignId));
       const response = await launchCampaign(campaignId);
 
       if (response.success) {
@@ -287,8 +294,9 @@ export function EmailCampaigns({ onNavigate }: EmailCampaignsProps) {
           console.log('SMTP Status Summary:', statusCounts);
         }
 
-        // Refresh campaigns list
-        loadCampaigns();
+        // Refresh campaigns list immediately and after a short delay
+        await loadCampaigns();
+        setTimeout(() => loadCampaigns(), 1000);
       } else {
         const errorDetails = response.smtp_responses ? 
           `\n\nSMTP Errors:\n${response.smtp_responses.map((r: any) => `${r.email}: ${r.message}`).join('\n')}` : '';
@@ -301,6 +309,7 @@ export function EmailCampaigns({ onNavigate }: EmailCampaignsProps) {
         }
       }
     } catch (error: any) {
+      console.error('Launch campaign error:', error);
       toast.error(`Error launching campaign: ${error.message}`);
     } finally {
       setLaunchingCampaign(null);
