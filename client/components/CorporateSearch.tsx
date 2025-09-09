@@ -2184,11 +2184,11 @@ export function CorporateSearch({
       </Dialog>
 
       {/* Add Company Dialog */}
-      <Dialog
+      <Dialog 
         open={showAddCompanyDialog}
         onOpenChange={setShowAddCompanyDialog}
       >
-        <DialogContent className="max-w-[87rem] w-[95vw]">
+        <DialogContent className="max-w-2xl">
           <DialogHeader className="pb-[24px] pt-[0px] pr-[0px] pl-[0px] m-[0px]">
             <DialogTitle className="flex items-center gap-3 text-xl">
               <Plus className="h-6 w-6 text-orange-500" />

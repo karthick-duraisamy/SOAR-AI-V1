@@ -2553,13 +2553,13 @@ const getRandomRiskLevel = () => {
             </p>
           </div>
           <div className="flex gap-2">
-            <Button variant="outline" className="flex items-center gap-2">
+            {/* <Button variant="outline" className="flex items-center gap-2 cls-addcomapany">
               <Download className="h-4 w-4" />
               Export
-            </Button>
+            </Button> */}
             <Button
               variant="outline"
-              className="flex items-center gap-2"
+              className="flex items-center gap-2 cls-addcomapany"
               onClick={() => window.location.reload()}
             >
               <RefreshCw className="h-4 w-4" />

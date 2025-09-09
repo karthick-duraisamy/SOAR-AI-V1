@@ -298,7 +298,7 @@ export function EmailCampaigns({ onNavigate }: EmailCampaignsProps) {
 
     // Generate preview with sample data
     const sampleVariables = {
-      subject: 'Welcome to SOAR-AI Corporate Travel Solutions',
+      subject: 'Welcomess to SOAR-AI Corporate Travel Solutions',
       preheader: 'Your comprehensive travel management solution awaits',
       logo_url: 'https://via.placeholder.com/160x60/2563eb/ffffff?text=SOAR-AI',
       company_name: 'SOAR-AI',
@@ -1151,14 +1151,14 @@ export function EmailCampaigns({ onNavigate }: EmailCampaignsProps) {
               </p>
             </div>
             <div className="flex gap-3 mb-6">
-              <Button onClick={handleCreateStandardTemplate}>
+              <Button variant="outline" onClick={handleCreateStandardTemplate}>
                 <Plus className="h-4 w-4 mr-2" />
                 Create Standard Template
               </Button>
-              <Button variant="outline" onClick={handleCreateTemplate}>
+              {/* <Button variant="outline" onClick={handleCreateTemplate}>
                 <Plus className="h-4 w-4 mr-2" />
                 Create Custom Template
-              </Button>
+              </Button> */}
             </div>
           </div>
 
@@ -1251,12 +1251,7 @@ export function EmailCampaigns({ onNavigate }: EmailCampaignsProps) {
                       <Button 
                         size="sm"
                         onClick={() => handleUseTemplate(template)}
-                        style={{
-                          fontFamily: 'var(--font-family)',
-                          fontSize: 'var(--text-sm)',
-                          backgroundColor: 'var(--color-primary)',
-                          color: 'var(--color-primary-foreground)'
-                        }}
+                        className='bg-orange-500 hover:bg-orange-600 text-white'
                       >
                         <Send className="h-4 w-4 mr-1" />
                         Use Template
@@ -1789,11 +1784,17 @@ export function EmailCampaigns({ onNavigate }: EmailCampaignsProps) {
       </Dialog>
 
       {showCreateStandardTemplate && (
+        <Dialog open={showCreateStandardTemplate} onOpenChange={setShowCreateStandardTemplate}>
+        <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
         <StandardEmailTemplateCreator
           onSave={handleSaveStandardTemplate}
           onCancel={handleCancelTemplate}
         />
+        </DialogContent>
+      </Dialog>
       )}
+     
+     
 
       {showCreateTemplate && (
         <Dialog open={showCreateTemplate} onOpenChange={setShowCreateTemplate}>
@@ -1878,11 +1879,12 @@ export function EmailCampaigns({ onNavigate }: EmailCampaignsProps) {
               </Button>
               <Button 
                 onClick={handleSaveTemplate}
-                style={{
-                  fontFamily: 'var(--font-family)',
-                  backgroundColor: 'var(--color-primary)',
-                  color: 'var(--color-primary-foreground)'
-                }}
+                className='bg-orange-500 hover:bg-orange-600 text-white'
+                // style={{
+                //   fontFamily: 'var(--font-family)',
+                //   backgroundColor: 'var(--color-primary)',
+                //   color: 'var(--color-primary-foreground)'
+                // }}
               >
                 <Save className="h-4 w-4 mr-1" />
                 Save Template

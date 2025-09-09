@@ -1037,11 +1037,12 @@ export function RevenuePrediction({ onNavigate }: RevenuePredictionProps) {
               setShowUploadDialog(true);
               fetchUploadedFiles();
             }}
+            className="cls-addcomapany"
           >
-            <Upload className="h-4 w-4 mr-2" />
+            <Upload className="h-4 w-4 mr-2 " />
             Upload Data
           </Button>
-          <Button variant="outline">
+          <Button variant="outline" className="cls-addcomapany">
             <Download className="h-4 w-4 mr-2" />
             Export Report
           </Button>
@@ -1049,6 +1050,7 @@ export function RevenuePrediction({ onNavigate }: RevenuePredictionProps) {
             variant="outline"
             onClick={handleRefreshData}
             disabled={isRefreshing}
+            className="cls-addcomapany"
           >
             <RefreshCw
               className={`h-4 w-4 mr-2 ${isRefreshing ? "animate-spin" : ""}`}

@@ -108,7 +108,7 @@ export function StandardEmailTemplateCreator({
   };
 
   return (
-    <div className="max-w-6xl mx-auto p-6 space-y-6">
+    <div className="">
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center justify-between">
@@ -319,7 +319,7 @@ export function StandardEmailTemplateCreator({
             <Button variant="outline" onClick={onCancel}>
               Cancel
             </Button>
-            <Button onClick={handleSave}>
+            <Button onClick={handleSave} className='bg-orange-500 hover:bg-orange-600 text-white'>
               Save Template
             </Button>
           </div>

@@ -318,415 +318,6 @@ const aiRecommendations = {
   },
 };
 
-// Mock contracts data (to be replaced by API fetch)
-const initialContractsData = [
-  {
-    id: "CTR-2024-001",
-    vendor: "Global Travel Solutions",
-    client: "Airline Operations",
-    type: "Master Service Agreement",
-    value: 1250000,
-    status: "Active",
-    startDate: "2024-01-15",
-    endDate: "2024-12-15",
-    signedDate: "2024-01-10",
-    progress: 100,
-    nextAction: "Renewal Review",
-    documents: 5,
-    breachRisk: "High",
-    breachCount: 2,
-    parties: ["SOAR-AI Airlines", "Global Travel Solutions"],
-    attachedOffer: {
-      id: "OFF-001",
-      title: "Premium Business Class Package",
-      status: "Active",
-      discount: 25,
-      validFrom: "2024-01-15",
-      validTo: "2024-12-31",
-      appliedDiscounts: ["DISC-001", "DISC-003"],
-      promoCodes: ["PROMO-001"],
-    },
-    milestones: [
-      { name: "Contract Signing", date: "2024-01-10", status: "completed" },
-      { name: "Service Launch", date: "2024-01-15", status: "completed" },
-      { name: "Q2 Review", date: "2024-04-15", status: "completed" },
-      { name: "Q3 Review", date: "2024-07-15", status: "upcoming" },
-      { name: "Renewal Discussion", date: "2024-10-15", status: "upcoming" },
-    ],
-    comments: [
-      {
-        id: 1,
-        author: "John Smith",
-        date: "2024-06-15",
-        content:
-          "Performance review completed. Some concerns about response times.",
-      },
-      {
-        id: 2,
-        author: "Sarah Johnson",
-        date: "2024-06-10",
-        content: "Vendor has provided action plan for improvement.",
-      },
-      {
-        id: 3,
-        author: "Mike Wilson",
-        date: "2024-06-05",
-        content: "Escalated SLA compliance issues to management.",
-      },
-    ],
-
-    attachments: [
-      {
-        document_id: "DOC-001",
-        name: "Master Service Agreement.pdf",
-        size: "2.4 MB",
-        uploadDate: "2024-01-10",
-        type: "Contract",
-      },
-      {
-        document_id: "DOC-002",
-        name: "SLA Addendum.pdf",
-        size: "856 KB",
-        uploadDate: "2024-02-15",
-        type: "Amendment",
-      },
-      {
-        document_id: "DOC-003",
-        name: "Performance Report Q1.pdf",
-        size: "1.2 MB",
-        uploadDate: "2024-04-15",
-        type: "Report",
-      },
-      {
-        document_id: "DOC-004",
-        name: "Renewal Terms Draft.pdf",
-        size: "1.8 MB",
-        uploadDate: "2024-06-10",
-        type: "Draft",
-      },
-      {
-        document_id: "DOC-005",
-        name: "Vendor Response Letter.pdf",
-        size: "425 KB",
-        uploadDate: "2024-06-12",
-        type: "Correspondence",
-      },
-    ],
-    lastActivity: "2024-06-15",
-    performanceScore: 72,
-    slaCompliance: 85,
-    customerSatisfaction: 3.8,
-    costEfficiency: 92,
-    breachHistory: [
-      { date: "2024-03-15", type: "SLA Violation", resolved: true },
-      { date: "2024-05-20", type: "Performance", resolved: false },
-    ],
-    marketPosition: "Leading",
-    alternativeVendors: ["Corporate Journey Ltd", "Elite Business Travel"],
-    financialHealth: "Good",
-    technicalCapability: "Excellent",
-    relationshipScore: 4.2,
-    terms:
-      "Standard enterprise terms with 30-day notice period for modifications. Performance penalties apply for SLA breaches exceeding 5% monthly threshold.",
-    description:
-      "Comprehensive master service agreement covering all airline operations support services including booking systems, customer service, and operational support.",
-  },
-  {
-    id: "CTR-2024-002",
-    vendor: "Corporate Journey Ltd",
-    client: "Business Travel Dept",
-    type: "Service Level Agreement",
-    value: 980000,
-    status: "Pending Signature",
-    startDate: "2024-06-01",
-    endDate: "2024-08-31",
-    signedDate: null,
-    progress: 85,
-    nextAction: "Awaiting Vendor Signature",
-    documents: 3,
-    breachRisk: "Low",
-    breachCount: 0,
-    parties: ["SOAR-AI Airlines", "Corporate Journey Ltd"],
-    attachedOffer: {
-      id: "OFF-002",
-      title: "Economy Plus Group Rates",
-      status: "Active",
-      discount: 15,
-      validFrom: "2024-02-01",
-      validTo: "2024-11-30",
-      appliedDiscounts: ["DISC-002"],
-      promoCodes: ["PROMO-002"],
-    },
-    milestones: [
-      { name: "Contract Draft", date: "2024-05-15", status: "completed" },
-      { name: "Legal Review", date: "2024-05-25", status: "completed" },
-      { name: "Vendor Signature", date: "2024-05-30", status: "pending" },
-      { name: "Service Launch", date: "2024-06-15", status: "upcoming" },
-    ],
-    comments: [
-      {
-        id: 1,
-        author: "Jane Doe",
-        date: "2024-05-28",
-        content:
-          "Contract ready for vendor signature. Awaiting final approval from their legal team.",
-      },
-    ],
-
-    attachments: [
-      {
-        document_id: "DOC-006",
-        name: "Service Level Agreement.pdf",
-        size: "1.8 MB",
-        uploadDate: "2024-05-15",
-        type: "Contract",
-      },
-      {
-        document_id: "DOC-007",
-        name: "Performance Metrics.pdf",
-        size: "945 KB",
-        uploadDate: "2024-05-20",
-        type: "Specification",
-      },
-      {
-        document_id: "DOC-008",
-        name: "Legal Review Notes.pdf",
-        size: "623 KB",
-        uploadDate: "2024-05-25",
-        type: "Review",
-      },
-    ],
-    lastActivity: "2024-05-28",
-    performanceScore: 88,
-    slaCompliance: 96,
-    customerSatisfaction: 4.3,
-    costEfficiency: 87,
-    breachHistory: [],
-    marketPosition: "Competitive",
-    alternativeVendors: ["Global Travel Solutions", "Premier Voyage Group"],
-    financialHealth: "Excellent",
-    technicalCapability: "Good",
-    relationshipScore: 4.5,
-    terms:
-      "Service level agreement with 99.5% uptime guarantee. Monthly performance reviews and quarterly business reviews included.",
-    description:
-      "Dedicated service level agreement for business travel department operations with enhanced support and guaranteed response times.",
-  },
-  {
-    id: "CTR-2024-003",
-    vendor: "Elite Business Travel",
-    client: "Executive Services",
-    type: "Non-Disclosure Agreement",
-    value: 0,
-    status: "Draft",
-    startDate: "2024-07-01",
-    endDate: "2025-06-30",
-    signedDate: null,
-    progress: 45,
-    nextAction: "Legal Review Required",
-    documents: 2,
-    breachRisk: "Low",
-    breachCount: 0,
-    parties: ["SOAR-AI Airlines", "Elite Business Travel"],
-    attachedOffer: null,
-    milestones: [
-      { name: "Initial Draft", date: "2024-06-01", status: "completed" },
-      { name: "Legal Review", date: "2024-06-15", status: "in-progress" },
-      { name: "Final Approval", date: "2024-06-25", status: "upcoming" },
-    ],
-    comments: [],
-    attachments: [
-      {
-        document_id: "DOC-009",
-        name: "NDA Draft v1.pdf",
-        size: "456 KB",
-        uploadDate: "2024-06-01",
-        type: "Draft",
-      },
-      {
-        document_id: "DOC-010",
-        name: "Legal Requirements.pdf",
-        size: "289 KB",
-        uploadDate: "2024-06-05",
-        type: "Requirements",
-      },
-    ],
-    lastActivity: "2024-06-10",
-    performanceScore: 94,
-    slaCompliance: 98,
-    customerSatisfaction: 4.7,
-    costEfficiency: 91,
-    breachHistory: [],
-    marketPosition: "Premium",
-    alternativeVendors: ["Global Travel Solutions"],
-    financialHealth: "Excellent",
-    technicalCapability: "Excellent",
-    relationshipScore: 4.8,
-    terms:
-      "Standard NDA terms with 2-year confidentiality period and mutual non-compete clauses.",
-    description:
-      "Non-disclosure agreement for strategic partnership discussions and confidential information sharing.",
-  },
-  {
-    id: "CTR-2024-004",
-    vendor: "Premier Voyage Group",
-    client: "Regional Operations",
-    type: "Partnership Agreement",
-    value: 620000,
-    status: "At Risk",
-    startDate: "2023-01-01",
-    endDate: "2024-07-31",
-    signedDate: "2022-12-15",
-    progress: 100,
-    nextAction: "Breach Resolution Required",
-    documents: 7,
-    breachRisk: "High",
-    breachCount: 3,
-    parties: ["SOAR-AI Airlines", "Premier Voyage Group"],
-    attachedOffer: {
-      id: "OFF-003",
-      title: "Financial Services Executive",
-      status: "Draft",
-      discount: 30,
-      validFrom: "2024-03-01",
-      validTo: "2024-12-31",
-      appliedDiscounts: ["DISC-001", "DISC-004"],
-      promoCodes: ["PROMO-003"],
-    },
-    milestones: [
-      { name: "Contract Signing", date: "2022-12-15", status: "completed" },
-      { name: "Service Launch", date: "2023-01-01", status: "completed" },
-      { name: "Contract Expired", date: "2024-01-01", status: "overdue" },
-      { name: "Renewal Required", date: "2024-06-01", status: "overdue" },
-    ],
-    comments: [
-      {
-        id: 1,
-        author: "David Chen",
-        date: "2024-06-14",
-        content:
-          "Escalated performance issues to senior management. Considering termination.",
-      },
-      {
-        id: 2,
-        author: "Lisa Wong",
-        date: "2024-06-10",
-        content: "Third breach this quarter. Vendor response inadequate.",
-      },
-      {
-        id: 3,
-        author: "Mark Johnson",
-        date: "2024-06-05",
-        content:
-          "Performance metrics continue to decline despite interventions.",
-      },
-      {
-        id: 4,
-        author: "Sarah Kim",
-        date: "2024-05-28",
-        content:
-          "Customer complaints increasing. Impact on regional operations significant.",
-      },
-      {
-        id: 5,
-        author: "Tom Brown",
-        date: "2024-05-20",
-        content: "Vendor action plan submitted but lacks concrete timelines.",
-      },
-      {
-        id: 6,
-        author: "Anna Davis",
-        date: "2024-05-15",
-        content: "SLA breach #3 for this quarter. Financial penalties applied.",
-      },
-      {
-        id: 7,
-        author: "James Wilson",
-        date: "2024-05-10",
-        content: "Emergency meeting scheduled with vendor leadership.",
-      },
-      {
-        id: 8,
-        author: "Rachel Green",
-        date: "2024-05-05",
-        content:
-          "Performance deterioration continues. Alternative vendors being evaluated.",
-      },
-    ],
-
-    attachments: [
-      {
-        document_id: "DOC-011",
-        name: "Partnership Agreement.pdf",
-        size: "3.2 MB",
-        uploadDate: "2022-12-15",
-        type: "Contract",
-      },
-      {
-        document_id: "DOC-012",
-        name: "Performance Report Q1.pdf",
-        size: "1.1 MB",
-        uploadDate: "2024-01-20",
-        type: "Report",
-      },
-      {
-        document_id: "DOC-013",
-        name: "Breach Notice #1.pdf",
-        size: "234 KB",
-        uploadDate: "2024-01-25",
-        type: "Notice",
-      },
-      {
-        document_id: "DOC-014",
-        name: "Vendor Response Plan.pdf",
-        size: "678 KB",
-        uploadDate: "2024-02-10",
-        type: "Plan",
-      },
-      {
-        document_id: "DOC-015",
-        name: "Breach Notice #2.pdf",
-        size: "287 KB",
-        uploadDate: "2024-03-15",
-        type: "Notice",
-      },
-      {
-        document_id: "DOC-016",
-        name: "Performance Improvement Plan.pdf",
-        size: "892 KB",
-        uploadDate: "2024-04-01",
-        type: "Plan",
-      },
-      {
-        document_id: "DOC-017",
-        name: "Termination Evaluation.pdf",
-        size: "1.5 MB",
-        uploadDate: "2024-06-10",
-        type: "Analysis",
-      },
-    ],
-    lastActivity: "2024-06-14",
-    performanceScore: 45,
-    slaCompliance: 62,
-    customerSatisfaction: 2.8,
-    costEfficiency: 78,
-    breachHistory: [
-      { date: "2024-01-20", type: "Financial", resolved: false },
-      { date: "2024-03-10", type: "SLA Violation", resolved: true },
-      { date: "2024-05-15", type: "Performance", resolved: false },
-    ],
-    marketPosition: "Declining",
-    alternativeVendors: ["Global Travel Solutions", "Corporate Journey Ltd"],
-    financialHealth: "Concerning",
-    technicalCapability: "Average",
-    relationshipScore: 2.1,
-    terms:
-      "Partnership agreement with revenue sharing model. Performance penalties and termination clauses for repeated breaches.",
-    description:
-      "Strategic partnership agreement for regional operations with revenue sharing and performance-based compensation structure.",
-  },
-];
-
 interface ContractManagementProps {
   initialFilters?: any;
 }
@@ -821,7 +412,7 @@ export function ContractManagement({
   const [uploadingDocument, setUploadingDocument] = useState(false);
   const [downloadingDocument, setDownloadingDocument] = useState(false);
   const [documentUploadError, setDocumentUploadError] = useState<string | null>(
-    null,
+    null
   );
   const isFetchingRef = useRef(false); // Ref to track if fetch is in progress
   const hasInitializedRef = useRef(false); // Ref to track if initial fetch happened
@@ -919,14 +510,14 @@ export function ContractManagement({
             console.log(
               "✓ Using result.data directly as array:",
               contractsData.length,
-              "contracts",
+              "contracts"
             );
             console.log("✓ Sample contract data:", contractsData[0]);
           } else {
             console.warn(
               "❌ Expected array but got:",
               typeof result.data,
-              result.data,
+              result.data
             );
             contractsData = [];
           }
@@ -934,7 +525,7 @@ export function ContractManagement({
           console.log(
             "✓ Setting contracts state with:",
             contractsData.length,
-            "contracts",
+            "contracts"
           );
           setContracts(contractsData);
           setError(null); // Clear error on success
@@ -965,7 +556,7 @@ export function ContractManagement({
         console.log("Contract fetch process completed");
       }
     },
-    [], // Remove getContracts from dependencies to prevent infinite loops
+    [] // Remove getContracts from dependencies to prevent infinite loops
   );
 
   useEffect(() => {
@@ -1269,7 +860,7 @@ export function ContractManagement({
       } else {
         console.error("Failed to create contract:", result.error);
         toast.error(
-          `Failed to create contract: ${result.error || "Unknown error"}`,
+          `Failed to create contract: ${result.error || "Unknown error"}`
         );
       }
     } catch (error) {
@@ -1349,7 +940,7 @@ export function ContractManagement({
       } else {
         console.error("Failed to update contract:", result.error);
         toast.error(
-          `Failed to update contract: ${result.error || "Unknown error"}`,
+          `Failed to update contract: ${result.error || "Unknown error"}`
         );
       }
     } catch (error) {
@@ -1376,7 +967,7 @@ export function ContractManagement({
 
   const renderPromoCodesAndDiscounts = (
     appliedDiscounts = [],
-    promoCodes = [],
+    promoCodes = []
   ) => {
     return (
       <div className="flex flex-wrap gap-1">
@@ -1442,7 +1033,7 @@ export function ContractManagement({
   };
 
   const handleDocumentUpload = async (
-    event: React.ChangeEvent<HTMLInputElement>,
+    event: React.ChangeEvent<HTMLInputElement>
   ) => {
     const file = event.target.files?.[0];
     if (!file || !selectedContract) return;
@@ -1470,7 +1061,7 @@ export function ContractManagement({
 
         // Reload documents from server to ensure consistency
         const updatedDocuments = await loadContractDocuments(
-          selectedContract.id,
+          selectedContract.id
         );
 
         // Update the selected contract with fresh documents from server
@@ -1486,8 +1077,8 @@ export function ContractManagement({
           prevContracts.map((contract) =>
             contract.id === selectedContract.id
               ? { ...contract, attachments: updatedDocuments }
-              : contract,
-          ),
+              : contract
+          )
         );
 
         // Clear the input
@@ -1532,11 +1123,11 @@ export function ContractManagement({
   // Function to handle document download
   const handleDocumentDownload = async (
     documentId: string,
-    documentName: string,
+    documentName: string
   ) => {
     try {
       console.log(
-        `Starting download for document ${documentId}: ${documentName}`,
+        `Starting download for document ${documentId}: ${documentName}`
       );
 
       // Clear any previous errors
@@ -1547,7 +1138,7 @@ export function ContractManagement({
 
       if (!contractId) {
         throw new Error(
-          "No contract selected. Please select a contract first.",
+          "No contract selected. Please select a contract first."
         );
       }
 
@@ -1582,7 +1173,7 @@ export function ContractManagement({
         // alert(`Document "${documentName}" has been downloaded successfully.`);
       } else {
         console.error(
-          `Failed to get download URL for document ${documentName}`,
+          `Failed to get download URL for document ${documentName}`
         );
         throw new Error("Failed to generate download URL");
       }
@@ -1634,7 +1225,7 @@ export function ContractManagement({
   const handleDocumentView = async (documentId: string, fileName: string) => {
     try {
       console.log(
-        `Viewing document ${documentId} for contract ${selectedContract?.id}`,
+        `Viewing document ${documentId} for contract ${selectedContract?.id}`
       );
 
       if (!selectedContract?.id) {
@@ -1658,7 +1249,7 @@ export function ContractManagement({
     } catch (error) {
       console.error(`Error opening document ${fileName} for viewing:`, error);
       setDocumentUploadError(
-        `Failed to open document: ${error.message || "Unknown error"}`,
+        `Failed to open document: ${error.message || "Unknown error"}`
       );
     }
   };
@@ -1752,7 +1343,9 @@ export function ContractManagement({
     const url = URL.createObjectURL(dataBlob);
     const link = document.createElement("a");
     link.href = url;
-    link.download = `${contract.id}_Contract_Details_${new Date().toISOString().split("T")[0]}.csv`;
+    link.download = `${contract.id}_Contract_Details_${
+      new Date().toISOString().split("T")[0]
+    }.csv`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -1797,8 +1390,8 @@ export function ContractManagement({
         // Update the contract in the main contracts list
         setContracts((prevContracts) =>
           prevContracts.map((contract) =>
-            contract.id === selectedContract.id ? updatedContract : contract,
-          ),
+            contract.id === selectedContract.id ? updatedContract : contract
+          )
         );
 
         toast.success("Comment added successfully!");
@@ -1807,7 +1400,7 @@ export function ContractManagement({
       } else {
         console.error("Failed to add comment:", result.error);
         toast.error(
-          `Failed to add comment: ${result.error || "Unknown error"}`,
+          `Failed to add comment: ${result.error || "Unknown error"}`
         );
       }
     } catch (error) {
@@ -1833,35 +1426,20 @@ export function ContractManagement({
           <Button
             variant="outline"
             onClick={() => fetchContracts(true)} // Call fetchContracts with true to force refresh
-            className="flex items-center gap-2"
+            className="flex items-center gap-2 cls-addcomapany"
           >
             <RefreshCw
               className={`h-4 w-4 ${isLoading ? "animate-spin" : ""}`}
             />
             Refresh
           </Button>
-          <Button
-            variant="outline"
-            onClick={() =>
-              setFilters({
-                status: "",
-                client: "",
-                riskLevel: "",
-                dateRange: "",
-                recommendation: "",
-              })
-            }
-            className="flex items-center gap-2"
-          >
-            <XCircle className="h-4 w-4" />
-            Clear Filters
-          </Button>
+
           <Dialog
             open={isCreatingContract}
             onOpenChange={setIsCreatingContract}
           >
             <DialogTrigger asChild>
-              <Button className="flex items-center gap-2" variant="outline">
+              <Button className="flex items-center gap-2 cls-addcomapany" variant="outline">
                 <Plus className="h-4 w-4" />
                 New Contract
               </Button>
@@ -2398,7 +1976,7 @@ export function ContractManagement({
             </DialogContent>
           </Dialog>
 
-          <Button variant="outline">Import Contract</Button>
+          <Button className="cls-addcomapany" variant="outline">Import Contract</Button>
         </div>
       </div>
 
@@ -2425,12 +2003,35 @@ export function ContractManagement({
       {/* Enhanced Filters */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Filter className="h-5 w-5" />
-            Contract Filters
-          </CardTitle>
+        <div className="h-5 flex items-center gap-2  justify-between">
+              <div className="flex items-center gap-2 ">
+                <Filter className="w-4 text-gray-500" />
+                <span className="text-sm font-medium text-gray-700 ">
+                  Contract Filters
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  onClick={() =>
+                    setFilters({
+                      status: "",
+                      client: "",
+                      riskLevel: "",
+                      dateRange: "",
+                      recommendation: "",
+                    })
+                  }
+                  className="flex items-center gap-2 "
+                >
+                  <XCircle className="h-4 w-4" />
+                  Clear Filters
+                </Button>
+              </div>
+            </div>
         </CardHeader>
         <CardContent>
+     
           <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
             <div>
               <Label>Status</Label>
@@ -2448,12 +2049,13 @@ export function ContractManagement({
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Statuses</SelectItem>
-                  <SelectItem value="Active">Active</SelectItem>
+                  <SelectItem value="Draft">Draft</SelectItem>
                   <SelectItem value="Pending Signature">
                     Pending Signature
                   </SelectItem>
-                  <SelectItem value="Draft">Draft</SelectItem>
-                  <SelectItem value="At Risk">At Risk</SelectItem>
+                  <SelectItem value="Active">Active</SelectItem>
+
+                  {/* <SelectItem value="At Risk">At Risk</SelectItem> */}
                 </SelectContent>
               </Select>
             </div>
@@ -2664,13 +2266,13 @@ export function ContractManagement({
                           <p>
                             <strong>Unique statuses:</strong>{" "}
                             {[...new Set(contracts.map((c) => c.status))].join(
-                              ", ",
+                              ", "
                             )}
                           </p>
                           <p>
                             <strong>Unique clients:</strong>{" "}
                             {[...new Set(contracts.map((c) => c.client))].join(
-                              ", ",
+                              ", "
                             )}
                           </p>
                           <details className="mt-2">
@@ -2697,11 +2299,11 @@ export function ContractManagement({
                   contractsToDisplay.map((contract) => {
                     const StatusIcon = getStatusIcon(contract.status);
                     const expirationStatus = getExpirationStatus(
-                      contract.endDate,
+                      contract.endDate
                     );
                     const aiRec = aiRecommendations[contract.id];
                     const RecommendationIcon = getRecommendationIcon(
-                      aiRec?.recommendation,
+                      aiRec?.recommendation
                     );
 
                     return (
@@ -2711,7 +2313,11 @@ export function ContractManagement({
                           {(expirationStatus.status === "critical" ||
                             expirationStatus.status === "warning") && (
                             <div
-                              className={`absolute top-0 left-0 right-0 h-1 ${expirationStatus.status === "critical" ? "bg-red-500" : "bg-yellow-500"}`}
+                              className={`absolute top-0 left-0 right-0 h-1 ${
+                                expirationStatus.status === "critical"
+                                  ? "bg-red-500"
+                                  : "bg-yellow-500"
+                              }`}
                             />
                           )}
 
@@ -2811,7 +2417,7 @@ export function ContractManagement({
                                         {renderPromoCodesAndDiscounts(
                                           contract.attachedOffer
                                             .appliedDiscounts,
-                                          contract.attachedOffer.promoCodes,
+                                          contract.attachedOffer.promoCodes
                                         )}
                                       </div>
                                     )}
@@ -2845,7 +2451,13 @@ export function ContractManagement({
                           {/* AI Recommendation Banner */}
                           {aiRec && aiRec.recommendation && (
                             <Alert
-                              className={`mb-4 ${aiRec.recommendation === "Renew" ? "border-green-200 bg-green-50" : aiRec.recommendation === "Terminate" ? "border-red-200 bg-red-50" : "border-yellow-200 bg-yellow-50"}`}
+                              className={`mb-4 ${
+                                aiRec.recommendation === "Renew"
+                                  ? "border-green-200 bg-green-50"
+                                  : aiRec.recommendation === "Terminate"
+                                  ? "border-red-200 bg-red-50"
+                                  : "border-yellow-200 bg-yellow-50"
+                              }`}
                             >
                               <Brain className="h-4 w-4" />
                               <AlertDescription className="flex items-center justify-between">
@@ -2853,7 +2465,7 @@ export function ContractManagement({
                                   <strong>AI Recommendation: </strong>
                                   <Badge
                                     variant={getRecommendationColor(
-                                      aiRec.recommendation,
+                                      aiRec.recommendation
                                     )}
                                     className="ml-2"
                                   >
@@ -2965,7 +2577,7 @@ export function ContractManagement({
                                   onClick={() =>
                                     console.log(
                                       "Initiating digital signature for:",
-                                      contract.id,
+                                      contract.id
                                     )
                                   }
                                 >
@@ -3001,18 +2613,24 @@ export function ContractManagement({
               <div className="space-y-4">
                 {getExpiringContracts().map((contract) => {
                   const expirationStatus = getExpirationStatus(
-                    contract.endDate,
+                    contract.endDate
                   );
                   const aiRec = aiRecommendations[contract.id];
                   const RecommendationIcon = getRecommendationIcon(
-                    aiRec?.recommendation,
+                    aiRec?.recommendation
                   );
                   const daysLeft = getDaysUntilExpiration(contract.endDate);
 
                   return (
                     <Card
                       key={contract.id}
-                      className={`border-l-4 ${daysLeft <= 30 ? "border-l-red-500" : daysLeft <= 60 ? "border-l-yellow-500" : "border-l-blue-500"}`}
+                      className={`border-l-4 ${
+                        daysLeft <= 30
+                          ? "border-l-red-500"
+                          : daysLeft <= 60
+                          ? "border-l-yellow-500"
+                          : "border-l-blue-500"
+                      }`}
                     >
                       <CardContent className="p-6">
                         <div className="flex items-start justify-between mb-4">
@@ -3031,7 +2649,7 @@ export function ContractManagement({
                               {aiRec && aiRec.recommendation && (
                                 <Badge
                                   variant={getRecommendationColor(
-                                    aiRec.recommendation,
+                                    aiRec.recommendation
                                   )}
                                 >
                                   <RecommendationIcon className="h-3 w-3 mr-1" />
@@ -3107,7 +2725,13 @@ export function ContractManagement({
                         {/* AI Recommendation */}
                         {aiRec && aiRec.recommendation && (
                           <Alert
-                            className={`mb-4 ${aiRec.recommendation === "Renew" ? "border-green-200 bg-green-50" : aiRec.recommendation === "Terminate" ? "border-red-200 bg-red-50" : "border-yellow-200 bg-yellow-50"}`}
+                            className={`mb-4 ${
+                              aiRec.recommendation === "Renew"
+                                ? "border-green-200 bg-green-50"
+                                : aiRec.recommendation === "Terminate"
+                                ? "border-red-200 bg-red-50"
+                                : "border-yellow-200 bg-yellow-50"
+                            }`}
                           >
                             <Brain className="h-4 w-4" />
                             <AlertDescription>
@@ -3182,7 +2806,7 @@ export function ContractManagement({
                 {contracts.map((contract) => {
                   const aiRec = aiRecommendations[contract.id];
                   const RecommendationIcon = getRecommendationIcon(
-                    aiRec?.recommendation,
+                    aiRec?.recommendation
                   );
 
                   if (!aiRec) return null;
@@ -3190,7 +2814,13 @@ export function ContractManagement({
                   return (
                     <Card
                       key={contract.id}
-                      className={`border-l-4 ${aiRec.recommendation === "Renew" ? "border-l-green-500" : aiRec.recommendation === "Terminate" ? "border-l-red-500" : "border-l-yellow-500"}`}
+                      className={`border-l-4 ${
+                        aiRec.recommendation === "Renew"
+                          ? "border-l-green-500"
+                          : aiRec.recommendation === "Terminate"
+                          ? "border-l-red-500"
+                          : "border-l-yellow-500"
+                      }`}
                     >
                       <CardContent className="p-6">
                         <div className="flex items-center justify-between mb-4">
@@ -3201,7 +2831,7 @@ export function ContractManagement({
                               </h3>
                               <Badge
                                 variant={getRecommendationColor(
-                                  aiRec.recommendation,
+                                  aiRec.recommendation
                                 )}
                                 className="flex items-center gap-1"
                               >
@@ -3235,8 +2865,8 @@ export function ContractManagement({
                                     aiRec.riskLevel === "High"
                                       ? "destructive"
                                       : aiRec.riskLevel === "Medium"
-                                        ? "secondary"
-                                        : "default"
+                                      ? "secondary"
+                                      : "default"
                                   }
                                 >
                                   {aiRec.riskLevel}
@@ -3424,7 +3054,7 @@ export function ContractManagement({
                 <div className="text-2xl font-bold">
                   {Math.round(
                     contracts.reduce((sum, c) => sum + c.performanceScore, 0) /
-                      contracts.length,
+                      contracts.length
                   )}
                   %
                 </div>
@@ -3503,7 +3133,7 @@ export function ContractManagement({
                         {aiRec && aiRec.recommendation ? (
                           <Badge
                             variant={getRecommendationColor(
-                              aiRec.recommendation,
+                              aiRec.recommendation
                             )}
                           >
                             {aiRec.recommendation}
@@ -3770,7 +3400,7 @@ export function ContractManagement({
                           <div className="mt-3 pt-3 border-t">
                             {renderPromoCodesAndDiscounts(
                               selectedContract.attachedOffer.appliedDiscounts,
-                              selectedContract.attachedOffer.promoCodes,
+                              selectedContract.attachedOffer.promoCodes
                             )}
                           </div>
                         )}
@@ -3997,7 +3627,7 @@ export function ContractManagement({
               {(() => {
                 const aiRec = aiRecommendations[selectedContract.id];
                 const RecommendationIcon = getRecommendationIcon(
-                  aiRec.recommendation,
+                  aiRec.recommendation
                 );
 
                 return (
@@ -4147,8 +3777,8 @@ export function ContractManagement({
                                 aiRec.riskLevel === "High"
                                   ? "destructive"
                                   : aiRec.riskLevel === "Medium"
-                                    ? "secondary"
-                                    : "default"
+                                  ? "secondary"
+                                  : "default"
                               }
                             >
                               {aiRec.riskLevel}
@@ -4212,7 +3842,7 @@ export function ContractManagement({
                                   <Badge key={index} variant="outline">
                                     {vendor}
                                   </Badge>
-                                ),
+                                )
                               )}
                             </div>
                           </div>
@@ -4298,7 +3928,7 @@ export function ContractManagement({
                             {selectedOffer.appliedDiscounts.map(
                               (discountId) => {
                                 const discount = mockDiscounts.find(
-                                  (d) => d.id === discountId,
+                                  (d) => d.id === discountId
                                 );
                                 return discount ? (
                                   <div
@@ -4323,7 +3953,7 @@ export function ContractManagement({
                                     </Badge>
                                   </div>
                                 ) : null;
-                              },
+                              }
                             )}
                           </div>
                         </div>
@@ -4337,7 +3967,7 @@ export function ContractManagement({
                           <div className="space-y-2">
                             {selectedOffer.promoCodes.map((promoId) => {
                               const promo = mockPromoCodes.find(
-                                (p) => p.id === promoId,
+                                (p) => p.id === promoId
                               );
                               return promo ? (
                                 <div
@@ -4471,7 +4101,7 @@ export function ContractManagement({
                   className="p-3 border rounded-lg hover:bg-gray-50 cursor-pointer flex items-center justify-between"
                   onClick={() => {
                     setSelectedContract((prev) =>
-                      prev ? { ...prev, attachedOffer: null } : null,
+                      prev ? { ...prev, attachedOffer: null } : null
                     );
                     setShowChangeOffer(false);
                   }}
@@ -4492,7 +4122,7 @@ export function ContractManagement({
                     className="p-3 border rounded-lg hover:bg-gray-50 cursor-pointer"
                     onClick={() => {
                       setSelectedContract((prev) =>
-                        prev ? { ...prev, attachedOffer: offer } : null,
+                        prev ? { ...prev, attachedOffer: offer } : null
                       );
                       setShowChangeOffer(false);
                     }}
@@ -4516,7 +4146,7 @@ export function ContractManagement({
                           <div className="mt-2">
                             {renderPromoCodesAndDiscounts(
                               offer.appliedDiscounts,
-                              offer.promoCodes,
+                              offer.promoCodes
                             )}
                           </div>
                         )}

@@ -2098,13 +2098,13 @@ SOAR-AI Team`,
           </p>
         </div>
         <div className="flex items-center gap-3">
-          <Button
+          {/* <Button
             variant="outline"
             className="text-gray-700  hover:bg-gray-50 cls-addcomapany"
           >
             <Download className="h-4 w-4 mr-2" />
             Export
-          </Button>
+          </Button> */}
           <Button
             variant="outline"
             className="text-gray-700 hover:bg-gray-50 cls-addcomapany"

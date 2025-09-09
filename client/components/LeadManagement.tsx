@@ -246,7 +246,7 @@ export function LeadManagement({ onNavigate }: LeadManagementProps) {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Lead Management</h1>
-          <p className="text-gray-600 mt-1">Manage qualified and unqualified leads with automated email campaigns</p>
+          <p className="text-gray-600 mt-1">Manage qualified and disqualified leads with automated email campaigns</p>
           {dataError && (
             <Alert className="mt-2 bg-red-50 border-red-200">
               <AlertTriangle className="h-4 w-4 text-red-600" />
@@ -267,14 +267,14 @@ export function LeadManagement({ onNavigate }: LeadManagementProps) {
         <div className="flex gap-3">
           <Button 
             variant="outline" 
-            className="bg-white border-gray-200 hover:bg-gray-50" 
+            className="bg-white border-gray-200 hover:bg-gray-50 cls-addcomapany" 
             onClick={refreshDashboard}
             disabled={isLoading}
           >
             <Activity className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
             {isLoading ? 'Loading...' : 'Refresh'}
           </Button>
-          <Button variant="outline" className="bg-white border-gray-200 hover:bg-gray-50" onClick={() => onNavigate('email-campaigns')}>
+          <Button variant="outline" className="bg-white border-gray-200 hover:bg-gray-50 cls-addcomapany" onClick={() => onNavigate('email-campaigns')}>
             <Mail className="h-4 w-4 mr-2" />
             Email Campaigns
           </Button>
@@ -386,7 +386,7 @@ export function LeadManagement({ onNavigate }: LeadManagementProps) {
             value="unqualified"
             className="rounded-md px-4 py-2 data-[state=active]:bg-gray-100 data-[state=active]:text-gray-900 font-medium text-gray-600 hover:text-gray-900 transition-all duration-200"
           >
-            Unqualified Leads
+            Disqualified Leads
           </TabsTrigger>
           <TabsTrigger 
             value="campaigns"
@@ -555,7 +555,13 @@ export function LeadManagement({ onNavigate }: LeadManagementProps) {
                   </CardTitle>
                   <CardDescription className="text-gray-500 mt-1">High-priority leads requiring immediate attention</CardDescription>
                 </div>
-                <Button variant="outline" className="bg-white border-gray-200 hover:bg-gray-50" onClick={() => onNavigate('qualified-leads')}>
+                <Button variant="outline" className="bg-white border-gray-200 hover:bg-gray-50" onClick={() => onNavigate('leads-list',{
+                search: "",
+                status: "qualified",
+                industry: "",
+                score: "",
+                engagement: ""
+              })}>
                   <Eye className="h-4 w-4 mr-2" />
                   View All
                 </Button>
@@ -611,9 +617,9 @@ export function LeadManagement({ onNavigate }: LeadManagementProps) {
                           <div className="text-sm font-medium text-gray-700">{lead.nextAction}</div>
                           <div className="text-xs text-gray-500">Last: {lead.lastContact}</div>
                         </div>
-                        <Button size="sm" variant="outline" className="hover:bg-gray-50">
+                        {/* <Button size="sm" variant="outline" className="hover:bg-gray-50">
                           <ArrowRight className="h-4 w-4" />
-                        </Button>
+                        </Button> */}
                       </div>
                     </div>
                   ))
@@ -647,7 +653,7 @@ export function LeadManagement({ onNavigate }: LeadManagementProps) {
               })}>
               <CardContent className="p-6 text-center">
                 <UserX className="h-8 w-8 mx-auto mb-3 text-red-600" />
-                <h3 className="font-semibold text-gray-900">Unqualified Leads</h3>
+                <h3 className="font-semibold text-gray-900">Disqualified Leads</h3>
                 <p className="text-sm text-gray-600 mt-2">Review and nurture prospects</p>
               </CardContent>
             </Card>
@@ -692,7 +698,7 @@ export function LeadManagement({ onNavigate }: LeadManagementProps) {
           <Alert className="bg-red-50 border-red-200">
             <UserX className="h-4 w-4 text-red-600" />
             <AlertDescription className="text-red-800">
-              You have {leadStats?.unqualified || 0} unqualified leads that may need attention.
+              You have {leadStats?.unqualified || 0} disqualified leads that may need attention.
               <Button variant="link" className="p-0 ml-1 text-red-700 hover:text-red-800" onClick={() => { 
                 const filters = {
                   search: "",
@@ -703,7 +709,7 @@ export function LeadManagement({ onNavigate }: LeadManagementProps) {
                 };
                 onNavigate('leads-list', filters);
               }}>
-                Review unqualified leads &rarr;
+                Review disqualified leads &rarr;
               </Button>
             </AlertDescription>
           </Alert>
