@@ -85,4 +85,12 @@ urlpatterns = [
     # Email tracking endpoints - Removed as per instructions
     # path('email-tracking/open/<uuid:tracking_id>/', views.track_email_open_pixel, name='track_email_open_pixel'),
     # path('email-tracking/click/<uuid:tracking_id>/', views.track_email_click_redirect, name='track_email_click_redirect'),
+
+    # Email campaign real-time stats URLs
+    path('email-campaigns/<int:pk>/real_time_stats/', views.EmailCampaignViewSet.as_view({'get': 'real_time_stats'}), name='campaign-real-time-stats'),
+    path('email-campaigns/<int:pk>/tracking_details/', views.EmailCampaignViewSet.as_view({'get': 'tracking_details'}), name='campaign-tracking-details'),
+
+    # Email tracking endpoints
+    path('track/open/<uuid:tracking_id>/', views.track_email_open, name='track-email-open'),
+    path('track/click/<uuid:tracking_id>/', views.track_email_click, name='track-email-click'),
 ]

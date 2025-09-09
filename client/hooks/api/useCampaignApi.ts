@@ -271,24 +271,57 @@ export const useCampaignApi = () => {
   const checkSmtpStatus = useCallback(async (campaignId?: string) => {
     setLoading(true);
     setError(null);
-
     try {
-      const endpoint = campaignId ?
-        `${API_BASE_URL}/email-campaigns/${campaignId}/smtp-status/` :
-        `${API_BASE_URL}/email-campaigns/smtp-status/`;
-
-      const response: AxiosResponse<any> = await axios.get(endpoint);
-
-      setData(response.data);
-      return response.data;
-    } catch (error: any) {
-      const errorMessage = error.response?.data?.message || error.message || 'Failed to check SMTP status';
+      const endpoint = campaignId ? `/campaigns/${campaignId}/smtp-status/` : '/campaigns/smtp-status/';
+      const response = await fetch(`${API_BASE_URL}${endpoint}`);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return await response.json();
+    } catch (err: any) {
+      const errorMessage = err.message || 'Failed to check SMTP status';
       setError(errorMessage);
-      throw error;
+      throw new Error(errorMessage);
     } finally {
       setLoading(false);
     }
   }, [setLoading, setError, setData]);
+
+  const getRealTimeStats = async (campaignId: string) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await fetch(`${API_BASE_URL}/email-campaigns/${campaignId}/real_time_stats/`);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return await response.json();
+    } catch (err: any) {
+      const errorMessage = err.message || 'Failed to get real-time stats';
+      setError(errorMessage);
+      throw new Error(errorMessage);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getTrackingDetails = async (campaignId: string) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await fetch(`${API_BASE_URL}/email-campaigns/${campaignId}/tracking_details/`);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return await response.json();
+    } catch (err: any) {
+      const errorMessage = err.message || 'Failed to get tracking details';
+      setError(errorMessage);
+      throw new Error(errorMessage);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return {
     ...state,
@@ -300,5 +333,7 @@ export const useCampaignApi = () => {
     getCampaignAnalytics,
     getCampaignPerformance,
     checkSmtpStatus,
+    getRealTimeStats,
+    getTrackingDetails,
   };
 };

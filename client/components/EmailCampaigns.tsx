@@ -122,8 +122,11 @@ export function EmailCampaigns({ onNavigate }: EmailCampaignsProps) {
     content: '',
     variables: [] as string[],
   });
+  const [realTimeStats, setRealTimeStats] = useState<Record<number, any>>({});
+  const [trackingDetails, setTrackingDetails] = useState<any>(null);
+  const [showTrackingDetails, setShowTrackingDetails] = useState(false);
 
-  const { getCampaigns, launchCampaign, checkSmtpStatus: fetchSmtpStatus, loading: campaignsLoading, error: campaignsError } = useCampaignApi();
+  const { getCampaigns, launchCampaign, checkSmtpStatus: fetchSmtpStatus, getRealTimeStats, getTrackingDetails, loading: campaignsLoading, error: campaignsError } = useCampaignApi();
 
   // Helper function to calculate overall metrics from API data
   const calculateMetrics = () => {
@@ -190,6 +193,26 @@ export function EmailCampaigns({ onNavigate }: EmailCampaignsProps) {
     fetchTemplates(); // Load templates from API as well
   }, []);
 
+  // Auto-refresh real-time stats for active campaigns
+  useEffect(() => {
+    const interval = setInterval(async () => {
+      const activeCampaigns = campaignList.filter(c => c.status === 'active');
+      for (const campaign of activeCampaigns) {
+        try {
+          const stats = await getRealTimeStats(campaign.id.toString());
+          setRealTimeStats(prev => ({
+            ...prev,
+            [campaign.id]: stats
+          }));
+        } catch (error) {
+          // Silently fail for auto-refresh
+        }
+      }
+    }, 30000); // Refresh every 30 seconds
+
+    return () => clearInterval(interval);
+  }, [campaignList, getRealTimeStats]);
+
   const loadStandardTemplates = () => {
     const builtInTemplates = EmailTemplateService.getStandardTemplates();
     setStandardTemplates(builtInTemplates);
@@ -211,10 +234,32 @@ export function EmailCampaigns({ onNavigate }: EmailCampaignsProps) {
     }
   };
 
-  const handleViewCampaign = (campaign: Campaign) => {
+  const handleViewCampaign = async (campaign: Campaign) => {
     setSelectedCampaign(campaign);
     setShowViewDialog(true);
     setViewTab('overview');
+    
+    // Fetch real-time stats for this campaign
+    try {
+      const stats = await getRealTimeStats(campaign.id.toString());
+      setRealTimeStats(prev => ({
+        ...prev,
+        [campaign.id]: stats
+      }));
+    } catch (error) {
+      console.error('Failed to fetch real-time stats:', error);
+    }
+  };
+
+  const handleViewTrackingDetails = async (campaignId: number) => {
+    try {
+      const details = await getTrackingDetails(campaignId.toString());
+      setTrackingDetails(details);
+      setShowTrackingDetails(true);
+    } catch (error) {
+      console.error('Failed to fetch tracking details:', error);
+      toast.error('Failed to load tracking details');
+    }
   };
 
   const handleLaunchCampaign = async (campaignId: string) => {
@@ -993,7 +1038,7 @@ export function EmailCampaigns({ onNavigate }: EmailCampaignsProps) {
                         fontFamily: 'var(--font-family)',
                         color: 'var(--color-foreground)'
                       }}>
-                        {campaign.emails_sent.toLocaleString()}
+                        {realTimeStats[campaign.id]?.emails_sent?.toLocaleString() || campaign.emails_sent.toLocaleString()}
                       </div>
                       <p style={{ 
                         fontSize: 'var(--text-xs)', 
@@ -1010,14 +1055,16 @@ export function EmailCampaigns({ onNavigate }: EmailCampaignsProps) {
                         fontFamily: 'var(--font-family)',
                         color: 'var(--color-foreground)'
                       }}>
-                        {Math.round(campaign.open_rate)}%
+                        {realTimeStats[campaign.id]?.open_rate !== undefined 
+                          ? `${realTimeStats[campaign.id].open_rate}%` 
+                          : `${Math.round(campaign.open_rate)}%`}
                       </div>
                       <p style={{ 
                         fontSize: 'var(--text-xs)', 
                         color: 'var(--color-muted-foreground)',
                         fontFamily: 'var(--font-family)'
                       }}>
-                        Open Rate
+                        Open Rate {realTimeStats[campaign.id] && <span className="text-green-500">●</span>}
                       </p>
                     </div>
                     <div className="text-center">
@@ -1027,14 +1074,16 @@ export function EmailCampaigns({ onNavigate }: EmailCampaignsProps) {
                         fontFamily: 'var(--font-family)',
                         color: 'var(--color-foreground)'
                       }}>
-                        {Math.round(campaign.click_rate)}%
+                        {realTimeStats[campaign.id]?.click_rate !== undefined 
+                          ? `${realTimeStats[campaign.id].click_rate}%` 
+                          : `${Math.round(campaign.click_rate)}%`}
                       </div>
                       <p style={{ 
                         fontSize: 'var(--text-xs)', 
                         color: 'var(--color-muted-foreground)',
                         fontFamily: 'var(--font-family)'
                       }}>
-                        Click Rate
+                        Click Rate {realTimeStats[campaign.id] && <span className="text-green-500">●</span>}
                       </p>
                     </div>
                     <div className="text-center">
@@ -1074,18 +1123,32 @@ export function EmailCampaigns({ onNavigate }: EmailCampaignsProps) {
                       View Details
                     </Button>
                     {(campaign.status === 'active' || campaign.status === 'completed') && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          viewSmtpLogs(campaign.id.toString());
-                        }}
-                        className="text-blue-600 border-blue-200 hover:bg-blue-50"
-                      >
-                        <FileText className="h-4 w-4 mr-1" />
-                        Logs
-                      </Button>
+                      <>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleViewTrackingDetails(campaign.id);
+                          }}
+                          className="text-green-600 border-green-200 hover:bg-green-50"
+                        >
+                          <Activity className="h-4 w-4 mr-1" />
+                          Tracking
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            viewSmtpLogs(campaign.id.toString());
+                          }}
+                          className="text-blue-600 border-blue-200 hover:bg-blue-50"
+                        >
+                          <FileText className="h-4 w-4 mr-1" />
+                          Logs
+                        </Button>
+                      </>
                     )}
                     {campaign.status === 'draft' && (
                       <Button 
@@ -1795,6 +1858,154 @@ export function EmailCampaigns({ onNavigate }: EmailCampaignsProps) {
       )}
      
      
+
+      {/* Tracking Details Modal */}
+      <Dialog open={showTrackingDetails} onOpenChange={setShowTrackingDetails}>
+        <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto" style={{ 
+          fontFamily: 'var(--font-family)',
+          backgroundColor: 'var(--color-background)',
+          border: '1px solid #C9C9C9'
+        }}>
+          <DialogHeader>
+            <DialogTitle style={{ 
+              fontFamily: 'var(--font-family)',
+              fontSize: 'var(--text-xl)',
+              fontWeight: 'var(--font-weight-medium)',
+              color: 'var(--color-foreground)'
+            }}>
+              Email Tracking Details: {trackingDetails?.campaign_name}
+            </DialogTitle>
+            <DialogDescription style={{ 
+              fontFamily: 'var(--font-family)',
+              fontSize: 'var(--text-base)',
+              color: 'var(--color-muted-foreground)'
+            }}>
+              Detailed open and click tracking for each recipient
+            </DialogDescription>
+          </DialogHeader>
+
+          {trackingDetails && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-4 gap-4">
+                <Card>
+                  <CardContent className="p-4">
+                    <div className="text-2xl font-bold">{trackingDetails.total_records}</div>
+                    <div className="text-sm text-gray-600">Total Recipients</div>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardContent className="p-4">
+                    <div className="text-2xl font-bold text-green-600">
+                      {trackingDetails.tracking_details.filter((t: any) => t.open_count > 0).length}
+                    </div>
+                    <div className="text-sm text-gray-600">Opened</div>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardContent className="p-4">
+                    <div className="text-2xl font-bold text-blue-600">
+                      {trackingDetails.tracking_details.filter((t: any) => t.click_count > 0).length}
+                    </div>
+                    <div className="text-sm text-gray-600">Clicked</div>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardContent className="p-4">
+                    <div className="text-2xl font-bold text-orange-600">
+                      {trackingDetails.tracking_details.reduce((sum: number, t: any) => sum + t.open_count, 0)}
+                    </div>
+                    <div className="text-sm text-gray-600">Total Opens</div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              <div className="border rounded-lg">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Company</TableHead>
+                      <TableHead>Contact</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Opens</TableHead>
+                      <TableHead>Clicks</TableHead>
+                      <TableHead>Last Activity</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {trackingDetails.tracking_details.map((tracking: any, index: number) => (
+                      <TableRow key={index}>
+                        <TableCell className="font-medium">{tracking.company_name}</TableCell>
+                        <TableCell>
+                          <div>
+                            <div className="font-medium">{tracking.contact_name}</div>
+                            <div className="text-sm text-gray-500">{tracking.contact_email}</div>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex gap-2">
+                            {tracking.open_count > 0 && (
+                              <Badge className="bg-green-100 text-green-800">
+                                <Eye className="h-3 w-3 mr-1" />
+                                Opened
+                              </Badge>
+                            )}
+                            {tracking.click_count > 0 && (
+                              <Badge className="bg-blue-100 text-blue-800">
+                                <MousePointer className="h-3 w-3 mr-1" />
+                                Clicked
+                              </Badge>
+                            )}
+                            {tracking.open_count === 0 && tracking.click_count === 0 && (
+                              <Badge variant="outline">Not Opened</Badge>
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-center">
+                          {tracking.open_count > 0 ? (
+                            <span className="text-green-600 font-medium">{tracking.open_count}</span>
+                          ) : (
+                            <span className="text-gray-400">0</span>
+                          )}
+                        </TableCell>
+                        <TableCell className="text-center">
+                          {tracking.click_count > 0 ? (
+                            <span className="text-blue-600 font-medium">{tracking.click_count}</span>
+                          ) : (
+                            <span className="text-gray-400">0</span>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          {tracking.last_clicked ? (
+                            <div className="text-sm">
+                              <div>Clicked: {new Date(tracking.last_clicked).toLocaleString()}</div>
+                            </div>
+                          ) : tracking.last_opened ? (
+                            <div className="text-sm">
+                              <div>Opened: {new Date(tracking.last_opened).toLocaleString()}</div>
+                            </div>
+                          ) : (
+                            <span className="text-gray-400">No activity</span>
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </div>
+          )}
+
+          <DialogFooter>
+            <Button 
+              variant="outline" 
+              onClick={() => setShowTrackingDetails(false)}
+              style={{ fontFamily: 'var(--font-family)' }}
+            >
+              Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {showCreateTemplate && (
         <Dialog open={showCreateTemplate} onOpenChange={setShowCreateTemplate}>
