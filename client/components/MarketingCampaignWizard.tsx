@@ -9,7 +9,10 @@ import { Checkbox } from './ui/checkbox';
 import { Alert, AlertDescription } from './ui/alert';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import { useTemplateApi } from '../hooks/api/useTemplateApi';
-import { useLeadApi } from '../hooks/api/useLeadApi';
+import { useCampaignApi } from '../hooks/api/useCampaignApi';
+import { EmailTemplateService } from '../utils/emailTemplateService';
+import { toast } from 'react-toastify';
+import RichTextEditor from './RichTextEditor';
 import { 
   ArrowLeft,
   ArrowRight,
@@ -35,7 +38,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from './ui/dialog';
-import { RichTextEditor } from './RichTextEditor';
 
 
 interface MarketingCampaignWizardProps {
@@ -60,6 +62,7 @@ interface CampaignTemplate {
   estimated_click_rate: number;
   is_custom: boolean;
   created_by: string;
+  layout?: 'standard' | 'custom'; // Added for layout differentiation
 }
 
 const steps = [
@@ -83,7 +86,8 @@ export function MarketingCampaignWizard({ onNavigate, initialCampaignData, editM
     content: '',
     cta: '',
     cta_link: '',
-    linkedin_type: 'message' as 'message' | 'post' | 'connection'
+    linkedin_type: 'message' as 'message' | 'post' | 'connection',
+    layout: 'custom' as 'standard' | 'custom' // Default to custom
   });
   const [campaignData, setCampaignData] = useState(() => {
     if (editMode && initialCampaignData) {
@@ -172,7 +176,8 @@ export function MarketingCampaignWizard({ onNavigate, initialCampaignData, editM
     launchCampaign,
     updateLead,
     loading: campaignLoading,
-    error: campaignError
+    error: campaignError,
+    createCampaign // Assuming createCampaign is available from useCampaignApi
   } = useLeadApi();
 
   useEffect(() => {
@@ -342,6 +347,7 @@ export function MarketingCampaignWizard({ onNavigate, initialCampaignData, editM
         cta: templateData.cta,
         cta_link: templateData.cta_link,
         linkedin_type: templateData.linkedin_type,
+        layout: templateData.layout, // Include layout
         estimated_open_rate: 40,
         estimated_click_rate: 10,
         is_custom: true,
@@ -361,7 +367,8 @@ export function MarketingCampaignWizard({ onNavigate, initialCampaignData, editM
         content: '',
         cta: '',
         cta_link: '',
-        linkedin_type: 'message'
+        linkedin_type: 'message',
+        layout: 'custom'
       });
 
       setShowCreateTemplate(false);
@@ -396,140 +403,99 @@ export function MarketingCampaignWizard({ onNavigate, initialCampaignData, editM
     onNavigate('email-campaigns');
   };
 
-
+  // Placeholder for validation, replace with actual validation logic
+  const validateCampaign = () => {
+    // Basic validation for required fields
+    if (!campaignData.name) {
+      toast.error("Campaign name is required.");
+      return false;
+    }
+    if (campaignData.channels.length === 0) {
+      toast.error("At least one channel must be selected.");
+      return false;
+    }
+    if (campaignData.channels.includes('email') && (!campaignData.content.email.subject || !campaignData.content.email.body)) {
+      toast.error("Email subject and body are required for email campaigns.");
+      return false;
+    }
+    if (!campaignData.selectedTemplate) {
+      toast.error("Please select a template.");
+      return false;
+    }
+    return true;
+  };
 
   const handleLaunchCampaign = async () => {
+    if (!validateCampaign()) return;
+
     setIsLaunching(true);
-    console.log(campaignData, 'campaignData')
-    
     try {
-      // Ensure template data is properly integrated
-      const template = campaignData.selectedTemplate;
-      
-      // Get the rendered HTML content from the campaign data or re-render if needed
+      // Get the rendered content based on template type
       let renderedContent = campaignData.content?.email?.body || '';
-      
-      // If no rendered content exists but we have a template, render it now
-      if (!renderedContent && template) {
-        const subject = campaignData.content?.email?.subject || template.subject_line || `Partnership Opportunity - ${template.name}`;
-        const ctaLink = campaignData.content?.email?.cta_link || template.cta_link || 'https://soarai.infinitisoftware.net/';
-        
-        // Re-render the email template
-        renderedContent = `
-          <!DOCTYPE html>
-          <html xmlns="http://www.w3.org/1999/xhtml" lang="en">
-          <head>
-            <meta charset="utf-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>${subject}</title>
-            <style>
-              /* CLIENT-SAFE, INLINE-FRIENDLY STYLES */
-              body { margin:0; padding:0; -webkit-text-size-adjust:100%; -ms-text-size-adjust:100%; font-family: Arial, sans-serif; }
-              table { border-spacing:0; }
-              img { border:0; display:block; }
-              a { color:inherit; text-decoration:none; }
-              .wrapper { width:100%; background-color:#f5f7fb; padding:20px 0; }
-              .content { max-width:600px; margin:0 auto; background:#ffffff; border-radius:6px; overflow:hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
-              .header { padding:20px; text-align:center; background-color:#007bff; color:#ffffff; }
-              .main { padding:24px; font-family:Arial, 'Helvetica Neue', Helvetica, sans-serif; color:#333333; font-size:16px; line-height:24px; }
-              .h1 { font-size:22px; margin:0 0 16px 0; color:#111827; font-weight:600; }
-              .p { margin:0 0 16px 0; }
-              .button { display:inline-block; padding:12px 24px; border-radius:6px; background:#007bff; color:#ffffff; font-weight:600; text-decoration:none; margin:20px 0; }
-              .button:hover { background:#0056b3; }
-              .footer { padding:16px 20px; font-size:12px; color:#8b94a6; text-align:center; background-color:#f1f1f1; }
-              .cta-container { text-align:center; margin:24px 0; }
-              @media screen and (max-width:480px) {
-                .content { width:100% !important; border-radius:0; margin:0; }
-                .main { padding:16px; }
-                .h1 { font-size:20px; }
-                .header { padding:16px; }
-              }
-            </style>
-          </head>
-          <body>
-            <div class="wrapper">
-              <table class="content" width="600" cellpadding="0" cellspacing="0" role="presentation">
-                <!-- Header -->
-                <tr>
-                  <td class="header">
-                    <h2 style="margin:0; font-size:24px;">SOAR-AI</h2>
-                    <p style="margin:8px 0 0 0; font-size:14px; opacity:0.9;">Corporate Travel Solutions</p>
-                  </td>
-                </tr>
 
-                <!-- Main Content -->
-                <tr>
-                  <td class="main">
-                    <div>${template.content || ''}</div>
+      if (campaignData.selectedTemplate?.layout === 'standard') {
+        // For standard layout, use the template service to render properly
+        const templateVariables = {
+          subject: campaignData.content?.email?.subject || 'Welcome to SOAR-AI',
+          preheader: 'Your corporate travel solution awaits',
+          logo_url: 'https://soarai.infinitisoftware.net/assets/SOAR%20Logo-Bnqz16_i.svg',
+          company_name: 'SOAR-AI',
+          main_heading: 'Welcome to {{contact_name}}!',
+          intro_paragraph: 'We\'re excited to help {{company_name}} transform your corporate travel experience.',
+          body_content: campaignData.content?.email?.body || '',
+          cta_url: campaignData.content?.email?.cta_link || 'https://calendly.com/soar-ai/discovery-call',
+          cta_text: campaignData.content?.email?.cta || 'Schedule Discovery Call',
+          company_address: '123 Business Ave, City, State 12345',
+          unsubscribe_url: 'https://soar-ai.com/unsubscribe',
+          year: new Date().getFullYear().toString()
+        };
 
-                    ${(template.cta && ctaLink && ctaLink !== '#') ? `
-                    <div class="cta-container">
-                      <a href="${ctaLink}" class="button" target="_blank">
-                        ${template.cta}
-                      </a>
-                    </div>
-                    <p class="p" style="font-size:13px;color:#6b7280;">
-                      If the button doesn't work, copy and paste the following URL into your browser: <br />
-                      <a href="${ctaLink}" style="color:#007bff;">${ctaLink}</a>
-                    </p>
-                    ` : ''}
-                  </td>
-                </tr>
-
-                <!-- Footer -->
-                <tr>
-                  <td class="footer">
-                    <p style="margin:0 0 8px 0;">SOAR-AI • Transforming Corporate Travel</p>
-                    <p style="margin:0 0 8px 0;">
-                      <a href="#" style="color:#8b94a6;">Unsubscribe</a> | 
-                      <a href="#" style="color:#8b94a6;">Privacy Policy</a>
-                    </p>
-                    <p style="margin:0;">&copy; ${new Date().getFullYear()} SOAR-AI. All rights reserved.</p>
-                  </td>
-                </tr>
-              </table>
-            </div>
-          </body>
-          </html>
-        `;
+        renderedContent = EmailTemplateService.generateStandardLayoutHTML(templateVariables);
+      } else {
+        // For custom templates, use the existing rendering method
+        renderedContent = renderEmailTemplate(
+          campaignData.content?.email?.body || '',
+          campaignData.content?.email?.cta || 'Learn More',
+          campaignData.content?.email?.cta_link || 'https://soarai.infinitisoftware.net/',
+          campaignData.content?.email?.subject || 'Default Subject'
+        );
       }
-      
-      // Prepare enhanced campaign data for API with template integration
+
       const campaignPayload = {
         name: campaignData.name,
-        description: campaignData.description || template?.description || '',
+        description: campaignData.description,
         objective: campaignData.objective,
         channels: campaignData.channels,
-        targetAudience: selectedLeads,
-        target_leads: selectedLeads.map(lead => lead.id),
         content: {
           ...campaignData.content,
           email: {
             ...campaignData.content?.email,
-            body: renderedContent // Use the rendered HTML content
+            body: renderedContent
           }
         },
+        targetAudience: selectedLeads, // Use selectedLeads directly
+        target_leads: selectedLeads.map(lead => lead.id), // Ensure lead IDs are passed
         settings: campaignData.settings,
-        
+
         // Enhanced template integration
-        selectedTemplate: template,
-        templateId: template?.id,
-        templateName: template?.name,
-        
+        selectedTemplate: campaignData.selectedTemplate,
+        templateId: campaignData.selectedTemplate?.id,
+        templateName: campaignData.selectedTemplate?.name,
+
         // Template-specific fields for API compatibility
-        subjectLine: campaignData.content?.email?.subject || template?.subject_line || '',
+        subjectLine: campaignData.content?.email?.subject || campaignData.selectedTemplate?.subject_line || '',
         messageContent: renderedContent, // Use the rendered HTML content here too
-        cta: campaignData.content?.email?.cta || template?.cta || '',
-        cta_link: campaignData.content?.email?.cta_link || template?.cta_link || 'https://soarai.infinitisoftware.net/',
-        
+        cta: campaignData.content?.email?.cta || campaignData.selectedTemplate?.cta || '',
+        cta_link: campaignData.content?.email?.cta_link || campaignData.selectedTemplate?.cta_link || 'https://soarai.infinitisoftware.net/',
+
         // Campaign type and template info
         campaign_type: campaignData.objective === 'lead-nurturing' ? 'nurture' : campaignData.objective,
-        template_type: template?.channel_type || 'email',
-        is_custom_template: template?.is_custom || false,
-        
+        template_type: campaignData.selectedTemplate?.channel_type || 'email',
+        is_custom_template: campaignData.selectedTemplate?.is_custom || false,
+
         // Performance expectations from template
-        expected_open_rate: template?.estimated_open_rate || 40,
-        expected_click_rate: template?.estimated_click_rate || 10
+        expected_open_rate: campaignData.selectedTemplate?.estimated_open_rate || 40,
+        expected_click_rate: campaignData.selectedTemplate?.estimated_click_rate || 10
       };
 
       console.log('Launching campaign with enhanced payload:', campaignPayload);
@@ -581,11 +547,11 @@ export function MarketingCampaignWizard({ onNavigate, initialCampaignData, editM
           response: response,
           emailsSent: response.emails_sent,
           targetLeadsProcessed: response.target_leads_processed,
-          templateUsed: template?.name,
-          templateType: template?.channel_type,
+          templateUsed: campaignData.selectedTemplate?.name,
+          templateType: campaignData.selectedTemplate?.channel_type,
           performanceExpected: {
-            opens: Math.round((selectedLeads.length * (template?.estimated_open_rate || 40)) / 100),
-            clicks: Math.round((selectedLeads.length * (template?.estimated_click_rate || 10)) / 100)
+            opens: Math.round((selectedLeads.length * (campaignData.selectedTemplate?.estimated_open_rate || 40)) / 100),
+            clicks: Math.round((selectedLeads.length * (campaignData.selectedTemplate?.estimated_click_rate || 10)) / 100)
           }
         });
       } else {
@@ -593,7 +559,7 @@ export function MarketingCampaignWizard({ onNavigate, initialCampaignData, editM
       }
     } catch (error: any) {
       console.error('Failed to launch campaign:', error);
-      alert(`Failed to launch campaign: ${error.response?.data?.error || error.message}`);
+      toast.error(`Failed to launch campaign: ${error.response?.data?.error || error.message}`);
     } finally {
       setIsLaunching(false);
     }
@@ -735,6 +701,11 @@ export function MarketingCampaignWizard({ onNavigate, initialCampaignData, editM
                           {template.is_custom && (
                             <Badge variant="secondary" className="text-xs">
                               Custom
+                            </Badge>
+                          )}
+                          {template.layout && (
+                            <Badge variant="outline" className="text-xs capitalize">
+                              {template.layout}
                             </Badge>
                           )}
                         </div>
@@ -1514,6 +1485,22 @@ TechCorp Solutions can achieve complete travel governance without slowing down y
                   </SelectContent>
                 </Select>
               </div>
+            </div>
+
+            {/* Layout Selection */}
+            <div className="space-y-2">
+              <Label htmlFor="layout" className="text-sm font-medium text-gray-700">
+                Template Layout
+              </Label>
+              <Select value={templateData.layout} onValueChange={(value: 'standard' | 'custom') => setTemplateData(prev => ({ ...prev, layout: value }))}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="custom">Custom</SelectItem>
+                  <SelectItem value="standard">Standard</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
             {/* Target Industry */}
