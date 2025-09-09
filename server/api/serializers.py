@@ -565,25 +565,27 @@ class AIConversationSerializer(serializers.ModelSerializer):
 
 class CampaignTemplateSerializer(serializers.ModelSerializer):
     """Serializer for Campaign Templates"""
-    linkedin_type = serializers.CharField(required=False, allow_blank=True, allow_null=True)
-    is_custom = serializers.BooleanField(default=False)
-    created_by = serializers.CharField(default='System')
+    linkedin_type = serializers.CharField(required=False, allow_blank=True, allow_null=True, read_only=True)
+    is_custom = serializers.BooleanField(default=False, read_only=True)
+    created_by = serializers.CharField(default='System', read_only=True)
     
     class Meta:
         model = CampaignTemplate
         fields = ['id', 'name', 'description', 'channel_type', 'target_industry', 
                  'subject_line', 'content', 'cta', 'linkedin_type', 'estimated_open_rate', 
-                 'estimated_click_rate', 'is_custom', 'created_by', 'created_at', 'updated_at']
+                 'estimated_click_rate', 'is_custom', 'created_by', 'created_at', 'updated_at', 'is_standard_layout']
         extra_kwargs = {
-            'linkedin_type': {'required': False},
-            'is_custom': {'default': False},
-            'created_by': {'default': 'System'}
+            'linkedin_type': {'required': False, 'read_only': True},
+            'is_custom': {'default': False, 'read_only': True},
+            'created_by': {'default': 'System', 'read_only': True}
         }
     
     def to_internal_value(self, data):
-        # Remove linkedin_type from data if it exists since it's not in the model
-        if 'linkedin_type' in data:
-            linkedin_type = data.pop('linkedin_type')
+        # Remove fields that don't exist in the model or are read-only
+        data = data.copy() if hasattr(data, 'copy') else dict(data)
+        data.pop('linkedin_type', None)
+        data.pop('is_custom', None)
+        data.pop('created_by', None)
         return super().to_internal_value(data)
     
     def to_representation(self, instance):
@@ -593,7 +595,7 @@ class CampaignTemplateSerializer(serializers.ModelSerializer):
         # Set is_custom based on whether it's a default template or not
         data['is_custom'] = not str(instance.id).startswith(('welcome-series', 'cost-savings', 'linkedin-connection', 'multi-channel-sequence'))
         # Set created_by for display
-        data['created_by'] = getattr(instance, 'created_by', 'System')
+        data['created_by'] = 'System'
         return data
 
 class ProposalDraftSerializer(serializers.ModelSerializer):
