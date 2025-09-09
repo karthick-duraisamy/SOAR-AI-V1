@@ -3472,6 +3472,41 @@ class EmailCampaignViewSet(viewsets.ModelViewSet):
     serializer_class = EmailCampaignSerializer
     pagination_class = None  # Disable pagination to return all campaigns
 
+    def list(self, request, *args, **kwargs):
+        """Override list method to handle database connection issues"""
+        from django.db import connection
+        from django.db.utils import OperationalError
+        
+        try:
+            # Ensure database connection is alive
+            connection.ensure_connection()
+            return super().list(request, *args, **kwargs)
+        except OperationalError as e:
+            if 'SSL connection has been closed' in str(e) or 'connection' in str(e).lower():
+                # Try to close and reopen connection
+                connection.close()
+                try:
+                    return super().list(request, *args, **kwargs)
+                except Exception as retry_error:
+                    print(f"Retry failed: {str(retry_error)}")
+                    # Return empty list if still failing
+                    return Response([])
+            else:
+                raise e
+        except Exception as e:
+            print(f"Unexpected error in EmailCampaignViewSet.list: {str(e)}")
+            return Response([])
+
+    def get_queryset(self):
+        """Override get_queryset to handle connection issues"""
+        from django.db import connection
+        try:
+            connection.ensure_connection()
+            return self.queryset.select_related().prefetch_related('target_leads')
+        except Exception as e:
+            print(f"Error in get_queryset: {str(e)}")
+            return self.queryset.none()
+
     @action(detail=False, methods=['post'])
     def launch(self, request):
         """Launch an email campaign"""

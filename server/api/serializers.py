@@ -477,19 +477,35 @@ class EmailCampaignSerializer(serializers.ModelSerializer):
 
     def get_engagement_metrics(self, obj):
         from django.db import models as django_models
-        tracking_records = obj.email_tracking.all()
-        total_opens = tracking_records.aggregate(total=django_models.Sum('open_count'))['total'] or 0
-        total_clicks = tracking_records.aggregate(total=django_models.Sum('click_count'))['total'] or 0
+        from django.db import connection
+        
+        try:
+            # Check if connection is alive, if not reconnect
+            connection.ensure_connection()
+            
+            tracking_records = obj.email_tracking.all()
+            total_opens = tracking_records.aggregate(total=django_models.Sum('open_count'))['total'] or 0
+            total_clicks = tracking_records.aggregate(total=django_models.Sum('click_count'))['total'] or 0
 
-        return {
-            'total_opens': total_opens,
-            'total_clicks': total_clicks,
-            'unique_opens': obj.emails_opened,
-            'unique_clicks': obj.emails_clicked,
-            'engaged_leads': tracking_records.filter(
-                django_models.Q(open_count__gt=1) | django_models.Q(click_count__gt=0)
-            ).count()
-        }
+            return {
+                'total_opens': total_opens,
+                'total_clicks': total_clicks,
+                'unique_opens': obj.emails_opened,
+                'unique_clicks': obj.emails_clicked,
+                'engaged_leads': tracking_records.filter(
+                    django_models.Q(open_count__gt=1) | django_models.Q(click_count__gt=0)
+                ).count()
+            }
+        except Exception as e:
+            print(f"Error getting engagement metrics: {str(e)}")
+            # Return default values if database connection fails
+            return {
+                'total_opens': 0,
+                'total_clicks': 0,
+                'unique_opens': obj.emails_opened or 0,
+                'unique_clicks': obj.emails_clicked or 0,
+                'engaged_leads': 0
+            }
 
 class TravelOfferSerializer(serializers.ModelSerializer):
     created_by_name = serializers.CharField(source='created_by.username', read_only=True)

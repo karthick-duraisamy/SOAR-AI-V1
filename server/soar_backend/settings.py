@@ -27,6 +27,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'corsheaders.middleware.CorsMiddleware',
+    'api.middleware.DatabaseConnectionMiddleware',  # Add our custom middleware
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -59,8 +60,24 @@ WSGI_APPLICATION = 'soar_backend.wsgi.application'
 if os.getenv('DATABASE_URL'):
     # Use PostgreSQL if DATABASE_URL is available (production/Replit database)
     import dj_database_url
+    
+    # Parse the database URL
+    db_config = dj_database_url.parse(os.getenv('DATABASE_URL'))
+    
+    # Add connection pooling and SSL settings for better reliability
+    db_config.update({
+        'CONN_MAX_AGE': 0,  # Force new connections for each request to avoid stale connections
+        'CONN_HEALTH_CHECKS': True,  # Enable connection health checks
+        'OPTIONS': {
+            'sslmode': 'prefer',  # Use SSL but fallback to non-SSL if needed
+            'connect_timeout': 10,
+            'application_name': 'soar_backend',
+        },
+        'DISABLE_SERVER_SIDE_CURSORS': True,  # Disable server-side cursors to reduce connection overhead
+    })
+    
     DATABASES = {
-        'default': dj_database_url.parse(os.getenv('DATABASE_URL'))
+        'default': db_config
     }
 else:
     # Use SQLite for development
@@ -171,6 +188,29 @@ if os.getenv('USE_CONSOLE_EMAIL_BACKEND') == 'true':
     print("Using console email backend - emails will be printed to console")
 else:
     print("Using SMTP email backend for actual email sending")
+
+# Logging configuration
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'loggers': {
+        'django.db.backends': {
+            'handlers': ['console'],
+            'level': 'WARNING',
+            'propagate': False,
+        },
+        'api.middleware': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+    },
+}
 
 
 # Domain URL for email tracking
