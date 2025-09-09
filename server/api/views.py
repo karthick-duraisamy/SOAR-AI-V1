@@ -3470,6 +3470,7 @@ class AirportCodeViewSet(viewsets.ModelViewSet):
 class EmailCampaignViewSet(viewsets.ModelViewSet):
     queryset = EmailCampaign.objects.all()
     serializer_class = EmailCampaignSerializer
+    pagination_class = None  # Disable pagination to return all campaigns
 
     @action(detail=False, methods=['post'])
     def launch(self, request):

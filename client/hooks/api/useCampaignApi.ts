@@ -109,7 +109,25 @@ export const useCampaignApi = () => {
       );
 
       // Handle both paginated and non-paginated responses
-      const campaignsData = response.data.results || response.data;
+      // If there's a results field, it's paginated, otherwise it's a direct array
+      let campaignsData;
+      if (response.data.results) {
+        // Paginated response - collect all pages
+        let allCampaigns = [...response.data.results];
+        let nextUrl = response.data.next;
+        
+        // Fetch remaining pages if they exist
+        while (nextUrl) {
+          const nextResponse = await axios.get(nextUrl);
+          allCampaigns = [...allCampaigns, ...nextResponse.data.results];
+          nextUrl = nextResponse.data.next;
+        }
+        
+        campaignsData = allCampaigns;
+      } else {
+        // Non-paginated response
+        campaignsData = response.data;
+      }
       
       if (!Array.isArray(campaignsData)) {
         console.error('Invalid campaigns data format:', response.data);
