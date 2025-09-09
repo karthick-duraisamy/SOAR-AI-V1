@@ -872,7 +872,6 @@ class LeadViewSet(viewsets.ModelViewSet):
             # Apply filters efficiently
             if status_filter and status_filter != 'all':
                 leads = leads.filter(status=status_filter)
-
             if industry_filter and industry_filter != 'all':
                 leads = leads.filter(company__industry=industry_filter)
 
@@ -959,6 +958,7 @@ class LeadViewSet(viewsets.ModelViewSet):
                         for note in recent_notes
                     ]
                 }
+                print(lead_data),
                 results.append(lead_data)
 
             return Response({
@@ -1595,6 +1595,7 @@ class LeadViewSet(viewsets.ModelViewSet):
         try:
             data = request.data
             company_data = data.get('company', {})
+            # print("Company data:", company_data)
 
             # Extract company information - prioritize top-level name if company.name is missing
             company_name = company_data.get('name') or data.get('name')
@@ -1613,26 +1614,36 @@ class LeadViewSet(viewsets.ModelViewSet):
                 'phone': company_data.get('phone', ''),
                 'description': data.get('notes', '')
             }
+            
+            # print("Company data to save:", company_data_to_save)
 
+            
             # Create or get company
             company, created = Company.objects.get_or_create(
                 name=company_name,
                 defaults=company_data_to_save
-            )
+            )   
+            
+            # Ensure company has email before binding
+            if not company.email and company_data.get('email'):
+                company.email = company_data.get('email')
+                company.save()
 
             # Create default contact
-            print("Creating contact for company:", company)
+            # print("Creating contact for company:", company)
             contact, contact_created = Contact.objects.get_or_create(
                 company=company,
-                email=company_data.get('email', f"contact@{company_name.lower().replace(' ', '')}.com"),
+                # email=company_data.get('email', f"contact@{company_name.lower().replace(' ', '')}.com"),
                 defaults={
                     'first_name': company_name.split(' ')[0],
                     'last_name': company_name.split(' ')[-1] if len(company_name.split(' ')) > 1 else '',
                     'phone': company_data.get('phone', ''),
+                    'email': company.email,
                     'position': 'Decision Maker',
                     'is_decision_maker': True
                 }
             )
+            # print("Contact created:", contact)  
 
             # Create the lead
             lead = Lead.objects.create(
