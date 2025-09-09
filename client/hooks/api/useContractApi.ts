@@ -1,4 +1,4 @@
-const API_BASE_URL = (import.meta.env?.VITE_API_URL) || '/api';
+const API_BASE_URL = import.meta.env?.VITE_API_URL || "/api";
 import axios from "axios";
 
 export interface ContractData {
@@ -21,12 +21,11 @@ export interface ContractData {
 const baseApi = axios.create({
   baseURL: API_BASE_URL,
   headers: {
-    'Content-Type': 'application/json',
+    "Content-Type": "application/json",
   },
 });
 
 export const useContractApi = () => {
-
   const createContract = async (contractData: any) => {
     try {
       console.log("Sending contract creation request:", contractData);
@@ -38,7 +37,9 @@ export const useContractApi = () => {
           contractData.company_email || contractData.vendorEmail || "",
         title:
           contractData.title ||
-          `${contractData.contract_type || "Contract"} - ${contractData.company_name || contractData.vendor}`,
+          `${contractData.contract_type || "Contract"} - ${
+            contractData.company_name || contractData.vendor
+          }`,
         contract_type: contractData.contract_type || "corporate_travel",
         client_department:
           contractData.client_department || contractData.client,
@@ -60,7 +61,12 @@ export const useContractApi = () => {
           contractData.custom_clauses || contractData.customClauses || "",
       };
 
-      console.log("Mapped contract data for backend:",baseApi,"ssss", backendData);
+      console.log(
+        "Mapped contract data for backend:",
+        baseApi,
+        "ssss",
+        backendData
+      );
 
       const response = await baseApi.post("/contracts/", backendData);
       console.log("Contract creation response:", response);
@@ -180,7 +186,7 @@ export const useContractApi = () => {
         console.log(
           "✓ Contracts mapped successfully:",
           contractsData.length,
-          "contracts",
+          "contracts"
         );
         console.log("First mapped contract sample:", contractsData[0]);
       } else if (
@@ -259,13 +265,13 @@ export const useContractApi = () => {
         console.log(
           "✓ Paginated contracts mapped successfully:",
           contractsData.length,
-          "contracts",
+          "contracts"
         );
       } else {
         console.warn(
           "Expected array or paginated response but got:",
           typeof response.data,
-          response.data,
+          response.data
         );
         contractsData = [];
       }
@@ -325,7 +331,7 @@ export const useContractApi = () => {
 
       const response = await baseApi.put(
         `/contracts/${contractId}/`,
-        contractData,
+        contractData
       );
 
       console.log("Update response:", response);
@@ -418,7 +424,7 @@ export const useContractApi = () => {
           headers: {
             "Content-Type": "multipart/form-data",
           },
-        },
+        }
       );
 
       console.log("Document upload response:", response);
@@ -440,7 +446,7 @@ export const useContractApi = () => {
       console.log(`Getting documents for contract ${contractId}`);
 
       const response = await baseApi.get(
-        `/contracts/${contractId}/get_documents/`,
+        `/contracts/${contractId}/get_documents/`
       );
       console.log("Get documents response:", response);
       if (response) {
@@ -466,7 +472,7 @@ export const useContractApi = () => {
   const viewDocument = async (
     contractId: string,
     documentId: string,
-    fileName: string,
+    fileName: string
   ) => {
     try {
       console.log(`Viewing document ${documentId} for contract ${contractId}`);
@@ -475,7 +481,7 @@ export const useContractApi = () => {
         `/contracts/${contractId}/download_document/?document_id=${documentId}`,
         {
           responseType: "blob",
-        },
+        }
       );
 
       // Create blob URL for viewing
@@ -540,7 +546,7 @@ export const useContractApi = () => {
 
             // Try to get documents for this contract
             const documentsResponse = await baseApi.get(
-              `/contracts/${contractNumber}/get_documents/`,
+              `/contracts/${contractNumber}/get_documents/`
             );
 
             let documents = [];
@@ -559,22 +565,24 @@ export const useContractApi = () => {
             }
 
             const foundDocument = documents.find(
-              (doc) => doc.document_id === documentId,
+              (doc) => doc.document_id === documentId
             );
             if (foundDocument) {
               targetContractId = contractNumber;
               foundContract = contract;
               documentInfo = foundDocument;
               console.log(
-                `Found document ${documentId} in contract ${targetContractId}`,
+                `Found document ${documentId} in contract ${targetContractId}`
               );
               break;
             }
           } catch (e) {
             // Skip this contract if we can't get its documents
             console.warn(
-              `Could not check documents for contract ${contract.contract_number || contract.id}:`,
-              e,
+              `Could not check documents for contract ${
+                contract.contract_number || contract.id
+              }:`,
+              e
             );
             continue;
           }
@@ -583,83 +591,48 @@ export const useContractApi = () => {
         if (!targetContractId) {
           console.error("Contract not found for document:", documentId);
           throw new Error(
-            `Document with ID ${documentId} not found in any contract`,
+            `Document with ID ${documentId} not found in any contract`
           );
         }
       }
 
       console.log(
-        `Using contract ${targetContractId} for document ${documentId}`,
+        `Using contract ${targetContractId} for document ${documentId}`
       );
 
       // Make the download request with proper error handling using the api method directly
-      const responseData = await baseApi.get(
+      const response = await baseApi.get(
         `/contracts/${targetContractId}/download_document/?document_id=${documentId}`,
         {
           responseType: "blob",
           timeout: 30000, // 30 second timeout for large files
-        },
+        }
       );
 
-      console.log("Download response received:", {
-        dataType: typeof responseData,
-        dataSize: responseData instanceof Blob ? responseData.size : "N/A",
-        hasData: !!responseData,
-      });
+      const blob = response.data;
 
-      // Check if we have a response
-      if (!responseData) {
-        throw new Error("No response received from server");
+      if (!(blob instanceof Blob)) {
+        throw new Error("Downloaded data is not a file blob.");
       }
 
-      // For blob responses, check if it's actually a blob
-      if (responseData instanceof Blob) {
-        // Check if the blob has content
-        if (responseData.size === 0) {
-          throw new Error(
-            "Downloaded file is empty. The document may be corrupted or not properly stored.",
-          );
-        }
-
-        // Check if it's an error response disguised as a blob
-        if (responseData.type === "application/json") {
-          try {
-            const text = await responseData.text();
-            const errorData = JSON.parse(text);
-            throw new Error(errorData.error || "Server returned an error");
-          } catch (parseError) {
-            console.warn("Could not parse error response:", parseError);
-          }
-        }
-
-        console.log(
-          `Successfully received blob data for document ${documentId} (${responseData.size} bytes, type: ${responseData.type})`,
-        );
-
-        // Create blob URL that can be used for viewing or downloading
-        const url = window.URL.createObjectURL(responseData);
-        return url;
-      } else {
-        // If it's not a blob, it might be a JSON error response
-        console.error(
-          "Unexpected response type:",
-          typeof responseData,
-          responseData,
-        );
-
-        // Try to extract error message if it's a JSON response
-        if (typeof responseData === "object" && responseData.error) {
-          throw new Error(responseData.error);
-        }
-
+      if (blob.size === 0) {
         throw new Error(
-          "Invalid response format - expected file data but received: " +
-            typeof responseData,
+          "Downloaded file is empty. The document may be corrupted or not properly stored."
         );
       }
+
+      // Check if it's an error disguised as a blob
+      if (blob.type === "application/json") {
+        const text = await blob.text();
+        const errorData = JSON.parse(text);
+        throw new Error(errorData.error || "Server returned an error");
+      }
+
+      // Create blob URL for download/view
+      const url = window.URL.createObjectURL(blob);
+      return url;
     } catch (error) {
       console.error("Error downloading document:", error);
-
       // Provide more detailed error information
       if (error.response) {
         console.error("Response status:", error.response.status);
@@ -672,33 +645,33 @@ export const useContractApi = () => {
           throw new Error(`Access denied to document (${documentId})`);
         } else if (error.response.status >= 500) {
           throw new Error(
-            `Server error while fetching document (${documentId})`,
+            `Server error while fetching document (${documentId})`
           );
         }
 
         // For other HTTP errors
         const statusText = error.response.statusText || "Unknown error";
         throw new Error(
-          `Server returned status ${error.response.status}: ${statusText}`,
+          `Server returned status ${error.response.status}: ${statusText}`
         );
       }
 
       // For network errors or other issues
       if (error.code === "NETWORK_ERROR") {
         throw new Error(
-          "Network error - please check your connection and try again",
+          "Network error - please check your connection and try again"
         );
       }
 
       if (error.name === "TimeoutError") {
         throw new Error(
-          "Request timed out - the file may be too large or the server is slow",
+          "Request timed out - the file may be too large or the server is slow"
         );
       }
 
       // Re-throw with more context
       throw new Error(
-        `Failed to download document: ${error.message || "Unknown error"}`,
+        `Failed to download document: ${error.message || "Unknown error"}`
       );
     }
   };
@@ -706,17 +679,17 @@ export const useContractApi = () => {
   const addComment = async (
     contractId: string,
     comment: string,
-    author: string = "Current User",
+    author: string = "Current User"
   ) => {
     try {
       console.log(`Adding comment to contract ${contractId}:`, comment);
 
-      const response = await baseApipost(
+      const response = await baseApi.post(
         `/contracts/${contractId}/add_comment/`,
         {
           comment: comment,
           author: author,
-        },
+        }
       );
 
       console.log("Add comment response:", response);
@@ -738,7 +711,7 @@ export const useContractApi = () => {
         "/opportunities/closed-won-opportunities/",
         {
           timeout: 5000, // Reduced timeout for faster response
-        },
+        }
       );
 
       console.log("Closed won opportunities response:", response);
@@ -748,7 +721,7 @@ export const useContractApi = () => {
         console.log(
           "✓ Closed won vendor names loaded:",
           response.data.length,
-          "vendors",
+          "vendors"
         );
         return {
           success: true,
@@ -812,7 +785,9 @@ export const useContractApi = () => {
       return {
         success: true, // Return success with fallback data instead of failure
         data: fallbackVendors,
-        error: `API error: ${error.response?.data?.error || error.message || "Unknown error"}. Using default vendor list.`,
+        error: `API error: ${
+          error.response?.data?.error || error.message || "Unknown error"
+        }. Using default vendor list.`,
       };
     }
   };
