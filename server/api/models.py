@@ -582,6 +582,12 @@ class EmailCampaign(models.Model):
                     if lead.company.travel_budget else 'your budget'
                 })
 
+                # Create tracking record first
+                tracking, created = EmailTracking.objects.get_or_create(
+                    campaign=self,
+                    lead=lead,
+                    defaults={'tracking_id': uuid.uuid4()})
+
                 # Render subject and content with dynamic data
                 subject_template = Template(self.subject_line)
                 content_template = Template(self.email_content)
@@ -591,12 +597,6 @@ class EmailCampaign(models.Model):
 
                 # Add tracking functionality
                 rendered_content_with_tracking = self._add_email_tracking(rendered_content, tracking)
-
-                # Create tracking record
-                tracking, created = EmailTracking.objects.get_or_create(
-                    campaign=self,
-                    lead=lead,
-                    defaults={'tracking_id': uuid.uuid4()})
 
                 # Create EmailMessage for individual tracking
                 email_msg = EmailMessage(subject=rendered_subject,
