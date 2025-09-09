@@ -10,6 +10,7 @@ import { Alert, AlertDescription } from './ui/alert';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import { useTemplateApi } from '../hooks/api/useTemplateApi';
 import { useCampaignApi } from '../hooks/api/useCampaignApi';
+import { useLeadApi } from '../hooks/api/useLeadApi';
 import { EmailTemplateService } from '../utils/emailTemplateService';
 import { toast } from 'react-toastify';
 import RichTextEditor from './RichTextEditor';
