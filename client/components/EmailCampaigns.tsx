@@ -561,18 +561,13 @@ export function EmailCampaigns({ onNavigate }: EmailCampaignsProps) {
         is_standard_layout: true // Flag to identify standard layout templates
       };
 
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/campaign-templates/`, {
+      await fetch('https://f08f172c-ab06-433f-aa2f-30c498986833-00-2n6bjrfy6tvjp.pike.replit.dev:5173/api/campaign-templates/', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(templateData),
       });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to save template');
-      }
 
       // Refresh templates
       fetchTemplates();
