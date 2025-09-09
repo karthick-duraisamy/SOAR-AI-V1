@@ -334,7 +334,7 @@ export function EmailCampaigns({ onNavigate }: EmailCampaignsProps) {
 
   const handleUseTemplate = (template: EmailTemplate) => {
     let templateVariables: Record<string, string> = {};
-    
+
     if (template.layout === 'standard') {
       // Standard layout variables
       templateVariables = {
@@ -444,12 +444,12 @@ export function EmailCampaigns({ onNavigate }: EmailCampaignsProps) {
         throw new Error('Failed to fetch templates');
       }
       const data = await response.json();
-      
+
       const formattedTemplates: EmailTemplate[] = data.map((templateData: any) => {
         let variables: string[] = [];
         let sections = [];
         let layout: 'standard' | 'custom' = 'custom';
-        
+
         if (templateData.is_standard_layout && templateData.content) {
           try {
             const parsedContent = JSON.parse(templateData.content);
@@ -478,7 +478,7 @@ export function EmailCampaigns({ onNavigate }: EmailCampaignsProps) {
           layout: layout
         };
       });
-      
+
       // Combine built-in templates with API templates
       const builtInTemplates = EmailTemplateService.getStandardTemplates();
       const allTemplates = [...builtInTemplates, ...formattedTemplates];
