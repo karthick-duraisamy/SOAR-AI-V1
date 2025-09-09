@@ -528,7 +528,7 @@ export function EmailCampaigns({ onNavigate }: EmailCampaignsProps) {
         estimated_click_rate: 10.0
       };
 
-      await fetch('http://localhost:8000/api/campaign-templates/', {
+      await fetch('https://f08f172c-ab06-433f-aa2f-30c498986833-00-2n6bjrfy6tvjp.pike.replit.dev:5173/api/campaign-templates/', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -561,7 +561,7 @@ export function EmailCampaigns({ onNavigate }: EmailCampaignsProps) {
         is_standard_layout: true // Flag to identify standard layout templates
       };
 
-      await fetch('http://localhost:8000/api/campaign-templates/', {
+      await fetch('https://f08f172c-ab06-433f-aa2f-30c498986833-00-2n6bjrfy6tvjp.pike.replit.dev:5173/api/campaign-templates/', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
