@@ -104,12 +104,21 @@ export const useCampaignApi = () => {
     setError(null);
 
     try {
-      const response: AxiosResponse<EmailCampaign[]> = await axios.get(
+      const response: AxiosResponse<any> = await axios.get(
         `${API_BASE_URL}/email-campaigns/`
       );
 
+      // Handle both paginated and non-paginated responses
+      const campaignsData = response.data.results || response.data;
+      
+      if (!Array.isArray(campaignsData)) {
+        console.error('Invalid campaigns data format:', response.data);
+        setData([]);
+        return [];
+      }
+
       // Transform the API response to match our interface
-      const transformedCampaigns: Campaign[] = response.data.results.map((campaign: EmailCampaign) => ({
+      const transformedCampaigns: Campaign[] = campaignsData.map((campaign: any) => ({
         id: parseInt(campaign.id.toString()),
         name: campaign.name,
         description: campaign.description,
@@ -120,9 +129,9 @@ export const useCampaignApi = () => {
         emails_sent: campaign.emails_sent,
         emails_opened: campaign.emails_opened,
         emails_clicked: campaign.emails_clicked,
-        target_leads_count: 0, // Will be populated from the serializer
-        open_rate: campaign.emails_sent > 0 ? (campaign.emails_opened / campaign.emails_sent) * 100 : 0,
-        click_rate: campaign.emails_sent > 0 ? (campaign.emails_clicked / campaign.emails_sent) * 100 : 0,
+        target_leads_count: campaign.target_leads_count || 0,
+        open_rate: campaign.open_rate || 0,
+        click_rate: campaign.click_rate || 0,
         created_at: campaign.created_at,
         updated_at: campaign.updated_at
       }));
@@ -132,7 +141,9 @@ export const useCampaignApi = () => {
     } catch (error: any) {
       const errorMessage = error.response?.data?.message || error.message || 'Failed to fetch campaigns';
       setError(errorMessage);
-      throw error;
+      console.error('Error fetching campaigns:', error);
+      setData([]);
+      return [];
     } finally {
       setLoading(false);
     }

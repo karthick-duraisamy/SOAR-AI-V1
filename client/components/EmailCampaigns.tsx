@@ -297,6 +297,7 @@ export function EmailCampaigns({ onNavigate }: EmailCampaignsProps) {
         // Refresh campaigns list immediately and after a short delay
         await loadCampaigns();
         setTimeout(() => loadCampaigns(), 1000);
+        setTimeout(() => loadCampaigns(), 3000);
       } else {
         const errorDetails = response.smtp_responses ? 
           `\n\nSMTP Errors:\n${response.smtp_responses.map((r: any) => `${r.email}: ${r.message}`).join('\n')}` : '';
@@ -313,6 +314,8 @@ export function EmailCampaigns({ onNavigate }: EmailCampaignsProps) {
       toast.error(`Error launching campaign: ${error.message}`);
     } finally {
       setLaunchingCampaign(null);
+      // Force refresh campaigns after operation
+      setTimeout(() => loadCampaigns(), 500);
     }
   };
 
@@ -654,6 +657,19 @@ export function EmailCampaigns({ onNavigate }: EmailCampaignsProps) {
           </p>
         </div>
         <div className="flex gap-3">
+          <Button
+            variant="outline"
+            onClick={loadCampaigns}
+            disabled={campaignsLoading}
+            className="border-blue-200 text-blue-700 hover:bg-blue-50"
+          >
+            {campaignsLoading ? (
+              <div className="h-4 w-4 mr-2 animate-spin rounded-full border-2 border-blue-300 border-t-blue-600" />
+            ) : (
+              <RefreshCw className="h-4 w-4 mr-2" />
+            )}
+            Refresh
+          </Button>
           <Button
             variant="outline"
             onClick={checkSmtpStatus}
