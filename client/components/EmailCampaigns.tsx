@@ -551,14 +551,40 @@ export function EmailCampaigns({ onNavigate }: EmailCampaignsProps) {
       const templateData = {
         name: template.name,
         description: template.description,
-        subject_line: template.variables.subject || 'Standard Email',
-        content: JSON.stringify(template.variables), // Store variables as JSON
+        subject_line: template.variables?.subject || 'Standard Email',
+        content: JSON.stringify(template.variables || {}), // Store variables as JSON
         channel_type: 'email',
         target_industry: 'All',
-        cta: template.variables.cta_text || 'Get Started',
+        cta: template.variables?.cta_text || 'Get Started',
         estimated_open_rate: 40.0,
         estimated_click_rate: 10.0,
-        is_standard_layout: true // Flag to identify standard layout templates
+        is_standard_layout: true, // Flag to identify standard layout templates
+        variables: template.variables || {} // Include variables for processing
+      };
+
+      const response = await fetch('http://localhost:8000/api/campaign-templates/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(templateData),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error('Server error details:', errorData);
+        throw new Error(`Server error: ${response.status}`);
+      }
+
+      // Refresh templates
+      await fetchTemplates();
+      setShowStandardCreator(false);
+      alert('Standard template saved successfully!');
+    } catch (error) {
+      console.error('Error saving standard template:', error);
+      alert('Error saving standard template. Please check the console for details.');
+    }
+  };ates
       };
 
       await fetch('http://localhost:8000/api/campaign-templates/', {

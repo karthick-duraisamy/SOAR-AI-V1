@@ -7,6 +7,7 @@ from .models import EmailTracking
 import urllib.parse
 import uuid
 import logging
+import json
 
 # Import pandas at the top level
 try:
@@ -2399,7 +2400,7 @@ Ready to see how we can help? Let's schedule a 15-minute discovery call.''',
                     'estimated_click_rate': 12.0,
                     'is_custom': False,
                     'created_by': 'System',
-                    'created_at': '2024-01-01-01T00:00:00Z',
+                    'created_at': '2024-01-01T00:00:00Z',
                     'updated_at': '2024-01-01T00:00:00Z'
                 },
                 {
@@ -2628,7 +2629,70 @@ Would you be interested in a brief conversation about how we could support {{com
 
         return Response(default_templates)
 
-@api_view(['GET', 'POST'])
+    def create(self, request, *args, **kwargs):
+        """Create a new campaign template, handling standard layout templates"""
+        try:
+            data = request.data.copy()
+
+            # Handle standard layout templates
+            if data.get('is_standard_layout'):
+                # For standard layout, the content should be stored as JSON string
+                if 'variables' in data and isinstance(data['variables'], dict):
+                    data['content'] = json.dumps(data['variables'])
+
+                # Set is_standard_layout field
+                data['is_standard_layout'] = True
+            else:
+                # For regular templates, ensure is_standard_layout is False
+                data['is_standard_layout'] = False
+
+            # Remove fields that don't exist in the model
+            if 'linkedin_type' in data:
+                data.pop('linkedin_type')
+            if 'is_custom' in data:
+                data.pop('is_custom')
+            if 'variables' in data:
+                data.pop('variables')
+
+            # Ensure required fields have defaults
+            if not data.get('subject_line'):
+                data['subject_line'] = data.get('name', 'Default Subject')
+            if not data.get('estimated_open_rate'):
+                data['estimated_open_rate'] = 40.0
+            if not data.get('estimated_click_rate'):
+                data['estimated_click_rate'] = 10.0
+            if not data.get('channel_type'):
+                data['channel_type'] = 'email'
+
+            serializer = self.get_serializer(data=data)
+            if serializer.is_valid():
+                template = serializer.save()
+
+                # Return the created template with proper formatting
+                response_data = serializer.data
+                response_data['is_custom'] = True
+                response_data['linkedin_type'] = None
+                response_data['created_by'] = 'System'
+
+                return Response(response_data, status=status.HTTP_201_CREATED)
+            else:
+                print(f"Template creation validation errors: {serializer.errors}")
+                return Response(
+                    {'error': 'Validation failed', 'details': serializer.errors},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+        except Exception as e:
+            import traceback
+            error_details = traceback.format_exc()
+            print(f"Template creation error: {error_details}")
+            return Response(
+                {'error': f'Failed to create template: {str(e)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
 def proposal_draft_detail(request, opportunity_id):
     """
     Handle proposal draft operations for a specific opportunity
