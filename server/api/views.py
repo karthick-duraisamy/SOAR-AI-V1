@@ -2285,7 +2285,7 @@ class OpportunityViewSet(viewsets.ModelViewSet):
         serializer = OptimizedOpportunitySerializer(queryset, many=True)
         return Response(serializer.data)
 
-    @action(detail=False, methods=['get'])
+    @action(detail=False, methods=['get'], url_path='closed-won-opportunities')
     def closed_won_opportunities(self, request):
         """
         Get list of vendor/company names from closed won opportunities for contract creation
