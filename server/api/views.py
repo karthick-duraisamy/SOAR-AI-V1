@@ -2288,26 +2288,19 @@ class OpportunityViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['get'], url_path='closed-won-opportunities')
     def closed_won_opportunities(self, request):
         """
-        Get list of vendor/company names from closed won opportunities for contract creation
+        Get list of closed won opportunities for contract creation
         """
         try:
-            # Get all closed won opportunities
+            # Get all closed won opportunities with related data
             closed_won_opps = Opportunity.objects.filter(stage='closed_won').select_related(
-                'lead__contact__company'
-            ).distinct()
+                'lead__company', 'lead__contact'
+            ).prefetch_related('activities').order_by('-created_at')
 
-            # Extract unique company names
-            vendor_names = []
-            for opp in closed_won_opps:
-                if opp.lead and opp.lead.contact and opp.lead.contact.company:
-                    company_name = opp.lead.contact.company.name
-                    if company_name and company_name not in vendor_names:
-                        vendor_names.append(company_name)
+            # Use the optimized serializer to return full opportunity data
+            from .serializers import OptimizedOpportunitySerializer
+            serializer = OptimizedOpportunitySerializer(closed_won_opps, many=True)
 
-            # Sort alphabetically
-            vendor_names.sort()
-
-            return Response(vendor_names, status=200)
+            return Response(serializer.data, status=200)
 
         except Exception as e:
             logger.error(f"Error fetching closed won opportunities: {str(e)}")
