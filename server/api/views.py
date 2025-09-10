@@ -2285,6 +2285,34 @@ class OpportunityViewSet(viewsets.ModelViewSet):
         serializer = OptimizedOpportunitySerializer(queryset, many=True)
         return Response(serializer.data)
 
+    @action(detail=False, methods=['get'])
+    def closed_won_opportunities(self, request):
+        """
+        Get list of vendor/company names from closed won opportunities for contract creation
+        """
+        try:
+            # Get all closed won opportunities
+            closed_won_opps = Opportunity.objects.filter(stage='closed_won').select_related(
+                'lead__contact__company'
+            ).distinct()
+
+            # Extract unique company names
+            vendor_names = []
+            for opp in closed_won_opps:
+                if opp.lead and opp.lead.contact and opp.lead.contact.company:
+                    company_name = opp.lead.contact.company.name
+                    if company_name and company_name not in vendor_names:
+                        vendor_names.append(company_name)
+
+            # Sort alphabetically
+            vendor_names.sort()
+
+            return Response(vendor_names, status=200)
+
+        except Exception as e:
+            logger.error(f"Error fetching closed won opportunities: {str(e)}")
+            return Response({'error': str(e)}, status=500)
+
 class OpportunityActivityViewSet(viewsets.ModelViewSet):
     queryset = OpportunityActivity.objects.all()
     serializer_class = OpportunityActivitySerializer
@@ -3476,7 +3504,7 @@ class EmailCampaignViewSet(viewsets.ModelViewSet):
         """Override list method to handle database connection issues"""
         from django.db import connection
         from django.db.utils import OperationalError
-        
+
         try:
             # Ensure database connection is alive
             connection.ensure_connection()
